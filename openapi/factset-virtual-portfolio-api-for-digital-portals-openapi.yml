@@ -1,0 +1,4933 @@
+openapi: 3.0.0
+info:
+  title: Virtual Portfolio API For Digital Portals
+  description: >
+    The virtual portfolio enables the analysis of the current allocation, broken
+    down by asset classes, currencies, 
+
+    regions, sectors, style, capitalization, style, maturity, risk, and more.
+
+
+    Relative performance and monthly returns can be measured against benchmarks,
+    using portfolio position transaction (buy/sell) data.
+
+    Both the realized profit/loss (resulting from closed transactions) and the
+    potential profit/loss (resulting from positions that
+
+    have not been sold yet) can be queried.
+
+
+    Portfolio endpoints allow creation and managing a transaction-based
+    portfolio. A transaction-based portfolio contains a gapless
+
+    history of all transactions to be able to accurately reproduce the
+    investment record of the portfolio.
+
+
+    An instrument added to a portfolio is called a position. Each position
+    consists of multiple buy and sell events called transactions.
+
+    Portfolios are limited to 100 positions and 1000 transactions; adding more
+    will result in an error.
+
+
+    A transaction-based portfolio can consist of the following transactions:
+
+
+    * A buy transaction opens or adds to a position in the portfolio, decreasing
+    the cash value by the purchase price at the same time.
+      If there is not enough cash in the portfolio to cover the transaction, the cash value becomes negative.
+    * A sell transaction decreases or closes a position in the portfolio,
+    increasing the cash value by the sale price at the same time.
+      A sell transaction can only be created if the number of shares of a given position exceeds the number being sold.
+    * A cash transaction increases or decreases the cash position of the
+    portfolio. A portfolio can have only one cash position.
+      The cash position is tracked automatically as each buy or sell transaction implicitly affects it. The cash position can be
+      negative as a buy transaction does not check whether enough cash is available. The cash position does not generate interest;
+      its performance is always 0%.
+
+    The chosen prices and key figures in the endpoints are using the same
+    quality, which is configurable per application. Possible
+
+    values are delayed (DLY), best (BST), end-of-day (EOD) or realtime (RLT).
+    The default value for the price quality is BST.
+
+
+    The portfolio endpoints use different methods to calculate key figures. All
+    key figures except the risk in /portfolio/detail/list,
+
+    /portfolio/get, and /portfolio/position/list are calculated on-the-fly with
+    current prices. The risk key figures are calculated
+
+    on-the-fly with current prices, but the result is cached for 24 hours. The
+    key figures in /portfolio/evaluation/list are calculated
+
+    on end-of-day basis.
+
+
+    The Virtual Portfolio API for Digital Portals is fully integrated with the
+    corresponding
+
+    [Quotes
+    API](https://developer.factset.com/api-catalog/quotes-api-digital-portals),
+    allowing access to detailed price and performance
+
+    information of instruments in a watchlist. This also supports basic security
+    identifier cross-reference. To complement the
+
+    [Watchlist
+    API](https://developer.factset.com/api-catalog/watchlist-api-digital-portals)
+    and Virtual Portfolio API with direct
+
+    access to price histories, please refer to the
+
+    [Time Series API for Digital
+    Portals](https://developer.factset.com/api-catalog/time-series-api-digital-portals).
+  version: '2'
+servers:
+  - url: https://api.factset.com/wealth/v1
+paths:
+  /portfolio/create:
+    post:
+      tags:
+        - portfolio
+      operationId: post/portfolio/create
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: |-
+        Create a portfolio.
+
+        Certain error conditions yield errors as follows: 
+
+        |Error Condition|HTTP Error|
+        |-------|--------|
+        |The number of portfolios would exceed 100.|400 Bad Request|
+      summary: Create a portfolio.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPortfolioCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/PostPortfolioCreate201Response'
+      parameters: []
+  /portfolio/delete:
+    post:
+      tags:
+        - portfolio
+      operationId: post/portfolio/delete
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Delete a portfolio.
+      summary: Delete a portfolio.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPortfolioDeleteRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostPortfolioDelete200Response'
+      parameters: []
+  /portfolio/get:
+    get:
+      tags:
+        - portfolio
+      operationId: get/portfolio/get
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Details of a portfolio.
+      summary: Details of a portfolio.
+      parameters:
+        - name: id
+          in: query
+          schema:
+            description: Identifier of the portfolio.
+            type: string
+            format: id64
+            x-positive: true
+          required: true
+        - name: _attributes
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              maxLength: 100
+              exclusiveMaximum: false
+            uniqueItems: true
+            maxItems: 50
+          style: form
+          explode: false
+          description: Limit the attributes returned in the response to the specified set.
+      responses:
+        '200':
+          $ref: '#/components/responses/GetPortfolioGet200Response'
+  /portfolio/list:
+    get:
+      tags:
+        - portfolio
+      operationId: get/portfolio/list
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 2
+      x-supportsPermissionDeniedResponse: false
+      description: List of portfolios with keyfigures.
+      summary: List of portfolios with keyfigures.
+      responses:
+        '200':
+          $ref: '#/components/responses/GetPortfolioList200Response'
+      parameters:
+        - name: _attributes
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              maxLength: 100
+              exclusiveMaximum: false
+            uniqueItems: true
+            maxItems: 50
+          style: form
+          explode: false
+          description: Limit the attributes returned in the response to the specified set.
+        - description: >-
+            Sortable attributes. The sort order is ascending unless it is
+            prefixed with a minus sign, in which case it is descending. A list
+            of at most 2 (possibly prefixed) attribute name(s) is allowed.
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - id
+                - '-id'
+                - name
+                - '-name'
+            maxItems: 2
+            uniqueItems: true
+            default:
+              - name
+          style: form
+          explode: false
+          name: _sort
+          in: query
+  /portfolio/modify:
+    post:
+      tags:
+        - portfolio
+      operationId: post/portfolio/modify
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Modify a portfolio.
+      summary: Modify a portfolio.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPortfolioModifyRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostPortfolioModify200Response'
+      parameters: []
+  /portfolio/evaluation/list:
+    post:
+      tags:
+        - portfolio
+      operationId: post/portfolio/evaluation/list
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: >-
+        Performs an evaluation over a period of time and returns portfolio key
+        figures for each day, week, or month.
+      summary: Evaluate a portfolio.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPortfolioEvaluationListRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostPortfolioEvaluationList200Response'
+      parameters: []
+  /portfolio/name/list:
+    get:
+      tags:
+        - portfolio
+      operationId: get/portfolio/name/list
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 2
+      x-supportsPermissionDeniedResponse: false
+      description: List of portfolios.
+      summary: List of portfolios.
+      responses:
+        '200':
+          $ref: '#/components/responses/GetPortfolioNameList200Response'
+      parameters:
+        - name: _attributes
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              maxLength: 100
+              exclusiveMaximum: false
+            uniqueItems: true
+            maxItems: 50
+          style: form
+          explode: false
+          description: Limit the attributes returned in the response to the specified set.
+        - description: >-
+            Sortable attributes. The sort order is ascending unless it is
+            prefixed with a minus sign, in which case it is descending. A list
+            of at most 2 (possibly prefixed) attribute name(s) is allowed.
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - id
+                - '-id'
+                - name
+                - '-name'
+            maxItems: 2
+            uniqueItems: true
+            default:
+              - name
+          style: form
+          explode: false
+          name: _sort
+          in: query
+  /portfolio/payout/create:
+    post:
+      tags:
+        - portfolio
+      operationId: post/portfolio/payout/create
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Add a payout to a portfolio.
+      summary: Add a payout to a portfolio.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPortfolioPayoutCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/PostPortfolioPayoutCreate201Response'
+      parameters: []
+  /portfolio/payout/delete:
+    post:
+      tags:
+        - portfolio
+      operationId: post/portfolio/payout/delete
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: |-
+        Delete a payout of a portfolio.
+
+        Certain error conditions yield errors as follows: 
+
+        |Error Condition|HTTP Error|
+        |-------|--------|
+        |Invalid payout identifier.|400 Bad Request|
+      summary: Delete a payout of a portfolio.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPortfolioPayoutDeleteRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostPortfolioPayoutDelete200Response'
+      parameters: []
+  /portfolio/payout/list:
+    post:
+      tags:
+        - portfolio
+      operationId: post/portfolio/payout/list
+      x-supportsOffsetBasedPaging: true
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 3
+      x-supportsPermissionDeniedResponse: false
+      description: List of payouts in a portfolio.
+      summary: List of payouts in a portfolio.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPortfolioPayoutListRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostPortfolioPayoutList200Response'
+      parameters: []
+  /portfolio/payout/modify:
+    post:
+      tags:
+        - portfolio
+      operationId: post/portfolio/payout/modify
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: >-
+        Modify a payout in a portfolio.
+
+
+        Certain error conditions yield errors as follows: 
+
+
+        |Error Condition|HTTP Error|
+
+        |-------|--------|
+
+        |At least one of the parameters `notation`, `type`, `amount`,
+        `transaction` or `time` must be set.|400 Bad Request|
+
+        |Invalid payout identifier.|400 Bad Request|
+      summary: Modify a payout in a portfolio.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPortfolioPayoutModifyRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostPortfolioPayoutModify200Response'
+      parameters: []
+  /portfolio/position/list:
+    get:
+      tags:
+        - portfolio
+      operationId: get/portfolio/position/list
+      x-supportsOffsetBasedPaging: true
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: List all open positions of a portfolio.
+      summary: List all open positions of a portfolio.
+      parameters:
+        - name: id
+          in: query
+          schema:
+            description: Identifier of the portfolio.
+            type: string
+            format: id64
+            x-positive: true
+          required: true
+        - name: _attributes
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              maxLength: 100
+              exclusiveMaximum: false
+            uniqueItems: true
+            maxItems: 50
+          style: form
+          explode: false
+          description: Limit the attributes returned in the response to the specified set.
+        - name: _language
+          in: query
+          schema:
+            type: string
+            format: isoLanguage
+            description: ISO 639-1 code of the language.
+            maxLength: 2
+            minLength: 2
+            exclusiveMinimum: false
+            exclusiveMaximum: false
+        - description: >-
+            Sortable attributes. The sort order is ascending unless it is
+            prefixed with a minus sign, in which case it is descending. A list
+            of at most 10 (possibly prefixed) attribute name(s) is allowed.
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - positions.instrument.name
+                - '-positions.instrument.name'
+                - positions.instrument.shortName
+                - '-positions.instrument.shortName'
+                - positions.instrument.assetClass.code
+                - '-positions.instrument.assetClass.code'
+                - positions.instrument.type.name
+                - '-positions.instrument.type.name'
+                - positions.shares.open
+                - '-positions.shares.open'
+                - positions.purchase.value
+                - '-positions.purchase.value'
+                - positions.value
+                - '-positions.value'
+                - positions.weight
+                - '-positions.weight'
+                - positions.profitLoss.intraday.absolute
+                - '-positions.profitLoss.intraday.absolute'
+                - positions.profitLoss.intraday.relative
+                - '-positions.profitLoss.intraday.relative'
+                - positions.profitLoss.potential.absolute
+                - '-positions.profitLoss.potential.absolute'
+                - positions.profitLoss.potential.relative
+                - '-positions.profitLoss.potential.relative'
+            maxItems: 10
+            uniqueItems: true
+            default:
+              - positions.instrument.name
+          style: form
+          explode: false
+          name: _sort
+          in: query
+        - description: Non-negative number of entries to skip, or 0 (default).
+          name: _paginationOffset
+          in: query
+          schema:
+            type: number
+            format: int32
+            minimum: 0
+            exclusiveMinimum: false
+            default: 0
+        - description: Non-negative maximum number of entries to return.
+          name: _paginationLimit
+          in: query
+          schema:
+            type: number
+            format: int32
+            minimum: 1
+            exclusiveMinimum: false
+            maximum: 100
+            exclusiveMaximum: false
+            default: 20
+      responses:
+        '200':
+          $ref: '#/components/responses/GetPortfolioPositionList200Response'
+  /portfolio/position/closed/list:
+    post:
+      tags:
+        - portfolio
+      operationId: post/portfolio/position/closed/list
+      x-supportsOffsetBasedPaging: true
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 8
+      x-supportsPermissionDeniedResponse: false
+      description: List all closed positions of a portfolio.
+      summary: List all closed positions of a portfolio.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPortfolioPositionClosedListRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostPortfolioPositionClosedList200Response'
+      parameters: []
+  /portfolio/transaction/create:
+    post:
+      tags:
+        - portfolio
+      operationId: post/portfolio/transaction/create
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: |-
+        Add a transaction to a portfolio.
+
+        Certain error conditions yield errors as follows: 
+
+        |Error Condition|HTTP Error|
+        |-------|--------|
+        |The number of transactions would exceed 1000.|400 Bad Request|
+      summary: Add a transaction to a portfolio.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPortfolioTransactionCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/PostPortfolioTransactionCreate201Response'
+      parameters: []
+  /portfolio/transaction/delete:
+    post:
+      tags:
+        - portfolio
+      operationId: post/portfolio/transaction/delete
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Delete a transaction of a portfolio.
+      summary: Delete a transaction of a portfolio.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPortfolioTransactionDeleteRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostPortfolioTransactionDelete200Response'
+      parameters: []
+  /portfolio/transaction/list:
+    get:
+      tags:
+        - portfolio
+      operationId: get/portfolio/transaction/list
+      x-supportsOffsetBasedPaging: true
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 7
+      x-supportsPermissionDeniedResponse: false
+      description: List of transactions in a portfolio.
+      summary: List of transactions in a portfolio.
+      parameters:
+        - name: id
+          in: query
+          schema:
+            description: Identifier of the portfolio.
+            type: string
+            format: id64
+            x-positive: true
+          required: true
+        - name: _attributes
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              maxLength: 100
+              exclusiveMaximum: false
+            uniqueItems: true
+            maxItems: 50
+          style: form
+          explode: false
+          description: Limit the attributes returned in the response to the specified set.
+        - name: _language
+          in: query
+          schema:
+            type: string
+            format: isoLanguage
+            description: ISO 639-1 code of the language.
+            maxLength: 2
+            minLength: 2
+            exclusiveMinimum: false
+            exclusiveMaximum: false
+        - description: >-
+            Sortable attributes. The sort order is ascending unless it is
+            prefixed with a minus sign, in which case it is descending. A list
+            of at most 7 (possibly prefixed) attribute name(s) is allowed.
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - instrument.name
+                - '-instrument.name'
+                - instrument.shortName
+                - '-instrument.shortName'
+                - instrument.assetClass.code
+                - '-instrument.assetClass.code'
+                - instrument.type.name
+                - '-instrument.type.name'
+                - type
+                - '-type'
+                - time
+                - '-time'
+                - numberShares
+                - '-numberShares'
+            maxItems: 7
+            uniqueItems: true
+            default:
+              - instrument.name
+          style: form
+          explode: false
+          name: _sort
+          in: query
+        - description: Non-negative number of entries to skip, or 0 (default).
+          name: _paginationOffset
+          in: query
+          schema:
+            type: number
+            format: int32
+            minimum: 0
+            exclusiveMinimum: false
+            default: 0
+        - description: Non-negative maximum number of entries to return.
+          name: _paginationLimit
+          in: query
+          schema:
+            type: number
+            format: int32
+            minimum: 1
+            exclusiveMinimum: false
+            maximum: 500
+            exclusiveMaximum: false
+            default: 20
+      responses:
+        '200':
+          $ref: '#/components/responses/GetPortfolioTransactionList200Response'
+  /portfolio/transaction/modify:
+    post:
+      tags:
+        - portfolio
+      operationId: post/portfolio/transaction/modify
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: >-
+        Modify a transaction in a portfolio.
+
+
+        Certain error conditions yield errors as follows: 
+
+
+        |Error Condition|HTTP Error|
+
+        |-------|--------|
+
+        |At least one of the parameters `numberShares`, `price`, `charges`,
+        `exchangeRate` or `time` must be set.|400 Bad Request|
+      summary: Modify a transaction in a portfolio.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPortfolioTransactionModifyRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostPortfolioTransactionModify200Response'
+      parameters: []
+  /portfolio/transaction/cash/create:
+    post:
+      tags:
+        - portfolio
+      operationId: post/portfolio/transaction/cash/create
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: |-
+        Add a cash transaction to a portfolio.
+
+        Certain error conditions yield errors as follows: 
+
+        |Error Condition|HTTP Error|
+        |-------|--------|
+        |The number of transactions would exceed 1000.|400 Bad Request|
+      summary: Add a cash transaction to a portfolio.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPortfolioTransactionCashCreateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostPortfolioTransactionCashCreate200Response'
+      parameters: []
+  /portfolio/transaction/cash/delete:
+    post:
+      tags:
+        - portfolio
+      operationId: post/portfolio/transaction/cash/delete
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Delete a cash transaction.
+      summary: Delete a cash transaction.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPortfolioTransactionCashDeleteRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostPortfolioTransactionCashDelete200Response'
+      parameters: []
+  /watchlist/create:
+    post:
+      tags:
+        - watchlist
+      operationId: post/watchlist/create
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: |-
+        Create a watchlist.
+
+        Certain error conditions yield errors as follows: 
+
+        |Error Condition|HTTP Error|
+        |-------|--------|
+        |The number of watchlists would exceed 100.|400 Bad Request|
+      summary: Create a watchlist.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostWatchlistCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/PostWatchlistCreate201Response'
+      parameters: []
+  /watchlist/delete:
+    post:
+      tags:
+        - watchlist
+      operationId: post/watchlist/delete
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Delete a watchlist.
+      summary: Delete a watchlist.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostWatchlistDeleteRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostWatchlistDelete200Response'
+      parameters: []
+  /watchlist/get:
+    get:
+      tags:
+        - watchlist
+      operationId: get/watchlist/get
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Details of a watchlist.
+      summary: Details of a watchlist.
+      parameters:
+        - name: id
+          in: query
+          schema:
+            description: Identifier of the watchlist.
+            type: string
+            format: id64
+            x-positive: true
+          required: true
+        - name: _attributes
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              maxLength: 100
+              exclusiveMaximum: false
+            uniqueItems: true
+            maxItems: 50
+          style: form
+          explode: false
+          description: Limit the attributes returned in the response to the specified set.
+      responses:
+        '200':
+          $ref: '#/components/responses/GetWatchlistGet200Response'
+  /watchlist/list:
+    get:
+      tags:
+        - watchlist
+      operationId: get/watchlist/list
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 4
+      x-supportsPermissionDeniedResponse: false
+      description: List of watchlists.
+      summary: List of watchlists.
+      responses:
+        '200':
+          $ref: '#/components/responses/GetWatchlistList200Response'
+      parameters:
+        - name: _attributes
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              maxLength: 100
+              exclusiveMaximum: false
+            uniqueItems: true
+            maxItems: 50
+          style: form
+          explode: false
+          description: Limit the attributes returned in the response to the specified set.
+        - description: >-
+            Sortable attributes. The sort order is ascending unless it is
+            prefixed with a minus sign, in which case it is descending. A list
+            of at most 4 (possibly prefixed) attribute name(s) is allowed.
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - id
+                - '-id'
+                - name
+                - '-name'
+                - numberPositions
+                - '-numberPositions'
+                - creation
+                - '-creation'
+            maxItems: 4
+            uniqueItems: true
+            default:
+              - name
+          style: form
+          explode: false
+          name: _sort
+          in: query
+  /watchlist/modify:
+    post:
+      tags:
+        - watchlist
+      operationId: post/watchlist/modify
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Modify a watchlist.
+      summary: Modify a watchlist.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostWatchlistModifyRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostWatchlistModify200Response'
+      parameters: []
+  /watchlist/position/create:
+    post:
+      tags:
+        - watchlist
+      operationId: post/watchlist/position/create
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: >-
+        Add a position to a watchlist.
+
+
+        Certain error conditions yield errors as follows: 
+
+
+        |Error Condition|HTTP Error|
+
+        |-------|--------|
+
+        |Maximum number of watchlist positions would exceed 100.|400 Bad
+        Request|
+
+        |The watchlist does not exist.|400 Bad Request|
+
+        |The notation already exists in the watchlist.|400 Bad Request|
+      summary: Add a position to a watchlist.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostWatchlistPositionCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/PostWatchlistPositionCreate201Response'
+      parameters: []
+  /watchlist/position/delete:
+    post:
+      tags:
+        - watchlist
+      operationId: post/watchlist/position/delete
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Delete a position of a watchlist.
+      summary: Delete a position of a watchlist.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostWatchlistPositionDeleteRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostWatchlistPositionDelete200Response'
+      parameters: []
+  /watchlist/position/get:
+    post:
+      tags:
+        - watchlist
+      operationId: post/watchlist/position/get
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Details of the position of a watchlist.
+      summary: Details of the position of a watchlist.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostWatchlistPositionGetRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostWatchlistPositionGet200Response'
+      parameters: []
+  /watchlist/position/list:
+    get:
+      tags:
+        - watchlist
+      operationId: get/watchlist/position/list
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 2
+      x-supportsPermissionDeniedResponse: false
+      description: List of positions of a watchlist.
+      summary: List of positions of a watchlist.
+      parameters:
+        - name: id
+          in: query
+          schema:
+            description: Identifier of the watchlist.
+            type: string
+            format: id64
+            x-positive: true
+          required: true
+        - name: _attributes
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              maxLength: 100
+              exclusiveMaximum: false
+            uniqueItems: true
+            maxItems: 50
+          style: form
+          explode: false
+          description: Limit the attributes returned in the response to the specified set.
+        - description: >-
+            Sortable attributes. The sort order is ascending unless it is
+            prefixed with a minus sign, in which case it is descending. A list
+            of at most 2 (possibly prefixed) attribute name(s) is allowed.
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - id
+                - '-id'
+                - notation.id
+                - '-notation.id'
+            maxItems: 2
+            uniqueItems: true
+            default:
+              - id
+          style: form
+          explode: false
+          name: _sort
+          in: query
+      responses:
+        '200':
+          $ref: '#/components/responses/GetWatchlistPositionList200Response'
+  /watchlist/position/modify:
+    post:
+      tags:
+        - watchlist
+      operationId: post/watchlist/position/modify
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: >-
+        Modify a position in a watchlist.
+
+
+        Certain error conditions yield errors as follows: 
+
+
+        |Error Condition|HTTP Error|
+
+        |-------|--------|
+
+        |At least one of the parameters `notation` or `comment` must be set.|400
+        Bad Request|
+
+        |The notation already exists in the watchlist.|400 Bad Request|
+      summary: Modify a position in a watchlist.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostWatchlistPositionModifyRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostWatchlistPositionModify200Response'
+      parameters: []
+components:
+  schemas:
+    ErrorMetaObject:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/StatusObject'
+    ErrorObject:
+      type: array
+      description: >-
+        The errors member contains additional information about a failed
+        request.
+      items:
+        type: object
+        properties:
+          details:
+            type: string
+            description: >-
+              A human-readable, unstructured explanation specific to this
+              occurrence of the failure.
+          encryptedDetails:
+            type: string
+            description: >-
+              Base64-encoded, internal details about the error, in addition to
+              "details".
+          type:
+            type: number
+            format: int32
+            description: Internal error type of the Foundation API protocol.
+          attribute:
+            type: array
+            description: >-
+              For a validation error, a reference to the request parameter that
+              failed validation; otherwise, an empty array.
+            items:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Element of the path denoting the request parameter.
+                index:
+                  type: number
+                  format: int32
+                  description: >-
+                    If the attribute "name" designates an array, index of the
+                    array element; otherwise the special value -1.
+              x-property-sort:
+                - name
+                - index
+        x-property-sort:
+          - detail
+          - encryptedDetails
+          - type
+          - attribute
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+        exclusiveMaximum: false
+      maxItems: 50
+      uniqueItems: true
+    LanguageMember:
+      type: string
+      format: isoLanguage
+      description: ISO 639-1 code of the language.
+      maxLength: 2
+      minLength: 2
+      exclusiveMinimum: false
+      exclusiveMaximum: false
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: >-
+            The HTTP status code of the response, mirroring the code from the
+            Status-Line of the HTTP response message (see [RFC2616] section
+            6.1).
+      description: The status member contains the status code of the response.
+      required:
+        - code
+    CursorBasedPaginationOutputObject:
+      type: object
+      description: Pagination attributes for the cursor-based pagination strategy.
+      properties:
+        total:
+          type: number
+          format: int32
+          description: Total number of entries in the result set.
+        isEstimatedTotal:
+          type: boolean
+          description: Flag indicating that the value of `total` is estimated.
+        next:
+          type: string
+          description: >-
+            The next cursor position to use in the parameter `pagination.cursor`
+            for an endpoint that supports cursor-based pagination, otherwise
+            `null`.
+        previous:
+          type: string
+          description: >-
+            The previous cursor position to use in the parameter
+            `pagination.cursor` for an endpoint that supports cursor-based
+            pagination. If a previous cursor position is not supported or
+            available, `previous` is `null`.
+      required:
+        - total
+        - isEstimatedTotal
+        - next
+        - previous
+      x-property-sort:
+        - total
+        - isEstimatedTotal
+        - next
+        - previous
+    CursorBasedPaginationOutputObjectWithoutTotal:
+      type: object
+      description: >-
+        Pagination attributes for the cursor-based pagination strategy; a total
+        element count is not supported.
+      properties:
+        next:
+          type: string
+          description: >-
+            The next cursor position to use in the parameter `pagination.cursor`
+            for an endpoint that supports cursor-based pagination, otherwise
+            `null`.
+        previous:
+          type: string
+          description: >-
+            The previous cursor position to use in the parameter
+            `pagination.cursor` for an endpoint that supports cursor-based
+            pagination. If a previous cursor position is not supported or
+            available, `previous` is `null`.
+      required:
+        - next
+        - previous
+      x-property-sort:
+        - next
+        - previous
+    OffsetBasedPaginationOutputObject:
+      type: object
+      description: Pagination attributes for the offset-based pagination strategy.
+      properties:
+        total:
+          type: number
+          format: int32
+          description: Total number of entries in the result set.
+        isEstimatedTotal:
+          type: boolean
+          description: Flag indicating that the value of "total" is estimated.
+      required:
+        - total
+        - isEstimatedTotal
+      x-property-sort:
+        - total
+        - isEstimatedTotal
+    OffsetBasedPaginationOutputObjectWithoutTotal:
+      type: object
+      description: >-
+        Pagination attributes for the offset-based pagination strategy; a total
+        element count is not supported.
+      properties:
+        hasNext:
+          type: boolean
+          description: >-
+            Flag indicating that a subsequent request with the same parameters,
+            except that the parameter `pagination.offset` is incremented by
+            `pagination.limit`, would yield additional results.
+      required:
+        - hasNext
+      x-property-sort:
+        - hasNext
+    PartialOutputObject:
+      type: object
+      properties:
+        isPartial:
+          type: boolean
+          description: >-
+            Flag indicating that the response is a possibly incomplete array or
+            an object containing a possibly incomplete array, due to hitting a
+            processing time limit. If `true`, some matching results might be
+            missing from the array, or elements for matching results might be
+            incorrectly included (for example, when priority sorting would have
+            removed the element). Depending on the use case, such a response may
+            be unsuitable.
+      description: Object denoting that the endpoint response is possibly incomplete.
+      required:
+        - isPartial
+      x-property-sort:
+        - isPartial
+    PostPortfolioCreateRequest:
+      required:
+        - data
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - name
+            - currency
+          description: The data member contains the request's primary data.
+          properties:
+            name:
+              description: Name of the portfolio.
+              type: string
+              pattern: >-
+                ^[\u0020-\u002e\u0030-\u003a\u003d\u003f-\u005d\u005f\u0061-\u007e\u00c0-\u00ff\u20ac]{1,}$
+              x-trim: false
+              minLength: 1
+              exclusiveMinimum: false
+              maxLength: 100
+              exclusiveMaximum: false
+            currency:
+              description: >-
+                Main currency used as the portfolio's currency. See endpoint
+                /basic/valueUnit/currency/main/list for valid values.
+              type: object
+              x-property-sort:
+                - isoCode
+              properties:
+                isoCode:
+                  description: ISO 4217 code of the currency.
+                  type: string
+                  maxLength: 3
+                  exclusiveMaximum: false
+                  default: EUR
+          required:
+            - name
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+            - attributes
+    PostPortfolioDeleteRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - id
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the portfolio.
+              type: string
+              format: id64
+              x-positive: true
+          required:
+            - id
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+            - attributes
+    PostPortfolioModifyRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - id
+            - name
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the portfolio.
+              type: string
+              format: id64
+              x-positive: true
+            name:
+              description: Name of the portfolio.
+              type: string
+              pattern: >-
+                ^[\u0020-\u002e\u0030-\u003a\u003d\u003f-\u005d\u005f\u0061-\u007e\u00c0-\u00ff\u20ac]*$
+              x-trim: false
+              minLength: 1
+              exclusiveMinimum: false
+              maxLength: 100
+              exclusiveMaximum: false
+          required:
+            - id
+            - name
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+            - attributes
+    PostPortfolioEvaluationListRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - id
+            - range
+            - resolution
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the portfolio.
+              type: string
+              format: id64
+              x-positive: true
+            range:
+              type: object
+              format: dateRange
+              x-isClosedInterval: true
+              properties:
+                start:
+                  type: string
+                  format: date
+                  description: The starting point of the date range (inclusive).
+                end:
+                  type: string
+                  format: date
+                  description: The ending point of the date range (inclusive).
+              x-property-sort:
+                - start
+                - end
+              required:
+                - start
+                - end
+              description: >-
+                Date range for the time series. A valid date range is between
+                1900-01-01 and the day after the current day. A date before the
+                date of the first transaction is implicitly adjusted to the date
+                of the portfolio's first transaction.
+            resolution:
+              type: string
+              default: daily
+              x-enum-description:
+                - ''
+                - ''
+                - ''
+              enum:
+                - daily
+                - weekly
+                - monthly
+          required:
+            - id
+            - range
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+            - attributes
+    PostPortfolioPayoutCreateRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - id
+            - type
+            - notation
+            - time
+            - amount
+            - transaction
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the portfolio.
+              type: string
+              format: id64
+              x-positive: true
+            type:
+              description: 'Payout type. '
+              type: string
+              x-enum-description:
+                - Dividend
+                - Payout
+                - Coupon
+                - Subscription right
+                - Other
+              enum:
+                - dividend
+                - payout
+                - coupon
+                - subscriptionRight
+                - other
+            notation:
+              description: Notation of the position.
+              type: object
+              x-property-sort:
+                - id
+              properties:
+                id:
+                  description: Identifier of the notation.
+                  type: string
+                  format: id64
+                  x-positive: true
+              required:
+                - id
+            time:
+              description: Date and time of the payout.
+              type: string
+              format: datetime
+            amount:
+              description: Amount of the payout in the portfolio's base currency.
+              type: number
+              format: real
+            transaction:
+              description: >-
+                Associates the payout with a sub-position opened by a specific
+                buy transaction. If omitted, the payout will be associated with
+                all sub-positions of the notation in the portfolio.
+              type: object
+              x-property-sort:
+                - id
+              properties:
+                id:
+                  description: Identifier of the buy transaction.
+                  type: string
+                  format: id64
+                  x-positive: true
+              required:
+                - id
+          required:
+            - id
+            - type
+            - notation
+            - time
+            - amount
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+            - attributes
+    PostPortfolioPayoutDeleteRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - id
+            - payout
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the portfolio.
+              type: string
+              format: id64
+              x-positive: true
+            payout:
+              description: Payout of the portfolio.
+              type: object
+              x-property-sort:
+                - id
+              properties:
+                id:
+                  type: string
+                  format: id64
+                  x-positive: true
+                  description: Identifier of the payout.
+              required:
+                - id
+          required:
+            - id
+            - payout
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+            - attributes
+    PostPortfolioPayoutListRequest:
+      required:
+        - data
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - id
+            - filter
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the portfolio.
+              type: string
+              format: id64
+              x-positive: true
+            filter:
+              type: object
+              x-property-sort:
+                - instrument
+              description: >-
+                Criteria that filter the items in the response list; only items
+                that match all of the criteria are returned.
+              properties:
+                instrument:
+                  type: object
+                  x-property-sort:
+                    - id
+                  description: Filtering the payouts by instrument.
+                  properties:
+                    id:
+                      description: Identifier of the instrument.
+                      type: string
+                      format: id64
+                      x-positive: true
+          required:
+            - id
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+            sort:
+              description: >-
+                Sortable attributes. The sort order is ascending unless it is
+                prefixed with a minus sign, in which case it is descending. A
+                list of at most 3 (possibly prefixed) attribute name(s) is
+                allowed.
+              type: array
+              items:
+                type: string
+                enum:
+                  - type
+                  - '-type'
+                  - time
+                  - '-time'
+                  - amount
+                  - '-amount'
+              maxItems: 3
+              uniqueItems: true
+              default:
+                - time
+            pagination:
+              type: object
+              description: Pagination attributes for the offset-based pagination strategy.
+              properties:
+                offset:
+                  type: number
+                  format: int32
+                  minimum: 0
+                  exclusiveMinimum: false
+                  default: 0
+                  description: Non-negative number of entries to skip, or 0 (default).
+                limit:
+                  type: number
+                  format: int32
+                  minimum: 1
+                  exclusiveMinimum: false
+                  maximum: 500
+                  exclusiveMaximum: false
+                  default: 20
+                  description: Non-negative maximum number of entries to return.
+              x-property-sort:
+                - offset
+                - limit
+          x-property-sort:
+            - attributes
+            - sort
+            - pagination
+    PostPortfolioPayoutModifyRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - id
+            - payout
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the portfolio.
+              type: string
+              format: id64
+              x-positive: true
+            payout:
+              description: Payout of the portfolio.
+              type: object
+              x-property-sort:
+                - id
+                - type
+                - notation
+                - time
+                - amount
+                - transaction
+              properties:
+                id:
+                  type: string
+                  format: id64
+                  x-positive: true
+                  description: Identifier of the payout.
+                type:
+                  description: 'Payout type. '
+                  type: string
+                  x-enum-description:
+                    - Dividend
+                    - Payout
+                    - Coupon
+                    - Subscription right
+                    - Other
+                  enum:
+                    - dividend
+                    - payout
+                    - coupon
+                    - subscriptionRight
+                    - other
+                notation:
+                  description: Notation of the transaction.
+                  type: object
+                  x-property-sort:
+                    - id
+                  properties:
+                    id:
+                      description: Identifier of the notation
+                      type: string
+                      format: id64
+                      x-positive: true
+                  required:
+                    - id
+                time:
+                  description: Date and time of the payout.
+                  type: string
+                  format: datetime
+                amount:
+                  description: Amount of the payout in the portfolio's base currency.
+                  type: number
+                  format: real
+                transaction:
+                  description: >-
+                    Associates the payout with a sub-position opened by a
+                    specific buy transaction and removes the existing
+                    association if available.
+                  type: object
+                  x-property-sort:
+                    - id
+                  properties:
+                    id:
+                      description: Identifier of the buy transaction.
+                      type: string
+                      format: id64
+                      x-positive: true
+              required:
+                - id
+          required:
+            - id
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+            - attributes
+    PostPortfolioPositionClosedListRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - id
+            - range
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the portfolio.
+              type: string
+              format: id64
+              x-positive: true
+            range:
+              type: object
+              format: dateRange
+              x-isClosedInterval: true
+              properties:
+                start:
+                  type: string
+                  format: date
+                  description: The starting point of the date range (inclusive).
+                end:
+                  type: string
+                  format: date
+                  description: The ending point of the date range (inclusive).
+              x-property-sort:
+                - start
+                - end
+              required:
+                - start
+                - end
+              description: >-
+                Date range for the closed positions. A valid date range is
+                between 1900-01-01 and the day after the current day. A date
+                before the date of the first transaction is implicitly adjusted
+                to the date of the portfolio's first transaction.
+          required:
+            - id
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+            language:
+              $ref: '#/components/schemas/LanguageMember'
+            sort:
+              description: >-
+                Sortable attributes. The sort order is ascending unless it is
+                prefixed with a minus sign, in which case it is descending. A
+                list of at most 8 (possibly prefixed) attribute name(s) is
+                allowed.
+              type: array
+              items:
+                type: string
+                enum:
+                  - positions.instrument.name
+                  - '-positions.instrument.name'
+                  - positions.instrument.shortName
+                  - '-positions.instrument.shortName'
+                  - positions.instrument.assetClass.code
+                  - '-positions.instrument.assetClass.code'
+                  - positions.instrument.type.name
+                  - '-positions.instrument.type.name'
+                  - positions.transaction.buy.value
+                  - '-positions.transaction.buy.value'
+                  - positions.transaction.sell.value
+                  - '-positions.transaction.sell.value'
+                  - positions.shares
+                  - '-positions.shares'
+                  - positions.payout.amount
+                  - '-positions.payout.amount'
+              maxItems: 8
+              uniqueItems: true
+              default:
+                - positions.instrument.name
+            pagination:
+              type: object
+              description: Pagination attributes for the offset-based pagination strategy.
+              properties:
+                offset:
+                  type: number
+                  format: int32
+                  minimum: 0
+                  exclusiveMinimum: false
+                  default: 0
+                  description: Non-negative number of entries to skip, or 0 (default).
+                limit:
+                  type: number
+                  format: int32
+                  minimum: 1
+                  exclusiveMinimum: false
+                  maximum: 100
+                  exclusiveMaximum: false
+                  default: 20
+                  description: Non-negative maximum number of entries to return.
+              x-property-sort:
+                - offset
+                - limit
+          x-property-sort:
+            - attributes
+            - language
+            - sort
+            - pagination
+    PostPortfolioTransactionCreateRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - id
+            - type
+            - notation
+            - time
+            - numberShares
+            - price
+            - charges
+            - exchangeRate
+            - parentTransaction
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the portfolio.
+              type: string
+              format: id64
+              x-positive: true
+            type:
+              description: 'Transaction Type. '
+              type: string
+              x-enum-description:
+                - Buy
+                - Sell
+                - Sell short
+                - Cover short sale
+              enum:
+                - buy
+                - sell
+                - short
+                - cover
+            notation:
+              description: Notation of the position.
+              type: object
+              x-property-sort:
+                - id
+              properties:
+                id:
+                  description: Identifier of the notation.
+                  type: string
+                  format: id64
+                  x-positive: true
+              required:
+                - id
+            time:
+              description: Date and time of the trade.
+              type: string
+              format: datetime
+            numberShares:
+              description: Number of shares bought or sold.
+              type: number
+              format: real
+            price:
+              description: Purchase price.
+              type: number
+              format: real
+            charges:
+              description: Charges accrued in portfolioâ¬Üs base currency.
+              type: number
+              format: real
+              default: 0
+            exchangeRate:
+              description: >-
+                The exchange rate between the notation's currency and the
+                portfolio currency.
+              type: number
+              format: real
+              default: 1
+            parentTransaction:
+              description: >-
+                Parent transactions can be used to link transactions together.
+                Only sell or cover short sell can be have buy transaction as its
+                parent. All other combinations will be ignored, but they will
+                not affect the current create request.
+              type: object
+              x-property-sort:
+                - id
+              properties:
+                id:
+                  description: Identifier of the parent transaction.
+                  type: string
+                  format: id64
+                  x-positive: true
+          required:
+            - id
+            - type
+            - notation
+            - time
+            - numberShares
+            - price
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+            - attributes
+    PostPortfolioTransactionDeleteRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - id
+            - transaction
+            - notation
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the portfolio.
+              type: string
+              format: id64
+              x-positive: true
+            transaction:
+              description: Transaction of the portfolio.
+              type: object
+              x-property-sort:
+                - id
+              properties:
+                id:
+                  type: string
+                  format: id64
+                  x-positive: true
+                  description: Identifier of the transaction.
+              required:
+                - id
+            notation:
+              description: Notation of the transaction.
+              type: object
+              x-property-sort:
+                - id
+              properties:
+                id:
+                  description: Identifier of the notation
+                  type: string
+                  format: id64
+                  x-positive: true
+              required:
+                - id
+          required:
+            - id
+            - transaction
+            - notation
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+            - attributes
+    PostPortfolioTransactionModifyRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - id
+            - transaction
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the portfolio.
+              type: string
+              format: id64
+              x-positive: true
+            transaction:
+              description: Transaction of the portfolio.
+              type: object
+              x-property-sort:
+                - id
+                - notation
+                - time
+                - numberShares
+                - price
+                - charges
+                - exchangeRate
+              properties:
+                id:
+                  type: string
+                  format: id64
+                  x-positive: true
+                  description: Identifier of the transaction.
+                notation:
+                  description: Notation of the transaction.
+                  type: object
+                  x-property-sort:
+                    - id
+                  properties:
+                    id:
+                      description: Identifier of the notation
+                      type: string
+                      format: id64
+                      x-positive: true
+                  required:
+                    - id
+                time:
+                  description: Date and time of the trade.
+                  type: string
+                  format: datetime
+                numberShares:
+                  description: Number of shares bought or sold.
+                  type: number
+                  format: real
+                price:
+                  description: Purchase price.
+                  type: number
+                  format: real
+                charges:
+                  description: Charges accrued in portfolio's base currency.
+                  type: number
+                  format: real
+                exchangeRate:
+                  description: >-
+                    The exchange rate between the notation's currency and the
+                    portfolio currency.
+                  type: number
+                  format: real
+              required:
+                - id
+          required:
+            - id
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+            - attributes
+    PostPortfolioTransactionCashCreateRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - id
+            - time
+            - amount
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the portfolio.
+              type: string
+              format: id64
+              x-positive: true
+            time:
+              description: Date and time of the trade.
+              type: string
+              format: datetime
+            amount:
+              description: >-
+                The cash amount being deposited / withdrawn in portfolioâ¬Üs
+                base currency.
+              type: number
+              format: real
+          required:
+            - id
+            - time
+            - amount
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+            - attributes
+    PostPortfolioTransactionCashDeleteRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - id
+            - transaction
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the portfolio.
+              type: string
+              format: id64
+              x-positive: true
+            transaction:
+              description: Transaction of the portfolio.
+              type: object
+              x-property-sort:
+                - id
+              properties:
+                id:
+                  type: string
+                  format: id64
+                  x-positive: true
+                  description: Identifier of the transaction.
+              required:
+                - id
+          required:
+            - id
+            - transaction
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+            - attributes
+    PostWatchlistCreateRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - name
+          description: The data member contains the request's primary data.
+          properties:
+            name:
+              description: Name of the watchlist.
+              type: string
+              pattern: >-
+                ^[\u0020-\u002e\u0030-\u003a\u003d\u003f-\u005d\u005f\u0061-\u007e\u00c0-\u00ff\u20ac]*$
+              x-trim: false
+              minLength: 1
+              exclusiveMinimum: false
+              maxLength: 100
+              exclusiveMaximum: false
+          required:
+            - name
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+            - attributes
+    PostWatchlistDeleteRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - id
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the watchlist.
+              type: string
+              format: id64
+              x-positive: true
+          required:
+            - id
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+            - attributes
+    PostWatchlistModifyRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - id
+            - name
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the watchlist.
+              type: string
+              format: id64
+              x-positive: true
+            name:
+              description: Name of the watchlist.
+              type: string
+              pattern: >-
+                ^[\u0020-\u002e\u0030-\u003a\u003d\u003f-\u005d\u005f\u0061-\u007e\u00c0-\u00ff\u20ac]*$
+              x-trim: false
+              minLength: 1
+              exclusiveMinimum: false
+              maxLength: 100
+              exclusiveMaximum: false
+          required:
+            - id
+            - name
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+            - attributes
+    PostWatchlistPositionCreateRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - id
+            - notation
+            - comment
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the watchlist.
+              type: string
+              format: id64
+              x-positive: true
+            notation:
+              description: Notation of the position.
+              type: object
+              x-property-sort:
+                - id
+              properties:
+                id:
+                  description: Identifier of the notation.
+                  type: string
+                  format: id64
+                  x-positive: true
+              required:
+                - id
+            comment:
+              description: Personal note for the watchlist position.
+              type: string
+              pattern: ^[\u0020-\u005d\u005f\u0061-\u007e\u00c0-\u00ff\u20ac]*$
+              x-allowNullValue: true
+              x-trim: false
+              maxLength: 200
+              exclusiveMaximum: false
+          required:
+            - id
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+            - attributes
+    PostWatchlistPositionDeleteRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - id
+            - position
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the watchlist.
+              type: string
+              format: id64
+              x-positive: true
+            position:
+              description: Position of the watchlist.
+              type: object
+              x-property-sort:
+                - id
+              properties:
+                id:
+                  description: Identifier of a position.
+                  type: number
+                  format: id32
+                  x-positive: true
+              required:
+                - id
+          required:
+            - id
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+            - attributes
+    PostWatchlistPositionGetRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - id
+            - position
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the watchlist.
+              type: string
+              format: id64
+              x-positive: true
+            position:
+              description: Position of the watchlist.
+              type: object
+              x-property-sort:
+                - id
+              properties:
+                id:
+                  description: Identifier of the position
+                  type: number
+                  format: id32
+                  x-positive: true
+              required:
+                - id
+          required:
+            - id
+            - position
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+            - attributes
+    PostWatchlistPositionModifyRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+            - id
+            - position
+            - notation
+            - comment
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the watchlist.
+              type: string
+              format: id64
+              x-positive: true
+            position:
+              description: Position of the watchlist.
+              type: object
+              x-property-sort:
+                - id
+              properties:
+                id:
+                  description: Identifier of the position.
+                  type: number
+                  format: id32
+                  x-positive: true
+              required:
+                - id
+            notation:
+              description: Notation of the position.
+              type: object
+              x-property-sort:
+                - id
+              properties:
+                id:
+                  description: Identifier of the notation.
+                  type: string
+                  format: id64
+                  x-positive: true
+              required:
+                - id
+            comment:
+              description: Personal note for the watchlist position.
+              type: string
+              pattern: ^[\u0020-\u005d\u005f\u0061-\u007e\u00c0-\u00ff\u20ac]*$
+              x-allowNullValue: true
+              x-trim: false
+              maxLength: 200
+              exclusiveMaximum: false
+          required:
+            - id
+            - position
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+            - attributes
+  responses:
+    ErrorResponse:
+      description: Generic error response for all errors (400 ... 599 error codes)
+      headers: {}
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              meta:
+                $ref: '#/components/schemas/ErrorMetaObject'
+              errors:
+                $ref: '#/components/schemas/ErrorObject'
+    PostPortfolioCreate201Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: Details of the portfolio.
+                nullable: false
+                type: object
+                x-property-sort:
+                  - id
+                properties:
+                  id:
+                    nullable: true
+                    description: Identifier of the portfolio.
+                    type: string
+                    format: id64
+                    x-positive: true
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    PostPortfolioDelete200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: This member is always empty.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    GetPortfolioGet200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: Details of the portfolio.
+                nullable: false
+                type: object
+                x-property-sort:
+                  - id
+                  - name
+                  - currency
+                  - lifecycle
+                  - asOfDate
+                  - summary
+                  - profitLoss
+                  - riskKeyFigures
+                properties:
+                  id:
+                    nullable: true
+                    description: Identifier of the portfolio.
+                    type: string
+                    format: id64
+                    x-positive: true
+                  name:
+                    nullable: true
+                    type: string
+                    description: Name of the portfolio.
+                  currency:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                      - id
+                      - isoCode
+                    description: >-
+                      Currency of the portfolio. See endpoint
+                      `/basic/valueUnit/currency/main/list` for possible values.
+                    properties:
+                      id:
+                        nullable: true
+                        type: number
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the currency.
+                      isoCode:
+                        nullable: true
+                        type: string
+                        description: ISO 4217 code of the currency.
+                  lifecycle:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                      - creation
+                      - transaction
+                    description: Events in the lifecycle of a portfolio.
+                    properties:
+                      creation:
+                        nullable: true
+                        description: Date and time of the portfolio creation.
+                        type: string
+                        format: datetime
+                      transaction:
+                        nullable: false
+                        type: object
+                        x-property-sort:
+                          - first
+                          - latest
+                        description: Date and time of the portfolio.
+                        properties:
+                          first:
+                            nullable: true
+                            description: Date and time of the first transaction.
+                            type: string
+                            format: datetime
+                          latest:
+                            nullable: true
+                            description: Date and time of the most recent transaction.
+                            type: string
+                            format: datetime
+                  asOfDate:
+                    nullable: true
+                    description: Date and time of the portfolio valuation.
+                    type: string
+                    format: datetime
+                  summary:
+                    nullable: false
+                    description: >-
+                      Summary of portfolio values in the portfolio's currency
+                      (see attribute `currency`).
+                    type: object
+                    x-property-sort:
+                      - totalValue
+                      - marketValue
+                      - purchaseValue
+                      - numberPositions
+                      - transactions
+                      - cash
+                    properties:
+                      totalValue:
+                        nullable: true
+                        description: >-
+                          The total portfolio value, i.e. the current market
+                          value of the portfolio plus cash.
+                        type: number
+                        format: real
+                      marketValue:
+                        nullable: true
+                        description: >-
+                          The current market value of the securities in the
+                          portfolio.
+                        type: number
+                        format: real
+                      purchaseValue:
+                        nullable: true
+                        description: The total purchase value of all securities.
+                        type: number
+                        format: real
+                      numberPositions:
+                        nullable: true
+                        description: Number of positions in the portfolio.
+                        type: number
+                        format: int32
+                      transactions:
+                        nullable: false
+                        description: Summary of all non-cash transactions.
+                        type: object
+                        x-property-sort:
+                          - total
+                          - buy
+                          - sell
+                        properties:
+                          total:
+                            nullable: false
+                            description: Summary of all non-cash transactions.
+                            type: object
+                            x-property-sort:
+                              - number
+                              - turnover
+                            properties:
+                              number:
+                                nullable: true
+                                description: Total number of transactions in the portfolio.
+                                type: number
+                                format: int32
+                              turnover:
+                                nullable: true
+                                description: Total turnover generated by all transactions.
+                                type: number
+                                format: real
+                          buy:
+                            nullable: false
+                            description: Summary of buy transactions.
+                            type: object
+                            x-property-sort:
+                              - number
+                              - turnover
+                            properties:
+                              number:
+                                nullable: true
+                                description: Number of buy transactions in the portfolio.
+                                type: number
+                                format: int32
+                              turnover:
+                                nullable: true
+                                description: >-
+                                  Total turnover generated by all buy
+                                  transactions.
+                                type: number
+                                format: real
+                          sell:
+                            nullable: false
+                            description: Summary of sell transactions.
+                            type: object
+                            x-property-sort:
+                              - number
+                              - turnover
+                            properties:
+                              number:
+                                nullable: true
+                                description: Number of sell transactions in the portfolio.
+                                type: number
+                                format: int32
+                              turnover:
+                                nullable: true
+                                description: >-
+                                  Total turnover generated by all sell
+                                  transactions.
+                                type: number
+                                format: real
+                      cash:
+                        nullable: false
+                        description: Summary of cash transactions.
+                        type: object
+                        x-property-sort:
+                          - amount
+                        properties:
+                          amount:
+                            nullable: true
+                            description: Current cash amount.
+                            type: number
+                            format: real
+                  profitLoss:
+                    nullable: false
+                    description: >-
+                      Profit and loss analysis. Positive values indicate profit;
+                      negative values indicate loss. All calculations are
+                      performed in the currency of the portfolio.
+                    type: object
+                    x-property-sort:
+                      - realized
+                      - potential
+                      - total
+                      - today
+                    properties:
+                      realized:
+                        nullable: false
+                        description: >-
+                          Summary of realized profit or loss resulting from
+                          closed positions, i.e. instrument positions that have
+                          been sold entirely
+                        type: object
+                        x-property-sort:
+                          - absolute
+                          - relative
+                        properties:
+                          absolute:
+                            nullable: true
+                            description: Absolute value of profit or loss.
+                            type: number
+                            format: real
+                          relative:
+                            nullable: true
+                            description: Relative value of profit or loss.
+                            type: number
+                            format: percentage
+                            x-convertToRelative: false
+                      potential:
+                        nullable: false
+                        description: >-
+                          Summary of potential profit or loss resulting from
+                          open positions, i.e. instrument positions that have
+                          not been sold.
+                        type: object
+                        x-property-sort:
+                          - absolute
+                          - relative
+                        properties:
+                          absolute:
+                            nullable: true
+                            description: Absolute value of profit or loss.
+                            type: number
+                            format: real
+                          relative:
+                            nullable: true
+                            description: Relative value of profit or loss.
+                            type: number
+                            format: percentage
+                            x-convertToRelative: false
+                      total:
+                        nullable: false
+                        description: >-
+                          Summary of potential profit or loss resulting from
+                          open and closed positions.
+                        type: object
+                        x-property-sort:
+                          - absolute
+                          - relative
+                        properties:
+                          absolute:
+                            nullable: true
+                            description: >-
+                              Absolute value of realized and potential profit or
+                              loss.
+                            type: number
+                            format: real
+                          relative:
+                            nullable: true
+                            description: >-
+                              Relative value of realized and potential profit or
+                              loss.
+                            type: number
+                            format: percentage
+                            x-convertToRelative: false
+                      today:
+                        nullable: false
+                        description: >-
+                          Summary of today's profit or loss, calculated using
+                          the most recent price and the last price of the prior
+                          trading day.
+                        type: object
+                        x-property-sort:
+                          - absolute
+                          - relative
+                        properties:
+                          absolute:
+                            nullable: true
+                            description: Absolute value of profit or loss.
+                            type: number
+                            format: real
+                          relative:
+                            nullable: true
+                            description: Relative value of profit or loss.
+                            type: number
+                            format: percentage
+                            x-convertToRelative: false
+                  riskKeyFigures:
+                    nullable: false
+                    description: Current risk key figures.
+                    type: object
+                    x-property-sort:
+                      - volatility
+                      - valueAtRisk
+                    properties:
+                      volatility:
+                        nullable: true
+                        description: >-
+                          Portfolio's volatility over the last 250 calendar
+                          days.
+                        type: number
+                        format: real
+                      valueAtRisk:
+                        nullable: true
+                        description: >-
+                          Current portfolio value-at-risk, calculated using the
+                          variance/covariance method.
+                        type: number
+                        format: real
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    GetPortfolioList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: List of portfolios.
+                nullable: false
+                type: array
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                    - id
+                    - name
+                    - currency
+                    - summary
+                    - profitLoss
+                  properties:
+                    id:
+                      nullable: true
+                      description: Identifier of the portfolio.
+                      x-sortable: true
+                      type: string
+                      format: id64
+                      x-positive: true
+                    name:
+                      nullable: true
+                      description: Name of the portfolio.
+                      x-sortable: true
+                      x-default-sort-attribute: true
+                      x-default-sort-direction: 1
+                      type: string
+                    currency:
+                      nullable: false
+                      type: object
+                      x-property-sort:
+                        - id
+                        - isoCode
+                      description: >-
+                        Main currency of the portfolio. See endpoint
+                        `/basic/valueUnit/currency/main/list` for possible
+                        values.
+                      properties:
+                        id:
+                          nullable: true
+                          type: number
+                          format: id32
+                          x-positive: true
+                          description: Identifier of the currency.
+                        isoCode:
+                          nullable: true
+                          type: string
+                          description: ISO 4217 code of the currency.
+                    summary:
+                      nullable: false
+                      description: >-
+                        Summary of portfolio values in the portfolio's currency
+                        (see attribute `currency`).
+                      type: object
+                      x-property-sort:
+                        - totalValue
+                        - marketValue
+                        - numberPositions
+                        - transactions
+                        - cash
+                      properties:
+                        totalValue:
+                          nullable: true
+                          description: >-
+                            The total portfolio value, i.e. the current market
+                            value of the portfolio plus cash.
+                          type: number
+                          format: real
+                        marketValue:
+                          nullable: true
+                          description: >-
+                            The current market value of the securities in the
+                            portfolio.
+                          type: number
+                          format: real
+                        numberPositions:
+                          nullable: true
+                          description: Number of positions in the portfolio.
+                          type: number
+                          format: int32
+                        transactions:
+                          nullable: false
+                          description: Summary of all non-cash transactions.
+                          type: object
+                          x-property-sort:
+                            - total
+                          properties:
+                            total:
+                              nullable: false
+                              description: Summary of all non-cash transactions.
+                              type: object
+                              x-property-sort:
+                                - number
+                                - turnover
+                              properties:
+                                number:
+                                  nullable: true
+                                  description: >-
+                                    Total number of transactions in the
+                                    portfolio.
+                                  type: number
+                                  format: int32
+                                turnover:
+                                  nullable: true
+                                  description: >-
+                                    Total turnover generated by all
+                                    transactions.
+                                  type: number
+                                  format: real
+                        cash:
+                          nullable: false
+                          description: Summary of cash transactions.
+                          type: object
+                          x-property-sort:
+                            - amount
+                          properties:
+                            amount:
+                              nullable: true
+                              description: Current cash amount.
+                              type: number
+                              format: real
+                    profitLoss:
+                      nullable: false
+                      description: >-
+                        Profit and loss analysis. Positive values indicate
+                        profit; negative values indicate loss. All calculations
+                        are performed in the currency of the portfolio.
+                      type: object
+                      x-property-sort:
+                        - total
+                      properties:
+                        total:
+                          nullable: false
+                          description: >-
+                            Summary of potential profit or loss resulting from
+                            open and closed positions.
+                          type: object
+                          x-property-sort:
+                            - absolute
+                            - relative
+                          properties:
+                            absolute:
+                              nullable: true
+                              description: >-
+                                Absolute value of realized and potential profit
+                                or loss.
+                              type: number
+                              format: real
+                            relative:
+                              nullable: true
+                              description: >-
+                                Relative value of realized and potential profit
+                                or loss.
+                              type: number
+                              format: percentage
+                              x-convertToRelative: false
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    PostPortfolioModify200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: This member is always emtpy.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    PostPortfolioEvaluationList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: List of dates with corresponding key figures.
+                nullable: false
+                type: object
+                x-property-sort:
+                  - currency
+                  - keyfigures
+                properties:
+                  currency:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                      - id
+                      - isoCode
+                    description: >-
+                      Main currency of the portfolio. See endpoint
+                      `/basic/valueUnit/currency/main/list` for possible values.
+                    properties:
+                      id:
+                        nullable: true
+                        type: number
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the currency.
+                      isoCode:
+                        nullable: true
+                        type: string
+                        description: ISO 4217 code of the currency.
+                  keyfigures:
+                    nullable: false
+                    description: >-
+                      Summary of portfolio key figures in the corresponding
+                      resolution.
+                    type: array
+                    items:
+                      type: object
+                      nullable: false
+                      x-property-sort:
+                        - date
+                        - cash
+                        - totalValue
+                        - marketValue
+                        - profitLoss
+                        - period
+                      properties:
+                        date:
+                          nullable: true
+                          description: >-
+                            Date the evaluation is performed for (end of week or
+                            end of month for weekly and monthly resolution
+                            respectively).
+                          type: string
+                          format: date
+                        cash:
+                          nullable: true
+                          description: The amount of cash since range start.
+                          type: number
+                          format: real
+                        totalValue:
+                          nullable: true
+                          description: >-
+                            The total portfolio value, i.e. the current market
+                            value of the portfolio plus cash.
+                          type: number
+                          format: real
+                        marketValue:
+                          nullable: true
+                          description: >-
+                            The current market value of the securities in the
+                            portfolio.
+                          type: number
+                          format: real
+                        profitLoss:
+                          nullable: false
+                          description: Summary of profit/loss.
+                          type: object
+                          x-property-sort:
+                            - absolute
+                            - performance
+                            - modifiedDietzPerformance
+                          properties:
+                            absolute:
+                              nullable: true
+                              description: Profit/loss since range start.
+                              type: number
+                              format: real
+                            performance:
+                              nullable: true
+                              description: >-
+                                The performance of the portfolio since range
+                                start.
+                              type: number
+                              format: percentage
+                              x-convertToRelative: false
+                            modifiedDietzPerformance:
+                              nullable: true
+                              description: >-
+                                The performance of the portfolio calculated
+                                using the "modified Dietz" method since range
+                                start.
+                              type: number
+                              format: percentage
+                              x-convertToRelative: false
+                        period:
+                          nullable: false
+                          description: Summary of the corresponding period.
+                          type: object
+                          x-property-sort:
+                            - profitLoss
+                            - transactions
+                            - payouts
+                            - purchaseValue
+                          properties:
+                            profitLoss:
+                              nullable: false
+                              description: >-
+                                Summary of profit/loss in the corresponding
+                                period.
+                              type: object
+                              x-property-sort:
+                                - absolute
+                              properties:
+                                absolute:
+                                  nullable: true
+                                  description: Profit/loss in the corresponding period.
+                                  type: number
+                                  format: real
+                            transactions:
+                              nullable: true
+                              description: >-
+                                The number of transactions in the corresponding
+                                period.
+                              type: number
+                              format: int32
+                            payouts:
+                              nullable: true
+                              description: >-
+                                The number of payouts in the corresponding
+                                period.
+                              type: number
+                              format: int32
+                            purchaseValue:
+                              nullable: true
+                              description: >-
+                                Value of money that has been invested in the
+                                corresponding period.
+                              type: number
+                              format: real
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    GetPortfolioNameList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: List of portfolios.
+                nullable: false
+                type: array
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                    - id
+                    - name
+                  properties:
+                    id:
+                      nullable: true
+                      description: Identifier of the portfolio.
+                      x-sortable: true
+                      type: string
+                      format: id64
+                      x-positive: true
+                    name:
+                      nullable: true
+                      description: Name of the portfolio.
+                      x-sortable: true
+                      x-default-sort-attribute: true
+                      x-default-sort-direction: 1
+                      type: string
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    PostPortfolioPayoutCreate201Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                nullable: false
+                type: object
+                x-property-sort:
+                  - id
+                properties:
+                  id:
+                    nullable: true
+                    type: string
+                    format: id64
+                    x-positive: true
+                    description: Identifier of the payout.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    PostPortfolioPayoutDelete200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: The response is always empty.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    PostPortfolioPayoutList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: List of payouts.
+                nullable: false
+                type: array
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                    - id
+                    - instrument
+                    - notation
+                    - type
+                    - time
+                    - amount
+                    - transaction
+                  properties:
+                    id:
+                      nullable: true
+                      type: string
+                      format: id64
+                      x-positive: true
+                      description: Identifier of payout.
+                    instrument:
+                      nullable: false
+                      type: object
+                      x-property-sort:
+                        - id
+                      description: Details of the instrument
+                      properties:
+                        id:
+                          nullable: true
+                          description: Identifier of the instrument.
+                          type: string
+                          format: id64
+                          x-positive: true
+                    notation:
+                      nullable: false
+                      description: Notation of the payout.
+                      type: object
+                      x-property-sort:
+                        - id
+                      properties:
+                        id:
+                          nullable: true
+                          description: Identifier of the notation.
+                          type: string
+                          format: id64
+                          x-positive: true
+                    type:
+                      nullable: true
+                      x-sortable: true
+                      type: string
+                      description: Type of payout.
+                      x-enum-description:
+                        - Dividend
+                        - Payout
+                        - Coupon
+                        - Subscription right
+                        - Other
+                      enum:
+                        - dividend
+                        - payout
+                        - coupon
+                        - subscriptionRight
+                        - other
+                    time:
+                      nullable: true
+                      x-sortable: true
+                      x-default-sort-attribute: true
+                      x-default-sort-direction: 1
+                      type: string
+                      format: datetime
+                      description: Date and time of the payout.
+                    amount:
+                      nullable: true
+                      x-sortable: true
+                      type: number
+                      format: real
+                      description: Amount of the payout in the portfolio's base currency.
+                    transaction:
+                      nullable: false
+                      description: >-
+                        Buy transaction with which the payout is associated; all
+                        contained attributes are null if the payout is not
+                        associated with any specific buy transaction.
+                      type: object
+                      x-property-sort:
+                        - id
+                      properties:
+                        id:
+                          nullable: true
+                          description: Identifier of the buy transaction.
+                          type: string
+                          format: id64
+                          x-positive: true
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                  pagination:
+                    $ref: '#/components/schemas/OffsetBasedPaginationOutputObject'
+                x-property-sort:
+                  - status
+                  - pagination
+    PostPortfolioPayoutModify200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data: {}
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    GetPortfolioPositionList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: List of open positions.
+                nullable: false
+                type: object
+                x-property-sort:
+                  - positions
+                properties:
+                  positions:
+                    nullable: false
+                    type: array
+                    items:
+                      type: object
+                      nullable: false
+                      x-property-sort:
+                        - instrument
+                        - currency
+                        - notation
+                        - shares
+                        - purchase
+                        - value
+                        - weight
+                        - profitLoss
+                      properties:
+                        instrument:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                            - id
+                            - name
+                            - shortName
+                            - isin
+                            - assetClass
+                            - type
+                          description: Details of the instrument
+                          properties:
+                            id:
+                              nullable: true
+                              description: Identifier of the instrument.
+                              type: string
+                              format: id64
+                              x-positive: true
+                            name:
+                              nullable: true
+                              x-sortable: true
+                              x-default-sort-attribute: true
+                              x-default-sort-direction: 1
+                              type: string
+                              format: localizedString
+                              description: Name of the instrument.
+                            shortName:
+                              nullable: true
+                              x-sortable: true
+                              type: string
+                              format: localizedString
+                              description: Short name of the instrument.
+                            isin:
+                              nullable: true
+                              description: International Securities Identification Number
+                              type: string
+                              format: isin
+                            assetClass:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                                - id
+                                - code
+                              description: >-
+                                Asset class of the instrument. For possible
+                                values see endpoint
+
+                                `/basic/assetClass/list`.
+                              properties:
+                                id:
+                                  nullable: true
+                                  description: Identifier of the asset class.
+                                  type: number
+                                  format: id32
+                                  x-positive: true
+                                code:
+                                  nullable: true
+                                  x-sortable: true
+                                  type: string
+                                  description: Code of the asset class.
+                            type:
+                              nullable: false
+                              description: >-
+                                Instrument type as defined by FactSet Digital
+                                Solutions. Instrument categories are arranged in
+                                a hierarchy, with level 1 representing the most
+                                coarse granularity and further levels
+                                successively refining the granularity (see MDG
+                                category system 18).
+                              type: array
+                              items:
+                                type: object
+                                nullable: false
+                                x-property-sort:
+                                  - id
+                                  - name
+                                properties:
+                                  id:
+                                    nullable: true
+                                    description: Identifier of the instrument type.
+                                    type: number
+                                    format: id32
+                                    x-positive: true
+                                  name:
+                                    nullable: true
+                                    x-sortable: true
+                                    type: string
+                                    format: localizedString
+                                    description: Name of the instrument type.
+                        currency:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                            - id
+                            - isoCode
+                          description: >-
+                            Main currency of the position. See endpoint
+                            `/basic/valueUnit/currency/main/list` for possible
+                            values.
+                          properties:
+                            id:
+                              nullable: true
+                              type: number
+                              format: id32
+                              x-positive: true
+                              description: Identifier of the currency.
+                            isoCode:
+                              nullable: true
+                              type: string
+                              description: ISO 4217 code of the currency.
+                        notation:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                            - id
+                            - price
+                          description: >-
+                            Notation of the transaction establishing the
+                            position, i.e. its first transaction.
+                          properties:
+                            id:
+                              nullable: true
+                              description: Identifier of the notation.
+                              type: string
+                              format: id64
+                              x-positive: true
+                            price:
+                              nullable: false
+                              description: Price of the notation.
+                              type: object
+                              x-property-sort:
+                                - time
+                                - value
+                              properties:
+                                time:
+                                  nullable: true
+                                  description: Date and time of the trade price
+                                  type: string
+                                  format: datetime
+                                value:
+                                  nullable: true
+                                  description: Trade price.
+                                  type: number
+                                  format: real
+                        shares:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                            - bought
+                            - sold
+                            - open
+                          description: Number of shares in the position.
+                          properties:
+                            bought:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Number of shares bought.
+                            sold:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Number of shares sold.
+                            open:
+                              nullable: true
+                              x-sortable: true
+                              type: number
+                              format: real
+                              description: Open number of shares.
+                        purchase:
+                          nullable: false
+                          description: Purchase details of the position.
+                          type: object
+                          x-property-sort:
+                            - price
+                            - exchangeRate
+                            - charges
+                            - value
+                          properties:
+                            price:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Weighted average purchase price of the position.
+                            exchangeRate:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: >-
+                                Weighted average exchange rate of the position
+                                between the position and portfolio currency.
+                            charges:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: >-
+                                Sum of additional purchase fees for the position
+                                in the portfolio's base currency.
+                            value:
+                              nullable: true
+                              x-sortable: true
+                              type: number
+                              format: real
+                              description: >-
+                                Aggregated purchase value of all buy
+                                transactions of the position.
+                        value:
+                          nullable: true
+                          x-sortable: true
+                          type: number
+                          format: real
+                          description: Current value of the position.
+                        weight:
+                          nullable: true
+                          x-sortable: true
+                          description: Weight of the position.
+                          type: number
+                          format: percentage
+                          x-convertToRelative: false
+                        profitLoss:
+                          nullable: false
+                          description: >-
+                            Profit and loss of the position. Positive values
+                            indicate profit; negative values indicate loss. All
+                            calculations are performed in the currency of the
+                            portfolio.
+                          type: object
+                          x-property-sort:
+                            - intraday
+                            - potential
+                          properties:
+                            intraday:
+                              nullable: false
+                              description: >-
+                                Summary of today's profit or loss, calculated
+                                using the most recent price and the last price
+                                of the prior trading day.
+                              type: object
+                              x-property-sort:
+                                - absolute
+                                - relative
+                              properties:
+                                absolute:
+                                  nullable: true
+                                  description: Absolute value of profit or loss.
+                                  x-sortable: true
+                                  type: number
+                                  format: real
+                                relative:
+                                  nullable: true
+                                  description: Relative value of profit or loss.
+                                  x-sortable: true
+                                  type: number
+                                  format: percentage
+                                  x-convertToRelative: false
+                            potential:
+                              nullable: false
+                              description: >-
+                                Summary of potential profit or loss resulting
+                                from open positions, i.e. instrument positions
+                                that have not been sold.
+                              type: object
+                              x-property-sort:
+                                - absolute
+                                - relative
+                              properties:
+                                absolute:
+                                  nullable: true
+                                  description: Absolute value of profit or loss.
+                                  x-sortable: true
+                                  type: number
+                                  format: real
+                                relative:
+                                  nullable: true
+                                  description: Relative value of profit or loss.
+                                  x-sortable: true
+                                  type: number
+                                  format: percentage
+                                  x-convertToRelative: false
+                    maxItems: 1000
+                    description: Positions of the portfolio.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                  pagination:
+                    $ref: '#/components/schemas/OffsetBasedPaginationOutputObject'
+                x-property-sort:
+                  - status
+                  - pagination
+    PostPortfolioPositionClosedList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: List of closed positions.
+                nullable: false
+                type: object
+                x-property-sort:
+                  - positions
+                properties:
+                  positions:
+                    nullable: false
+                    type: array
+                    items:
+                      type: object
+                      nullable: false
+                      x-property-sort:
+                        - instrument
+                        - transaction
+                        - shares
+                        - payout
+                        - profitLoss
+                      properties:
+                        instrument:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                            - id
+                            - name
+                            - shortName
+                            - isin
+                            - assetClass
+                            - type
+                          description: Details of the instrument.
+                          properties:
+                            id:
+                              nullable: true
+                              description: Identifier of the instrument.
+                              type: string
+                              format: id64
+                              x-positive: true
+                            name:
+                              nullable: true
+                              x-sortable: true
+                              x-default-sort-attribute: true
+                              x-default-sort-direction: 1
+                              type: string
+                              format: localizedString
+                              description: Name of the instrument.
+                            shortName:
+                              nullable: true
+                              x-sortable: true
+                              type: string
+                              format: localizedString
+                              description: Short name of the instrument.
+                            isin:
+                              nullable: true
+                              description: International Securities Identification Number
+                              type: string
+                              format: isin
+                            assetClass:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                                - id
+                                - code
+                              description: >-
+                                Asset class of the instrument. For possible
+                                values see endpoint
+
+                                `/basic/assetClass/list`.
+                              properties:
+                                id:
+                                  nullable: true
+                                  description: Identifier of the asset class.
+                                  type: number
+                                  format: id32
+                                  x-positive: true
+                                code:
+                                  nullable: true
+                                  x-sortable: true
+                                  type: string
+                                  description: Code of the asset class.
+                            type:
+                              nullable: false
+                              description: >-
+                                Instrument type as defined by FactSet Digital
+                                Solutions. Instrument categories are arranged in
+                                a hierarchy, with level 1 representing the most
+                                coarse granularity and further levels
+                                successively refining the granularity (see MDG
+                                category system 18).
+                              type: array
+                              items:
+                                type: object
+                                nullable: false
+                                x-property-sort:
+                                  - id
+                                  - name
+                                properties:
+                                  id:
+                                    nullable: true
+                                    description: Identifier of the instrument type.
+                                    type: number
+                                    format: id32
+                                    x-positive: true
+                                  name:
+                                    nullable: true
+                                    x-sortable: true
+                                    type: string
+                                    format: localizedString
+                                    description: Name of the instrument type.
+                        transaction:
+                          nullable: false
+                          description: >-
+                            Opening and closing transaction of the closed
+                            position.
+                          type: object
+                          x-property-sort:
+                            - buy
+                            - sell
+                          properties:
+                            buy:
+                              nullable: false
+                              description: Opening transaction of the closed position.
+                              type: object
+                              x-property-sort:
+                                - id
+                                - time
+                                - notation
+                                - currency
+                                - price
+                                - charges
+                                - value
+                                - exchangeRate
+                              properties:
+                                id:
+                                  nullable: true
+                                  description: Identifier of the opening transaction.
+                                  type: string
+                                  format: id64
+                                  x-positive: true
+                                time:
+                                  nullable: true
+                                  description: Date and time of the opening transaction.
+                                  type: string
+                                  format: datetime
+                                notation:
+                                  nullable: false
+                                  type: object
+                                  x-property-sort:
+                                    - id
+                                  description: Notation of the opening transaction.
+                                  properties:
+                                    id:
+                                      nullable: true
+                                      description: Identifier of the notation.
+                                      type: string
+                                      format: id64
+                                      x-positive: true
+                                currency:
+                                  nullable: false
+                                  type: object
+                                  x-property-sort:
+                                    - id
+                                    - isoCode
+                                  description: >-
+                                    Currency of the opening transaction. See
+                                    endpoint
+                                    `/basic/valueUnit/currency/main/list` for
+                                    possible values.
+                                  properties:
+                                    id:
+                                      nullable: true
+                                      type: number
+                                      format: id32
+                                      x-positive: true
+                                      description: Identifier of the currency.
+                                    isoCode:
+                                      nullable: true
+                                      type: string
+                                      description: ISO 4217 code of the currency.
+                                price:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: >-
+                                    Purchase price of the position in the
+                                    portfolio's base currency.
+                                charges:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: >-
+                                    Charges accrued in the portfolio's base
+                                    currency.
+                                value:
+                                  nullable: true
+                                  x-sortable: true
+                                  type: number
+                                  format: real
+                                  description: >-
+                                    Purchase value of the position in the
+                                    portfolio's base currency.
+                                exchangeRate:
+                                  nullable: true
+                                  description: >-
+                                    The exchange rate between the notation's
+                                    currency and the portfolio currency at the
+                                    time of the opening trade.
+                                  type: number
+                                  format: real
+                            sell:
+                              nullable: false
+                              description: Closing transaction of the position.
+                              type: object
+                              x-property-sort:
+                                - id
+                                - time
+                                - notation
+                                - currency
+                                - price
+                                - charges
+                                - value
+                                - exchangeRate
+                              properties:
+                                id:
+                                  nullable: true
+                                  description: Identifier of the closing transaction.
+                                  type: string
+                                  format: id64
+                                  x-positive: true
+                                time:
+                                  nullable: true
+                                  description: Date and time of the closing transaction.
+                                  type: string
+                                  format: datetime
+                                notation:
+                                  nullable: false
+                                  type: object
+                                  x-property-sort:
+                                    - id
+                                  description: Notation of the closing transaction.
+                                  properties:
+                                    id:
+                                      nullable: true
+                                      description: Identifier of the notation.
+                                      type: string
+                                      format: id64
+                                      x-positive: true
+                                currency:
+                                  nullable: false
+                                  type: object
+                                  x-property-sort:
+                                    - id
+                                    - isoCode
+                                  description: >-
+                                    Currency of the closing transaction. See
+                                    endpoint
+                                    `/basic/valueUnit/currency/main/list` for
+                                    possible values.
+                                  properties:
+                                    id:
+                                      nullable: true
+                                      type: number
+                                      format: id32
+                                      x-positive: true
+                                      description: Identifier of the currency.
+                                    isoCode:
+                                      nullable: true
+                                      type: string
+                                      description: ISO 4217 code of the currency.
+                                price:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: >-
+                                    Selling price of the position in the
+                                    portfolio's base currency.
+                                charges:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: >-
+                                    Charges accrued in the portfolio's base
+                                    currency.
+                                value:
+                                  nullable: true
+                                  x-sortable: true
+                                  type: number
+                                  format: real
+                                  description: >-
+                                    Sales value of the position in the
+                                    portfolio's base currency.
+                                exchangeRate:
+                                  nullable: true
+                                  description: >-
+                                    The exchange rate between the notation's
+                                    currency and the portfolio currency at the
+                                    time of the closing trade.
+                                  type: number
+                                  format: real
+                        shares:
+                          nullable: true
+                          x-sortable: true
+                          type: number
+                          format: real
+                          description: Number of shares in the closed position.
+                        payout:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                            - amount
+                          description: >-
+                            Amount of money received from payouts in the
+                            portfolio's base currency.
+                          properties:
+                            amount:
+                              nullable: true
+                              x-sortable: true
+                              type: number
+                              format: real
+                              description: Amount of the payout.
+                        profitLoss:
+                          nullable: false
+                          description: >-
+                            Profit and loss of the position. Positive values
+                            indicate profit; negative values indicate loss. All
+                            calculations are performed in the currency of the
+                            portfolio.
+                          type: object
+                          x-property-sort:
+                            - absolute
+                            - relative
+                          properties:
+                            absolute:
+                              nullable: true
+                              description: Absolute value of profit or loss.
+                              type: number
+                              format: real
+                            relative:
+                              nullable: true
+                              description: Relative value of profit or loss.
+                              type: number
+                              format: percentage
+                              x-convertToRelative: false
+                    description: Closed positions of the portfolio.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                  pagination:
+                    $ref: '#/components/schemas/OffsetBasedPaginationOutputObject'
+                x-property-sort:
+                  - status
+                  - pagination
+    PostPortfolioTransactionCreate201Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                nullable: false
+                type: object
+                x-property-sort:
+                  - id
+                properties:
+                  id:
+                    nullable: true
+                    type: string
+                    format: id64
+                    x-positive: true
+                    description: Identifier of the transaction.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    PostPortfolioTransactionDelete200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: The response is always empty.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    GetPortfolioTransactionList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: List of transactions.
+                nullable: false
+                type: array
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                    - id
+                    - instrument
+                    - notation
+                    - type
+                    - time
+                    - numberShares
+                    - price
+                    - charges
+                    - exchangeRate
+                  properties:
+                    id:
+                      nullable: true
+                      type: string
+                      format: id64
+                      x-positive: true
+                      description: Identifier of transaction.
+                    instrument:
+                      nullable: false
+                      type: object
+                      x-property-sort:
+                        - id
+                        - name
+                        - shortName
+                        - isin
+                        - assetClass
+                        - type
+                      description: Details of the instrument
+                      properties:
+                        id:
+                          nullable: true
+                          description: Identifier of the instrument.
+                          type: string
+                          format: id64
+                          x-positive: true
+                        name:
+                          nullable: true
+                          x-sortable: true
+                          x-default-sort-attribute: true
+                          x-default-sort-direction: 1
+                          type: string
+                          format: localizedString
+                          description: Name of the instrument.
+                        shortName:
+                          nullable: true
+                          x-sortable: true
+                          type: string
+                          format: localizedString
+                          description: Short name of the instrument.
+                        isin:
+                          nullable: true
+                          description: International Securities Identification Number
+                          type: string
+                          format: isin
+                        assetClass:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                            - id
+                            - code
+                          description: >-
+                            Asset class of the instrument. For possible values
+                            see endpoint
+
+                            `/basic/assetClass/list`.
+                          properties:
+                            id:
+                              nullable: true
+                              description: Identifier of the asset class.
+                              type: number
+                              format: id32
+                              x-positive: true
+                            code:
+                              nullable: true
+                              x-sortable: true
+                              type: string
+                              description: Code of the asset class.
+                        type:
+                          nullable: false
+                          description: >-
+                            Instrument type as defined by FactSet Digital
+                            Solutions. Instrument categories are arranged in a
+                            hierarchy, with level 1 representing the most coarse
+                            granularity and further levels successively refining
+                            the granularity (see MDG category system 18).
+                          type: array
+                          items:
+                            type: object
+                            nullable: false
+                            x-property-sort:
+                              - id
+                              - name
+                            properties:
+                              id:
+                                nullable: true
+                                description: Identifier of the instrument type.
+                                type: number
+                                format: id32
+                                x-positive: true
+                              name:
+                                nullable: true
+                                x-sortable: true
+                                type: string
+                                format: localizedString
+                                description: Name of the instrument type.
+                    notation:
+                      nullable: false
+                      description: Notation of the transaction.
+                      type: object
+                      x-property-sort:
+                        - id
+                      properties:
+                        id:
+                          nullable: true
+                          description: Identifier of the notation
+                          type: string
+                          format: id64
+                          x-positive: true
+                    type:
+                      nullable: true
+                      x-sortable: true
+                      type: string
+                      description: Type of transaction
+                      x-enum-description:
+                        - Buy
+                        - Sell
+                        - Cash
+                        - Payout
+                        - Sell short
+                        - Cover short sale
+                      enum:
+                        - buy
+                        - sell
+                        - cash
+                        - payout
+                        - short
+                        - cover
+                    time:
+                      nullable: true
+                      x-sortable: true
+                      type: string
+                      format: datetime
+                      description: Date and time of the trade.
+                    numberShares:
+                      nullable: true
+                      x-sortable: true
+                      type: number
+                      format: real
+                      description: Number of shares bought or sold.
+                    price:
+                      nullable: true
+                      type: number
+                      format: real
+                      description: Price the securities were purchased / sold for.
+                    charges:
+                      nullable: true
+                      type: number
+                      format: real
+                      description: Charges accrued in portfolio's base currency.
+                    exchangeRate:
+                      nullable: true
+                      type: number
+                      format: real
+                      description: >-
+                        The exchange rate between the notation's currency and
+                        the portfolio currency.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                  pagination:
+                    $ref: '#/components/schemas/OffsetBasedPaginationOutputObject'
+                x-property-sort:
+                  - status
+                  - pagination
+    PostPortfolioTransactionModify200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data: {}
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    PostPortfolioTransactionCashCreate200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                nullable: false
+                type: object
+                x-property-sort:
+                  - id
+                properties:
+                  id:
+                    nullable: true
+                    type: string
+                    format: id64
+                    x-positive: true
+                    description: Identifier of the transaction.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    PostPortfolioTransactionCashDelete200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: The response is always empty.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    PostWatchlistCreate201Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                nullable: false
+                type: object
+                x-property-sort:
+                  - id
+                properties:
+                  id:
+                    nullable: true
+                    type: string
+                    format: id64
+                    x-positive: true
+                    description: Identifier of the watchlist.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    PostWatchlistDelete200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: This member is always empty.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    GetWatchlistGet200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: Details of the watchlist.
+                nullable: false
+                type: object
+                x-property-sort:
+                  - id
+                  - name
+                  - numberPositions
+                  - creation
+                properties:
+                  id:
+                    nullable: true
+                    description: Identifier of the watchlist.
+                    type: string
+                    format: id64
+                    x-positive: true
+                  name:
+                    nullable: true
+                    description: Name of the watchlist.
+                    type: string
+                  numberPositions:
+                    nullable: true
+                    description: Number of positions.
+                    type: number
+                    format: int32
+                  creation:
+                    nullable: true
+                    description: Date and time of the watchlist creation.
+                    type: string
+                    format: datetime
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    GetWatchlistList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                nullable: false
+                type: array
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                    - id
+                    - name
+                    - numberPositions
+                    - creation
+                  properties:
+                    id:
+                      nullable: true
+                      description: Identifier of the watchlist.
+                      x-sortable: true
+                      type: string
+                      format: id64
+                      x-positive: true
+                    name:
+                      nullable: true
+                      description: Name of the watchlist.
+                      x-sortable: true
+                      x-default-sort-attribute: true
+                      x-default-sort-direction: 1
+                      type: string
+                    numberPositions:
+                      nullable: true
+                      description: Number of positions.
+                      x-sortable: true
+                      type: number
+                      format: int32
+                    creation:
+                      nullable: true
+                      description: Date and time of the watchlist creation.
+                      x-sortable: true
+                      type: string
+                      format: datetime
+                description: List of watchlist.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    PostWatchlistModify200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: This member is always emtpy.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    PostWatchlistPositionCreate201Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                nullable: false
+                type: object
+                x-property-sort:
+                  - id
+                properties:
+                  id:
+                    nullable: true
+                    type: number
+                    format: id32
+                    x-positive: true
+                    description: Identifier of the position.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    PostWatchlistPositionDelete200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: This member is always emtpy.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    PostWatchlistPositionGet200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: Position of the watchlist.
+                nullable: false
+                type: object
+                x-property-sort:
+                  - notation
+                  - comment
+                properties:
+                  notation:
+                    nullable: false
+                    description: Notation of the position.
+                    type: object
+                    x-property-sort:
+                      - id
+                    properties:
+                      id:
+                        nullable: true
+                        description: Identifier of the notation.
+                        type: string
+                        format: id64
+                        x-positive: true
+                  comment:
+                    nullable: true
+                    description: Personal note for the watchlist position.
+                    type: string
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    GetWatchlistPositionList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                nullable: false
+                type: array
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                    - id
+                    - notation
+                    - comment
+                  properties:
+                    id:
+                      nullable: true
+                      description: Identifier of the position.
+                      x-sortable: true
+                      x-default-sort-attribute: true
+                      x-default-sort-direction: 1
+                      type: number
+                      format: id32
+                      x-positive: true
+                    notation:
+                      nullable: false
+                      description: Notation of the position.
+                      type: object
+                      x-property-sort:
+                        - id
+                      properties:
+                        id:
+                          nullable: true
+                          description: Identifier of the notation.
+                          x-sortable: true
+                          type: string
+                          format: id64
+                          x-positive: true
+                    comment:
+                      nullable: true
+                      description: Personal note for the watchlist position.
+                      type: string
+                description: Positions of the watchlist.
+                maxItems: 100
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+    PostWatchlistPositionModify200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: This member is always emtpy.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                  - status
+  parameters: {}
+  examples: {}
+  requestBodies: {}
+  headers: {}
+  securitySchemes:
+    Basic:
+      type: http
+      description: Input your username and password to access this API.
+      scheme: basic
+  links: {}
+  callbacks: {}
+security:
+  - Basic: []
+tags:
+  - name: portfolio
+    description: portfolio endpoints
+  - name: watchlist
+    description: watchlist endpoints
+externalDocs:
+  description: Endpoint Reference
+  url: https://endpointreference.mdgms.com
+x-interface-version: 2
+x-documenter-version: 6.3.0
+x-api-version: 4.0.2
