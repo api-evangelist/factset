@@ -1,0 +1,118 @@
+naftiko: "1.0.0-alpha1"
+
+info:
+  label: "FactSet Fixed Income"
+  description: "Unified workflow for fixed income analytics including terms and conditions, evaluated prices, analytics calculations, and optimization. Used by fixed income analysts."
+  tags:
+    - FactSet
+    - Fixed Income
+    - Bond Analytics
+    - Credit Analysis
+  created: "2026-04-18"
+  modified: "2026-04-18"
+
+binds:
+  - namespace: env
+    keys:
+      FACTSET_USERNAME: FACTSET_USERNAME
+      FACTSET_PASSWORD: FACTSET_PASSWORD
+
+capability:
+  consumes:
+    - import: factset-terms
+      location: ./shared/terms-and-conditions.yaml
+    - import: factset-sp-fi
+      location: ./shared/s-p-global-fixed-income-evaluated-prices-and-analytics.yaml
+    - import: factset-fi-calc
+      location: ./shared/fixed-income-calculation.yaml
+    - import: factset-fi-batch
+      location: ./shared/fixed-income-analytics-batcher.yaml
+    - import: factset-axioma-fi
+      location: ./shared/axioma-fixed-income-optimizer.yaml
+
+  exposes:
+    - type: rest
+      port: 8084
+      namespace: fixed-income-api
+      description: "Unified REST API for fixed income analytics."
+      resources:
+        - path: /v1/terms-conditions
+          name: terms-conditions
+          description: "Fixed income terms and conditions."
+          operations:
+            - method: GET
+              name: get-terms
+              description: "Get terms and conditions."
+              call: "factset-terms.list"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/evaluated-prices
+          name: evaluated-prices
+          description: "S&P Global evaluated prices."
+          operations:
+            - method: GET
+              name: get-evaluated-prices
+              description: "Get evaluated prices."
+              call: "factset-sp-fi.list"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/fi-calculations
+          name: fi-calculations
+          description: "Fixed income calculations."
+          operations:
+            - method: GET
+              name: get-fi-calc
+              description: "Get FI calculations."
+              call: "factset-fi-calc.list"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+
+    - type: mcp
+      port: 9084
+      namespace: fixed-income-mcp
+      transport: http
+      description: "MCP server for AI-assisted fixed income analysis."
+      tools:
+        - name: get-terms-conditions
+          description: "Get fixed income terms and conditions."
+          hints:
+            readOnly: true
+          call: "factset-terms.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-evaluated-prices
+          description: "Get S&P Global evaluated prices."
+          hints:
+            readOnly: true
+          call: "factset-sp-fi.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: run-fi-calculation
+          description: "Run fixed income calculation."
+          hints:
+            readOnly: true
+          call: "factset-fi-calc.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: batch-fi-analytics
+          description: "Batch fixed income analytics."
+          hints:
+            readOnly: true
+          call: "factset-fi-batch.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: optimize-fi-portfolio
+          description: "Optimize fixed income portfolio."
+          hints:
+            readOnly: true
+          call: "factset-axioma-fi.list"
+          outputParameters:
+            - type: object
+              mapping: "$."

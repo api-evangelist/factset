@@ -1,0 +1,150 @@
+naftiko: "1.0.0-alpha1"
+
+info:
+  label: "FactSet Content and Intelligence"
+  description: "Unified workflow for content retrieval and intelligence including news, filings, earnings calls, NLP, signals, and conversational search. Used by content consumers and data scientists."
+  tags:
+    - FactSet
+    - Content
+    - NLP
+    - News
+    - Signals
+  created: "2026-04-18"
+  modified: "2026-04-18"
+
+binds:
+  - namespace: env
+    keys:
+      FACTSET_USERNAME: FACTSET_USERNAME
+      FACTSET_PASSWORD: FACTSET_PASSWORD
+
+capability:
+  consumes:
+    - import: factset-callstreet
+      location: ./shared/documents-distributor-callstreet-events.yaml
+    - import: factset-streetaccount
+      location: ./shared/streetaccount-news.yaml
+    - import: factset-filings
+      location: ./shared/global-filings.yaml
+    - import: factset-signals
+      location: ./shared/signals.yaml
+    - import: factset-nlp
+      location: ./shared/natural-language-processing.yaml
+    - import: factset-search
+      location: ./shared/search-answers.yaml
+    - import: factset-conv
+      location: ./shared/conversational-api-powered-by-mercury.yaml
+
+  exposes:
+    - type: rest
+      port: 8087
+      namespace: content-intel-api
+      description: "Unified REST API for content and intelligence."
+      resources:
+        - path: /v1/news
+          name: news
+          description: "StreetAccount news."
+          operations:
+            - method: GET
+              name: get-news
+              description: "Get news articles."
+              call: "factset-streetaccount.list"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/filings
+          name: filings
+          description: "Global filings."
+          operations:
+            - method: GET
+              name: get-filings
+              description: "Get regulatory filings."
+              call: "factset-filings.list"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/signals
+          name: signals
+          description: "Material event signals."
+          operations:
+            - method: GET
+              name: get-signals
+              description: "Get signals."
+              call: "factset-signals.list"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/search
+          name: search
+          description: "Natural language search."
+          operations:
+            - method: GET
+              name: search
+              description: "Search for answers."
+              call: "factset-search.list"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+
+    - type: mcp
+      port: 9087
+      namespace: content-intel-mcp
+      transport: http
+      description: "MCP server for AI-assisted content intelligence."
+      tools:
+        - name: get-callstreet-events
+          description: "Get earnings call transcripts."
+          hints:
+            readOnly: true
+          call: "factset-callstreet.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-news
+          description: "Get StreetAccount news."
+          hints:
+            readOnly: true
+          call: "factset-streetaccount.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-filings
+          description: "Get global regulatory filings."
+          hints:
+            readOnly: true
+          call: "factset-filings.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-signals
+          description: "Get material event signals."
+          hints:
+            readOnly: true
+          call: "factset-signals.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: run-nlp
+          description: "Run NLP analysis on text."
+          hints:
+            readOnly: true
+          call: "factset-nlp.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: search-answers
+          description: "Natural language search."
+          hints:
+            readOnly: true
+          call: "factset-search.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: conversational-query
+          description: "Conversational AI query."
+          hints:
+            readOnly: true
+          call: "factset-conv.list"
+          outputParameters:
+            - type: object
+              mapping: "$."

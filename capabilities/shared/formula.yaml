@@ -1,0 +1,72 @@
+naftiko: "1.0.0-alpha1"
+
+info:
+  label: "FactSet Formula"
+  description: "Flexible formula-based API for accessing FactSet data via FQL and Screening."
+  tags:
+    - FactSet
+    - Financial Data
+  created: "2026-04-18"
+  modified: "2026-04-18"
+
+binds:
+  - namespace: env
+    keys:
+      FACTSET_USERNAME: FACTSET_USERNAME
+      FACTSET_PASSWORD: FACTSET_PASSWORD
+
+capability:
+  consumes:
+    - type: http
+      namespace: factset-formula
+      baseUri: https://api.factset.com/formula-api
+      description: "Flexible formula-based API for accessing FactSet data via FQL and Screening."
+      authentication:
+        type: basic
+        username: "{{FACTSET_USERNAME}}"
+        password: "{{FACTSET_PASSWORD}}"
+      resources:
+        - name: formula
+          path: /
+          description: "Formula API resources."
+          operations:
+            - name: list-formula
+              method: GET
+              description: "List Formula resources."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+
+  exposes:
+    - type: rest
+      port: 8101
+      namespace: factset-formula-api
+      resources:
+        - path: /v1/formula
+          name: formula
+          description: "Formula resources."
+          operations:
+            - method: GET
+              name: list-formula
+              description: "List Formula resources."
+              call: "factset-formula.list-formula"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+
+    - type: mcp
+      port: 9101
+      namespace: factset-formula-mcp
+      transport: http
+      tools:
+        - name: list-formula
+          description: "List Formula resources."
+          hints:
+            readOnly: true
+            openWorld: true
+          call: "factset-formula.list-formula"
+          outputParameters:
+            - type: object
+              mapping: "$."

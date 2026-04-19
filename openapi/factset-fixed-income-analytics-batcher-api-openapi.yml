@@ -14,16 +14,17 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.txt
   version: '1'
 servers:
-  - url: https://api-sandbox.factset.com
+- url: https://api-sandbox.factset.com
 paths:
   /analytics/engines/fiab/v1/calculations:
     post:
       tags:
-        - Analytics
-        - Calculations
-        - Engines
-      summary: Factset Run FIAB calculation
-      description: "This endpoint creates a new FIAB calculation.\r\nThis must be used first before get status or cancelling endpoints with a calculation id.\r\nA successful response will contain the URL to check the status of the calculation request.\r\n\r\nRemarks:\r\n*\tAny settings in POST body will act as a one-time override over the settings saved in the FIAB template."
+      - Analytics
+      - Calculations
+      - Engines
+      summary: Factset Run Fiab Calculation
+      description: "This endpoint creates a new FIAB calculation.\r\nThis must be used first before get status or cancelling endpoints with a calculation id.\r\nA successful response will contain the URL
+        to check the status of the calculation request.\r\n\r\nRemarks:\r\n*\tAny settings in POST body will act as a one-time override over the settings saved in the FIAB template."
       operationId: runFIABCalculation
       requestBody:
         description: ''
@@ -368,12 +369,15 @@ paths:
               schema:
                 type: string
                 description: Number of FIAB requests remaining till request limit reached.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
     get:
       tags:
-        - Analytics
-        - Calculations
-        - Engines
-      summary: Factset Get all FIAB calculation summaries
+      - Analytics
+      - Calculations
+      - Engines
+      summary: Factset Get All Fiab Calculation Summaries
       description: This endpoints returns all FIAB calculation requests.
       operationId: getFIABCalculationStatusSummaries
       responses:
@@ -550,29 +554,32 @@ paths:
                 description: >-
                   Key to uniquely identify an Analytics API request. Only
                   available after successful authentication.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
   /analytics/engines/fiab/v1/calculations/{id}:
     get:
       tags:
-        - Analytics
-        - Calculations
-        - Engines
-      summary: Factset Get FIAB calculation by id
+      - Analytics
+      - Calculations
+      - Engines
+      summary: Factset Get Fiab Calculation by Id
       description: >-
         This is the endpoint to check on the progress of a previously requested
         calculation.
       operationId: getFIABCalculationById
       parameters:
-        - name: id
-          in: path
+      - name: id
+        in: path
+        description: >-
+          from url, provided from the location header in the Run FIAB
+          Calculation endpoint
+        required: true
+        schema:
+          type: string
           description: >-
             from url, provided from the location header in the Run FIAB
             Calculation endpoint
-          required: true
-          schema:
-            type: string
-            description: >-
-              from url, provided from the location header in the Run FIAB
-              Calculation endpoint
       responses:
         '200':
           description: >-
@@ -1042,38 +1049,45 @@ paths:
                 description: >-
                   Key to uniquely identify an Analytics API request. Only
                   available after successful authentication.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
 components:
   schemas:
     FIABIdentifier:
       required:
-        - id
+      - id
       type: object
       properties:
         id:
           type: string
           description: User's FactSet account path.
+          example: abc123
     FIABDateParameters:
       required:
-        - enddate
-        - startdate
+      - enddate
+      - startdate
       type: object
       properties:
         startdate:
           type: string
           description: Calculation's start date.
+          example: example_value
         enddate:
           type: string
           description: Calculation's end date.
+          example: example_value
       description: The date parameters for FIAB calculations.
     FIABCalculationParameters:
       required:
-        - account
-        - dates
+      - account
+      - dates
       type: object
       properties:
         fiabdocument:
           type: string
           description: "FiabDocument (optional) - FIAB document to use as a template. Should\r\nbe a path to a FIAB document. Expects a GUI-style path (Client:/foo/bar)"
+          example: example_value
         account:
           $ref: '#/components/schemas/FIABIdentifier'
         dates:
@@ -1083,9 +1097,11 @@ components:
           description: >-
             Master Security List. Analytics results will be written to the
             selected MSL. Expects a GUI-style path (Client:/foo/bar)
+          example: example_value
         fisettingsdocument:
           type: string
           description: "FISettingsDocument (optional) - The given @FIS document will be used to\r\nconfigure analytics assumptions and settings. Expects a GUI-style path (Client:/foo/bar)"
+          example: example_value
     FIABCalculationStatusSummary:
       type: object
       properties:
@@ -1093,58 +1109,69 @@ components:
           type: string
           description: Request time of calculation.
           format: date-time
+          example: '2026-01-15T10:30:00Z'
         lastpolltime:
           type: string
           description: Last poll time of calculation.
           format: date-time
+          example: '2026-01-15T10:30:00Z'
     EventSummary:
       type: object
       properties:
         message:
           type: string
+          example: example_value
         submissiondatetime:
           type: string
           format: date-time
+          example: '2026-01-15T10:30:00Z'
         type:
           type: string
+          example: example_value
     FIABCalculationStatus:
       type: object
       properties:
         id:
           type: string
+          example: abc123
         status:
           enum:
-            - Pending
-            - InProgress
-            - Done
-            - Paused
-            - Cancelled
-            - Error
+          - Pending
+          - InProgress
+          - Done
+          - Paused
+          - Cancelled
+          - Error
           type: string
           description: >-
             FIAB service batch status integer definitions.  See
             https://pages.github.factset.com/FactSet/fipa-inf-docs/service/fiab_batch_api.html#lt-uuid-gt.
+          example: Pending
         startdatetime:
           type: string
           format: date-time
+          example: '2026-01-15T10:30:00Z'
         completiondatetime:
           type: string
           format: date-time
+          example: '2026-01-15T10:30:00Z'
         progress:
           type: integer
           format: int32
+          example: 10
         batchevents:
           type: array
           items:
             $ref: '#/components/schemas/EventSummary'
+          example: []
   securitySchemes:
     Basic:
       type: http
       description: Input your username and password to access this API
       scheme: basic
 security:
-  - Basic: []
+- Basic: []
 tags:
-  - name: Analytics
-  - name: Calculations
-  - name: Engines
+- name: Analytics
+- name: Calculations
+- name: Engines

@@ -1,0 +1,147 @@
+naftiko: "1.0.0-alpha1"
+
+info:
+  label: "FactSet Trading and Operations"
+  description: "Unified workflow for trading and operations including order management, private markets, event calendars, security modeling, and user provisioning. Used by operations teams."
+  tags:
+    - FactSet
+    - Trading
+    - Operations
+    - Administration
+  created: "2026-04-18"
+  modified: "2026-04-18"
+
+binds:
+  - namespace: env
+    keys:
+      FACTSET_USERNAME: FACTSET_USERNAME
+      FACTSET_PASSWORD: FACTSET_PASSWORD
+
+capability:
+  consumes:
+    - import: factset-trading
+      location: ./shared/trading.yaml
+    - import: factset-private
+      location: ./shared/private-markets.yaml
+    - import: factset-events
+      location: ./shared/event-calendar.yaml
+    - import: factset-sec-model
+      location: ./shared/security-modeling.yaml
+    - import: factset-issues
+      location: ./shared/issue-tracker.yaml
+    - import: factset-scim
+      location: ./shared/procure-to-pay-api-scim.yaml
+    - import: factset-ib
+      location: ./shared/investment-banking-office-refresh.yaml
+    - import: factset-marketplace
+      location: ./shared/open-marketplace.yaml
+    - import: factset-partners
+      location: ./shared/open-partners-documents.yaml
+
+  exposes:
+    - type: rest
+      port: 8091
+      namespace: trading-ops-api
+      description: "Unified REST API for trading and operations."
+      resources:
+        - path: /v1/trading
+          name: trading
+          description: "Trading operations."
+          operations:
+            - method: GET
+              name: list-trading
+              description: "List trading resources."
+              call: "factset-trading.list"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/events
+          name: events
+          description: "Event calendar."
+          operations:
+            - method: GET
+              name: list-events
+              description: "List events."
+              call: "factset-events.list"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+
+    - type: mcp
+      port: 9091
+      namespace: trading-ops-mcp
+      transport: http
+      description: "MCP server for AI-assisted trading and operations."
+      tools:
+        - name: list-trading
+          description: "List trading resources."
+          hints:
+            readOnly: true
+          call: "factset-trading.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-private-markets
+          description: "Get private markets data."
+          hints:
+            readOnly: true
+          call: "factset-private.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-events
+          description: "Get event calendar."
+          hints:
+            readOnly: true
+          call: "factset-events.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-security-models
+          description: "Get security models."
+          hints:
+            readOnly: true
+          call: "factset-sec-model.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: list-issues
+          description: "List support issues."
+          hints:
+            readOnly: true
+          call: "factset-issues.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: manage-users
+          description: "Manage user provisioning."
+          hints:
+            readOnly: true
+          call: "factset-scim.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: refresh-ib-office
+          description: "Refresh IB office data."
+          hints:
+            readOnly: true
+          call: "factset-ib.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-marketplace
+          description: "Get Open Marketplace."
+          hints:
+            readOnly: true
+          call: "factset-marketplace.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-partner-docs
+          description: "Get partner documents."
+          hints:
+            readOnly: true
+          call: "factset-partners.list"
+          outputParameters:
+            - type: object
+              mapping: "$."

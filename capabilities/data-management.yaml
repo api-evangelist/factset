@@ -1,0 +1,131 @@
+naftiko: "1.0.0-alpha1"
+
+info:
+  label: "FactSet Data Management"
+  description: "Unified workflow for data management including custom databases, standard datafeeds, exchange datafeeds, content feeds, and programmatic environments. Used by data engineers."
+  tags:
+    - FactSet
+    - Data Management
+    - Datafeed
+    - ETL
+  created: "2026-04-18"
+  modified: "2026-04-18"
+
+binds:
+  - namespace: env
+    keys:
+      FACTSET_USERNAME: FACTSET_USERNAME
+      FACTSET_PASSWORD: FACTSET_PASSWORD
+
+capability:
+  consumes:
+    - import: factset-ofdb
+      location: ./shared/ofdb.yaml
+    - import: factset-sdf
+      location: ./shared/standard-datafeed.yaml
+    - import: factset-cfd
+      location: ./shared/content-feeds-data-dictionary.yaml
+    - import: factset-xdf-model
+      location: ./shared/exchange-datafeed-data-model.yaml
+    - import: factset-xdf-entire
+      location: ./shared/exchange-datafeed-snapshot-api-entire-exchange.yaml
+    - import: factset-xdf-symbol
+      location: ./shared/exchange-datafeed-snapshot-api-symbol-list.yaml
+    - import: factset-dst
+      location: ./shared/direct-streaming-of-transaction-messages.yaml
+    - import: factset-prog
+      location: ./shared/programmatic-environment.yaml
+    - import: factset-prb
+      location: ./shared/portfolio-reporting-batcher.yaml
+
+  exposes:
+    - type: rest
+      port: 8090
+      namespace: data-management-api
+      description: "Unified REST API for data management."
+      resources:
+        - path: /v1/databases
+          name: databases
+          description: "OFDB database management."
+          operations:
+            - method: GET
+              name: list-databases
+              description: "List databases."
+              call: "factset-ofdb.list"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/datafeeds
+          name: datafeeds
+          description: "Standard datafeed."
+          operations:
+            - method: GET
+              name: list-datafeeds
+              description: "List datafeeds."
+              call: "factset-sdf.list"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+
+    - type: mcp
+      port: 9090
+      namespace: data-management-mcp
+      transport: http
+      description: "MCP server for AI-assisted data management."
+      tools:
+        - name: list-ofdb
+          description: "List OFDB databases."
+          hints:
+            readOnly: true
+          call: "factset-ofdb.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-standard-datafeed
+          description: "Get standard datafeed."
+          hints:
+            readOnly: true
+          call: "factset-sdf.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-content-feeds
+          description: "Get content feeds dictionary."
+          hints:
+            readOnly: true
+          call: "factset-cfd.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-xdf-model
+          description: "Get exchange datafeed model."
+          hints:
+            readOnly: true
+          call: "factset-xdf-model.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-xdf-snapshot
+          description: "Get exchange datafeed snapshot."
+          hints:
+            readOnly: true
+          call: "factset-xdf-entire.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-streaming
+          description: "Get direct streaming data."
+          hints:
+            readOnly: true
+          call: "factset-dst.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-prog-env
+          description: "Get programmatic environment."
+          hints:
+            readOnly: true
+          call: "factset-prog.list"
+          outputParameters:
+            - type: object
+              mapping: "$."

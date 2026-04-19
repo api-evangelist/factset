@@ -1,0 +1,190 @@
+naftiko: "1.0.0-alpha1"
+
+info:
+  label: "FactSet Market Data and Pricing"
+  description: "Unified workflow for accessing real-time and historical market data including prices, quotes, news, tick history, options, and FX rates. Used by traders and market data analysts."
+  tags:
+    - FactSet
+    - Market Data
+    - Real-Time Data
+    - Pricing
+  created: "2026-04-18"
+  modified: "2026-04-18"
+
+binds:
+  - namespace: env
+    keys:
+      FACTSET_USERNAME: FACTSET_USERNAME
+      FACTSET_PASSWORD: FACTSET_PASSWORD
+
+capability:
+  consumes:
+    - import: factset-global-prices
+      location: ./shared/global-prices.yaml
+    - import: factset-prices
+      location: ./shared/prices.yaml
+    - import: factset-rt-quotes
+      location: ./shared/real-time-quotes.yaml
+    - import: factset-rt-news
+      location: ./shared/real-time-news.yaml
+    - import: factset-rt-ts
+      location: ./shared/real-time-time-series.yaml
+    - import: factset-rt-alert
+      location: ./shared/real-time-price-alerting.yaml
+    - import: factset-options
+      location: ./shared/options.yaml
+    - import: factset-fx
+      location: ./shared/foreign-exchange-rate.yaml
+    - import: factset-intraday
+      location: ./shared/intraday-tick-history.yaml
+    - import: factset-tick
+      location: ./shared/tick-history.yaml
+
+  exposes:
+    - type: rest
+      port: 8082
+      namespace: market-data-api
+      description: "Unified REST API for market data and pricing."
+      resources:
+        - path: /v1/prices
+          name: prices
+          description: "Global equity prices."
+          operations:
+            - method: GET
+              name: get-prices
+              description: "Get equity prices."
+              call: "factset-prices.list"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/quotes
+          name: quotes
+          description: "Real-time quotes."
+          operations:
+            - method: GET
+              name: get-quotes
+              description: "Get real-time quotes."
+              call: "factset-rt-quotes.list"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/options
+          name: options
+          description: "Options data."
+          operations:
+            - method: GET
+              name: get-options
+              description: "Get options data."
+              call: "factset-options.list"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/fx-rates
+          name: fx-rates
+          description: "Foreign exchange rates."
+          operations:
+            - method: GET
+              name: get-fx
+              description: "Get FX rates."
+              call: "factset-fx.list"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+        - path: /v1/tick-history
+          name: tick-history
+          description: "Historical tick data."
+          operations:
+            - method: GET
+              name: get-ticks
+              description: "Get tick history."
+              call: "factset-tick.list"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+
+    - type: mcp
+      port: 9082
+      namespace: market-data-mcp
+      transport: http
+      description: "MCP server for AI-assisted market data analysis."
+      tools:
+        - name: get-global-prices
+          description: "Get global equity prices."
+          hints:
+            readOnly: true
+          call: "factset-global-prices.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-prices
+          description: "Get equity prices and returns."
+          hints:
+            readOnly: true
+          call: "factset-prices.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-rt-quotes
+          description: "Get real-time quotes."
+          hints:
+            readOnly: true
+          call: "factset-rt-quotes.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-rt-news
+          description: "Get real-time news."
+          hints:
+            readOnly: true
+          call: "factset-rt-news.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-time-series
+          description: "Get real-time time series."
+          hints:
+            readOnly: true
+          call: "factset-rt-ts.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-price-alerts
+          description: "Get price alerting data."
+          hints:
+            readOnly: true
+          call: "factset-rt-alert.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-options
+          description: "Get options data."
+          hints:
+            readOnly: true
+          call: "factset-options.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-fx-rates
+          description: "Get foreign exchange rates."
+          hints:
+            readOnly: true
+          call: "factset-fx.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-intraday-ticks
+          description: "Get intraday tick history."
+          hints:
+            readOnly: true
+          call: "factset-intraday.list"
+          outputParameters:
+            - type: object
+              mapping: "$."
+        - name: get-tick-history
+          description: "Get historical tick data."
+          hints:
+            readOnly: true
+          call: "factset-tick.list"
+          outputParameters:
+            - type: object
+              mapping: "$."

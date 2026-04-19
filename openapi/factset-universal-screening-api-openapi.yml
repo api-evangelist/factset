@@ -240,6 +240,7 @@ components:
           items:
             type: string
           type: array
+          example: abc123
       description: Array of active jobs ids associated with the account
       type: object
     ErrorArray:
@@ -250,20 +251,21 @@ components:
             $ref: '#/components/schemas/ErrorObject'
           type: array
           description: Array of Error Objects
+          example: []
       type: object
     ErrorCode:
       description: Factset API specific error codes
       enum:
-        - notAuthenticated
-        - notAuthorized
-        - notFound
-        - endpointNotFound
-        - parameterError
-        - genericServerError
-        - resourceGone
-        - quantityLimitsExceeded
-        - universal_screening_parameterError
-        - universal_screening_parameterWarning
+      - notAuthenticated
+      - notAuthorized
+      - notFound
+      - endpointNotFound
+      - parameterError
+      - genericServerError
+      - resourceGone
+      - quantityLimitsExceeded
+      - universal_screening_parameterError
+      - universal_screening_parameterWarning
       type: string
     ErrorObject:
       properties:
@@ -274,17 +276,20 @@ components:
             A unique ID for the occurrence of the error. It is advised to log
             this code and include it if you contact FactSet support desk.
           type: string
+          example: abc123
         source:
           $ref: '#/components/schemas/ErrorObjectSource'
         title:
           description: a description of the error
           type: string
+          example: Example Title
       type: object
       description: Associated Error Objects
     ErrorObjectSource:
       properties:
         parameter:
           type: string
+          example: example_value
       description: >-
         For errors and warnings found in screens, contains the paramID the
         error/warning belongs to
@@ -294,17 +299,21 @@ components:
         isEstimatedTotal:
           description: Denotes if the 'total' property is an estimation
           type: boolean
+          example: true
         next:
           description: Next cursor to be sent, will be null when there are no more results
           type: string
           nullable: true
+          example: example_value
         prev:
           description: Previous cursor, currently not supported
           type: integer
           nullable: true
+          example: 10
         total:
           description: Total number of rows in the screen
           type: integer
+          example: 10
       type: object
     ResourceStatusResponse:
       description: >-
@@ -322,6 +331,7 @@ components:
               description: Current status of the calculation job
               type: string
           type: object
+          example: example_value
       type: object
     ResultsMetadata:
       description: Metadata containing results pagination information
@@ -387,8 +397,8 @@ components:
                   description: If true, archive in report order
                   type: boolean
               required:
-                - filename
-                - archiveType
+              - filename
+              - archiveType
               type: object
             backtestDate:
               description: >-
@@ -417,10 +427,11 @@ components:
               description: File path to a valid screen
               type: string
           required:
-            - screenName
+          - screenName
           type: object
+          example: example_value
       required:
-        - data
+      - data
       type: object
     ScreenCalcParameters:
       properties:
@@ -453,10 +464,11 @@ components:
               description: File path to a valid screen
               type: string
           required:
-            - screenName
+          - screenName
           type: object
+          example: example_value
       required:
-        - data
+      - data
       type: object
   securitySchemes:
     FactSetApiKey:
@@ -472,9 +484,9 @@ info:
   version: 2.0.2
 openapi: 3.0.2
 servers:
-  - url: https://api.factset.com/universal-screening
+- url: https://api.factset.com/universal-screening
 security:
-  - FactSetApiKey: []
+- FactSetApiKey: []
 externalDocs:
   description: Read more about STACH 2.0's column organized schema
   url: https://factset.github.io/stachschema/#/v2/ColumnOrganized
@@ -497,8 +509,11 @@ paths:
         '500':
           $ref: '#/components/responses/Generic500ErrorResponse'
       tags:
-        - Archive
-        - Job
+      - Archive
+      - Job
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
   /v2/job/calculate:
     post:
       description: Begins calculation of screen. Subject to rate limiting by serial.
@@ -517,14 +532,17 @@ paths:
         '500':
           $ref: '#/components/responses/Generic500ErrorResponse'
       tags:
-        - Calculate
-        - Job
+      - Calculate
+      - Job
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
   /v2/job/{id}/status:
     get:
       description: Polls the job with a given screen ID and returns job status
       operationId: PollCalculate
       parameters:
-        - $ref: '#/components/parameters/ScreenCalcID'
+      - $ref: '#/components/parameters/ScreenCalcID'
       responses:
         '201':
           $ref: '#/components/responses/CalculateSuccessResponse'
@@ -539,8 +557,11 @@ paths:
         '500':
           $ref: '#/components/responses/Generic500ErrorResponse'
       tags:
-        - Job
-        - Status
+      - Job
+      - Status
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
   /v2/jobs:
     get:
       description: >-
@@ -557,7 +578,10 @@ paths:
         '500':
           $ref: '#/components/responses/Generic500ErrorResponse'
       tags:
-        - Jobs
+      - Jobs
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
     delete:
       description: Delete all active jobs started by the requester's username-serial
       operationId: DeleteAllActiveJobs
@@ -571,13 +595,16 @@ paths:
         '500':
           $ref: '#/components/responses/Generic500ErrorResponse'
       tags:
-        - Jobs
+      - Jobs
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
   /v2/job/{id}:
     delete:
       description: Delete a specified job started by the requester's username-serial
       operationId: DeleteActiveJob
       parameters:
-        - $ref: '#/components/parameters/ScreenCalcID'
+      - $ref: '#/components/parameters/ScreenCalcID'
       responses:
         '204':
           description: No content
@@ -588,7 +615,10 @@ paths:
         '500':
           $ref: '#/components/responses/Generic500ErrorResponse'
       tags:
-        - Job
+      - Job
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
     get:
       description: >-
         Retrieve results of complete screen calculation. Screens with more than
@@ -597,9 +627,9 @@ paths:
         default page size.
       operationId: GetCalculateResults
       parameters:
-        - $ref: '#/components/parameters/ScreenCalcID'
-        - $ref: '#/components/parameters/PaginationLimit'
-        - $ref: '#/components/parameters/PaginationCursor'
+      - $ref: '#/components/parameters/ScreenCalcID'
+      - $ref: '#/components/parameters/PaginationLimit'
+      - $ref: '#/components/parameters/PaginationCursor'
       responses:
         '200':
           $ref: '#/components/responses/PaginatedCalculateResponse'
@@ -616,10 +646,13 @@ paths:
         '500':
           $ref: '#/components/responses/Generic500ErrorResponse'
       tags:
-        - Job
+      - Job
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
 tags:
-  - name: Archive
-  - name: Calculate
-  - name: Job
-  - name: Jobs
-  - name: Status
+- name: Archive
+- name: Calculate
+- name: Job
+- name: Jobs
+- name: Status

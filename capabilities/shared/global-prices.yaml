@@ -1,0 +1,72 @@
+naftiko: "1.0.0-alpha1"
+
+info:
+  label: "FactSet Global Prices"
+  description: "Global equity prices, volume, turnover, and VWAP data."
+  tags:
+    - FactSet
+    - Financial Data
+  created: "2026-04-18"
+  modified: "2026-04-18"
+
+binds:
+  - namespace: env
+    keys:
+      FACTSET_USERNAME: FACTSET_USERNAME
+      FACTSET_PASSWORD: FACTSET_PASSWORD
+
+capability:
+  consumes:
+    - type: http
+      namespace: factset-global-prices
+      baseUri: https://api.factset.com/content
+      description: "Global equity prices, volume, turnover, and VWAP data."
+      authentication:
+        type: basic
+        username: "{{FACTSET_USERNAME}}"
+        password: "{{FACTSET_PASSWORD}}"
+      resources:
+        - name: global_prices
+          path: /
+          description: "Global Prices API resources."
+          operations:
+            - name: list-global-prices
+              method: GET
+              description: "List Global Prices resources."
+              outputRawFormat: json
+              outputParameters:
+                - name: result
+                  type: object
+                  value: "$."
+
+  exposes:
+    - type: rest
+      port: 8102
+      namespace: factset-global-prices-api
+      resources:
+        - path: /v1/global-prices
+          name: global-prices
+          description: "Global Prices resources."
+          operations:
+            - method: GET
+              name: list-global-prices
+              description: "List Global Prices resources."
+              call: "factset-global-prices.list-global-prices"
+              outputParameters:
+                - type: object
+                  mapping: "$."
+
+    - type: mcp
+      port: 9102
+      namespace: factset-global-prices-mcp
+      transport: http
+      tools:
+        - name: list-global-prices
+          description: "List Global Prices resources."
+          hints:
+            readOnly: true
+            openWorld: true
+          call: "factset-global-prices.list-global-prices"
+          outputParameters:
+            - type: object
+              mapping: "$."
