@@ -1,0 +1,232 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet IRN Configuration API — Relationship
+  description: 'FactSet IRN Configuration API — Relationship. 5 operations. Lead operation: Factset Get List of the Relationship
+    Categories Configured in Your Group. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Relationship
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: irn-configuration-relationship
+    baseUri: https://api.factset.com/research/irn
+    description: FactSet IRN Configuration API — Relationship business capability. Self-contained, no shared references.
+    resources:
+    - name: v1-relationship-categories
+      path: /v1/relationship-categories
+      operations:
+      - name: getrelationshipcategories
+        method: GET
+        description: Factset Get List of the Relationship Categories Configured in Your Group
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: createrelationshipcategory
+        method: POST
+        description: Factset Create a Relationship Category
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    - name: v1-relationship-categories-reorder
+      path: /v1/relationship-categories/reorder
+      operations:
+      - name: updaterelationshipcategoryorder
+        method: POST
+        description: Factset Reorder Relationship Categories
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    - name: v1-relationship-categories-relationshipCategoryId
+      path: /v1/relationship-categories/{relationshipCategoryId}
+      operations:
+      - name: editrelationshipcategory
+        method: PUT
+        description: Factset Edit a Relationship Category
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: relationshipCategoryId
+          in: path
+          type: string
+          description: relationshipCategoryId to update associated record
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+      - name: deleterelationshipcategory
+        method: DELETE
+        description: Factset Delete a Relationship Category
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: relationshipCategoryId
+          in: path
+          type: string
+          description: relationshipCategoryId to delete associated record
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: irn-configuration-relationship-rest
+    port: 8080
+    description: REST adapter for FactSet IRN Configuration API — Relationship. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/v1/relationship-categories
+      name: v1-relationship-categories
+      description: REST surface for v1-relationship-categories.
+      operations:
+      - method: GET
+        name: getrelationshipcategories
+        description: Factset Get List of the Relationship Categories Configured in Your Group
+        call: irn-configuration-relationship.getrelationshipcategories
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createrelationshipcategory
+        description: Factset Create a Relationship Category
+        call: irn-configuration-relationship.createrelationshipcategory
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/v1/relationship-categories/reorder
+      name: v1-relationship-categories-reorder
+      description: REST surface for v1-relationship-categories-reorder.
+      operations:
+      - method: POST
+        name: updaterelationshipcategoryorder
+        description: Factset Reorder Relationship Categories
+        call: irn-configuration-relationship.updaterelationshipcategoryorder
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/v1/relationship-categories/{relationshipcategoryid}
+      name: v1-relationship-categories-relationshipcategoryid
+      description: REST surface for v1-relationship-categories-relationshipCategoryId.
+      operations:
+      - method: PUT
+        name: editrelationshipcategory
+        description: Factset Edit a Relationship Category
+        call: irn-configuration-relationship.editrelationshipcategory
+        with:
+          relationshipCategoryId: rest.relationshipCategoryId
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: DELETE
+        name: deleterelationshipcategory
+        description: Factset Delete a Relationship Category
+        call: irn-configuration-relationship.deleterelationshipcategory
+        with:
+          relationshipCategoryId: rest.relationshipCategoryId
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: irn-configuration-relationship-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet IRN Configuration API — Relationship. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: factset-get-list-relationship-categories
+      description: Factset Get List of the Relationship Categories Configured in Your Group
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: irn-configuration-relationship.getrelationshipcategories
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-create-relationship-category
+      description: Factset Create a Relationship Category
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: irn-configuration-relationship.createrelationshipcategory
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-reorder-relationship-categories
+      description: Factset Reorder Relationship Categories
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: irn-configuration-relationship.updaterelationshipcategoryorder
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-edit-relationship-category
+      description: Factset Edit a Relationship Category
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: irn-configuration-relationship.editrelationshipcategory
+      with:
+        relationshipCategoryId: tools.relationshipCategoryId
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-delete-relationship-category
+      description: Factset Delete a Relationship Category
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: irn-configuration-relationship.deleterelationshipcategory
+      with:
+        relationshipCategoryId: tools.relationshipCategoryId
+      outputParameters:
+      - type: object
+        mapping: $.

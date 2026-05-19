@@ -1,0 +1,384 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset Quant API — Calculations
+  description: 'Factset Quant API — Calculations. 8 operations. Lead operation: Factset Create and Run Quant Engine calculation.
+    Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Calculations
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: quant-engine-calculations-2
+    baseUri: https://api.factset.com/analytics/engines/quant/v3
+    description: Factset Quant API — Calculations business capability. Self-contained, no shared references.
+    resources:
+    - name: calculations
+      path: /calculations
+      operations:
+      - name: postandcalculate
+        method: POST
+        description: Factset Create and Run Quant Engine calculation
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: Cache-Control
+          in: header
+          type: string
+          description: Standard HTTP header.  Accepts no-store, max-age, max-stale.
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+      - name: getallcalculations
+        method: GET
+        description: Factset Get all calculations
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: pageNumber
+          in: query
+          type: integer
+    - name: calculations-id
+      path: /calculations/{id}
+      operations:
+      - name: putandcalculate
+        method: PUT
+        description: Factset Create or update Quant Engine calculation and run it.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: path
+          type: string
+          description: from url, provided from the location header in the Create and Run Quant Engine calculation endpoint
+          required: true
+        - name: Cache-Control
+          in: header
+          type: string
+          description: Standard HTTP header.  Accepts no-store, max-age, max-stale.
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+      - name: getcalculationparameters
+        method: GET
+        description: Factset Get Quant Engine calculation parameters by id
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: path
+          type: string
+          description: from url, provided from the location header in the Create and Run Quant Engine calculation endpoint
+          required: true
+      - name: cancelcalculationbyid
+        method: DELETE
+        description: Factset Cancel Quant calculation by id
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: path
+          type: string
+          description: from url, provided from the location header in the Create and Run Quant calculation endpoint
+          required: true
+    - name: calculations-id-status
+      path: /calculations/{id}/status
+      operations:
+      - name: getcalculationstatusbyid
+        method: GET
+        description: Factset Get Quant Engine calculation status by id
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: path
+          type: string
+          description: from url, provided from the location header in the Create and Run Quant Engine calculation endpoint
+          required: true
+    - name: calculations-id-units-unitId-info
+      path: /calculations/{id}/units/{unitId}/info
+      operations:
+      - name: getcalculationunitinfobyid
+        method: GET
+        description: Factset Get Quant Engine calculation metadata information by id
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: path
+          type: string
+          description: from url, provided from the location header in the Get Quant calculation status by id endpoint
+          required: true
+        - name: unitId
+          in: path
+          type: string
+          description: from url, provided from the location header in the Get Quant calculation status by id endpoint
+          required: true
+    - name: calculations-id-units-unitId-result
+      path: /calculations/{id}/units/{unitId}/result
+      operations:
+      - name: getcalculationunitresultbyid
+        method: GET
+        description: Factset Get Quant Engine calculation result by id
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: path
+          type: string
+          description: from url, provided from the location header in the Get Quant Engine calculation status by id endpoint
+          required: true
+        - name: unitId
+          in: path
+          type: string
+          description: from url, provided from the location header in the Get Quant Engine calculation status by id endpoint
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: quant-engine-calculations-2-rest
+    port: 8080
+    description: REST adapter for Factset Quant API — Calculations. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/calculations
+      name: calculations
+      description: REST surface for calculations.
+      operations:
+      - method: POST
+        name: postandcalculate
+        description: Factset Create and Run Quant Engine calculation
+        call: quant-engine-calculations-2.postandcalculate
+        with:
+          Cache-Control: rest.Cache-Control
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getallcalculations
+        description: Factset Get all calculations
+        call: quant-engine-calculations-2.getallcalculations
+        with:
+          pageNumber: rest.pageNumber
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/calculations/{id}
+      name: calculations-id
+      description: REST surface for calculations-id.
+      operations:
+      - method: PUT
+        name: putandcalculate
+        description: Factset Create or update Quant Engine calculation and run it.
+        call: quant-engine-calculations-2.putandcalculate
+        with:
+          id: rest.id
+          Cache-Control: rest.Cache-Control
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getcalculationparameters
+        description: Factset Get Quant Engine calculation parameters by id
+        call: quant-engine-calculations-2.getcalculationparameters
+        with:
+          id: rest.id
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: DELETE
+        name: cancelcalculationbyid
+        description: Factset Cancel Quant calculation by id
+        call: quant-engine-calculations-2.cancelcalculationbyid
+        with:
+          id: rest.id
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/calculations/{id}/status
+      name: calculations-id-status
+      description: REST surface for calculations-id-status.
+      operations:
+      - method: GET
+        name: getcalculationstatusbyid
+        description: Factset Get Quant Engine calculation status by id
+        call: quant-engine-calculations-2.getcalculationstatusbyid
+        with:
+          id: rest.id
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/calculations/{id}/units/{unitid}/info
+      name: calculations-id-units-unitid-info
+      description: REST surface for calculations-id-units-unitId-info.
+      operations:
+      - method: GET
+        name: getcalculationunitinfobyid
+        description: Factset Get Quant Engine calculation metadata information by id
+        call: quant-engine-calculations-2.getcalculationunitinfobyid
+        with:
+          id: rest.id
+          unitId: rest.unitId
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/calculations/{id}/units/{unitid}/result
+      name: calculations-id-units-unitid-result
+      description: REST surface for calculations-id-units-unitId-result.
+      operations:
+      - method: GET
+        name: getcalculationunitresultbyid
+        description: Factset Get Quant Engine calculation result by id
+        call: quant-engine-calculations-2.getcalculationunitresultbyid
+        with:
+          id: rest.id
+          unitId: rest.unitId
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: quant-engine-calculations-2-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset Quant API — Calculations. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: factset-create-and-run-quant
+      description: Factset Create and Run Quant Engine calculation
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: quant-engine-calculations-2.postandcalculate
+      with:
+        Cache-Control: tools.Cache-Control
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-all-calculations
+      description: Factset Get all calculations
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: quant-engine-calculations-2.getallcalculations
+      with:
+        pageNumber: tools.pageNumber
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-create-update-quant-engine
+      description: Factset Create or update Quant Engine calculation and run it.
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: quant-engine-calculations-2.putandcalculate
+      with:
+        id: tools.id
+        Cache-Control: tools.Cache-Control
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-quant-engine-calculation
+      description: Factset Get Quant Engine calculation parameters by id
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: quant-engine-calculations-2.getcalculationparameters
+      with:
+        id: tools.id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-cancel-quant-calculation-id
+      description: Factset Cancel Quant calculation by id
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: quant-engine-calculations-2.cancelcalculationbyid
+      with:
+        id: tools.id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-quant-engine-calculation-2
+      description: Factset Get Quant Engine calculation status by id
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: quant-engine-calculations-2.getcalculationstatusbyid
+      with:
+        id: tools.id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-quant-engine-calculation-3
+      description: Factset Get Quant Engine calculation metadata information by id
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: quant-engine-calculations-2.getcalculationunitinfobyid
+      with:
+        id: tools.id
+        unitId: tools.unitId
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-quant-engine-calculation-4
+      description: Factset Get Quant Engine calculation result by id
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: quant-engine-calculations-2.getcalculationunitresultbyid
+      with:
+        id: tools.id
+        unitId: tools.unitId
+      outputParameters:
+      - type: object
+        mapping: $.

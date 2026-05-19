@@ -1,0 +1,71 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset IRN API v1 — Recommendations
+  description: 'Factset IRN API v1 — Recommendations. 1 operations. Lead operation: Factset Get all Recommendations. Self-contained
+    Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Recommendations
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: irn-configuration-recommendations-2
+    baseUri: https://api.factset.com/research/irn
+    description: Factset IRN API v1 — Recommendations business capability. Self-contained, no shared references.
+    resources:
+    - name: v1-recommendations
+      path: /v1/recommendations
+      operations:
+      - name: getrecommendations
+        method: GET
+        description: Factset Get all Recommendations
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: irn-configuration-recommendations-2-rest
+    port: 8080
+    description: REST adapter for Factset IRN API v1 — Recommendations. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/v1/recommendations
+      name: v1-recommendations
+      description: REST surface for v1-recommendations.
+      operations:
+      - method: GET
+        name: getrecommendations
+        description: Factset Get all Recommendations
+        call: irn-configuration-recommendations-2.getrecommendations
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: irn-configuration-recommendations-2-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset IRN API v1 — Recommendations. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: factset-get-all-recommendations
+      description: Factset Get all Recommendations
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: irn-configuration-recommendations-2.getrecommendations
+      outputParameters:
+      - type: object
+        mapping: $.

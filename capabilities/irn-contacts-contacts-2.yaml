@@ -1,0 +1,449 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset IRN API v1 — Contacts
+  description: 'Factset IRN API v1 — Contacts. 9 operations. Lead operation: Factset Get list of all contacts in your group
+    along with some of their standard field data. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Contacts
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: irn-contacts-contacts-2
+    baseUri: https://api.factset.com/research/irn
+    description: Factset IRN API v1 — Contacts business capability. Self-contained, no shared references.
+    resources:
+    - name: v1-contacts
+      path: /v1/contacts
+      operations:
+      - name: getcontacts
+        method: GET
+        description: Factset Get list of all contacts in your group along with some of their standard field data
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: fullName
+          in: query
+          type: string
+          description: Filter results on fullName
+        - name: emailAddress
+          in: query
+          type: string
+          description: Filter results on emailAddress
+        - name: identifier
+          in: query
+          type: string
+          description: Filter results on identifier
+        - name: employerName
+          in: query
+          type: string
+          description: Filter results on employerName
+        - name: customFieldValues
+          in: query
+          type: boolean
+          description: Includes custom field values in response if true
+        - name: search
+          in: query
+          type: string
+          description: Filter results on the combination of fullName, emailAddress, identifier and employerName
+        - name: sort
+          in: query
+          type: string
+        - name: includeLastMeetingDate
+          in: query
+          type: boolean
+          description: If true, returns when they were last tagged as an attendee in an IRN meeting
+        - name: limit
+          in: query
+          type: integer
+          description: Restrict number of records returned
+      - name: createcontact
+        method: POST
+        description: Factset Create a contact
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    - name: v1-contacts-contactId
+      path: /v1/contacts/{contactId}
+      operations:
+      - name: getcontact
+        method: GET
+        description: Factset Get all custom field and standard field details on a specific contact
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: contactId
+          in: path
+          type: string
+          description: contactId to get associated record
+          required: true
+      - name: patchcontact
+        method: PATCH
+        description: Factset Edit a contact’s standard field and custom field data
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: contactId
+          in: path
+          type: string
+          description: contactId to update associated record
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+      - name: deletecontact
+        method: DELETE
+        description: Factset Delete a contact
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: contactId
+          in: path
+          type: string
+          description: contactId to delete associated record
+          required: true
+    - name: v1-contacts-contactId-about
+      path: /v1/contacts/{contactId}/about
+      operations:
+      - name: getcontactnotes
+        method: GET
+        description: Factset Get the About field content for a specific contact
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: contactId
+          in: path
+          type: string
+          description: contactId of associated record
+          required: true
+    - name: v1-contacts-contactId-events
+      path: /v1/contacts/{contactId}/events
+      operations:
+      - name: getcontactevents
+        method: GET
+        description: Factset Get a contact’s audit history
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: contactId
+          in: path
+          type: string
+          description: contactId to get associated records
+          required: true
+    - name: v1-contacts-contactId-records
+      path: /v1/contacts/{contactId}/records
+      operations:
+      - name: getcontactrecords
+        method: GET
+        description: Factset Get all notes and meetings where a specific contact was tagged
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: contactId
+          in: path
+          type: string
+          description: contactId to get associated records
+          required: true
+    - name: v1-contacts-contactId-relationships
+      path: /v1/contacts/{contactId}/relationships
+      operations:
+      - name: getcontactrelationships
+        method: GET
+        description: Factset Returns a list of a contact’s relationships
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: contactId
+          in: path
+          type: string
+          description: contactId to get associated records
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: irn-contacts-contacts-2-rest
+    port: 8080
+    description: REST adapter for Factset IRN API v1 — Contacts. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/v1/contacts
+      name: v1-contacts
+      description: REST surface for v1-contacts.
+      operations:
+      - method: GET
+        name: getcontacts
+        description: Factset Get list of all contacts in your group along with some of their standard field data
+        call: irn-contacts-contacts-2.getcontacts
+        with:
+          fullName: rest.fullName
+          emailAddress: rest.emailAddress
+          identifier: rest.identifier
+          employerName: rest.employerName
+          customFieldValues: rest.customFieldValues
+          search: rest.search
+          sort: rest.sort
+          includeLastMeetingDate: rest.includeLastMeetingDate
+          limit: rest.limit
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createcontact
+        description: Factset Create a contact
+        call: irn-contacts-contacts-2.createcontact
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/v1/contacts/{contactid}
+      name: v1-contacts-contactid
+      description: REST surface for v1-contacts-contactId.
+      operations:
+      - method: GET
+        name: getcontact
+        description: Factset Get all custom field and standard field details on a specific contact
+        call: irn-contacts-contacts-2.getcontact
+        with:
+          contactId: rest.contactId
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: patchcontact
+        description: Factset Edit a contact’s standard field and custom field data
+        call: irn-contacts-contacts-2.patchcontact
+        with:
+          contactId: rest.contactId
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: DELETE
+        name: deletecontact
+        description: Factset Delete a contact
+        call: irn-contacts-contacts-2.deletecontact
+        with:
+          contactId: rest.contactId
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/v1/contacts/{contactid}/about
+      name: v1-contacts-contactid-about
+      description: REST surface for v1-contacts-contactId-about.
+      operations:
+      - method: GET
+        name: getcontactnotes
+        description: Factset Get the About field content for a specific contact
+        call: irn-contacts-contacts-2.getcontactnotes
+        with:
+          contactId: rest.contactId
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/v1/contacts/{contactid}/events
+      name: v1-contacts-contactid-events
+      description: REST surface for v1-contacts-contactId-events.
+      operations:
+      - method: GET
+        name: getcontactevents
+        description: Factset Get a contact’s audit history
+        call: irn-contacts-contacts-2.getcontactevents
+        with:
+          contactId: rest.contactId
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/v1/contacts/{contactid}/records
+      name: v1-contacts-contactid-records
+      description: REST surface for v1-contacts-contactId-records.
+      operations:
+      - method: GET
+        name: getcontactrecords
+        description: Factset Get all notes and meetings where a specific contact was tagged
+        call: irn-contacts-contacts-2.getcontactrecords
+        with:
+          contactId: rest.contactId
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/v1/contacts/{contactid}/relationships
+      name: v1-contacts-contactid-relationships
+      description: REST surface for v1-contacts-contactId-relationships.
+      operations:
+      - method: GET
+        name: getcontactrelationships
+        description: Factset Returns a list of a contact’s relationships
+        call: irn-contacts-contacts-2.getcontactrelationships
+        with:
+          contactId: rest.contactId
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: irn-contacts-contacts-2-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset IRN API v1 — Contacts. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: factset-get-list-all-contacts
+      description: Factset Get list of all contacts in your group along with some of their standard field data
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: irn-contacts-contacts-2.getcontacts
+      with:
+        fullName: tools.fullName
+        emailAddress: tools.emailAddress
+        identifier: tools.identifier
+        employerName: tools.employerName
+        customFieldValues: tools.customFieldValues
+        search: tools.search
+        sort: tools.sort
+        includeLastMeetingDate: tools.includeLastMeetingDate
+        limit: tools.limit
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-create-contact
+      description: Factset Create a contact
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: irn-contacts-contacts-2.createcontact
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-all-custom-field
+      description: Factset Get all custom field and standard field details on a specific contact
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: irn-contacts-contacts-2.getcontact
+      with:
+        contactId: tools.contactId
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-edit-contact-s-standard-field
+      description: Factset Edit a contact’s standard field and custom field data
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: irn-contacts-contacts-2.patchcontact
+      with:
+        contactId: tools.contactId
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-delete-contact
+      description: Factset Delete a contact
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: irn-contacts-contacts-2.deletecontact
+      with:
+        contactId: tools.contactId
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-about-field-content
+      description: Factset Get the About field content for a specific contact
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: irn-contacts-contacts-2.getcontactnotes
+      with:
+        contactId: tools.contactId
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-contact-s-audit-history
+      description: Factset Get a contact’s audit history
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: irn-contacts-contacts-2.getcontactevents
+      with:
+        contactId: tools.contactId
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-all-notes-and
+      description: Factset Get all notes and meetings where a specific contact was tagged
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: irn-contacts-contacts-2.getcontactrecords
+      with:
+        contactId: tools.contactId
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-returns-list-contact-s-relationships
+      description: Factset Returns a list of a contact’s relationships
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: irn-contacts-contacts-2.getcontactrelationships
+      with:
+        contactId: tools.contactId
+      outputParameters:
+      - type: object
+        mapping: $.

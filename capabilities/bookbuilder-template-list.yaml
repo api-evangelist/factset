@@ -1,0 +1,71 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset BookBuilder — Template List
+  description: 'Factset BookBuilder — Template List. 1 operations. Lead operation: Factset Retrieves the list of templates
+    that are available. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Template List
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: bookbuilder-template-list
+    baseUri: https://api.factset.com/book-builder-api
+    description: Factset BookBuilder — Template List business capability. Self-contained, no shared references.
+    resources:
+    - name: v1-template-list
+      path: /v1/template-list
+      operations:
+      - name: get
+        method: GET
+        description: Factset Retrieves the list of templates that are available
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: bookbuilder-template-list-rest
+    port: 8080
+    description: REST adapter for Factset BookBuilder — Template List. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/v1/template-list
+      name: v1-template-list
+      description: REST surface for v1-template-list.
+      operations:
+      - method: GET
+        name: get
+        description: Factset Retrieves the list of templates that are available
+        call: bookbuilder-template-list.get
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: bookbuilder-template-list-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset BookBuilder — Template List. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: factset-retrieves-list-templates-that
+      description: Factset Retrieves the list of templates that are available
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: bookbuilder-template-list.get
+      outputParameters:
+      - type: object
+        mapping: $.

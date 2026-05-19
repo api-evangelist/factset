@@ -1,0 +1,71 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet SCIM API — ServiceProviderConfig
+  description: 'FactSet SCIM API — ServiceProviderConfig. 1 operations. Lead operation: Factset Get server configuration..
+    Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - ServiceProviderConfig
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: procure-to-pay-api-scim-serviceproviderconfig
+    baseUri: https://api.factset.com/scim/v2
+    description: FactSet SCIM API — ServiceProviderConfig business capability. Self-contained, no shared references.
+    resources:
+    - name: ServiceProviderConfig
+      path: /ServiceProviderConfig
+      operations:
+      - name: get
+        method: GET
+        description: Factset Get server configuration.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: procure-to-pay-api-scim-serviceproviderconfig-rest
+    port: 8080
+    description: REST adapter for FactSet SCIM API — ServiceProviderConfig. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/serviceproviderconfig
+      name: serviceproviderconfig
+      description: REST surface for ServiceProviderConfig.
+      operations:
+      - method: GET
+        name: get
+        description: Factset Get server configuration.
+        call: procure-to-pay-api-scim-serviceproviderconfig.get
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: procure-to-pay-api-scim-serviceproviderconfig-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet SCIM API — ServiceProviderConfig. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: factset-get-server-configuration
+      description: Factset Get server configuration.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: procure-to-pay-api-scim-serviceproviderconfig.get
+      outputParameters:
+      - type: object
+        mapping: $.

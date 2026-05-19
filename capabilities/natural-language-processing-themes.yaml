@@ -1,0 +1,144 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset Natural Language Processing API — Themes
+  description: 'Factset Natural Language Processing API — Themes. 3 operations. Lead operation: Factset Endpoint to begin
+    theme extraction job. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Themes
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: natural-language-processing-themes
+    baseUri: https://api.factset.com/cognitive/nlp/v1
+    description: Factset Natural Language Processing API — Themes business capability. Self-contained, no shared references.
+    resources:
+    - name: themes
+      path: /themes
+      operations:
+      - name: themesextractthemes
+        method: POST
+        description: Factset Endpoint to begin theme extraction job
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: themes-id
+      path: /themes/{id}
+      operations:
+      - name: themesgetthemes
+        method: GET
+        description: Factset Endpoint to get a theme (and sentiments if requested) job result
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: themes-id-status
+      path: /themes/{id}/status
+      operations:
+      - name: themesgetstatus
+        method: GET
+        description: Factset Endpoint to get the completion status of a themes job
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: natural-language-processing-themes-rest
+    port: 8080
+    description: REST adapter for Factset Natural Language Processing API — Themes. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/themes
+      name: themes
+      description: REST surface for themes.
+      operations:
+      - method: POST
+        name: themesextractthemes
+        description: Factset Endpoint to begin theme extraction job
+        call: natural-language-processing-themes.themesextractthemes
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/themes/{id}
+      name: themes-id
+      description: REST surface for themes-id.
+      operations:
+      - method: GET
+        name: themesgetthemes
+        description: Factset Endpoint to get a theme (and sentiments if requested) job result
+        call: natural-language-processing-themes.themesgetthemes
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/themes/{id}/status
+      name: themes-id-status
+      description: REST surface for themes-id-status.
+      operations:
+      - method: GET
+        name: themesgetstatus
+        description: Factset Endpoint to get the completion status of a themes job
+        call: natural-language-processing-themes.themesgetstatus
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: natural-language-processing-themes-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset Natural Language Processing API — Themes. One tool per consumed operation, routed
+      inline through this capability's consumes block.
+    tools:
+    - name: factset-endpoint-begin-theme-extraction
+      description: Factset Endpoint to begin theme extraction job
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: natural-language-processing-themes.themesextractthemes
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-endpoint-get-theme-and
+      description: Factset Endpoint to get a theme (and sentiments if requested) job result
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: natural-language-processing-themes.themesgetthemes
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-endpoint-get-completion-status
+      description: Factset Endpoint to get the completion status of a themes job
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: natural-language-processing-themes.themesgetstatus
+      outputParameters:
+      - type: object
+        mapping: $.

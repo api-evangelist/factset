@@ -1,0 +1,71 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Estimates Report Builder — Per Share
+  description: 'FactSet Estimates Report Builder — Per Share. 1 operations. Lead operation: Factset Per Share. Self-contained
+    Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Per Share
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: estimates-report-builder-per-share
+    baseUri: https://api.factset.com/report/estimates/v1
+    description: FactSet Estimates Report Builder — Per Share business capability. Self-contained, no shared references.
+    resources:
+    - name: per-share
+      path: /per-share
+      operations:
+      - name: getestimatespershare
+        method: GET
+        description: Factset Per Share
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: estimates-report-builder-per-share-rest
+    port: 8080
+    description: REST adapter for FactSet Estimates Report Builder — Per Share. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/per-share
+      name: per-share
+      description: REST surface for per-share.
+      operations:
+      - method: GET
+        name: getestimatespershare
+        description: Factset Per Share
+        call: estimates-report-builder-per-share.getestimatespershare
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: estimates-report-builder-per-share-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Estimates Report Builder — Per Share. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: factset-per-share
+      description: Factset Per Share
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: estimates-report-builder-per-share.getestimatespershare
+      outputParameters:
+      - type: object
+        mapping: $.

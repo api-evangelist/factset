@@ -1,0 +1,88 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Capital Structure Report Builder API — Dcs Summary
+  description: 'FactSet Capital Structure Report Builder API — Dcs Summary. 1 operations. Lead operation: Factset Debt Capital
+    Structure (DCS) Summary. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Dcs Summary
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: capital-structure-report-builder-dcs-summary
+    baseUri: https://api.factset.com/report/capital/v1
+    description: FactSet Capital Structure Report Builder API — Dcs Summary business capability. Self-contained, no shared
+      references.
+    resources:
+    - name: dcs-summary
+      path: /dcs-summary
+      operations:
+      - name: getdcssummary
+        method: GET
+        description: Factset Debt Capital Structure (DCS) Summary
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: query
+          type: string
+          description: Company ticker
+          required: true
+        - name: schema
+          in: query
+          type: string
+          description: 'The schema that the data is returned as. The following are descriptions for the accepted values:'
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: capital-structure-report-builder-dcs-summary-rest
+    port: 8080
+    description: REST adapter for FactSet Capital Structure Report Builder API — Dcs Summary. One Spectral-compliant resource
+      per consumed operation, prefixed with /v1.
+    resources:
+    - path: /v1/dcs-summary
+      name: dcs-summary
+      description: REST surface for dcs-summary.
+      operations:
+      - method: GET
+        name: getdcssummary
+        description: Factset Debt Capital Structure (DCS) Summary
+        call: capital-structure-report-builder-dcs-summary.getdcssummary
+        with:
+          id: rest.id
+          schema: rest.schema
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: capital-structure-report-builder-dcs-summary-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Capital Structure Report Builder API — Dcs Summary. One tool per consumed operation,
+      routed inline through this capability's consumes block.
+    tools:
+    - name: factset-debt-capital-structure-dcs
+      description: Factset Debt Capital Structure (DCS) Summary
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: capital-structure-report-builder-dcs-summary.getdcssummary
+      with:
+        id: tools.id
+        schema: tools.schema
+      outputParameters:
+      - type: object
+        mapping: $.

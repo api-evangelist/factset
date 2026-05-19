@@ -1,0 +1,82 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Open FactSet Marketplace API — Used
+  description: 'FactSet Open FactSet Marketplace API — Used. 1 operations. Lead operation: Factset Retrieve a Collection of
+    Attributes Group Records in Use.. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Used
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: open-factset-marketplace-used
+    baseUri: https://api-sandbox.factset.com
+    description: FactSet Open FactSet Marketplace API — Used business capability. Self-contained, no shared references.
+    resources:
+    - name: ofs-v2-attributes-groups-used
+      path: /ofs/v2/attributes/groups/used
+      operations:
+      - name: get
+        method: GET
+        description: Factset Retrieve a Collection of Attributes Group Records in Use.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: limit
+          in: query
+          type: integer
+          description: Limit the amount of records per page
+        - name: page
+          in: query
+          type: integer
+          description: Select which page to show
+  exposes:
+  - type: rest
+    namespace: open-factset-marketplace-used-rest
+    port: 8080
+    description: REST adapter for FactSet Open FactSet Marketplace API — Used. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/ofs/v2/attributes/groups/used
+      name: ofs-v2-attributes-groups-used
+      description: REST surface for ofs-v2-attributes-groups-used.
+      operations:
+      - method: GET
+        name: get
+        description: Factset Retrieve a Collection of Attributes Group Records in Use.
+        call: open-factset-marketplace-used.get
+        with:
+          limit: rest.limit
+          page: rest.page
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: open-factset-marketplace-used-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Open FactSet Marketplace API — Used. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: factset-retrieve-collection-attributes-group
+      description: Factset Retrieve a Collection of Attributes Group Records in Use.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: open-factset-marketplace-used.get
+      with:
+        limit: tools.limit
+        page: tools.page
+      outputParameters:
+      - type: object
+        mapping: $.

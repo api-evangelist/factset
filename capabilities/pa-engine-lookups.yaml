@@ -1,0 +1,112 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset PA Engine API — Lookups
+  description: 'Factset PA Engine API — Lookups. 2 operations. Lead operation: Factset Get Accounts and Sub-directories in
+    a Directory. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Lookups
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: pa-engine-lookups
+    baseUri: https://api.factset.com
+    description: Factset PA Engine API — Lookups business capability. Self-contained, no shared references.
+    resources:
+    - name: analytics-lookups-v3-accounts-path
+      path: /analytics/lookups/v3/accounts/{path}
+      operations:
+      - name: getaccounts
+        method: GET
+        description: Factset Get Accounts and Sub-directories in a Directory
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: path
+          in: path
+          type: string
+          description: The directory to get the accounts and sub-directories in
+          required: true
+    - name: analytics-lookups-v3-currencies
+      path: /analytics/lookups/v3/currencies
+      operations:
+      - name: getcurrencies
+        method: GET
+        description: Factset Get Currencies
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: pa-engine-lookups-rest
+    port: 8080
+    description: REST adapter for Factset PA Engine API — Lookups. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/analytics/lookups/v3/accounts/{path}
+      name: analytics-lookups-v3-accounts-path
+      description: REST surface for analytics-lookups-v3-accounts-path.
+      operations:
+      - method: GET
+        name: getaccounts
+        description: Factset Get Accounts and Sub-directories in a Directory
+        call: pa-engine-lookups.getaccounts
+        with:
+          path: rest.path
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/analytics/lookups/v3/currencies
+      name: analytics-lookups-v3-currencies
+      description: REST surface for analytics-lookups-v3-currencies.
+      operations:
+      - method: GET
+        name: getcurrencies
+        description: Factset Get Currencies
+        call: pa-engine-lookups.getcurrencies
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: pa-engine-lookups-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset PA Engine API — Lookups. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: factset-get-accounts-and-sub
+      description: Factset Get Accounts and Sub-directories in a Directory
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: pa-engine-lookups.getaccounts
+      with:
+        path: tools.path
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-currencies
+      description: Factset Get Currencies
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: pa-engine-lookups.getcurrencies
+      outputParameters:
+      - type: object
+        mapping: $.

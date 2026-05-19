@@ -1,0 +1,71 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet BookBuilder API — Book
+  description: 'FactSet BookBuilder API — Book. 1 operations. Lead operation: Factset Check Out the Books That Are in the
+    Book Library. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Book
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: bookbuilder-book
+    baseUri: https://api.factset.com/book-builder-api
+    description: FactSet BookBuilder API — Book business capability. Self-contained, no shared references.
+    resources:
+    - name: v1-book-list
+      path: /v1/book-list
+      operations:
+      - name: get
+        method: GET
+        description: Factset Check Out the Books That Are in the Book Library
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: bookbuilder-book-rest
+    port: 8080
+    description: REST adapter for FactSet BookBuilder API — Book. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/v1/book-list
+      name: v1-book-list
+      description: REST surface for v1-book-list.
+      operations:
+      - method: GET
+        name: get
+        description: Factset Check Out the Books That Are in the Book Library
+        call: bookbuilder-book.get
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: bookbuilder-book-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet BookBuilder API — Book. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: factset-check-out-books-that
+      description: Factset Check Out the Books That Are in the Book Library
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: bookbuilder-book.get
+      outputParameters:
+      - type: object
+        mapping: $.

@@ -1,0 +1,71 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset BookBuilder — Custom Upload List
+  description: 'Factset BookBuilder — Custom Upload List. 1 operations. Lead operation: Factset Check out the documents uploaded
+    before to use them in creating books. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Custom Upload List
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: bookbuilder-custom-upload-list
+    baseUri: https://api.factset.com/book-builder-api
+    description: Factset BookBuilder — Custom Upload List business capability. Self-contained, no shared references.
+    resources:
+    - name: v1-custom-upload-list
+      path: /v1/custom-upload-list
+      operations:
+      - name: get
+        method: GET
+        description: Factset Check out the documents uploaded before to use them in creating books
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: bookbuilder-custom-upload-list-rest
+    port: 8080
+    description: REST adapter for Factset BookBuilder — Custom Upload List. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/v1/custom-upload-list
+      name: v1-custom-upload-list
+      description: REST surface for v1-custom-upload-list.
+      operations:
+      - method: GET
+        name: get
+        description: Factset Check out the documents uploaded before to use them in creating books
+        call: bookbuilder-custom-upload-list.get
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: bookbuilder-custom-upload-list-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset BookBuilder — Custom Upload List. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: factset-check-out-documents-uploaded
+      description: Factset Check out the documents uploaded before to use them in creating books
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: bookbuilder-custom-upload-list.get
+      outputParameters:
+      - type: object
+        mapping: $.

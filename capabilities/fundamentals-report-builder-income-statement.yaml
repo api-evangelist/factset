@@ -1,0 +1,71 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Fundamentals Report Builder — Income Statement
+  description: 'FactSet Fundamentals Report Builder — Income Statement. 1 operations. Lead operation: Factset Income Statement.
+    Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Income Statement
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: fundamentals-report-builder-income-statement
+    baseUri: https://api.factset.com/report/financials/v1
+    description: FactSet Fundamentals Report Builder — Income Statement business capability. Self-contained, no shared references.
+    resources:
+    - name: income-statement
+      path: /income-statement
+      operations:
+      - name: getfinancialsincomestatement
+        method: GET
+        description: Factset Income Statement
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: fundamentals-report-builder-income-statement-rest
+    port: 8080
+    description: REST adapter for FactSet Fundamentals Report Builder — Income Statement. One Spectral-compliant resource
+      per consumed operation, prefixed with /v1.
+    resources:
+    - path: /v1/income-statement
+      name: income-statement
+      description: REST surface for income-statement.
+      operations:
+      - method: GET
+        name: getfinancialsincomestatement
+        description: Factset Income Statement
+        call: fundamentals-report-builder-income-statement.getfinancialsincomestatement
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: fundamentals-report-builder-income-statement-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Fundamentals Report Builder — Income Statement. One tool per consumed operation,
+      routed inline through this capability's consumes block.
+    tools:
+    - name: factset-income-statement
+      description: Factset Income Statement
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: fundamentals-report-builder-income-statement.getfinancialsincomestatement
+      outputParameters:
+      - type: object
+        mapping: $.

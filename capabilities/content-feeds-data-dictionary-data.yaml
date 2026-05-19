@@ -1,0 +1,92 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Content Feeds Data Dictionary — Data
+  description: 'FactSet Content Feeds Data Dictionary — Data. 1 operations. Lead operation: Factset Get a List of Sources
+    Where the Specified Data Item Can Be Found, for Each Delivery Method, Filtered to the Appearances of the Given Data Item
+    Within the Specified Product.. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Data
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: content-feeds-data-dictionary-data
+    baseUri: https://api.factset.com/data-dictionary
+    description: FactSet Content Feeds Data Dictionary — Data business capability. Self-contained, no shared references.
+    resources:
+    - name: navigator-sources-DataItem_id
+      path: /navigator/sources/{DataItem_id}
+      operations:
+      - name: get
+        method: GET
+        description: Factset Get a List of Sources Where the Specified Data Item Can Be Found, for Each Delivery Method, Filtered
+          to the Appearances of the Given Data Item Within the Specified Product.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: DataItem_id
+          in: path
+          type: string
+          description: The id for the DataItem to fetch the sources for.
+          required: true
+        - name: Product_id
+          in: query
+          type: string
+          description: The id for the Product to filter down the sources returned on.
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: content-feeds-data-dictionary-data-rest
+    port: 8080
+    description: REST adapter for FactSet Content Feeds Data Dictionary — Data. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/navigator/sources/{dataitem-id}
+      name: navigator-sources-dataitem-id
+      description: REST surface for navigator-sources-DataItem_id.
+      operations:
+      - method: GET
+        name: get
+        description: Factset Get a List of Sources Where the Specified Data Item Can Be Found, for Each Delivery Method, Filtered
+          to the Appearances of the Given Data Item Within the Specified Product.
+        call: content-feeds-data-dictionary-data.get
+        with:
+          DataItem_id: rest.DataItem_id
+          Product_id: rest.Product_id
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: content-feeds-data-dictionary-data-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Content Feeds Data Dictionary — Data. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: factset-get-list-sources-where
+      description: Factset Get a List of Sources Where the Specified Data Item Can Be Found, for Each Delivery Method, Filtered
+        to the Appearances of the Given Data Item Within the Specified Product.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: content-feeds-data-dictionary-data.get
+      with:
+        DataItem_id: tools.DataItem_id
+        Product_id: tools.Product_id
+      outputParameters:
+      - type: object
+        mapping: $.

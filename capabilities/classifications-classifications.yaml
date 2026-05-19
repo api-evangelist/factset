@@ -1,0 +1,106 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset Classifications API — Classifications
+  description: 'Factset Classifications API — Classifications. 2 operations. Lead operation: Factset Gets the GICS Direct
+    Classifications. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Classifications
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: classifications-classifications
+    baseUri: https://api.factset.com/content
+    description: Factset Classifications API — Classifications business capability. Self-contained, no shared references.
+    resources:
+    - name: classifications-v1-gics
+      path: /classifications/v1/gics
+      operations:
+      - name: getgics
+        method: GET
+        description: Factset Gets the GICS Direct Classifications
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: postgics
+        method: POST
+        description: Factset Returns the GICS classifications for the requested 'ids' and date range.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: classifications-classifications-rest
+    port: 8080
+    description: REST adapter for Factset Classifications API — Classifications. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/classifications/v1/gics
+      name: classifications-v1-gics
+      description: REST surface for classifications-v1-gics.
+      operations:
+      - method: GET
+        name: getgics
+        description: Factset Gets the GICS Direct Classifications
+        call: classifications-classifications.getgics
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: postgics
+        description: Factset Returns the GICS classifications for the requested 'ids' and date range.
+        call: classifications-classifications.postgics
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: classifications-classifications-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset Classifications API — Classifications. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: factset-gets-gics-direct-classifications
+      description: Factset Gets the GICS Direct Classifications
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: classifications-classifications.getgics
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-returns-gics-classifications-requested
+      description: Factset Returns the GICS classifications for the requested 'ids' and date range.
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: classifications-classifications.postgics
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

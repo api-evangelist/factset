@@ -1,0 +1,240 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Funds API — Returns
+  description: 'FactSet Funds API — Returns. 6 operations. Lead operation: Factset Get Fund Returns for a Requested Time-series.
+    Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Returns
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: funds-returns
+    baseUri: https://api.factset.com/content
+    description: FactSet Funds API — Returns business capability. Self-contained, no shared references.
+    resources:
+    - name: factset-funds-v1-returns
+      path: /factset-funds/v1/returns
+      operations:
+      - name: getfundsreturns
+        method: GET
+        description: Factset Get Fund Returns for a Requested Time-series
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getfundsreturnsforlist
+        method: POST
+        description: Factset Get Fund Returns for a Requested Time-series and Large List of Ids
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: factset-funds-v1-returns-range
+      path: /factset-funds/v1/returns-range
+      operations:
+      - name: getfundsreturnsrange
+        method: GET
+        description: Factset Get Fund Returns for a User-defined Date Range
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getfundsreturnsrangeforlist
+        method: POST
+        description: Factset Get Fund Returns Over Pre-defined Time Horizons as of a Specific Date for Large List of Ids.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: factset-funds-v1-returns-snapshot
+      path: /factset-funds/v1/returns-snapshot
+      operations:
+      - name: getfundsreturnssnapshot
+        method: GET
+        description: Factset Get Fund Returns Over Pre-defined Time Horizons as of a Specific Date.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getfundsreturnssnapshotforlist
+        method: POST
+        description: Factset Get Fund Returns Over Pre-defined Time Horizons as of a Specific Date.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: funds-returns-rest
+    port: 8080
+    description: REST adapter for FactSet Funds API — Returns. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/factset-funds/v1/returns
+      name: factset-funds-v1-returns
+      description: REST surface for factset-funds-v1-returns.
+      operations:
+      - method: GET
+        name: getfundsreturns
+        description: Factset Get Fund Returns for a Requested Time-series
+        call: funds-returns.getfundsreturns
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: getfundsreturnsforlist
+        description: Factset Get Fund Returns for a Requested Time-series and Large List of Ids
+        call: funds-returns.getfundsreturnsforlist
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/factset-funds/v1/returns-range
+      name: factset-funds-v1-returns-range
+      description: REST surface for factset-funds-v1-returns-range.
+      operations:
+      - method: GET
+        name: getfundsreturnsrange
+        description: Factset Get Fund Returns for a User-defined Date Range
+        call: funds-returns.getfundsreturnsrange
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: getfundsreturnsrangeforlist
+        description: Factset Get Fund Returns Over Pre-defined Time Horizons as of a Specific Date for Large List of Ids.
+        call: funds-returns.getfundsreturnsrangeforlist
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/factset-funds/v1/returns-snapshot
+      name: factset-funds-v1-returns-snapshot
+      description: REST surface for factset-funds-v1-returns-snapshot.
+      operations:
+      - method: GET
+        name: getfundsreturnssnapshot
+        description: Factset Get Fund Returns Over Pre-defined Time Horizons as of a Specific Date.
+        call: funds-returns.getfundsreturnssnapshot
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: getfundsreturnssnapshotforlist
+        description: Factset Get Fund Returns Over Pre-defined Time Horizons as of a Specific Date.
+        call: funds-returns.getfundsreturnssnapshotforlist
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: funds-returns-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Funds API — Returns. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: factset-get-fund-returns-requested
+      description: Factset Get Fund Returns for a Requested Time-series
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: funds-returns.getfundsreturns
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-fund-returns-requested-2
+      description: Factset Get Fund Returns for a Requested Time-series and Large List of Ids
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: funds-returns.getfundsreturnsforlist
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-fund-returns-user
+      description: Factset Get Fund Returns for a User-defined Date Range
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: funds-returns.getfundsreturnsrange
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-fund-returns-over
+      description: Factset Get Fund Returns Over Pre-defined Time Horizons as of a Specific Date for Large List of Ids.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: funds-returns.getfundsreturnsrangeforlist
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-fund-returns-over-2
+      description: Factset Get Fund Returns Over Pre-defined Time Horizons as of a Specific Date.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: funds-returns.getfundsreturnssnapshot
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-fund-returns-over-3
+      description: Factset Get Fund Returns Over Pre-defined Time Horizons as of a Specific Date.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: funds-returns.getfundsreturnssnapshotforlist
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

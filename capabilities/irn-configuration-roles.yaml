@@ -1,0 +1,190 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet IRN Configuration API — Roles
+  description: 'FactSet IRN Configuration API — Roles. 4 operations. Lead operation: Factset Get List of the Contact Roles
+    Configured in Your Group. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Roles
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: irn-configuration-roles
+    baseUri: https://api.factset.com/research/irn
+    description: FactSet IRN Configuration API — Roles business capability. Self-contained, no shared references.
+    resources:
+    - name: v1-contact-roles
+      path: /v1/contact-roles
+      operations:
+      - name: getcontactroles
+        method: GET
+        description: Factset Get List of the Contact Roles Configured in Your Group
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: createcontactrole
+        method: POST
+        description: Factset Create Contact Roles
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: v1-contact-roles-contactRoleId
+      path: /v1/contact-roles/{contactRoleId}
+      operations:
+      - name: updatecontactrole
+        method: PUT
+        description: Factset Edit a Contact Role
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: contactRoleId
+          in: path
+          type: string
+          description: contactRoleId to update associated record
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+      - name: deletecontactrole
+        method: DELETE
+        description: Factset Delete a Contact Role
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: contactRoleId
+          in: path
+          type: string
+          description: contactRoleId to delete associated record
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: irn-configuration-roles-rest
+    port: 8080
+    description: REST adapter for FactSet IRN Configuration API — Roles. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/v1/contact-roles
+      name: v1-contact-roles
+      description: REST surface for v1-contact-roles.
+      operations:
+      - method: GET
+        name: getcontactroles
+        description: Factset Get List of the Contact Roles Configured in Your Group
+        call: irn-configuration-roles.getcontactroles
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createcontactrole
+        description: Factset Create Contact Roles
+        call: irn-configuration-roles.createcontactrole
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/v1/contact-roles/{contactroleid}
+      name: v1-contact-roles-contactroleid
+      description: REST surface for v1-contact-roles-contactRoleId.
+      operations:
+      - method: PUT
+        name: updatecontactrole
+        description: Factset Edit a Contact Role
+        call: irn-configuration-roles.updatecontactrole
+        with:
+          contactRoleId: rest.contactRoleId
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: DELETE
+        name: deletecontactrole
+        description: Factset Delete a Contact Role
+        call: irn-configuration-roles.deletecontactrole
+        with:
+          contactRoleId: rest.contactRoleId
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: irn-configuration-roles-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet IRN Configuration API — Roles. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: factset-get-list-contact-roles
+      description: Factset Get List of the Contact Roles Configured in Your Group
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: irn-configuration-roles.getcontactroles
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-create-contact-roles
+      description: Factset Create Contact Roles
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: irn-configuration-roles.createcontactrole
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-edit-contact-role
+      description: Factset Edit a Contact Role
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: irn-configuration-roles.updatecontactrole
+      with:
+        contactRoleId: tools.contactRoleId
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-delete-contact-role
+      description: Factset Delete a Contact Role
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: irn-configuration-roles.deletecontactrole
+      with:
+        contactRoleId: tools.contactRoleId
+      outputParameters:
+      - type: object
+        mapping: $.

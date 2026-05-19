@@ -1,0 +1,80 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset BookBuilder — Download Api Book Aws
+  description: 'Factset BookBuilder — Download Api Book Aws. 1 operations. Lead operation: Factset Retrieves book in PDF format.
+    Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Download Api Book Aws
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: bookbuilder-download-api-book-aws
+    baseUri: https://api.factset.com/book-builder-api
+    description: Factset BookBuilder — Download Api Book Aws business capability. Self-contained, no shared references.
+    resources:
+    - name: v1-download-api-book-aws-book_id
+      path: /v1/download-api-book-aws/{book_id}
+      operations:
+      - name: get
+        method: GET
+        description: Factset Retrieves book in PDF format
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: book_id
+          in: path
+          type: string
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: bookbuilder-download-api-book-aws-rest
+    port: 8080
+    description: REST adapter for Factset BookBuilder — Download Api Book Aws. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/v1/download-api-book-aws/{book-id}
+      name: v1-download-api-book-aws-book-id
+      description: REST surface for v1-download-api-book-aws-book_id.
+      operations:
+      - method: GET
+        name: get
+        description: Factset Retrieves book in PDF format
+        call: bookbuilder-download-api-book-aws.get
+        with:
+          book_id: rest.book_id
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: bookbuilder-download-api-book-aws-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset BookBuilder — Download Api Book Aws. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: factset-retrieves-book-pdf-format
+      description: Factset Retrieves book in PDF format
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: bookbuilder-download-api-book-aws.get
+      with:
+        book_id: tools.book_id
+      outputParameters:
+      - type: object
+        mapping: $.

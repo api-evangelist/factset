@@ -1,0 +1,81 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Content Feeds Data Dictionary — Data_items
+  description: 'FactSet Content Feeds Data Dictionary — Data_items. 1 operations. Lead operation: Factset Get the List of
+    Data Items Associated With a Product for Navigator.. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Data_items
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: content-feeds-data-dictionary-data-items
+    baseUri: https://api.factset.com/data-dictionary
+    description: FactSet Content Feeds Data Dictionary — Data_items business capability. Self-contained, no shared references.
+    resources:
+    - name: navigator-data_items-Product_id
+      path: /navigator/data_items/{Product_id}
+      operations:
+      - name: get
+        method: GET
+        description: Factset Get the List of Data Items Associated With a Product for Navigator.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: Product_id
+          in: path
+          type: string
+          description: The id for the Product to fetch the list of data items for.
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: content-feeds-data-dictionary-data-items-rest
+    port: 8080
+    description: REST adapter for FactSet Content Feeds Data Dictionary — Data_items. One Spectral-compliant resource per
+      consumed operation, prefixed with /v1.
+    resources:
+    - path: /v1/navigator/data-items/{product-id}
+      name: navigator-data-items-product-id
+      description: REST surface for navigator-data_items-Product_id.
+      operations:
+      - method: GET
+        name: get
+        description: Factset Get the List of Data Items Associated With a Product for Navigator.
+        call: content-feeds-data-dictionary-data-items.get
+        with:
+          Product_id: rest.Product_id
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: content-feeds-data-dictionary-data-items-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Content Feeds Data Dictionary — Data_items. One tool per consumed operation, routed
+      inline through this capability's consumes block.
+    tools:
+    - name: factset-get-list-data-items
+      description: Factset Get the List of Data Items Associated With a Product for Navigator.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: content-feeds-data-dictionary-data-items.get
+      with:
+        Product_id: tools.Product_id
+      outputParameters:
+      - type: object
+        mapping: $.

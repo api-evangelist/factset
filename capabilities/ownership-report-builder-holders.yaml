@@ -1,0 +1,106 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Ownership Report Builder API — Holders
+  description: 'FactSet Ownership Report Builder API — Holders. 1 operations. Lead operation: Factset Holders of a Company
+    or Fund. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Holders
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: ownership-report-builder-holders
+    baseUri: https://api.factset.com/report/ownership/v1
+    description: FactSet Ownership Report Builder API — Holders business capability. Self-contained, no shared references.
+    resources:
+    - name: holders
+      path: /holders
+      operations:
+      - name: getownershipholders
+        method: GET
+        description: Factset Holders of a Company or Fund
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: query
+          type: string
+          description: Company or Fund Identifier
+          required: true
+        - name: asset_type
+          in: query
+          type: string
+          description: Controls the Asset Type of the data returned
+        - name: holder_type
+          in: query
+          type: string
+          description: Controls the Holder Type of the data returned
+        - name: topn
+          in: query
+          type: string
+          description: 'Limits the number of holders returned based on their Market Value position in the security.  '
+        - name: date
+          in: query
+          type: string
+          description: Top Holders as of date expressed in YYYY-MM-DD format. Defaults to latest month-end close; non-month-end
+            dates are converted to month-end dates.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: ownership-report-builder-holders-rest
+    port: 8080
+    description: REST adapter for FactSet Ownership Report Builder API — Holders. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/holders
+      name: holders
+      description: REST surface for holders.
+      operations:
+      - method: GET
+        name: getownershipholders
+        description: Factset Holders of a Company or Fund
+        call: ownership-report-builder-holders.getownershipholders
+        with:
+          id: rest.id
+          asset_type: rest.asset_type
+          holder_type: rest.holder_type
+          topn: rest.topn
+          date: rest.date
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: ownership-report-builder-holders-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Ownership Report Builder API — Holders. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: factset-holders-company-fund
+      description: Factset Holders of a Company or Fund
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: ownership-report-builder-holders.getownershipholders
+      with:
+        id: tools.id
+        asset_type: tools.asset_type
+        holder_type: tools.holder_type
+        topn: tools.topn
+        date: tools.date
+      outputParameters:
+      - type: object
+        mapping: $.

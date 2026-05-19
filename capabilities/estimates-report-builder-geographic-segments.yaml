@@ -1,0 +1,71 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Estimates Report Builder — Geographic Segments
+  description: 'FactSet Estimates Report Builder — Geographic Segments. 1 operations. Lead operation: Factset Geographic Segments.
+    Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Geographic Segments
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: estimates-report-builder-geographic-segments
+    baseUri: https://api.factset.com/report/estimates/v1
+    description: FactSet Estimates Report Builder — Geographic Segments business capability. Self-contained, no shared references.
+    resources:
+    - name: geographic-segments
+      path: /geographic-segments
+      operations:
+      - name: getestimatesgeographicsegments
+        method: GET
+        description: Factset Geographic Segments
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: estimates-report-builder-geographic-segments-rest
+    port: 8080
+    description: REST adapter for FactSet Estimates Report Builder — Geographic Segments. One Spectral-compliant resource
+      per consumed operation, prefixed with /v1.
+    resources:
+    - path: /v1/geographic-segments
+      name: geographic-segments
+      description: REST surface for geographic-segments.
+      operations:
+      - method: GET
+        name: getestimatesgeographicsegments
+        description: Factset Geographic Segments
+        call: estimates-report-builder-geographic-segments.getestimatesgeographicsegments
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: estimates-report-builder-geographic-segments-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Estimates Report Builder — Geographic Segments. One tool per consumed operation,
+      routed inline through this capability's consumes block.
+    tools:
+    - name: factset-geographic-segments
+      description: Factset Geographic Segments
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: estimates-report-builder-geographic-segments.getestimatesgeographicsegments
+      outputParameters:
+      - type: object
+        mapping: $.

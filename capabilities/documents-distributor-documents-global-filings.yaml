@@ -1,0 +1,97 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset Documents Distributor - Documents API — Global Filings
+  description: 'Factset Documents Distributor - Documents API — Global Filings. 1 operations. Lead operation: Retrieve filings
+    within FactSet coverage. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Global Filings
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: documents-distributor-documents-global-filings
+    baseUri: https://api.factset.com/bulk-documents
+    description: Factset Documents Distributor - Documents API — Global Filings business capability. Self-contained, no shared
+      references.
+    resources:
+    - name: global-filings-v1-list-files
+      path: /global-filings/v1/list-files
+      operations:
+      - name: get
+        method: GET
+        description: Retrieve filings within FactSet coverage
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: dataset
+          in: query
+          type: string
+          description: This parameter filters the results based on the dataset of the filings documents.
+          required: true
+        - name: startDate
+          in: query
+          type: string
+          description: The earliest date the API should fetch for. Dates can be YYYY-MM-DD format
+          required: true
+        - name: endDate
+          in: query
+          type: string
+          description: The date after upto eight days of the earliest date given the API should fetch for. Dates can be YYYY-MM-DD
+            format
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: documents-distributor-documents-global-filings-rest
+    port: 8080
+    description: REST adapter for Factset Documents Distributor - Documents API — Global Filings. One Spectral-compliant resource
+      per consumed operation, prefixed with /v1.
+    resources:
+    - path: /v1/global-filings/v1/list-files
+      name: global-filings-v1-list-files
+      description: REST surface for global-filings-v1-list-files.
+      operations:
+      - method: GET
+        name: get
+        description: Retrieve filings within FactSet coverage
+        call: documents-distributor-documents-global-filings.get
+        with:
+          dataset: rest.dataset
+          startDate: rest.startDate
+          endDate: rest.endDate
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: documents-distributor-documents-global-filings-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset Documents Distributor - Documents API — Global Filings. One tool per consumed operation,
+      routed inline through this capability's consumes block.
+    tools:
+    - name: retrieve-filings-within-factset-coverage
+      description: Retrieve filings within FactSet coverage
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: documents-distributor-documents-global-filings.get
+      with:
+        dataset: tools.dataset
+        startDate: tools.startDate
+        endDate: tools.endDate
+      outputParameters:
+      - type: object
+        mapping: $.

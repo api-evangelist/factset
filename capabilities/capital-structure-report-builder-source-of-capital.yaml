@@ -1,0 +1,82 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Capital Structure Report Builder API — Source of Capital
+  description: 'FactSet Capital Structure Report Builder API — Source of Capital. 1 operations. Lead operation: Factset Source
+    of Capital. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Source of Capital
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: capital-structure-report-builder-source-of-capital
+    baseUri: https://api.factset.com/report/capital/v1
+    description: FactSet Capital Structure Report Builder API — Source of Capital business capability. Self-contained, no
+      shared references.
+    resources:
+    - name: source-of-capital
+      path: /source-of-capital
+      operations:
+      - name: getsourceofcapital
+        method: GET
+        description: Factset Source of Capital
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: query
+          type: string
+          description: Company ticker
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: capital-structure-report-builder-source-of-capital-rest
+    port: 8080
+    description: REST adapter for FactSet Capital Structure Report Builder API — Source of Capital. One Spectral-compliant
+      resource per consumed operation, prefixed with /v1.
+    resources:
+    - path: /v1/source-of-capital
+      name: source-of-capital
+      description: REST surface for source-of-capital.
+      operations:
+      - method: GET
+        name: getsourceofcapital
+        description: Factset Source of Capital
+        call: capital-structure-report-builder-source-of-capital.getsourceofcapital
+        with:
+          id: rest.id
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: capital-structure-report-builder-source-of-capital-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Capital Structure Report Builder API — Source of Capital. One tool per consumed operation,
+      routed inline through this capability's consumes block.
+    tools:
+    - name: factset-source-capital
+      description: Factset Source of Capital
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: capital-structure-report-builder-source-of-capital.getsourceofcapital
+      with:
+        id: tools.id
+      outputParameters:
+      - type: object
+        mapping: $.

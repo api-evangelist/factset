@@ -1,0 +1,83 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Securitized Derivatives API for Digital Portals — Intraday
+  description: 'FactSet Securitized Derivatives API for Digital Portals — Intraday. 1 operations. Lead operation: Factset
+    Ranking of Securitized Derivatives'' Notations Using Intraday Figures.. Self-contained Naftiko capability covering one
+    Factset business surface.'
+  tags:
+  - Factset
+  - Intraday
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: securitized-derivatives-api-for-digital-portals-intraday
+    baseUri: https://api.factset.com/wealth/v1
+    description: FactSet Securitized Derivatives API for Digital Portals — Intraday business capability. Self-contained, no
+      shared references.
+    resources:
+    - name: securitizedDerivative-notation-ranking-intraday-list
+      path: /securitizedDerivative/notation/ranking/intraday/list
+      operations:
+      - name: postsecuritizedderivativenotationrankingintradaylist
+        method: POST
+        description: Factset Ranking of Securitized Derivatives' Notations Using Intraday Figures.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: securitized-derivatives-api-for-digital-portals-intraday-rest
+    port: 8080
+    description: REST adapter for FactSet Securitized Derivatives API for Digital Portals — Intraday. One Spectral-compliant
+      resource per consumed operation, prefixed with /v1.
+    resources:
+    - path: /v1/securitizedderivative/notation/ranking/intraday/list
+      name: securitizedderivative-notation-ranking-intraday-list
+      description: REST surface for securitizedDerivative-notation-ranking-intraday-list.
+      operations:
+      - method: POST
+        name: postsecuritizedderivativenotationrankingintradaylist
+        description: Factset Ranking of Securitized Derivatives' Notations Using Intraday Figures.
+        call: securitized-derivatives-api-for-digital-portals-intraday.postsecuritizedderivativenotationrankingintradaylist
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: securitized-derivatives-api-for-digital-portals-intraday-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Securitized Derivatives API for Digital Portals — Intraday. One tool per consumed
+      operation, routed inline through this capability's consumes block.
+    tools:
+    - name: factset-ranking-securitized-derivatives-notations
+      description: Factset Ranking of Securitized Derivatives' Notations Using Intraday Figures.
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: securitized-derivatives-api-for-digital-portals-intraday.postsecuritizedderivativenotationrankingintradaylist
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

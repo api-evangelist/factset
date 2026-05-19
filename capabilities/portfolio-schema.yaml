@@ -1,0 +1,80 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Portfolio — Schema
+  description: 'FactSet Portfolio — Schema. 1 operations. Lead operation: Factset Get Account Schema Endpoint, Takes an Account
+    Name and Returns Its Schema. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Schema
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: portfolio-schema
+    baseUri: https://api.factset.com
+    description: FactSet Portfolio — Schema business capability. Self-contained, no shared references.
+    resources:
+    - name: analytics-accounts-v3-models-name-schema
+      path: /analytics/accounts/v3/models/{name}/schema
+      operations:
+      - name: getaccountschema
+        method: GET
+        description: Factset Get Account Schema Endpoint, Takes an Account Name and Returns Its Schema
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: name
+          in: path
+          type: string
+          description: The path and filename of the account to get its schema
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: portfolio-schema-rest
+    port: 8080
+    description: REST adapter for FactSet Portfolio — Schema. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/analytics/accounts/v3/models/{name}/schema
+      name: analytics-accounts-v3-models-name-schema
+      description: REST surface for analytics-accounts-v3-models-name-schema.
+      operations:
+      - method: GET
+        name: getaccountschema
+        description: Factset Get Account Schema Endpoint, Takes an Account Name and Returns Its Schema
+        call: portfolio-schema.getaccountschema
+        with:
+          name: rest.name
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: portfolio-schema-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Portfolio — Schema. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: factset-get-account-schema-endpoint
+      description: Factset Get Account Schema Endpoint, Takes an Account Name and Returns Its Schema
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: portfolio-schema.getaccountschema
+      with:
+        name: tools.name
+      outputParameters:
+      - type: object
+        mapping: $.

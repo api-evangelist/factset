@@ -1,0 +1,246 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Real-Time News API — Publisher
+  description: 'FactSet Real-Time News API — Publisher. 4 operations. Lead operation: Factset Details of a Publisher.. Self-contained
+    Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Publisher
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: real-time-news-publisher
+    baseUri: https://api.factset.com/wealth/v3
+    description: FactSet Real-Time News API — Publisher business capability. Self-contained, no shared references.
+    resources:
+    - name: news-publisher-get
+      path: /news/publisher/get
+      operations:
+      - name: getnewspublisherget
+        method: GET
+        description: Factset Details of a Publisher.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: query
+          type: number
+          required: true
+        - name: _attributes
+          in: query
+          type: array
+          description: Limit the attributes returned in the response to the specified set.
+    - name: news-publisher-list
+      path: /news/publisher/list
+      operations:
+      - name: getnewspublisherlist
+        method: GET
+        description: Factset List of Publishers.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: ids
+          in: query
+          type: array
+        - name: _attributes
+          in: query
+          type: array
+          description: Limit the attributes returned in the response to the specified set.
+        - name: _sort
+          in: query
+          type: array
+          description: Sortable attributes. The sort order is ascending unless it is prefixed with a minus sign, in which
+            case it is descending. A list of at most 1 (possibly prefixed
+        - name: _paginationOffset
+          in: query
+          type: number
+          description: Non-negative number of entries to skip, or 0 (default).
+        - name: _paginationLimit
+          in: query
+          type: number
+          description: Non-negative maximum number of entries to return.
+    - name: news-publisher-listByDistributor
+      path: /news/publisher/listByDistributor
+      operations:
+      - name: getnewspublisherlistbydistributor
+        method: GET
+        description: Factset List of Publishers Provided by the Given Distributor.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: query
+          type: number
+          required: true
+        - name: _attributes
+          in: query
+          type: array
+          description: Limit the attributes returned in the response to the specified set.
+        - name: _sort
+          in: query
+          type: array
+          description: Sortable attributes. The sort order is ascending unless it is prefixed with a minus sign, in which
+            case it is descending. A list of at most 1 (possibly prefixed
+    - name: news-publisher-searchByName
+      path: /news/publisher/searchByName
+      operations:
+      - name: postnewspublishersearchbyname
+        method: POST
+        description: Factset Search for Publishers.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: real-time-news-publisher-rest
+    port: 8080
+    description: REST adapter for FactSet Real-Time News API — Publisher. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/news/publisher/get
+      name: news-publisher-get
+      description: REST surface for news-publisher-get.
+      operations:
+      - method: GET
+        name: getnewspublisherget
+        description: Factset Details of a Publisher.
+        call: real-time-news-publisher.getnewspublisherget
+        with:
+          id: rest.id
+          _attributes: rest._attributes
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/news/publisher/list
+      name: news-publisher-list
+      description: REST surface for news-publisher-list.
+      operations:
+      - method: GET
+        name: getnewspublisherlist
+        description: Factset List of Publishers.
+        call: real-time-news-publisher.getnewspublisherlist
+        with:
+          ids: rest.ids
+          _attributes: rest._attributes
+          _sort: rest._sort
+          _paginationOffset: rest._paginationOffset
+          _paginationLimit: rest._paginationLimit
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/news/publisher/listbydistributor
+      name: news-publisher-listbydistributor
+      description: REST surface for news-publisher-listByDistributor.
+      operations:
+      - method: GET
+        name: getnewspublisherlistbydistributor
+        description: Factset List of Publishers Provided by the Given Distributor.
+        call: real-time-news-publisher.getnewspublisherlistbydistributor
+        with:
+          id: rest.id
+          _attributes: rest._attributes
+          _sort: rest._sort
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/news/publisher/searchbyname
+      name: news-publisher-searchbyname
+      description: REST surface for news-publisher-searchByName.
+      operations:
+      - method: POST
+        name: postnewspublishersearchbyname
+        description: Factset Search for Publishers.
+        call: real-time-news-publisher.postnewspublishersearchbyname
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: real-time-news-publisher-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Real-Time News API — Publisher. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: factset-details-publisher
+      description: Factset Details of a Publisher.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: real-time-news-publisher.getnewspublisherget
+      with:
+        id: tools.id
+        _attributes: tools._attributes
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-list-publishers
+      description: Factset List of Publishers.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: real-time-news-publisher.getnewspublisherlist
+      with:
+        ids: tools.ids
+        _attributes: tools._attributes
+        _sort: tools._sort
+        _paginationOffset: tools._paginationOffset
+        _paginationLimit: tools._paginationLimit
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-list-publishers-provided-given
+      description: Factset List of Publishers Provided by the Given Distributor.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: real-time-news-publisher.getnewspublisherlistbydistributor
+      with:
+        id: tools.id
+        _attributes: tools._attributes
+        _sort: tools._sort
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-search-publishers
+      description: Factset Search for Publishers.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: real-time-news-publisher.postnewspublishersearchbyname
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

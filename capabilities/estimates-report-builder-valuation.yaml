@@ -1,0 +1,71 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Estimates Report Builder — Valuation
+  description: 'FactSet Estimates Report Builder — Valuation. 1 operations. Lead operation: Factset Valuation. Self-contained
+    Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Valuation
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: estimates-report-builder-valuation
+    baseUri: https://api.factset.com/report/estimates/v1
+    description: FactSet Estimates Report Builder — Valuation business capability. Self-contained, no shared references.
+    resources:
+    - name: valuation
+      path: /valuation
+      operations:
+      - name: getestimatesvaluation
+        method: GET
+        description: Factset Valuation
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: estimates-report-builder-valuation-rest
+    port: 8080
+    description: REST adapter for FactSet Estimates Report Builder — Valuation. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/valuation
+      name: valuation
+      description: REST surface for valuation.
+      operations:
+      - method: GET
+        name: getestimatesvaluation
+        description: Factset Valuation
+        call: estimates-report-builder-valuation.getestimatesvaluation
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: estimates-report-builder-valuation-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Estimates Report Builder — Valuation. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: factset-valuation
+      description: Factset Valuation
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: estimates-report-builder-valuation.getestimatesvaluation
+      outputParameters:
+      - type: object
+        mapping: $.

@@ -1,0 +1,71 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset SDF Download API — List Schemas
+  description: 'Factset SDF Download API — List Schemas. 1 operations. Lead operation: Factset schemas. Self-contained Naftiko
+    capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - List Schemas
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: standard-datafeed-list-schemas
+    baseUri: https://api.factset.com/bulk-documents/sdf/v1
+    description: Factset SDF Download API — List Schemas business capability. Self-contained, no shared references.
+    resources:
+    - name: list-schemas
+      path: /list-schemas
+      operations:
+      - name: getv1listschemas
+        method: GET
+        description: Factset schemas
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: standard-datafeed-list-schemas-rest
+    port: 8080
+    description: REST adapter for Factset SDF Download API — List Schemas. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/list-schemas
+      name: list-schemas
+      description: REST surface for list-schemas.
+      operations:
+      - method: GET
+        name: getv1listschemas
+        description: Factset schemas
+        call: standard-datafeed-list-schemas.getv1listschemas
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: standard-datafeed-list-schemas-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset SDF Download API — List Schemas. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: factset-schemas
+      description: Factset schemas
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: standard-datafeed-list-schemas.getv1listschemas
+      outputParameters:
+      - type: object
+        mapping: $.

@@ -1,0 +1,165 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset Investment Banking Office Refresh API — Refresh
+  description: 'Factset Investment Banking Office Refresh API — Refresh. 3 operations. Lead operation: Factset Upload a spreadsheet
+    file. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Refresh
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: investment-banking-office-refresh-refresh
+    baseUri: https://api.factset.com/office-refresh/v1
+    description: Factset Investment Banking Office Refresh API — Refresh business capability. Self-contained, no shared references.
+    resources:
+    - name: refresh-calculate
+      path: /refresh/calculate
+      operations:
+      - name: postworkbook
+        method: POST
+        description: Factset Upload a spreadsheet file
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: nowHandlingEnabled
+          in: query
+          type: boolean
+          description: Return \#VALUE for =FDS codes dependent on NOW(). Default is true. For more information on volatile
+            code handling, see Online Assistant https://my.apps.factset.
+        - name: refreshAutoFilters
+          in: query
+          type: boolean
+          description: 'Option to refresh =FDS codes within autofilters.  Codes that are filtered out will not be refreshed,
+            unless this option is set to true.  Default is false.  For '
+        - name: resizeArrays
+          in: query
+          type: boolean
+          description: Option to allow automatic array-resizing, which allows you to return a time series of data without
+            manually setting an array.  Default is true.  For more inform
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: refresh-id
+      path: /refresh/{id}
+      operations:
+      - name: getfilebyid
+        method: GET
+        description: Factset Retrieve a calculated file by resource ID.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: refresh-id-status
+      path: /refresh/{id}/status
+      operations:
+      - name: getstatusbyid
+        method: GET
+        description: Factset Get the status of the refresh job with the given resource ID
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: investment-banking-office-refresh-refresh-rest
+    port: 8080
+    description: REST adapter for Factset Investment Banking Office Refresh API — Refresh. One Spectral-compliant resource
+      per consumed operation, prefixed with /v1.
+    resources:
+    - path: /v1/refresh/calculate
+      name: refresh-calculate
+      description: REST surface for refresh-calculate.
+      operations:
+      - method: POST
+        name: postworkbook
+        description: Factset Upload a spreadsheet file
+        call: investment-banking-office-refresh-refresh.postworkbook
+        with:
+          nowHandlingEnabled: rest.nowHandlingEnabled
+          refreshAutoFilters: rest.refreshAutoFilters
+          resizeArrays: rest.resizeArrays
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/refresh/{id}
+      name: refresh-id
+      description: REST surface for refresh-id.
+      operations:
+      - method: GET
+        name: getfilebyid
+        description: Factset Retrieve a calculated file by resource ID.
+        call: investment-banking-office-refresh-refresh.getfilebyid
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/refresh/{id}/status
+      name: refresh-id-status
+      description: REST surface for refresh-id-status.
+      operations:
+      - method: GET
+        name: getstatusbyid
+        description: Factset Get the status of the refresh job with the given resource ID
+        call: investment-banking-office-refresh-refresh.getstatusbyid
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: investment-banking-office-refresh-refresh-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset Investment Banking Office Refresh API — Refresh. One tool per consumed operation,
+      routed inline through this capability's consumes block.
+    tools:
+    - name: factset-upload-spreadsheet-file
+      description: Factset Upload a spreadsheet file
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: investment-banking-office-refresh-refresh.postworkbook
+      with:
+        nowHandlingEnabled: tools.nowHandlingEnabled
+        refreshAutoFilters: tools.refreshAutoFilters
+        resizeArrays: tools.resizeArrays
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-retrieve-calculated-file-resource
+      description: Factset Retrieve a calculated file by resource ID.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: investment-banking-office-refresh-refresh.getfilebyid
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-status-refresh-job
+      description: Factset Get the status of the refresh job with the given resource ID
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: investment-banking-office-refresh-refresh.getstatusbyid
+      outputParameters:
+      - type: object
+        mapping: $.

@@ -1,0 +1,424 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset Barra Portfolio Optimizer API — Analytics
+  description: 'Factset Barra Portfolio Optimizer API — Analytics. 9 operations. Lead operation: Factset Create and Run BPM
+    optimization. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Analytics
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: barra-portfolio-optimizer-analytics
+    baseUri: https://api.factset.com
+    description: Factset Barra Portfolio Optimizer API — Analytics business capability. Self-contained, no shared references.
+    resources:
+    - name: analytics-engines-bpm-v3-optimizations
+      path: /analytics/engines/bpm/v3/optimizations
+      operations:
+      - name: postandoptimize
+        method: POST
+        description: Factset Create and Run BPM optimization
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: X-FactSet-Api-Long-Running-Deadline
+          in: header
+          type: integer
+          description: Long running deadline in seconds.
+        - name: Cache-Control
+          in: header
+          type: string
+          description: Standard HTTP header.  Accepts no-store, max-age, max-stale.
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    - name: analytics-engines-bpm-v3-optimizations-id
+      path: /analytics/engines/bpm/v3/optimizations/{id}
+      operations:
+      - name: putandoptimize
+        method: PUT
+        description: Factset Create or Update BPM optimization and run it.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: path
+          type: string
+          description: from url, provided from the location header in the Create and Run BPM optimization endpoint
+          required: true
+        - name: X-FactSet-Api-Long-Running-Deadline
+          in: header
+          type: integer
+          description: Long running deadline in seconds.
+        - name: Cache-Control
+          in: header
+          type: string
+          description: Standard HTTP header.  Accepts no-store, max-age, max-stale.
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+      - name: getoptimizationparameters
+        method: GET
+        description: Factset Get BPM optimization parameters by id
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: path
+          type: string
+          description: from url, provided from the location header in the Create and Run BPM optimization endpoint
+          required: true
+      - name: canceloptimizationbyid
+        method: DELETE
+        description: Factset Cancel BPM optimization by id
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: path
+          type: string
+          description: from url, provided from the location header in the Create and Run BPM optimization endpoint
+          required: true
+    - name: analytics-engines-bpm-v3-optimizations-id-result
+      path: /analytics/engines/bpm/v3/optimizations/{id}/result
+      operations:
+      - name: getoptimizationresult
+        method: GET
+        description: Factset Get BPM optimization result by id
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: path
+          type: string
+          description: from url, provided from the location header in the Get BPM optimization status by id endpoint
+          required: true
+    - name: analytics-engines-bpm-v3-optimizations-id-status
+      path: /analytics/engines/bpm/v3/optimizations/{id}/status
+      operations:
+      - name: getoptimizationstatusbyid
+        method: GET
+        description: Factset Get BPM optimization status by id
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: path
+          type: string
+          description: from url, provided from the location header in the Create and Run BPM optimization endpoint
+          required: true
+    - name: analytics-engines-bpm-v3-strategies-path
+      path: /analytics/engines/bpm/v3/strategies/{path}
+      operations:
+      - name: getbarrastrategydocuments
+        method: GET
+        description: Factset Get Barra strategy documents and sub-directories in a directory
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: path
+          in: path
+          type: string
+          description: The directory to get the strategy documents and sub-directories in
+          required: true
+    - name: analytics-lookups-v3-accounts-path
+      path: /analytics/lookups/v3/accounts/{path}
+      operations:
+      - name: getaccounts
+        method: GET
+        description: Factset Get accounts and sub-directories in a directory
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: path
+          in: path
+          type: string
+          description: The directory to get the accounts and sub-directories in
+          required: true
+    - name: analytics-lookups-v3-currencies
+      path: /analytics/lookups/v3/currencies
+      operations:
+      - name: getcurrencies
+        method: GET
+        description: Factset Get currencies
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: barra-portfolio-optimizer-analytics-rest
+    port: 8080
+    description: REST adapter for Factset Barra Portfolio Optimizer API — Analytics. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/analytics/engines/bpm/v3/optimizations
+      name: analytics-engines-bpm-v3-optimizations
+      description: REST surface for analytics-engines-bpm-v3-optimizations.
+      operations:
+      - method: POST
+        name: postandoptimize
+        description: Factset Create and Run BPM optimization
+        call: barra-portfolio-optimizer-analytics.postandoptimize
+        with:
+          X-FactSet-Api-Long-Running-Deadline: rest.X-FactSet-Api-Long-Running-Deadline
+          Cache-Control: rest.Cache-Control
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/analytics/engines/bpm/v3/optimizations/{id}
+      name: analytics-engines-bpm-v3-optimizations-id
+      description: REST surface for analytics-engines-bpm-v3-optimizations-id.
+      operations:
+      - method: PUT
+        name: putandoptimize
+        description: Factset Create or Update BPM optimization and run it.
+        call: barra-portfolio-optimizer-analytics.putandoptimize
+        with:
+          id: rest.id
+          X-FactSet-Api-Long-Running-Deadline: rest.X-FactSet-Api-Long-Running-Deadline
+          Cache-Control: rest.Cache-Control
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getoptimizationparameters
+        description: Factset Get BPM optimization parameters by id
+        call: barra-portfolio-optimizer-analytics.getoptimizationparameters
+        with:
+          id: rest.id
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: DELETE
+        name: canceloptimizationbyid
+        description: Factset Cancel BPM optimization by id
+        call: barra-portfolio-optimizer-analytics.canceloptimizationbyid
+        with:
+          id: rest.id
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/analytics/engines/bpm/v3/optimizations/{id}/result
+      name: analytics-engines-bpm-v3-optimizations-id-result
+      description: REST surface for analytics-engines-bpm-v3-optimizations-id-result.
+      operations:
+      - method: GET
+        name: getoptimizationresult
+        description: Factset Get BPM optimization result by id
+        call: barra-portfolio-optimizer-analytics.getoptimizationresult
+        with:
+          id: rest.id
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/analytics/engines/bpm/v3/optimizations/{id}/status
+      name: analytics-engines-bpm-v3-optimizations-id-status
+      description: REST surface for analytics-engines-bpm-v3-optimizations-id-status.
+      operations:
+      - method: GET
+        name: getoptimizationstatusbyid
+        description: Factset Get BPM optimization status by id
+        call: barra-portfolio-optimizer-analytics.getoptimizationstatusbyid
+        with:
+          id: rest.id
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/analytics/engines/bpm/v3/strategies/{path}
+      name: analytics-engines-bpm-v3-strategies-path
+      description: REST surface for analytics-engines-bpm-v3-strategies-path.
+      operations:
+      - method: GET
+        name: getbarrastrategydocuments
+        description: Factset Get Barra strategy documents and sub-directories in a directory
+        call: barra-portfolio-optimizer-analytics.getbarrastrategydocuments
+        with:
+          path: rest.path
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/analytics/lookups/v3/accounts/{path}
+      name: analytics-lookups-v3-accounts-path
+      description: REST surface for analytics-lookups-v3-accounts-path.
+      operations:
+      - method: GET
+        name: getaccounts
+        description: Factset Get accounts and sub-directories in a directory
+        call: barra-portfolio-optimizer-analytics.getaccounts
+        with:
+          path: rest.path
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/analytics/lookups/v3/currencies
+      name: analytics-lookups-v3-currencies
+      description: REST surface for analytics-lookups-v3-currencies.
+      operations:
+      - method: GET
+        name: getcurrencies
+        description: Factset Get currencies
+        call: barra-portfolio-optimizer-analytics.getcurrencies
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: barra-portfolio-optimizer-analytics-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset Barra Portfolio Optimizer API — Analytics. One tool per consumed operation, routed
+      inline through this capability's consumes block.
+    tools:
+    - name: factset-create-and-run-bpm
+      description: Factset Create and Run BPM optimization
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: barra-portfolio-optimizer-analytics.postandoptimize
+      with:
+        X-FactSet-Api-Long-Running-Deadline: tools.X-FactSet-Api-Long-Running-Deadline
+        Cache-Control: tools.Cache-Control
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-create-update-bpm-optimization
+      description: Factset Create or Update BPM optimization and run it.
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: barra-portfolio-optimizer-analytics.putandoptimize
+      with:
+        id: tools.id
+        X-FactSet-Api-Long-Running-Deadline: tools.X-FactSet-Api-Long-Running-Deadline
+        Cache-Control: tools.Cache-Control
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-bpm-optimization-parameters
+      description: Factset Get BPM optimization parameters by id
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: barra-portfolio-optimizer-analytics.getoptimizationparameters
+      with:
+        id: tools.id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-cancel-bpm-optimization-id
+      description: Factset Cancel BPM optimization by id
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: barra-portfolio-optimizer-analytics.canceloptimizationbyid
+      with:
+        id: tools.id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-bpm-optimization-result
+      description: Factset Get BPM optimization result by id
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: barra-portfolio-optimizer-analytics.getoptimizationresult
+      with:
+        id: tools.id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-bpm-optimization-status
+      description: Factset Get BPM optimization status by id
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: barra-portfolio-optimizer-analytics.getoptimizationstatusbyid
+      with:
+        id: tools.id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-barra-strategy-documents
+      description: Factset Get Barra strategy documents and sub-directories in a directory
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: barra-portfolio-optimizer-analytics.getbarrastrategydocuments
+      with:
+        path: tools.path
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-accounts-and-sub
+      description: Factset Get accounts and sub-directories in a directory
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: barra-portfolio-optimizer-analytics.getaccounts
+      with:
+        path: tools.path
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-currencies
+      description: Factset Get currencies
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: barra-portfolio-optimizer-analytics.getcurrencies
+      outputParameters:
+      - type: object
+        mapping: $.

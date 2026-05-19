@@ -1,0 +1,106 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Private Markets API — Universe
+  description: 'FactSet Private Markets API — Universe. 2 operations. Lead operation: Factset Get Entity Candidates and Matches
+    for a Single Name and Attributes.. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Universe
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: private-markets-universe
+    baseUri: https://api.factset.com/content
+    description: FactSet Private Markets API — Universe business capability. Self-contained, no shared references.
+    resources:
+    - name: factset-private-markets-v1-universe
+      path: /factset-private-markets/v1/universe
+      operations:
+      - name: getuniverse
+        method: GET
+        description: Factset Get Entity Candidates and Matches for a Single Name and Attributes.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getuniverseforlist
+        method: POST
+        description: Factset Get a List of Entity Candidates and Matches for a Requested List of up to 25 Names and Attributes.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: private-markets-universe-rest
+    port: 8080
+    description: REST adapter for FactSet Private Markets API — Universe. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/factset-private-markets/v1/universe
+      name: factset-private-markets-v1-universe
+      description: REST surface for factset-private-markets-v1-universe.
+      operations:
+      - method: GET
+        name: getuniverse
+        description: Factset Get Entity Candidates and Matches for a Single Name and Attributes.
+        call: private-markets-universe.getuniverse
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: getuniverseforlist
+        description: Factset Get a List of Entity Candidates and Matches for a Requested List of up to 25 Names and Attributes.
+        call: private-markets-universe.getuniverseforlist
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: private-markets-universe-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Private Markets API — Universe. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: factset-get-entity-candidates-and
+      description: Factset Get Entity Candidates and Matches for a Single Name and Attributes.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: private-markets-universe.getuniverse
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-list-entity-candidates
+      description: Factset Get a List of Entity Candidates and Matches for a Requested List of up to 25 Names and Attributes.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: private-markets-universe.getuniverseforlist
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

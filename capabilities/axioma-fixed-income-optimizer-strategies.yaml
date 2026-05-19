@@ -1,0 +1,81 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Axioma Fixed Income Optimizer — Strategies
+  description: 'FactSet Axioma Fixed Income Optimizer — Strategies. 1 operations. Lead operation: Factset Get Axioma Fi Strategy
+    Documents and Sub-directories in a Directory. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Strategies
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: axioma-fixed-income-optimizer-strategies
+    baseUri: https://api.factset.com
+    description: FactSet Axioma Fixed Income Optimizer — Strategies business capability. Self-contained, no shared references.
+    resources:
+    - name: analytics-engines-afi-v3-strategies-path
+      path: /analytics/engines/afi/v3/strategies/{path}
+      operations:
+      - name: getaxiomafistrategydocuments
+        method: GET
+        description: Factset Get Axioma Fi Strategy Documents and Sub-directories in a Directory
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: path
+          in: path
+          type: string
+          description: The directory to get the strategy documents and sub-directories in
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: axioma-fixed-income-optimizer-strategies-rest
+    port: 8080
+    description: REST adapter for FactSet Axioma Fixed Income Optimizer — Strategies. One Spectral-compliant resource per
+      consumed operation, prefixed with /v1.
+    resources:
+    - path: /v1/analytics/engines/afi/v3/strategies/{path}
+      name: analytics-engines-afi-v3-strategies-path
+      description: REST surface for analytics-engines-afi-v3-strategies-path.
+      operations:
+      - method: GET
+        name: getaxiomafistrategydocuments
+        description: Factset Get Axioma Fi Strategy Documents and Sub-directories in a Directory
+        call: axioma-fixed-income-optimizer-strategies.getaxiomafistrategydocuments
+        with:
+          path: rest.path
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: axioma-fixed-income-optimizer-strategies-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Axioma Fixed Income Optimizer — Strategies. One tool per consumed operation, routed
+      inline through this capability's consumes block.
+    tools:
+    - name: factset-get-axioma-fi-strategy
+      description: Factset Get Axioma Fi Strategy Documents and Sub-directories in a Directory
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: axioma-fixed-income-optimizer-strategies.getaxiomafistrategydocuments
+      with:
+        path: tools.path
+      outputParameters:
+      - type: object
+        mapping: $.

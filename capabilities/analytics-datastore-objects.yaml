@@ -1,0 +1,92 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Analytics Datastore API — Objects
+  description: 'FactSet Analytics Datastore API — Objects. 1 operations. Lead operation: Factset Gets an Object Given an Id.
+    in This Case Id Retrieved From Mapping Location Header, Object Data in Response Body.. Self-contained Naftiko capability
+    covering one Factset business surface.'
+  tags:
+  - Factset
+  - Objects
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: analytics-datastore-objects
+    baseUri: https://api.factset.com
+    description: FactSet Analytics Datastore API — Objects business capability. Self-contained, no shared references.
+    resources:
+    - name: analytics-pub-datastore-cargo-v1-groups-groupId-objects-objectId
+      path: /analytics/pub-datastore/cargo/v1/groups/{groupId}/objects/{objectId}
+      operations:
+      - name: getcargoendpoint
+        method: GET
+        description: Factset Gets an Object Given an Id. in This Case Id Retrieved From Mapping Location Header, Object Data
+          in Response Body.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: groupId
+          in: path
+          type: string
+          description: The ID of the group
+          required: true
+        - name: objectId
+          in: path
+          type: string
+          description: The ID of the object
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: analytics-datastore-objects-rest
+    port: 8080
+    description: REST adapter for FactSet Analytics Datastore API — Objects. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/analytics/pub-datastore/cargo/v1/groups/{groupid}/objects/{objectid}
+      name: analytics-pub-datastore-cargo-v1-groups-groupid-objects-objectid
+      description: REST surface for analytics-pub-datastore-cargo-v1-groups-groupId-objects-objectId.
+      operations:
+      - method: GET
+        name: getcargoendpoint
+        description: Factset Gets an Object Given an Id. in This Case Id Retrieved From Mapping Location Header, Object Data
+          in Response Body.
+        call: analytics-datastore-objects.getcargoendpoint
+        with:
+          groupId: rest.groupId
+          objectId: rest.objectId
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: analytics-datastore-objects-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Analytics Datastore API — Objects. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: factset-gets-object-given-id
+      description: Factset Gets an Object Given an Id. in This Case Id Retrieved From Mapping Location Header, Object Data
+        in Response Body.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: analytics-datastore-objects.getcargoendpoint
+      with:
+        groupId: tools.groupId
+        objectId: tools.objectId
+      outputParameters:
+      - type: object
+        mapping: $.

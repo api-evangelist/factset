@@ -1,0 +1,80 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet SPAR Engine API — Documents
+  description: 'FactSet SPAR Engine API — Documents. 1 operations. Lead operation: Factset Gets Spar3 Documents and Sub-directories
+    in a Directory. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Documents
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: spar-engine-documents
+    baseUri: https://api.factset.com
+    description: FactSet SPAR Engine API — Documents business capability. Self-contained, no shared references.
+    resources:
+    - name: analytics-engines-spar-v3-documents-path
+      path: /analytics/engines/spar/v3/documents/{path}
+      operations:
+      - name: getspar3documents
+        method: GET
+        description: Factset Gets Spar3 Documents and Sub-directories in a Directory
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: path
+          in: path
+          type: string
+          description: The directory to get the documents in
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: spar-engine-documents-rest
+    port: 8080
+    description: REST adapter for FactSet SPAR Engine API — Documents. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/analytics/engines/spar/v3/documents/{path}
+      name: analytics-engines-spar-v3-documents-path
+      description: REST surface for analytics-engines-spar-v3-documents-path.
+      operations:
+      - method: GET
+        name: getspar3documents
+        description: Factset Gets Spar3 Documents and Sub-directories in a Directory
+        call: spar-engine-documents.getspar3documents
+        with:
+          path: rest.path
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: spar-engine-documents-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet SPAR Engine API — Documents. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: factset-gets-spar3-documents-and
+      description: Factset Gets Spar3 Documents and Sub-directories in a Directory
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: spar-engine-documents.getspar3documents
+      with:
+        path: tools.path
+      outputParameters:
+      - type: object
+        mapping: $.

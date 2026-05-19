@@ -1,0 +1,282 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset Open Risk API — Linear
+  description: 'Factset Open Risk API — Linear. 7 operations. Lead operation: Factset Calculate risk statistics. Self-contained
+    Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Linear
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: open-risk-linear
+    baseUri: https://api.factset.com/analytics/openrisk
+    description: Factset Open Risk API — Linear business capability. Self-contained, no shared references.
+    resources:
+    - name: linear-version-calculate-from-holdings
+      path: /linear/{version}/calculate/from-holdings
+      operations:
+      - name: calculatefromholdings
+        method: POST
+        description: Factset Calculate risk statistics
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: linear-version-generate-id-mapping
+      path: /linear/{version}/generate/id-mapping
+      operations:
+      - name: generateidmapping
+        method: POST
+        description: Factset Generate risk model ID mapping
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: linear-version-health
+      path: /linear/{version}/health
+      operations:
+      - name: healthstatus
+        method: GET
+        description: Factset Get health of service
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: linear-version-riskmodels
+      path: /linear/{version}/riskmodels
+      operations:
+      - name: listriskmodels
+        method: GET
+        description: Factset Get available risk models
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: linear-version-riskmodels-modelCode
+      path: /linear/{version}/riskmodels/{modelCode}
+      operations:
+      - name: riskmodelmetadata
+        method: GET
+        description: Factset Get risk model details
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: linear-version-stats
+      path: /linear/{version}/stats
+      operations:
+      - name: stats
+        method: GET
+        description: Factset Get available risk statistics details
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: linear-version-stats-names-only
+      path: /linear/{version}/stats-names-only
+      operations:
+      - name: statsnamesonly
+        method: GET
+        description: Factset Get available risk statistics names
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: open-risk-linear-rest
+    port: 8080
+    description: REST adapter for Factset Open Risk API — Linear. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/linear/{version}/calculate/from-holdings
+      name: linear-version-calculate-from-holdings
+      description: REST surface for linear-version-calculate-from-holdings.
+      operations:
+      - method: POST
+        name: calculatefromholdings
+        description: Factset Calculate risk statistics
+        call: open-risk-linear.calculatefromholdings
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/linear/{version}/generate/id-mapping
+      name: linear-version-generate-id-mapping
+      description: REST surface for linear-version-generate-id-mapping.
+      operations:
+      - method: POST
+        name: generateidmapping
+        description: Factset Generate risk model ID mapping
+        call: open-risk-linear.generateidmapping
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/linear/{version}/health
+      name: linear-version-health
+      description: REST surface for linear-version-health.
+      operations:
+      - method: GET
+        name: healthstatus
+        description: Factset Get health of service
+        call: open-risk-linear.healthstatus
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/linear/{version}/riskmodels
+      name: linear-version-riskmodels
+      description: REST surface for linear-version-riskmodels.
+      operations:
+      - method: GET
+        name: listriskmodels
+        description: Factset Get available risk models
+        call: open-risk-linear.listriskmodels
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/linear/{version}/riskmodels/{modelcode}
+      name: linear-version-riskmodels-modelcode
+      description: REST surface for linear-version-riskmodels-modelCode.
+      operations:
+      - method: GET
+        name: riskmodelmetadata
+        description: Factset Get risk model details
+        call: open-risk-linear.riskmodelmetadata
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/linear/{version}/stats
+      name: linear-version-stats
+      description: REST surface for linear-version-stats.
+      operations:
+      - method: GET
+        name: stats
+        description: Factset Get available risk statistics details
+        call: open-risk-linear.stats
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/linear/{version}/stats-names-only
+      name: linear-version-stats-names-only
+      description: REST surface for linear-version-stats-names-only.
+      operations:
+      - method: GET
+        name: statsnamesonly
+        description: Factset Get available risk statistics names
+        call: open-risk-linear.statsnamesonly
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: open-risk-linear-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset Open Risk API — Linear. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: factset-calculate-risk-statistics
+      description: Factset Calculate risk statistics
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: open-risk-linear.calculatefromholdings
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-generate-risk-model-id
+      description: Factset Generate risk model ID mapping
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: open-risk-linear.generateidmapping
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-health-service
+      description: Factset Get health of service
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: open-risk-linear.healthstatus
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-available-risk-models
+      description: Factset Get available risk models
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: open-risk-linear.listriskmodels
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-risk-model-details
+      description: Factset Get risk model details
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: open-risk-linear.riskmodelmetadata
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-available-risk-statistics
+      description: Factset Get available risk statistics details
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: open-risk-linear.stats
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-available-risk-statistics-2
+      description: Factset Get available risk statistics names
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: open-risk-linear.statsnamesonly
+      outputParameters:
+      - type: object
+        mapping: $.

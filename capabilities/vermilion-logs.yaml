@@ -1,0 +1,111 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Vermilion API — Logs
+  description: 'FactSet Vermilion API — Logs. 1 operations. Lead operation: Factset Gets a List of Logs for the Report Instance
+    Generation. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Logs
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: vermilion-logs
+    baseUri: ''
+    description: FactSet Vermilion API — Logs business capability. Self-contained, no shared references.
+    resources:
+    - name: v1-tenant-report-instances-reportInstanceId-logs
+      path: /v1/{tenant}/report-instances/{reportInstanceId}/logs
+      operations:
+      - name: getreportgenerationlogs
+        method: GET
+        description: Factset Gets a List of Logs for the Report Instance Generation
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: tenant
+          in: path
+          type: string
+          description: The code of the tenancy
+          required: true
+        - name: reportInstanceId
+          in: path
+          type: string
+          description: Used to validate that report file name belongs to the report instance passed
+          required: true
+        - name: errorsOnly
+          in: query
+          type: string
+          description: 'If the parameter is set to true the endpoint should return just errors and warnings E.g: errorsOnly=true'
+        - name: _sort
+          in: query
+          type: array
+          description: The column to sort on. Can add - to sort
+        - name: _paginationLimit
+          in: query
+          type: integer
+          description: Non-negative maximum number of entries to return
+        - name: _paginationOffset
+          in: query
+          type: integer
+          description: Non-negative number of entries to skip
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: vermilion-logs-rest
+    port: 8080
+    description: REST adapter for FactSet Vermilion API — Logs. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/v1/{tenant}/report-instances/{reportinstanceid}/logs
+      name: v1-tenant-report-instances-reportinstanceid-logs
+      description: REST surface for v1-tenant-report-instances-reportInstanceId-logs.
+      operations:
+      - method: GET
+        name: getreportgenerationlogs
+        description: Factset Gets a List of Logs for the Report Instance Generation
+        call: vermilion-logs.getreportgenerationlogs
+        with:
+          tenant: rest.tenant
+          reportInstanceId: rest.reportInstanceId
+          errorsOnly: rest.errorsOnly
+          _sort: rest._sort
+          _paginationLimit: rest._paginationLimit
+          _paginationOffset: rest._paginationOffset
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: vermilion-logs-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Vermilion API — Logs. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: factset-gets-list-logs-report
+      description: Factset Gets a List of Logs for the Report Instance Generation
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: vermilion-logs.getreportgenerationlogs
+      with:
+        tenant: tools.tenant
+        reportInstanceId: tools.reportInstanceId
+        errorsOnly: tools.errorsOnly
+        _sort: tools._sort
+        _paginationLimit: tools._paginationLimit
+        _paginationOffset: tools._paginationOffset
+      outputParameters:
+      - type: object
+        mapping: $.

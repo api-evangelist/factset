@@ -1,0 +1,71 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Private Markets API — Fields
+  description: 'FactSet Private Markets API — Fields. 1 operations. Lead operation: Factset Available Private Company Fields,
+    Metrics, and Ratios.. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Fields
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: private-markets-fields
+    baseUri: https://api.factset.com/content
+    description: FactSet Private Markets API — Fields business capability. Self-contained, no shared references.
+    resources:
+    - name: factset-private-markets-v1-fields
+      path: /factset-private-markets/v1/fields
+      operations:
+      - name: getfields
+        method: GET
+        description: Factset Available Private Company Fields, Metrics, and Ratios.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: private-markets-fields-rest
+    port: 8080
+    description: REST adapter for FactSet Private Markets API — Fields. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/factset-private-markets/v1/fields
+      name: factset-private-markets-v1-fields
+      description: REST surface for factset-private-markets-v1-fields.
+      operations:
+      - method: GET
+        name: getfields
+        description: Factset Available Private Company Fields, Metrics, and Ratios.
+        call: private-markets-fields.getfields
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: private-markets-fields-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Private Markets API — Fields. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: factset-available-private-company-fields
+      description: Factset Available Private Company Fields, Metrics, and Ratios.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: private-markets-fields.getfields
+      outputParameters:
+      - type: object
+        mapping: $.

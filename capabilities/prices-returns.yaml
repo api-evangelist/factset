@@ -1,0 +1,173 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Prices API — Returns
+  description: 'FactSet Prices API — Returns. 4 operations. Lead operation: Factset Gets Returns for a List of `ids` as of
+    Given Date Range and Rolling Period. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Returns
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: prices-returns
+    baseUri: https://api.factset.com/content
+    description: FactSet Prices API — Returns business capability. Self-contained, no shared references.
+    resources:
+    - name: factset-prices-v1-returns
+      path: /factset-prices/v1/returns
+      operations:
+      - name: getsecurityreturns
+        method: GET
+        description: Factset Gets Returns for a List of `ids` as of Given Date Range and Rolling Period
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getsecurityreturnsforlist
+        method: POST
+        description: Factset Requests Security Returns for the Given Date Range and Rollingperiod.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: factset-prices-v1-returns-snapshot
+      path: /factset-prices/v1/returns-snapshot
+      operations:
+      - name: getreturnssnapshot
+        method: GET
+        description: Factset Returns the Price Performance of the Security and Annualized Compound Total Returns.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getreturnssnapshotforlist
+        method: POST
+        description: Factset Returns the Price Performance of the Security and Annualized Compound Total Returns.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: prices-returns-rest
+    port: 8080
+    description: REST adapter for FactSet Prices API — Returns. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/factset-prices/v1/returns
+      name: factset-prices-v1-returns
+      description: REST surface for factset-prices-v1-returns.
+      operations:
+      - method: GET
+        name: getsecurityreturns
+        description: Factset Gets Returns for a List of `ids` as of Given Date Range and Rolling Period
+        call: prices-returns.getsecurityreturns
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: getsecurityreturnsforlist
+        description: Factset Requests Security Returns for the Given Date Range and Rollingperiod.
+        call: prices-returns.getsecurityreturnsforlist
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/factset-prices/v1/returns-snapshot
+      name: factset-prices-v1-returns-snapshot
+      description: REST surface for factset-prices-v1-returns-snapshot.
+      operations:
+      - method: GET
+        name: getreturnssnapshot
+        description: Factset Returns the Price Performance of the Security and Annualized Compound Total Returns.
+        call: prices-returns.getreturnssnapshot
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: getreturnssnapshotforlist
+        description: Factset Returns the Price Performance of the Security and Annualized Compound Total Returns.
+        call: prices-returns.getreturnssnapshotforlist
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: prices-returns-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Prices API — Returns. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: factset-gets-returns-list-ids
+      description: Factset Gets Returns for a List of `ids` as of Given Date Range and Rolling Period
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: prices-returns.getsecurityreturns
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-requests-security-returns-given
+      description: Factset Requests Security Returns for the Given Date Range and Rollingperiod.
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: prices-returns.getsecurityreturnsforlist
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-returns-price-performance-security
+      description: Factset Returns the Price Performance of the Security and Annualized Compound Total Returns.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: prices-returns.getreturnssnapshot
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-returns-price-performance-security-2
+      description: Factset Returns the Price Performance of the Security and Annualized Compound Total Returns.
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: prices-returns.getreturnssnapshotforlist
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

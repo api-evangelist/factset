@@ -1,0 +1,81 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset Conversational API Powered by FactSet Mercury — Result
+  description: 'Factset Conversational API Powered by FactSet Mercury — Result. 1 operations. Lead operation: Factset Retrieve
+    the completed response for your query.. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Result
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: conversational-api-powered-by-mercury-result
+    baseUri: https://api.factset.com/conversational/v0
+    description: Factset Conversational API Powered by FactSet Mercury — Result business capability. Self-contained, no shared
+      references.
+    resources:
+    - name: result
+      path: /result
+      operations:
+      - name: getchatresult
+        method: POST
+        description: Factset Retrieve the completed response for your query.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: conversational-api-powered-by-mercury-result-rest
+    port: 8080
+    description: REST adapter for Factset Conversational API Powered by FactSet Mercury — Result. One Spectral-compliant resource
+      per consumed operation, prefixed with /v1.
+    resources:
+    - path: /v1/result
+      name: result
+      description: REST surface for result.
+      operations:
+      - method: POST
+        name: getchatresult
+        description: Factset Retrieve the completed response for your query.
+        call: conversational-api-powered-by-mercury-result.getchatresult
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: conversational-api-powered-by-mercury-result-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset Conversational API Powered by FactSet Mercury — Result. One tool per consumed operation,
+      routed inline through this capability's consumes block.
+    tools:
+    - name: factset-retrieve-completed-response-your
+      description: Factset Retrieve the completed response for your query.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: conversational-api-powered-by-mercury-result.getchatresult
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

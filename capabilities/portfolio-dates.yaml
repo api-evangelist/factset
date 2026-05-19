@@ -1,0 +1,206 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Portfolio — Dates
+  description: 'FactSet Portfolio — Dates. 3 operations. Lead operation: Factset Delete All Entries for a Date or Specific
+    Symbol Entries for a Date From a Previously Created Account.. Self-contained Naftiko capability covering one Factset business
+    surface.'
+  tags:
+  - Factset
+  - Dates
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: portfolio-dates
+    baseUri: https://api.factset.com
+    description: FactSet Portfolio — Dates business capability. Self-contained, no shared references.
+    resources:
+    - name: analytics-accounts-v3-models-name-dates-date
+      path: /analytics/accounts/v3/models/{name}/dates/{date}
+      operations:
+      - name: deletemodelaccountbydate
+        method: DELETE
+        description: Factset Delete All Entries for a Date or Specific Symbol Entries for a Date From a Previously Created
+          Account.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: name
+          in: path
+          type: string
+          description: The filename of model account to delete
+          required: true
+        - name: date
+          in: path
+          type: string
+          description: The date from the given file name to delete
+          required: true
+        - name: symbols
+          in: query
+          type: array
+          description: The symbols from the given file name and date to delete (Maximum 10 symbols are allowed)
+      - name: getaccountfordate
+        method: GET
+        description: Factset Get Account Endpoint, Takes an Account Name, Date and Returns Underlying Data for That Date
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: name
+          in: path
+          type: string
+          description: The path and filename of the account to get
+          required: true
+        - name: date
+          in: path
+          type: string
+          description: The date for which data needs to be updated
+          required: true
+        - name: format
+          in: query
+          type: string
+          description: Optional format for the response, supported formats are JsonStach and AccountModel
+    - name: analytics-accounts-v3-models-name-dates-date-symbols-symbol
+      path: /analytics/accounts/v3/models/{name}/dates/{date}/symbols/{symbol}
+      operations:
+      - name: getaccountfordateandsymbol
+        method: GET
+        description: Factset Get Account Endpoint, Takes an Account Name and Returns Underlying Data
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: name
+          in: path
+          type: string
+          description: The path and filename of the account to get
+          required: true
+        - name: symbol
+          in: path
+          type: string
+          description: The symbol for which data needs to be updated
+          required: true
+        - name: date
+          in: path
+          type: string
+          description: The date for which data needs to be updated
+          required: true
+        - name: format
+          in: query
+          type: string
+          description: Optional format for the response, supported formats are JsonStach and AccountModel
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: portfolio-dates-rest
+    port: 8080
+    description: REST adapter for FactSet Portfolio — Dates. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/analytics/accounts/v3/models/{name}/dates/{date}
+      name: analytics-accounts-v3-models-name-dates-date
+      description: REST surface for analytics-accounts-v3-models-name-dates-date.
+      operations:
+      - method: DELETE
+        name: deletemodelaccountbydate
+        description: Factset Delete All Entries for a Date or Specific Symbol Entries for a Date From a Previously Created
+          Account.
+        call: portfolio-dates.deletemodelaccountbydate
+        with:
+          name: rest.name
+          date: rest.date
+          symbols: rest.symbols
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: GET
+        name: getaccountfordate
+        description: Factset Get Account Endpoint, Takes an Account Name, Date and Returns Underlying Data for That Date
+        call: portfolio-dates.getaccountfordate
+        with:
+          name: rest.name
+          date: rest.date
+          format: rest.format
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/analytics/accounts/v3/models/{name}/dates/{date}/symbols/{symbol}
+      name: analytics-accounts-v3-models-name-dates-date-symbols-symbol
+      description: REST surface for analytics-accounts-v3-models-name-dates-date-symbols-symbol.
+      operations:
+      - method: GET
+        name: getaccountfordateandsymbol
+        description: Factset Get Account Endpoint, Takes an Account Name and Returns Underlying Data
+        call: portfolio-dates.getaccountfordateandsymbol
+        with:
+          name: rest.name
+          symbol: rest.symbol
+          date: rest.date
+          format: rest.format
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: portfolio-dates-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Portfolio — Dates. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: factset-delete-all-entries-date
+      description: Factset Delete All Entries for a Date or Specific Symbol Entries for a Date From a Previously Created Account.
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: portfolio-dates.deletemodelaccountbydate
+      with:
+        name: tools.name
+        date: tools.date
+        symbols: tools.symbols
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-account-endpoint-takes
+      description: Factset Get Account Endpoint, Takes an Account Name, Date and Returns Underlying Data for That Date
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: portfolio-dates.getaccountfordate
+      with:
+        name: tools.name
+        date: tools.date
+        format: tools.format
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-account-endpoint-takes-2
+      description: Factset Get Account Endpoint, Takes an Account Name and Returns Underlying Data
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: portfolio-dates.getaccountfordateandsymbol
+      with:
+        name: tools.name
+        symbol: tools.symbol
+        date: tools.date
+        format: tools.format
+      outputParameters:
+      - type: object
+        mapping: $.

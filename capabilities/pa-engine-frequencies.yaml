@@ -1,0 +1,102 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset PA Engine API — Frequencies
+  description: 'Factset PA Engine API — Frequencies. 2 operations. Lead operation: Factset Get Pa Frequencies. Self-contained
+    Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Frequencies
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: pa-engine-frequencies
+    baseUri: https://api.factset.com
+    description: Factset PA Engine API — Frequencies business capability. Self-contained, no shared references.
+    resources:
+    - name: analytics-engines-pa-v3-frequencies
+      path: /analytics/engines/pa/v3/frequencies
+      operations:
+      - name: getpafrequencies
+        method: GET
+        description: Factset Get Pa Frequencies
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    - name: analytics-engines-pa-v3-grouping-frequencies
+      path: /analytics/engines/pa/v3/grouping-frequencies
+      operations:
+      - name: getpagroupingfrequencies
+        method: GET
+        description: Factset Get Pa Grouping Frequencies
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: pa-engine-frequencies-rest
+    port: 8080
+    description: REST adapter for Factset PA Engine API — Frequencies. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/analytics/engines/pa/v3/frequencies
+      name: analytics-engines-pa-v3-frequencies
+      description: REST surface for analytics-engines-pa-v3-frequencies.
+      operations:
+      - method: GET
+        name: getpafrequencies
+        description: Factset Get Pa Frequencies
+        call: pa-engine-frequencies.getpafrequencies
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/analytics/engines/pa/v3/grouping-frequencies
+      name: analytics-engines-pa-v3-grouping-frequencies
+      description: REST surface for analytics-engines-pa-v3-grouping-frequencies.
+      operations:
+      - method: GET
+        name: getpagroupingfrequencies
+        description: Factset Get Pa Grouping Frequencies
+        call: pa-engine-frequencies.getpagroupingfrequencies
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: pa-engine-frequencies-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset PA Engine API — Frequencies. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: factset-get-pa-frequencies
+      description: Factset Get Pa Frequencies
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: pa-engine-frequencies.getpafrequencies
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-pa-grouping-frequencies
+      description: Factset Get Pa Grouping Frequencies
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: pa-engine-frequencies.getpagroupingfrequencies
+      outputParameters:
+      - type: object
+        mapping: $.

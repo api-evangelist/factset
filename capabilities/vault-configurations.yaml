@@ -1,0 +1,122 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Vault API — Configurations
+  description: 'FactSet Vault API — Configurations. 2 operations. Lead operation: Factset Get Vault Configurations. Self-contained
+    Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Configurations
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: vault-configurations
+    baseUri: https://api.factset.com
+    description: FactSet Vault API — Configurations business capability. Self-contained, no shared references.
+    resources:
+    - name: analytics-engines-vault-v3-configurations
+      path: /analytics/engines/vault/v3/configurations
+      operations:
+      - name: getvaultconfigurations
+        method: GET
+        description: Factset Get Vault Configurations
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: account
+          in: query
+          type: string
+          description: Required account query parameter to filter configurations for a specific account
+          required: true
+    - name: analytics-engines-vault-v3-configurations-id
+      path: /analytics/engines/vault/v3/configurations/{id}
+      operations:
+      - name: getvaultconfigurationbyid
+        method: GET
+        description: Factset Get Vault Configuration by Id
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: path
+          type: string
+          description: Vault configuration id to get the details of
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: vault-configurations-rest
+    port: 8080
+    description: REST adapter for FactSet Vault API — Configurations. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/analytics/engines/vault/v3/configurations
+      name: analytics-engines-vault-v3-configurations
+      description: REST surface for analytics-engines-vault-v3-configurations.
+      operations:
+      - method: GET
+        name: getvaultconfigurations
+        description: Factset Get Vault Configurations
+        call: vault-configurations.getvaultconfigurations
+        with:
+          account: rest.account
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/analytics/engines/vault/v3/configurations/{id}
+      name: analytics-engines-vault-v3-configurations-id
+      description: REST surface for analytics-engines-vault-v3-configurations-id.
+      operations:
+      - method: GET
+        name: getvaultconfigurationbyid
+        description: Factset Get Vault Configuration by Id
+        call: vault-configurations.getvaultconfigurationbyid
+        with:
+          id: rest.id
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: vault-configurations-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Vault API — Configurations. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: factset-get-vault-configurations
+      description: Factset Get Vault Configurations
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: vault-configurations.getvaultconfigurations
+      with:
+        account: tools.account
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-vault-configuration-id
+      description: Factset Get Vault Configuration by Id
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: vault-configurations.getvaultconfigurationbyid
+      with:
+        id: tools.id
+      outputParameters:
+      - type: object
+        mapping: $.

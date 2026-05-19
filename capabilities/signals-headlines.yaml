@@ -1,0 +1,109 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Signals API — Headlines
+  description: 'FactSet Signals API — Headlines. 2 operations. Lead operation: Headlines. Self-contained Naftiko capability
+    covering one Factset business surface.'
+  tags:
+  - Factset
+  - Headlines
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: signals-headlines
+    baseUri: https://api.factset.com/signals/v2
+    description: FactSet Signals API — Headlines business capability. Self-contained, no shared references.
+    resources:
+    - name: events-headlines
+      path: /events/headlines
+      operations:
+      - name: geteventheadlines
+        method: GET
+        description: 'Fetch Signals event headlines based on at least one of the following filtering parameters: `ids`, `portfolios`'
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: posteventheadlines
+        method: POST
+        description: 'Fetch Signals event headlines based on the filtering criteria for up to 1000 identifiers and at least
+          one of the following filtering parameters: `ids`, `portfolios`'
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: signals-headlines-rest
+    port: 8080
+    description: REST adapter for FactSet Signals API — Headlines. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/events/headlines
+      name: events-headlines
+      description: REST surface for events-headlines.
+      operations:
+      - method: GET
+        name: geteventheadlines
+        description: 'Fetch Signals event headlines based on at least one of the following filtering parameters: `ids`, `portfolios`'
+        call: signals-headlines.geteventheadlines
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: posteventheadlines
+        description: 'Fetch Signals event headlines based on the filtering criteria for up to 1000 identifiers and at least
+          one of the following filtering parameters: `ids`, `portfolios`'
+        call: signals-headlines.posteventheadlines
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: signals-headlines-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Signals API — Headlines. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: fetch-signals-event-headlines-based
+      description: 'Fetch Signals event headlines based on at least one of the following filtering parameters: `ids`, `portfolios`'
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: signals-headlines.geteventheadlines
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: fetch-signals-event-headlines-based-2
+      description: 'Fetch Signals event headlines based on the filtering criteria for up to 1000 identifiers and at least
+        one of the following filtering parameters: `ids`, `portfolios`'
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: signals-headlines.posteventheadlines
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

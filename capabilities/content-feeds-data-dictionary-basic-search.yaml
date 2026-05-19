@@ -1,0 +1,85 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Content Feeds Data Dictionary — Basic_search
+  description: 'FactSet Content Feeds Data Dictionary — Basic_search. 1 operations. Lead operation: Factset Returns the Data
+    Items (along With the Products They Belong To) That Contain at Least One of the Search Terms as a Substring of Either
+    Their Name or Description.. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Basic_search
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: content-feeds-data-dictionary-basic-search
+    baseUri: https://api.factset.com/data-dictionary
+    description: FactSet Content Feeds Data Dictionary — Basic_search business capability. Self-contained, no shared references.
+    resources:
+    - name: navigator-basic_search
+      path: /navigator/basic_search
+      operations:
+      - name: post
+        method: POST
+        description: Factset Returns the Data Items (along With the Products They Belong To) That Contain at Least One of
+          the Search Terms as a Substring of Either Their Name or Description.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: content-feeds-data-dictionary-basic-search-rest
+    port: 8080
+    description: REST adapter for FactSet Content Feeds Data Dictionary — Basic_search. One Spectral-compliant resource per
+      consumed operation, prefixed with /v1.
+    resources:
+    - path: /v1/navigator/basic-search
+      name: navigator-basic-search
+      description: REST surface for navigator-basic_search.
+      operations:
+      - method: POST
+        name: post
+        description: Factset Returns the Data Items (along With the Products They Belong To) That Contain at Least One of
+          the Search Terms as a Substring of Either Their Name or Description.
+        call: content-feeds-data-dictionary-basic-search.post
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: content-feeds-data-dictionary-basic-search-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Content Feeds Data Dictionary — Basic_search. One tool per consumed operation, routed
+      inline through this capability's consumes block.
+    tools:
+    - name: factset-returns-data-items-along
+      description: Factset Returns the Data Items (along With the Products They Belong To) That Contain at Least One of the
+        Search Terms as a Substring of Either Their Name or Description.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: content-feeds-data-dictionary-basic-search.post
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

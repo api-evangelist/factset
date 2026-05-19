@@ -1,0 +1,70 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Vault API — Frequencies
+  description: 'FactSet Vault API — Frequencies. 1 operations. Lead operation: Factset Get Vault Frequencies. Self-contained
+    Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Frequencies
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: vault-frequencies
+    baseUri: https://api.factset.com
+    description: FactSet Vault API — Frequencies business capability. Self-contained, no shared references.
+    resources:
+    - name: analytics-engines-vault-v3-frequencies
+      path: /analytics/engines/vault/v3/frequencies
+      operations:
+      - name: getvaultfrequencies
+        method: GET
+        description: Factset Get Vault Frequencies
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: vault-frequencies-rest
+    port: 8080
+    description: REST adapter for FactSet Vault API — Frequencies. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/analytics/engines/vault/v3/frequencies
+      name: analytics-engines-vault-v3-frequencies
+      description: REST surface for analytics-engines-vault-v3-frequencies.
+      operations:
+      - method: GET
+        name: getvaultfrequencies
+        description: Factset Get Vault Frequencies
+        call: vault-frequencies.getvaultfrequencies
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: vault-frequencies-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Vault API — Frequencies. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: factset-get-vault-frequencies
+      description: Factset Get Vault Frequencies
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: vault-frequencies.getvaultfrequencies
+      outputParameters:
+      - type: object
+        mapping: $.

@@ -1,0 +1,164 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Security Modeling API — Security
+  description: 'FactSet Security Modeling API — Security. 3 operations. Lead operation: Factset Delete Existing Securities.
+    Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Security
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: security-modeling-security
+    baseUri: https://api.factset.com
+    description: FactSet Security Modeling API — Security business capability. Self-contained, no shared references.
+    resources:
+    - name: analytics-security-modeling-v3-securities-delete
+      path: /analytics/security-modeling/v3/securities/delete
+      operations:
+      - name: deletesecurities
+        method: POST
+        description: Factset Delete Existing Securities
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    - name: analytics-security-modeling-v3-securities-retrieve
+      path: /analytics/security-modeling/v3/securities/retrieve
+      operations:
+      - name: getsecurities
+        method: POST
+        description: Factset Get Existing Securities
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    - name: analytics-security-modeling-v3-securities-upsert
+      path: /analytics/security-modeling/v3/securities/upsert
+      operations:
+      - name: upsertsecurities
+        method: POST
+        description: Factset Create or Update Securities
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: security-modeling-security-rest
+    port: 8080
+    description: REST adapter for FactSet Security Modeling API — Security. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/analytics/security-modeling/v3/securities/delete
+      name: analytics-security-modeling-v3-securities-delete
+      description: REST surface for analytics-security-modeling-v3-securities-delete.
+      operations:
+      - method: POST
+        name: deletesecurities
+        description: Factset Delete Existing Securities
+        call: security-modeling-security.deletesecurities
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/analytics/security-modeling/v3/securities/retrieve
+      name: analytics-security-modeling-v3-securities-retrieve
+      description: REST surface for analytics-security-modeling-v3-securities-retrieve.
+      operations:
+      - method: POST
+        name: getsecurities
+        description: Factset Get Existing Securities
+        call: security-modeling-security.getsecurities
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/analytics/security-modeling/v3/securities/upsert
+      name: analytics-security-modeling-v3-securities-upsert
+      description: REST surface for analytics-security-modeling-v3-securities-upsert.
+      operations:
+      - method: POST
+        name: upsertsecurities
+        description: Factset Create or Update Securities
+        call: security-modeling-security.upsertsecurities
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: security-modeling-security-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Security Modeling API — Security. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: factset-delete-existing-securities
+      description: Factset Delete Existing Securities
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: security-modeling-security.deletesecurities
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-existing-securities
+      description: Factset Get Existing Securities
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: security-modeling-security.getsecurities
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-create-update-securities
+      description: Factset Create or Update Securities
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: security-modeling-security.upsertsecurities
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

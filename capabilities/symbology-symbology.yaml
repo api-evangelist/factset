@@ -1,0 +1,173 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Symbology API — Symbology
+  description: 'FactSet Symbology API — Symbology. 4 operations. Lead operation: Factset Returns the Specified Historical
+    Output Identifiers for the Given Input Identifier.. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Symbology
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: symbology-symbology
+    baseUri: https://api.factset.com/content
+    description: FactSet Symbology API — Symbology business capability. Self-contained, no shared references.
+    resources:
+    - name: symbology-v3-historical-identifier-resolution
+      path: /symbology/v3/historical-identifier-resolution
+      operations:
+      - name: historicalidentifierresolution
+        method: GET
+        description: Factset Returns the Specified Historical Output Identifiers for the Given Input Identifier.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: batchhistoricalidentifierresolution
+        method: POST
+        description: Factset Returns the Specified Historical Output Identifiers for the Given Input Identifier.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: symbology-v3-identifier-resolution
+      path: /symbology/v3/identifier-resolution
+      operations:
+      - name: identifierresolution
+        method: GET
+        description: Factset Returns the Specified Output Identifiers for the Specified Input Identifier.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: batchidentifierresolution
+        method: POST
+        description: Factset Returns the Specified Output Identifiers for the Given Input Identifier.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: symbology-symbology-rest
+    port: 8080
+    description: REST adapter for FactSet Symbology API — Symbology. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/symbology/v3/historical-identifier-resolution
+      name: symbology-v3-historical-identifier-resolution
+      description: REST surface for symbology-v3-historical-identifier-resolution.
+      operations:
+      - method: GET
+        name: historicalidentifierresolution
+        description: Factset Returns the Specified Historical Output Identifiers for the Given Input Identifier.
+        call: symbology-symbology.historicalidentifierresolution
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: batchhistoricalidentifierresolution
+        description: Factset Returns the Specified Historical Output Identifiers for the Given Input Identifier.
+        call: symbology-symbology.batchhistoricalidentifierresolution
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/symbology/v3/identifier-resolution
+      name: symbology-v3-identifier-resolution
+      description: REST surface for symbology-v3-identifier-resolution.
+      operations:
+      - method: GET
+        name: identifierresolution
+        description: Factset Returns the Specified Output Identifiers for the Specified Input Identifier.
+        call: symbology-symbology.identifierresolution
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: batchidentifierresolution
+        description: Factset Returns the Specified Output Identifiers for the Given Input Identifier.
+        call: symbology-symbology.batchidentifierresolution
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: symbology-symbology-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Symbology API — Symbology. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: factset-returns-specified-historical-output
+      description: Factset Returns the Specified Historical Output Identifiers for the Given Input Identifier.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: symbology-symbology.historicalidentifierresolution
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-returns-specified-historical-output-2
+      description: Factset Returns the Specified Historical Output Identifiers for the Given Input Identifier.
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: symbology-symbology.batchhistoricalidentifierresolution
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-returns-specified-output-identifiers
+      description: Factset Returns the Specified Output Identifiers for the Specified Input Identifier.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: symbology-symbology.identifierresolution
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-returns-specified-output-identifiers-2
+      description: Factset Returns the Specified Output Identifiers for the Given Input Identifier.
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: symbology-symbology.batchidentifierresolution
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

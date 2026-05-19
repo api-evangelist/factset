@@ -1,0 +1,102 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Real-Time Quotes API — Aggregated
+  description: 'FactSet Real-Time Quotes API — Aggregated. 1 operations. Lead operation: Factset Orderbook Aggregated by Price..
+    Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Aggregated
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: real-time-quotes-aggregated
+    baseUri: https://api.factset.com/wealth/v3
+    description: FactSet Real-Time Quotes API — Aggregated business capability. Self-contained, no shared references.
+    resources:
+    - name: prices-orderbook-aggregated-get
+      path: /prices/orderbook/aggregated/get
+      operations:
+      - name: getpricesorderbookaggregatedget
+        method: GET
+        description: Factset Orderbook Aggregated by Price.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: identifier
+          in: query
+          type: string
+          required: true
+        - name: identifierType
+          in: query
+          type: string
+          required: true
+        - name: quality
+          in: query
+          type: string
+        - name: _attributes
+          in: query
+          type: array
+          description: Limit the attributes returned in the response to the specified set.
+        - name: _subscriptionMinimumInterval
+          in: query
+          type: number
+          description: Non-negative number of milliseconds to throttle the update rate.
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: real-time-quotes-aggregated-rest
+    port: 8080
+    description: REST adapter for FactSet Real-Time Quotes API — Aggregated. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/prices/orderbook/aggregated/get
+      name: prices-orderbook-aggregated-get
+      description: REST surface for prices-orderbook-aggregated-get.
+      operations:
+      - method: GET
+        name: getpricesorderbookaggregatedget
+        description: Factset Orderbook Aggregated by Price.
+        call: real-time-quotes-aggregated.getpricesorderbookaggregatedget
+        with:
+          identifier: rest.identifier
+          identifierType: rest.identifierType
+          quality: rest.quality
+          _attributes: rest._attributes
+          _subscriptionMinimumInterval: rest._subscriptionMinimumInterval
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: real-time-quotes-aggregated-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Real-Time Quotes API — Aggregated. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: factset-orderbook-aggregated-price
+      description: Factset Orderbook Aggregated by Price.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: real-time-quotes-aggregated.getpricesorderbookaggregatedget
+      with:
+        identifier: tools.identifier
+        identifierType: tools.identifierType
+        quality: tools.quality
+        _attributes: tools._attributes
+        _subscriptionMinimumInterval: tools._subscriptionMinimumInterval
+      outputParameters:
+      - type: object
+        mapping: $.

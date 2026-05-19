@@ -1,0 +1,81 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Universal Screening API — Calculate
+  description: 'FactSet Universal Screening API — Calculate. 1 operations. Lead operation: Calculate. Self-contained Naftiko
+    capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Calculate
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: universal-screening-calculate
+    baseUri: https://api.factset.com/universal-screening
+    description: FactSet Universal Screening API — Calculate business capability. Self-contained, no shared references.
+    resources:
+    - name: v2-job-calculate
+      path: /v2/job/calculate
+      operations:
+      - name: submitcalculate
+        method: POST
+        description: Begins calculation of screen. Subject to rate limiting by serial.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: universal-screening-calculate-rest
+    port: 8080
+    description: REST adapter for FactSet Universal Screening API — Calculate. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/v2/job/calculate
+      name: v2-job-calculate
+      description: REST surface for v2-job-calculate.
+      operations:
+      - method: POST
+        name: submitcalculate
+        description: Begins calculation of screen. Subject to rate limiting by serial.
+        call: universal-screening-calculate.submitcalculate
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: universal-screening-calculate-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Universal Screening API — Calculate. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: begins-calculation-screen-subject-rate
+      description: Begins calculation of screen. Subject to rate limiting by serial.
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: universal-screening-calculate.submitcalculate
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

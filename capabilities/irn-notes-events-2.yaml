@@ -1,0 +1,92 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset IRN API v1 — Events
+  description: 'Factset IRN API v1 — Events. 1 operations. Lead operation: Factset Get all the record events in the specified
+    date range filtered on the given types. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Events
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: irn-notes-events-2
+    baseUri: https://api.factset.com/research/irn
+    description: Factset IRN API v1 — Events business capability. Self-contained, no shared references.
+    resources:
+    - name: v1-events
+      path: /v1/events
+      operations:
+      - name: getallevents
+        method: GET
+        description: Factset Get all the record events in the specified date range filtered on the given types
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: startDate
+          in: query
+          type: string
+          description: StartDate
+          required: true
+        - name: endDate
+          in: query
+          type: string
+          description: EndDate
+        - name: types
+          in: query
+          type: array
+          description: Set of event types to filter on
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: irn-notes-events-2-rest
+    port: 8080
+    description: REST adapter for Factset IRN API v1 — Events. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/v1/events
+      name: v1-events
+      description: REST surface for v1-events.
+      operations:
+      - method: GET
+        name: getallevents
+        description: Factset Get all the record events in the specified date range filtered on the given types
+        call: irn-notes-events-2.getallevents
+        with:
+          startDate: rest.startDate
+          endDate: rest.endDate
+          types: rest.types
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: irn-notes-events-2-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset IRN API v1 — Events. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: factset-get-all-record-events
+      description: Factset Get all the record events in the specified date range filtered on the given types
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: irn-notes-events-2.getallevents
+      with:
+        startDate: tools.startDate
+        endDate: tools.endDate
+        types: tools.types
+      outputParameters:
+      - type: object
+        mapping: $.

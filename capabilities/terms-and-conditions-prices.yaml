@@ -1,0 +1,106 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Terms and Conditions API — Prices
+  description: 'FactSet Terms and Conditions API — Prices. 2 operations. Lead operation: Factset Return Redemption Prices
+    for a Fixed Income Security.. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Prices
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: terms-and-conditions-prices
+    baseUri: https://api.factset.com/content
+    description: FactSet Terms and Conditions API — Prices business capability. Self-contained, no shared references.
+    resources:
+    - name: factset-terms-and-conditions-v1-redemption-prices
+      path: /factset-terms-and-conditions/v1/redemption-prices
+      operations:
+      - name: getfixedincomeredemptionprices
+        method: GET
+        description: Factset Return Redemption Prices for a Fixed Income Security.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getfixedincomeredemptionpricesforlist
+        method: POST
+        description: Factset Return Redemption Prices for a List of Fixed Income Securities.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: terms-and-conditions-prices-rest
+    port: 8080
+    description: REST adapter for FactSet Terms and Conditions API — Prices. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/factset-terms-and-conditions/v1/redemption-prices
+      name: factset-terms-and-conditions-v1-redemption-prices
+      description: REST surface for factset-terms-and-conditions-v1-redemption-prices.
+      operations:
+      - method: GET
+        name: getfixedincomeredemptionprices
+        description: Factset Return Redemption Prices for a Fixed Income Security.
+        call: terms-and-conditions-prices.getfixedincomeredemptionprices
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: getfixedincomeredemptionpricesforlist
+        description: Factset Return Redemption Prices for a List of Fixed Income Securities.
+        call: terms-and-conditions-prices.getfixedincomeredemptionpricesforlist
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: terms-and-conditions-prices-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Terms and Conditions API — Prices. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: factset-return-redemption-prices-fixed
+      description: Factset Return Redemption Prices for a Fixed Income Security.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: terms-and-conditions-prices.getfixedincomeredemptionprices
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-return-redemption-prices-list
+      description: Factset Return Redemption Prices for a List of Fixed Income Securities.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: terms-and-conditions-prices.getfixedincomeredemptionpricesforlist
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

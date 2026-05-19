@@ -1,0 +1,80 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Vault API — Documents
+  description: 'FactSet Vault API — Documents. 1 operations. Lead operation: Factset Get Vault Documents and Sub-directories
+    in a Directory. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Documents
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: vault-documents
+    baseUri: https://api.factset.com
+    description: FactSet Vault API — Documents business capability. Self-contained, no shared references.
+    resources:
+    - name: analytics-engines-vault-v3-documents-path
+      path: /analytics/engines/vault/v3/documents/{path}
+      operations:
+      - name: getvaultdocuments
+        method: GET
+        description: Factset Get Vault Documents and Sub-directories in a Directory
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: path
+          in: path
+          type: string
+          description: The directory to get the documents in
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: vault-documents-rest
+    port: 8080
+    description: REST adapter for FactSet Vault API — Documents. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/analytics/engines/vault/v3/documents/{path}
+      name: analytics-engines-vault-v3-documents-path
+      description: REST surface for analytics-engines-vault-v3-documents-path.
+      operations:
+      - method: GET
+        name: getvaultdocuments
+        description: Factset Get Vault Documents and Sub-directories in a Directory
+        call: vault-documents.getvaultdocuments
+        with:
+          path: rest.path
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: vault-documents-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Vault API — Documents. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: factset-get-vault-documents-and
+      description: Factset Get Vault Documents and Sub-directories in a Directory
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: vault-documents.getvaultdocuments
+      with:
+        path: tools.path
+      outputParameters:
+      - type: object
+        mapping: $.

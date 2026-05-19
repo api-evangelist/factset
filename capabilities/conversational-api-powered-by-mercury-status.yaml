@@ -1,0 +1,81 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset Conversational API Powered by FactSet Mercury — Status
+  description: 'Factset Conversational API Powered by FactSet Mercury — Status. 1 operations. Lead operation: Factset Retrieve
+    the status of a chat response process.. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Status
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: conversational-api-powered-by-mercury-status
+    baseUri: https://api.factset.com/conversational/v0
+    description: Factset Conversational API Powered by FactSet Mercury — Status business capability. Self-contained, no shared
+      references.
+    resources:
+    - name: status
+      path: /status
+      operations:
+      - name: getchatstatus
+        method: POST
+        description: Factset Retrieve the status of a chat response process.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: conversational-api-powered-by-mercury-status-rest
+    port: 8080
+    description: REST adapter for Factset Conversational API Powered by FactSet Mercury — Status. One Spectral-compliant resource
+      per consumed operation, prefixed with /v1.
+    resources:
+    - path: /v1/status
+      name: status
+      description: REST surface for status.
+      operations:
+      - method: POST
+        name: getchatstatus
+        description: Factset Retrieve the status of a chat response process.
+        call: conversational-api-powered-by-mercury-status.getchatstatus
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: conversational-api-powered-by-mercury-status-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset Conversational API Powered by FactSet Mercury — Status. One tool per consumed operation,
+      routed inline through this capability's consumes block.
+    tools:
+    - name: factset-retrieve-status-chat-response
+      description: Factset Retrieve the status of a chat response process.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: conversational-api-powered-by-mercury-status.getchatstatus
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

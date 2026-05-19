@@ -1,0 +1,70 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Fundamentals API — Batch Status
+  description: 'FactSet Fundamentals API — Batch Status. 1 operations. Lead operation: Factset Returns the status for a Batch
+    Request. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Batch Status
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: fundamentals-batch-status
+    baseUri: https://api.factset.com/content/factset-fundamentals/v2
+    description: FactSet Fundamentals API — Batch Status business capability. Self-contained, no shared references.
+    resources:
+    - name: batch-status
+      path: /batch-status
+      operations:
+      - name: getbatchstatus
+        method: GET
+        description: Factset Returns the status for a Batch Request
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: fundamentals-batch-status-rest
+    port: 8080
+    description: REST adapter for FactSet Fundamentals API — Batch Status. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/batch-status
+      name: batch-status
+      description: REST surface for batch-status.
+      operations:
+      - method: GET
+        name: getbatchstatus
+        description: Factset Returns the status for a Batch Request
+        call: fundamentals-batch-status.getbatchstatus
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: fundamentals-batch-status-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Fundamentals API — Batch Status. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: factset-returns-status-batch-request
+      description: Factset Returns the status for a Batch Request
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: fundamentals-batch-status.getbatchstatus
+      outputParameters:
+      - type: object
+        mapping: $.

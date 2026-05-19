@@ -1,0 +1,96 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Prices API — Rollover
+  description: 'FactSet Prices API — Rollover. 2 operations. Lead operation: Factset Gets the Latest Relative Rollover Date
+    for the Database.. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Rollover
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: prices-rollover
+    baseUri: https://api.factset.com/content
+    description: FactSet Prices API — Rollover business capability. Self-contained, no shared references.
+    resources:
+    - name: factset-prices-v1-database-rollover
+      path: /factset-prices/v1/database-rollover
+      operations:
+      - name: getdatabaserollover
+        method: GET
+        description: Factset Gets the Latest Relative Rollover Date for the Database.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getdatabaserolloverforlist
+        method: POST
+        description: Factset Gets the Latest Relative Rollover Date for the Database.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: prices-rollover-rest
+    port: 8080
+    description: REST adapter for FactSet Prices API — Rollover. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/factset-prices/v1/database-rollover
+      name: factset-prices-v1-database-rollover
+      description: REST surface for factset-prices-v1-database-rollover.
+      operations:
+      - method: GET
+        name: getdatabaserollover
+        description: Factset Gets the Latest Relative Rollover Date for the Database.
+        call: prices-rollover.getdatabaserollover
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: getdatabaserolloverforlist
+        description: Factset Gets the Latest Relative Rollover Date for the Database.
+        call: prices-rollover.getdatabaserolloverforlist
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: prices-rollover-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Prices API — Rollover. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: factset-gets-latest-relative-rollover
+      description: Factset Gets the Latest Relative Rollover Date for the Database.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: prices-rollover.getdatabaserollover
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-gets-latest-relative-rollover-2
+      description: Factset Gets the Latest Relative Rollover Date for the Database.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: prices-rollover.getdatabaserolloverforlist
+      outputParameters:
+      - type: object
+        mapping: $.

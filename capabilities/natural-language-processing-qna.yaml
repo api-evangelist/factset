@@ -1,0 +1,164 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset Natural Language Processing API — Qna
+  description: 'Factset Natural Language Processing API — Qna. 3 operations. Lead operation: Factset Endpoint to submit a
+    question for answer(s). Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Qna
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: natural-language-processing-qna
+    baseUri: https://api.factset.com/cognitive/nlp/v1
+    description: Factset Natural Language Processing API — Qna business capability. Self-contained, no shared references.
+    resources:
+    - name: qna-answers
+      path: /qna/answers
+      operations:
+      - name: qnapostquestion
+        method: POST
+        description: Factset Endpoint to submit a question for answer(s)
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: qna-answers-id
+      path: /qna/answers/{id}
+      operations:
+      - name: qnagetanswers
+        method: GET
+        description: Factset Endpoint to get the answer(s)
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: path
+          type: string
+          description: Identifier from the Question & Answer task and comes from the POST request which created the task
+          required: true
+    - name: qna-answers-id-status
+      path: /qna/answers/{id}/status
+      operations:
+      - name: qnagetstatus
+        method: GET
+        description: Factset Endpoint to get the completion status for a Q&A request
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: path
+          type: string
+          description: Identifier from the Question & Answer task and comes from the POST request which created the task
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: natural-language-processing-qna-rest
+    port: 8080
+    description: REST adapter for Factset Natural Language Processing API — Qna. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/qna/answers
+      name: qna-answers
+      description: REST surface for qna-answers.
+      operations:
+      - method: POST
+        name: qnapostquestion
+        description: Factset Endpoint to submit a question for answer(s)
+        call: natural-language-processing-qna.qnapostquestion
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/qna/answers/{id}
+      name: qna-answers-id
+      description: REST surface for qna-answers-id.
+      operations:
+      - method: GET
+        name: qnagetanswers
+        description: Factset Endpoint to get the answer(s)
+        call: natural-language-processing-qna.qnagetanswers
+        with:
+          id: rest.id
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/qna/answers/{id}/status
+      name: qna-answers-id-status
+      description: REST surface for qna-answers-id-status.
+      operations:
+      - method: GET
+        name: qnagetstatus
+        description: Factset Endpoint to get the completion status for a Q&A request
+        call: natural-language-processing-qna.qnagetstatus
+        with:
+          id: rest.id
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: natural-language-processing-qna-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset Natural Language Processing API — Qna. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: factset-endpoint-submit-question-answer-s
+      description: Factset Endpoint to submit a question for answer(s)
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: natural-language-processing-qna.qnapostquestion
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-endpoint-get-answer-s
+      description: Factset Endpoint to get the answer(s)
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: natural-language-processing-qna.qnagetanswers
+      with:
+        id: tools.id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-endpoint-get-completion-status
+      description: Factset Endpoint to get the completion status for a Q&A request
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: natural-language-processing-qna.qnagetstatus
+      with:
+        id: tools.id
+      outputParameters:
+      - type: object
+        mapping: $.

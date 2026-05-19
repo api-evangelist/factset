@@ -1,0 +1,80 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet SPAR Engine API — Type
+  description: 'FactSet SPAR Engine API — Type. 1 operations. Lead operation: Factset Get Spar Account Returns Type Details.
+    Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Type
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: spar-engine-type
+    baseUri: https://api.factset.com
+    description: FactSet SPAR Engine API — Type business capability. Self-contained, no shared references.
+    resources:
+    - name: analytics-engines-spar-v3-accounts-accountPath-returns-type
+      path: /analytics/engines/spar/v3/accounts/{accountPath}/returns-type
+      operations:
+      - name: getsparreturnstype
+        method: GET
+        description: Factset Get Spar Account Returns Type Details
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: accountPath
+          in: path
+          type: string
+          description: URL encoded account path
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: spar-engine-type-rest
+    port: 8080
+    description: REST adapter for FactSet SPAR Engine API — Type. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/analytics/engines/spar/v3/accounts/{accountpath}/returns-type
+      name: analytics-engines-spar-v3-accounts-accountpath-returns-type
+      description: REST surface for analytics-engines-spar-v3-accounts-accountPath-returns-type.
+      operations:
+      - method: GET
+        name: getsparreturnstype
+        description: Factset Get Spar Account Returns Type Details
+        call: spar-engine-type.getsparreturnstype
+        with:
+          accountPath: rest.accountPath
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: spar-engine-type-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet SPAR Engine API — Type. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: factset-get-spar-account-returns
+      description: Factset Get Spar Account Returns Type Details
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: spar-engine-type.getsparreturnstype
+      with:
+        accountPath: tools.accountPath
+      outputParameters:
+      - type: object
+        mapping: $.

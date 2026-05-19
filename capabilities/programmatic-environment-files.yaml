@@ -1,0 +1,133 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Programmatic Environment API — Files
+  description: 'FactSet Programmatic Environment API — Files. 2 operations. Lead operation: Factset Get Upload Status by Id.
+    Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Files
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: programmatic-environment-files
+    baseUri: https://api.factset.com
+    description: FactSet Programmatic Environment API — Files business capability. Self-contained, no shared references.
+    resources:
+    - name: analytics-quant-fpe-v1-files-uploads-id
+      path: /analytics/quant/fpe/v1/files/uploads/{id}
+      operations:
+      - name: get
+        method: GET
+        description: Factset Get Upload Status by Id
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: path
+          type: string
+          description: From url, provided by location header or response body in the upload start endpoint
+          required: true
+    - name: analytics-quant-fpe-v1-files-server-file
+      path: /analytics/quant/fpe/v1/files/{server}/{file}
+      operations:
+      - name: post
+        method: POST
+        description: Factset Starts a File Upload
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: server
+          in: path
+          type: string
+          description: The server to upload the file to. Either `interactive` or `batch`.
+          required: true
+        - name: file
+          in: path
+          type: string
+          description: The file name to upload the file to. Existing directory can be specified.
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+  exposes:
+  - type: rest
+    namespace: programmatic-environment-files-rest
+    port: 8080
+    description: REST adapter for FactSet Programmatic Environment API — Files. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/analytics/quant/fpe/v1/files/uploads/{id}
+      name: analytics-quant-fpe-v1-files-uploads-id
+      description: REST surface for analytics-quant-fpe-v1-files-uploads-id.
+      operations:
+      - method: GET
+        name: get
+        description: Factset Get Upload Status by Id
+        call: programmatic-environment-files.get
+        with:
+          id: rest.id
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/analytics/quant/fpe/v1/files/{server}/{file}
+      name: analytics-quant-fpe-v1-files-server-file
+      description: REST surface for analytics-quant-fpe-v1-files-server-file.
+      operations:
+      - method: POST
+        name: post
+        description: Factset Starts a File Upload
+        call: programmatic-environment-files.post
+        with:
+          server: rest.server
+          file: rest.file
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: programmatic-environment-files-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Programmatic Environment API — Files. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: factset-get-upload-status-id
+      description: Factset Get Upload Status by Id
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: programmatic-environment-files.get
+      with:
+        id: tools.id
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-starts-file-upload
+      description: Factset Starts a File Upload
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: programmatic-environment-files.post
+      with:
+        server: tools.server
+        file: tools.file
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

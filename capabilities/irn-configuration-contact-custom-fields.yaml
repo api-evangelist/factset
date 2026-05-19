@@ -1,0 +1,225 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset IRN API v1 — Contact Custom Fields
+  description: 'Factset IRN API v1 — Contact Custom Fields. 5 operations. Lead operation: Factset Get all the contact custom
+    fields. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Contact Custom Fields
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: irn-configuration-contact-custom-fields
+    baseUri: https://api.factset.com/research/irn
+    description: Factset IRN API v1 — Contact Custom Fields business capability. Self-contained, no shared references.
+    resources:
+    - name: v1-contact-custom-fields
+      path: /v1/contact-custom-fields
+      operations:
+      - name: getcontactcustomfields
+        method: GET
+        description: Factset Get all the contact custom fields
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: createcontactcustomfield
+        method: POST
+        description: Factset Create a contact custom field
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    - name: v1-contact-custom-fields-contactCustomFieldId
+      path: /v1/contact-custom-fields/{contactCustomFieldId}
+      operations:
+      - name: getcontactcustomfield
+        method: GET
+        description: Factset Get a specific Contact custom field's details
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: contactCustomFieldId
+          in: path
+          type: string
+          description: contactCustomFieldId to get associated record
+          required: true
+      - name: patchcontactcustomfield
+        method: PATCH
+        description: Factset Edit a contact custom field
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: contactCustomFieldId
+          in: path
+          type: string
+          description: contactCustomFieldId to update associated record
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+      - name: deletecontactcustomfield
+        method: DELETE
+        description: Factset Delete a contact custom field
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: contactCustomFieldId
+          in: path
+          type: string
+          description: contactCustomFieldId to delete associated record
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: irn-configuration-contact-custom-fields-rest
+    port: 8080
+    description: REST adapter for Factset IRN API v1 — Contact Custom Fields. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/v1/contact-custom-fields
+      name: v1-contact-custom-fields
+      description: REST surface for v1-contact-custom-fields.
+      operations:
+      - method: GET
+        name: getcontactcustomfields
+        description: Factset Get all the contact custom fields
+        call: irn-configuration-contact-custom-fields.getcontactcustomfields
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createcontactcustomfield
+        description: Factset Create a contact custom field
+        call: irn-configuration-contact-custom-fields.createcontactcustomfield
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/v1/contact-custom-fields/{contactcustomfieldid}
+      name: v1-contact-custom-fields-contactcustomfieldid
+      description: REST surface for v1-contact-custom-fields-contactCustomFieldId.
+      operations:
+      - method: GET
+        name: getcontactcustomfield
+        description: Factset Get a specific Contact custom field's details
+        call: irn-configuration-contact-custom-fields.getcontactcustomfield
+        with:
+          contactCustomFieldId: rest.contactCustomFieldId
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: patchcontactcustomfield
+        description: Factset Edit a contact custom field
+        call: irn-configuration-contact-custom-fields.patchcontactcustomfield
+        with:
+          contactCustomFieldId: rest.contactCustomFieldId
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: DELETE
+        name: deletecontactcustomfield
+        description: Factset Delete a contact custom field
+        call: irn-configuration-contact-custom-fields.deletecontactcustomfield
+        with:
+          contactCustomFieldId: rest.contactCustomFieldId
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: irn-configuration-contact-custom-fields-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset IRN API v1 — Contact Custom Fields. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: factset-get-all-contact-custom
+      description: Factset Get all the contact custom fields
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: irn-configuration-contact-custom-fields.getcontactcustomfields
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-create-contact-custom-field
+      description: Factset Create a contact custom field
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: irn-configuration-contact-custom-fields.createcontactcustomfield
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-specific-contact-custom
+      description: Factset Get a specific Contact custom field's details
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: irn-configuration-contact-custom-fields.getcontactcustomfield
+      with:
+        contactCustomFieldId: tools.contactCustomFieldId
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-edit-contact-custom-field
+      description: Factset Edit a contact custom field
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: irn-configuration-contact-custom-fields.patchcontactcustomfield
+      with:
+        contactCustomFieldId: tools.contactCustomFieldId
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-delete-contact-custom-field
+      description: Factset Delete a contact custom field
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: irn-configuration-contact-custom-fields.deletecontactcustomfield
+      with:
+        contactCustomFieldId: tools.contactCustomFieldId
+      outputParameters:
+      - type: object
+        mapping: $.

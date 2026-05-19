@@ -1,0 +1,71 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Signals API — Signal
+  description: 'FactSet Signals API — Signal. 1 operations. Lead operation: Signal. Self-contained Naftiko capability covering
+    one Factset business surface.'
+  tags:
+  - Factset
+  - Signal
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: signals-signal
+    baseUri: https://api.factset.com/signals/v2
+    description: FactSet Signals API — Signal business capability. Self-contained, no shared references.
+    resources:
+    - name: data-dictionary-signalId
+      path: /data-dictionary/{signalId}
+      operations:
+      - name: getdatadictionarybyid
+        method: GET
+        description: Fetch the metadata and contract for the requested signal
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: signals-signal-rest
+    port: 8080
+    description: REST adapter for FactSet Signals API — Signal. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/data-dictionary/{signalid}
+      name: data-dictionary-signalid
+      description: REST surface for data-dictionary-signalId.
+      operations:
+      - method: GET
+        name: getdatadictionarybyid
+        description: Fetch the metadata and contract for the requested signal
+        call: signals-signal.getdatadictionarybyid
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: signals-signal-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Signals API — Signal. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: fetch-metadata-and-contract-requested
+      description: Fetch the metadata and contract for the requested signal
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: signals-signal.getdatadictionarybyid
+      outputParameters:
+      - type: object
+        mapping: $.

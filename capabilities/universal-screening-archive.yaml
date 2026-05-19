@@ -1,0 +1,81 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Universal Screening API — Archive
+  description: 'FactSet Universal Screening API — Archive. 1 operations. Lead operation: Archive. Self-contained Naftiko capability
+    covering one Factset business surface.'
+  tags:
+  - Factset
+  - Archive
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: universal-screening-archive
+    baseUri: https://api.factset.com/universal-screening
+    description: FactSet Universal Screening API — Archive business capability. Self-contained, no shared references.
+    resources:
+    - name: v2-job-archive
+      path: /v2/job/archive
+      operations:
+      - name: submitarchiveofdb
+        method: POST
+        description: Begins archive of screen to OFDB. Subject to rate limiting by serial.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: universal-screening-archive-rest
+    port: 8080
+    description: REST adapter for FactSet Universal Screening API — Archive. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/v2/job/archive
+      name: v2-job-archive
+      description: REST surface for v2-job-archive.
+      operations:
+      - method: POST
+        name: submitarchiveofdb
+        description: Begins archive of screen to OFDB. Subject to rate limiting by serial.
+        call: universal-screening-archive.submitarchiveofdb
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: universal-screening-archive-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Universal Screening API — Archive. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: begins-archive-screen-ofdb-subject
+      description: Begins archive of screen to OFDB. Subject to rate limiting by serial.
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: universal-screening-archive.submitarchiveofdb
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

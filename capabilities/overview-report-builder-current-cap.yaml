@@ -1,0 +1,80 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Overview Report Builder API — Current Cap
+  description: 'FactSet Overview Report Builder API — Current Cap. 1 operations. Lead operation: Factset Current Capitalization.
+    Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Current Cap
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: overview-report-builder-current-cap
+    baseUri: https://api.factset.com/report/overview/v1
+    description: FactSet Overview Report Builder API — Current Cap business capability. Self-contained, no shared references.
+    resources:
+    - name: current-cap
+      path: /current-cap
+      operations:
+      - name: get
+        method: GET
+        description: Factset Current Capitalization
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: query
+          type: string
+          description: Company ticker
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: overview-report-builder-current-cap-rest
+    port: 8080
+    description: REST adapter for FactSet Overview Report Builder API — Current Cap. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/current-cap
+      name: current-cap
+      description: REST surface for current-cap.
+      operations:
+      - method: GET
+        name: get
+        description: Factset Current Capitalization
+        call: overview-report-builder-current-cap.get
+        with:
+          id: rest.id
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: overview-report-builder-current-cap-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Overview Report Builder API — Current Cap. One tool per consumed operation, routed
+      inline through this capability's consumes block.
+    tools:
+    - name: factset-current-capitalization
+      description: Factset Current Capitalization
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: overview-report-builder-current-cap.get
+      with:
+        id: tools.id
+      outputParameters:
+      - type: object
+        mapping: $.

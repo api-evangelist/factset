@@ -1,0 +1,122 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet SPAR Engine API — Components
+  description: 'FactSet SPAR Engine API — Components. 2 operations. Lead operation: Factset Get Spar Components. Self-contained
+    Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Components
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: spar-engine-components
+    baseUri: https://api.factset.com
+    description: FactSet SPAR Engine API — Components business capability. Self-contained, no shared references.
+    resources:
+    - name: analytics-engines-spar-v3-components
+      path: /analytics/engines/spar/v3/components
+      operations:
+      - name: getsparcomponents
+        method: GET
+        description: Factset Get Spar Components
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: document
+          in: query
+          type: string
+          description: Document Name
+          required: true
+    - name: analytics-engines-spar-v3-components-id
+      path: /analytics/engines/spar/v3/components/{id}
+      operations:
+      - name: getsparcomponentbyid
+        method: GET
+        description: Factset Get Spar Component by Id
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: path
+          type: string
+          description: Unique identifier for a SPAR component
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: spar-engine-components-rest
+    port: 8080
+    description: REST adapter for FactSet SPAR Engine API — Components. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/analytics/engines/spar/v3/components
+      name: analytics-engines-spar-v3-components
+      description: REST surface for analytics-engines-spar-v3-components.
+      operations:
+      - method: GET
+        name: getsparcomponents
+        description: Factset Get Spar Components
+        call: spar-engine-components.getsparcomponents
+        with:
+          document: rest.document
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/analytics/engines/spar/v3/components/{id}
+      name: analytics-engines-spar-v3-components-id
+      description: REST surface for analytics-engines-spar-v3-components-id.
+      operations:
+      - method: GET
+        name: getsparcomponentbyid
+        description: Factset Get Spar Component by Id
+        call: spar-engine-components.getsparcomponentbyid
+        with:
+          id: rest.id
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: spar-engine-components-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet SPAR Engine API — Components. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: factset-get-spar-components
+      description: Factset Get Spar Components
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: spar-engine-components.getsparcomponents
+      with:
+        document: tools.document
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-spar-component-id
+      description: Factset Get Spar Component by Id
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: spar-engine-components.getsparcomponentbyid
+      with:
+        id: tools.id
+      outputParameters:
+      - type: object
+        mapping: $.

@@ -1,0 +1,106 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Prices API — Dividends
+  description: 'FactSet Prices API — Dividends. 2 operations. Lead operation: Factset Gets Dividend Information for a Given
+    Date Range and List of Securities. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Dividends
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: prices-dividends
+    baseUri: https://api.factset.com/content
+    description: FactSet Prices API — Dividends business capability. Self-contained, no shared references.
+    resources:
+    - name: factset-prices-v1-dividends
+      path: /factset-prices/v1/dividends
+      operations:
+      - name: getsecuritydividends
+        method: GET
+        description: Factset Gets Dividend Information for a Given Date Range and List of Securities
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getsecuritydividendsforlist
+        method: POST
+        description: Factset Requests Dividend Information for a Given Date Range and List of Securities
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: prices-dividends-rest
+    port: 8080
+    description: REST adapter for FactSet Prices API — Dividends. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/factset-prices/v1/dividends
+      name: factset-prices-v1-dividends
+      description: REST surface for factset-prices-v1-dividends.
+      operations:
+      - method: GET
+        name: getsecuritydividends
+        description: Factset Gets Dividend Information for a Given Date Range and List of Securities
+        call: prices-dividends.getsecuritydividends
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: getsecuritydividendsforlist
+        description: Factset Requests Dividend Information for a Given Date Range and List of Securities
+        call: prices-dividends.getsecuritydividendsforlist
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: prices-dividends-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Prices API — Dividends. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: factset-gets-dividend-information-given
+      description: Factset Gets Dividend Information for a Given Date Range and List of Securities
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: prices-dividends.getsecuritydividends
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-requests-dividend-information-given
+      description: Factset Requests Dividend Information for a Given Date Range and List of Securities
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: prices-dividends.getsecuritydividendsforlist
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

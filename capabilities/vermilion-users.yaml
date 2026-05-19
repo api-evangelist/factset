@@ -1,0 +1,281 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Vermilion API — Users
+  description: 'FactSet Vermilion API — Users. 6 operations. Lead operation: Factset Retrieves a List of Vrs Users. Self-contained
+    Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Users
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: vermilion-users
+    baseUri: ''
+    description: FactSet Vermilion API — Users business capability. Self-contained, no shared references.
+    resources:
+    - name: scim-v2-Users
+      path: /scim/v2/Users
+      operations:
+      - name: getallusers
+        method: GET
+        description: Factset Retrieves a List of Vrs Users
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: count
+          in: query
+          type: integer
+          description: Non-negative maximum number of entries to return
+        - name: startIndex
+          in: query
+          type: integer
+          description: The 1-based index of the first query result
+      - name: createuser
+        method: POST
+        description: Factset Creates a User
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: scim-v2-Users-userId
+      path: /scim/v2/Users/{userId}
+      operations:
+      - name: getuserbyid
+        method: GET
+        description: Factset Retrieves a Vrs User
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: userId
+          in: path
+          type: string
+          description: The ID of the user
+          required: true
+      - name: deleteuserbyid
+        method: DELETE
+        description: Factset Deletes a Vrs User
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: userId
+          in: path
+          type: string
+          description: The ID of the user
+          required: true
+      - name: patchuserbyid
+        method: PATCH
+        description: Factset Add or Remove Vrs User Attributes
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: userId
+          in: path
+          type: string
+          description: The ID of the user
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+      - name: updateuserbyid
+        method: PUT
+        description: Factset Updates a Vrs User
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: userId
+          in: path
+          type: string
+          description: The ID of the user
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: vermilion-users-rest
+    port: 8080
+    description: REST adapter for FactSet Vermilion API — Users. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/scim/v2/users
+      name: scim-v2-users
+      description: REST surface for scim-v2-Users.
+      operations:
+      - method: GET
+        name: getallusers
+        description: Factset Retrieves a List of Vrs Users
+        call: vermilion-users.getallusers
+        with:
+          count: rest.count
+          startIndex: rest.startIndex
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: createuser
+        description: Factset Creates a User
+        call: vermilion-users.createuser
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/scim/v2/users/{userid}
+      name: scim-v2-users-userid
+      description: REST surface for scim-v2-Users-userId.
+      operations:
+      - method: GET
+        name: getuserbyid
+        description: Factset Retrieves a Vrs User
+        call: vermilion-users.getuserbyid
+        with:
+          userId: rest.userId
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: DELETE
+        name: deleteuserbyid
+        description: Factset Deletes a Vrs User
+        call: vermilion-users.deleteuserbyid
+        with:
+          userId: rest.userId
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: patchuserbyid
+        description: Factset Add or Remove Vrs User Attributes
+        call: vermilion-users.patchuserbyid
+        with:
+          userId: rest.userId
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PUT
+        name: updateuserbyid
+        description: Factset Updates a Vrs User
+        call: vermilion-users.updateuserbyid
+        with:
+          userId: rest.userId
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: vermilion-users-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Vermilion API — Users. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: factset-retrieves-list-vrs-users
+      description: Factset Retrieves a List of Vrs Users
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: vermilion-users.getallusers
+      with:
+        count: tools.count
+        startIndex: tools.startIndex
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-creates-user
+      description: Factset Creates a User
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: vermilion-users.createuser
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-retrieves-vrs-user
+      description: Factset Retrieves a Vrs User
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: vermilion-users.getuserbyid
+      with:
+        userId: tools.userId
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-deletes-vrs-user
+      description: Factset Deletes a Vrs User
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: vermilion-users.deleteuserbyid
+      with:
+        userId: tools.userId
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-add-remove-vrs-user
+      description: Factset Add or Remove Vrs User Attributes
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: vermilion-users.patchuserbyid
+      with:
+        userId: tools.userId
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-updates-vrs-user
+      description: Factset Updates a Vrs User
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: vermilion-users.updateuserbyid
+      with:
+        userId: tools.userId
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

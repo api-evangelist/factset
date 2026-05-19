@@ -1,0 +1,113 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Benchmarks API — List
+  description: 'FactSet Benchmarks API — List. 2 operations. Lead operation: Factset Returns a Sample List of Benchmark Identifiers
+    and the Benchmark Categorization to Use in Other Benchmark Api Endpoints.. Self-contained Naftiko capability covering
+    one Factset business surface.'
+  tags:
+  - Factset
+  - List
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: benchmarks-list
+    baseUri: https://api.factset.com/content
+    description: FactSet Benchmarks API — List business capability. Self-contained, no shared references.
+    resources:
+    - name: factset-benchmarks-v1-id-list
+      path: /factset-benchmarks/v1/id-list
+      operations:
+      - name: getbenchmarkids
+        method: GET
+        description: Factset Returns a Sample List of Benchmark Identifiers and the Benchmark Categorization to Use in Other
+          Benchmark Api Endpoints.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getbenchmarkidsforlist
+        method: POST
+        description: Factset Returns a Sample List of Benchmark Identifiers and the Benchmark Categorization to Use in Other
+          Benchmark Api Endpoints.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: benchmarks-list-rest
+    port: 8080
+    description: REST adapter for FactSet Benchmarks API — List. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/factset-benchmarks/v1/id-list
+      name: factset-benchmarks-v1-id-list
+      description: REST surface for factset-benchmarks-v1-id-list.
+      operations:
+      - method: GET
+        name: getbenchmarkids
+        description: Factset Returns a Sample List of Benchmark Identifiers and the Benchmark Categorization to Use in Other
+          Benchmark Api Endpoints.
+        call: benchmarks-list.getbenchmarkids
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: getbenchmarkidsforlist
+        description: Factset Returns a Sample List of Benchmark Identifiers and the Benchmark Categorization to Use in Other
+          Benchmark Api Endpoints.
+        call: benchmarks-list.getbenchmarkidsforlist
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: benchmarks-list-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Benchmarks API — List. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: factset-returns-sample-list-benchmark
+      description: Factset Returns a Sample List of Benchmark Identifiers and the Benchmark Categorization to Use in Other
+        Benchmark Api Endpoints.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: benchmarks-list.getbenchmarkids
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-returns-sample-list-benchmark-2
+      description: Factset Returns a Sample List of Benchmark Identifiers and the Benchmark Categorization to Use in Other
+        Benchmark Api Endpoints.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: benchmarks-list.getbenchmarkidsforlist
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

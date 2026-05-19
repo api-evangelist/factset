@@ -1,0 +1,106 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Funds API — Prices
+  description: 'FactSet Funds API — Prices. 2 operations. Lead operation: Factset Get Fund Prices (nav) for a Requested Time-series.
+    Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Prices
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: funds-prices
+    baseUri: https://api.factset.com/content
+    description: FactSet Funds API — Prices business capability. Self-contained, no shared references.
+    resources:
+    - name: factset-funds-v1-prices
+      path: /factset-funds/v1/prices
+      operations:
+      - name: getfundsprices
+        method: GET
+        description: Factset Get Fund Prices (nav) for a Requested Time-series
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getfundspricesforlist
+        method: POST
+        description: Factset Get Fund Prices (nav) for a Requested Date Range and Large List of Ids.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: funds-prices-rest
+    port: 8080
+    description: REST adapter for FactSet Funds API — Prices. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/factset-funds/v1/prices
+      name: factset-funds-v1-prices
+      description: REST surface for factset-funds-v1-prices.
+      operations:
+      - method: GET
+        name: getfundsprices
+        description: Factset Get Fund Prices (nav) for a Requested Time-series
+        call: funds-prices.getfundsprices
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: getfundspricesforlist
+        description: Factset Get Fund Prices (nav) for a Requested Date Range and Large List of Ids.
+        call: funds-prices.getfundspricesforlist
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: funds-prices-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Funds API — Prices. One tool per consumed operation, routed inline through this capability's
+      consumes block.
+    tools:
+    - name: factset-get-fund-prices-nav
+      description: Factset Get Fund Prices (nav) for a Requested Time-series
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: funds-prices.getfundsprices
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-fund-prices-nav-2
+      description: Factset Get Fund Prices (nav) for a Requested Date Range and Large List of Ids.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: funds-prices.getfundspricesforlist
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

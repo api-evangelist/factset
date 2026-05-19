@@ -1,0 +1,71 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Signals API — Categories
+  description: 'FactSet Signals API — Categories. 1 operations. Lead operation: Categories. Self-contained Naftiko capability
+    covering one Factset business surface.'
+  tags:
+  - Factset
+  - Categories
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: signals-categories
+    baseUri: https://api.factset.com/signals/v2
+    description: FactSet Signals API — Categories business capability. Self-contained, no shared references.
+    resources:
+    - name: categories
+      path: /categories
+      operations:
+      - name: getcategories
+        method: GET
+        description: Fetch a list of available signal categories
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: signals-categories-rest
+    port: 8080
+    description: REST adapter for FactSet Signals API — Categories. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/categories
+      name: categories
+      description: REST surface for categories.
+      operations:
+      - method: GET
+        name: getcategories
+        description: Fetch a list of available signal categories
+        call: signals-categories.getcategories
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: signals-categories-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Signals API — Categories. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: fetch-list-available-signal-categories
+      description: Fetch a list of available signal categories
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: signals-categories.getcategories
+      outputParameters:
+      - type: object
+        mapping: $.

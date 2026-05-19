@@ -1,0 +1,102 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Intraday Tick History API — Last Trade
+  description: 'FactSet Intraday Tick History API — Last Trade. 1 operations. Lead operation: Factset Request Returns Data
+    for the Last Trade and Associated Quotes Before the Specified Time. Self-contained Naftiko capability covering one Factset
+    business surface.'
+  tags:
+  - Factset
+  - Last Trade
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: intraday-tick-history-last-trade
+    baseUri: https://api-sandbox.factset.com
+    description: FactSet Intraday Tick History API — Last Trade business capability. Self-contained, no shared references.
+    resources:
+    - name: TickHistory-lasttrade
+      path: /TickHistory/lasttrade
+      operations:
+      - name: get
+        method: GET
+        description: Factset Request Returns Data for the Last Trade and Associated Quotes Before the Specified Time
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: id
+          in: query
+          type: string
+          description: 'Requested symbol or security. The symbol can be a FactSet exchange symbol, CUSIP, or SEDOL. **NOTE**:
+            Only one identifier can be requested per request.<P>**TRY '
+          required: true
+        - name: format
+          in: query
+          type: string
+          description: The format of the output file. TRY IT OUT Choose from JSON, CSV, CSV_NO_HEADER
+        - name: date
+          in: query
+          type: string
+          description: Request should be made in the format **YYYYMMDD**. The initial release only supports requests from
+            completed trading days
+        - name: time
+          in: query
+          type: string
+          description: Request should be made in the format **HHMMSS**.HH- Hour, MM- Minutes, SSS- Seconds
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: intraday-tick-history-last-trade-rest
+    port: 8080
+    description: REST adapter for FactSet Intraday Tick History API — Last Trade. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/tickhistory/lasttrade
+      name: tickhistory-lasttrade
+      description: REST surface for TickHistory-lasttrade.
+      operations:
+      - method: GET
+        name: get
+        description: Factset Request Returns Data for the Last Trade and Associated Quotes Before the Specified Time
+        call: intraday-tick-history-last-trade.get
+        with:
+          id: rest.id
+          format: rest.format
+          date: rest.date
+          time: rest.time
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: intraday-tick-history-last-trade-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Intraday Tick History API — Last Trade. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: factset-request-returns-data-last
+      description: Factset Request Returns Data for the Last Trade and Associated Quotes Before the Specified Time
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: intraday-tick-history-last-trade.get
+      with:
+        id: tools.id
+        format: tools.format
+        date: tools.date
+        time: tools.time
+      outputParameters:
+      - type: object
+        mapping: $.

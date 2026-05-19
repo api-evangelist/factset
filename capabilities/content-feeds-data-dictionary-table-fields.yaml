@@ -1,0 +1,92 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Content Feeds Data Dictionary — Table_fields
+  description: 'FactSet Content Feeds Data Dictionary — Table_fields. 1 operations. Lead operation: Factset Get the List of
+    Fields Associated With a Table for Navigator, and the Code Information for the Specified Data Item, if Applicable.. Self-contained
+    Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Table_fields
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: content-feeds-data-dictionary-table-fields
+    baseUri: https://api.factset.com/data-dictionary
+    description: FactSet Content Feeds Data Dictionary — Table_fields business capability. Self-contained, no shared references.
+    resources:
+    - name: navigator-table_fields-Table_id
+      path: /navigator/table_fields/{Table_id}
+      operations:
+      - name: get
+        method: GET
+        description: Factset Get the List of Fields Associated With a Table for Navigator, and the Code Information for the
+          Specified Data Item, if Applicable.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: Table_id
+          in: path
+          type: string
+          description: The id for the Table to fetch the fields for.
+          required: true
+        - name: DataItem_id
+          in: query
+          type: string
+          description: The id for the DataItem. This is required in case the data item is represented as a code in Standard
+            DataFeeds.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: content-feeds-data-dictionary-table-fields-rest
+    port: 8080
+    description: REST adapter for FactSet Content Feeds Data Dictionary — Table_fields. One Spectral-compliant resource per
+      consumed operation, prefixed with /v1.
+    resources:
+    - path: /v1/navigator/table-fields/{table-id}
+      name: navigator-table-fields-table-id
+      description: REST surface for navigator-table_fields-Table_id.
+      operations:
+      - method: GET
+        name: get
+        description: Factset Get the List of Fields Associated With a Table for Navigator, and the Code Information for the
+          Specified Data Item, if Applicable.
+        call: content-feeds-data-dictionary-table-fields.get
+        with:
+          Table_id: rest.Table_id
+          DataItem_id: rest.DataItem_id
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: content-feeds-data-dictionary-table-fields-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Content Feeds Data Dictionary — Table_fields. One tool per consumed operation, routed
+      inline through this capability's consumes block.
+    tools:
+    - name: factset-get-list-fields-associated
+      description: Factset Get the List of Fields Associated With a Table for Navigator, and the Code Information for the
+        Specified Data Item, if Applicable.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: content-feeds-data-dictionary-table-fields.get
+      with:
+        Table_id: tools.Table_id
+        DataItem_id: tools.DataItem_id
+      outputParameters:
+      - type: object
+        mapping: $.

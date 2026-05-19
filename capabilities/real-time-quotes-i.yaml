@@ -1,0 +1,286 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Real-Time Quotes API — I
+  description: 'FactSet Real-Time Quotes API — I. 5 operations. Lead operation: Factset Translate Isin to Instrument.. Self-contained
+    Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - I
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: real-time-quotes-i
+    baseUri: https://api.factset.com/wealth/v3
+    description: FactSet Real-Time Quotes API — I business capability. Self-contained, no shared references.
+    resources:
+    - name: instrument-crossReference-getByISIN
+      path: /instrument/crossReference/getByISIN
+      operations:
+      - name: getinstrumentcrossreferencegetbyisin
+        method: GET
+        description: Factset Translate Isin to Instrument.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: isin
+          in: query
+          type: string
+          required: true
+        - name: _attributes
+          in: query
+          type: array
+          description: Limit the attributes returned in the response to the specified set.
+    - name: instrument-crossReference-history-getByISIN
+      path: /instrument/crossReference/history/getByISIN
+      operations:
+      - name: getinstrumentcrossreferencehistorygetbyisin
+        method: GET
+        description: Factset Isin to Instrument Translation History.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: isin
+          in: query
+          type: string
+          required: true
+        - name: _attributes
+          in: query
+          type: array
+          description: Limit the attributes returned in the response to the specified set.
+        - name: _paginationOffset
+          in: query
+          type: number
+          description: Non-negative number of entries to skip, or 0 (default).
+        - name: _paginationLimit
+          in: query
+          type: number
+          description: Non-negative maximum number of entries to return.
+    - name: instrument-crossReference-listByISIN
+      path: /instrument/crossReference/listByISIN
+      operations:
+      - name: postinstrumentcrossreferencelistbyisin
+        method: POST
+        description: Factset Translate a List of Isins to Instruments.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: true
+    - name: instrument-exchangeRate-getByISOCode
+      path: /instrument/exchangeRate/getByISOCode
+      operations:
+      - name: getinstrumentexchangerategetbyisocode
+        method: GET
+        description: Factset Retrieve an Exchange Rate Instrument Identifier.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: target
+          in: query
+          type: string
+          required: true
+        - name: source
+          in: query
+          type: string
+          required: true
+        - name: _attributes
+          in: query
+          type: array
+          description: Limit the attributes returned in the response to the specified set.
+        - name: _language
+          in: query
+          type: string
+    - name: notation-crossReference-listByISIN
+      path: /notation/crossReference/listByISIN
+      operations:
+      - name: postnotationcrossreferencelistbyisin
+        method: POST
+        description: Factset List of Entitled Notations.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: real-time-quotes-i-rest
+    port: 8080
+    description: REST adapter for FactSet Real-Time Quotes API — I. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/instrument/crossreference/getbyisin
+      name: instrument-crossreference-getbyisin
+      description: REST surface for instrument-crossReference-getByISIN.
+      operations:
+      - method: GET
+        name: getinstrumentcrossreferencegetbyisin
+        description: Factset Translate Isin to Instrument.
+        call: real-time-quotes-i.getinstrumentcrossreferencegetbyisin
+        with:
+          isin: rest.isin
+          _attributes: rest._attributes
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/instrument/crossreference/history/getbyisin
+      name: instrument-crossreference-history-getbyisin
+      description: REST surface for instrument-crossReference-history-getByISIN.
+      operations:
+      - method: GET
+        name: getinstrumentcrossreferencehistorygetbyisin
+        description: Factset Isin to Instrument Translation History.
+        call: real-time-quotes-i.getinstrumentcrossreferencehistorygetbyisin
+        with:
+          isin: rest.isin
+          _attributes: rest._attributes
+          _paginationOffset: rest._paginationOffset
+          _paginationLimit: rest._paginationLimit
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/instrument/crossreference/listbyisin
+      name: instrument-crossreference-listbyisin
+      description: REST surface for instrument-crossReference-listByISIN.
+      operations:
+      - method: POST
+        name: postinstrumentcrossreferencelistbyisin
+        description: Factset Translate a List of Isins to Instruments.
+        call: real-time-quotes-i.postinstrumentcrossreferencelistbyisin
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/instrument/exchangerate/getbyisocode
+      name: instrument-exchangerate-getbyisocode
+      description: REST surface for instrument-exchangeRate-getByISOCode.
+      operations:
+      - method: GET
+        name: getinstrumentexchangerategetbyisocode
+        description: Factset Retrieve an Exchange Rate Instrument Identifier.
+        call: real-time-quotes-i.getinstrumentexchangerategetbyisocode
+        with:
+          target: rest.target
+          source: rest.source
+          _attributes: rest._attributes
+          _language: rest._language
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/notation/crossreference/listbyisin
+      name: notation-crossreference-listbyisin
+      description: REST surface for notation-crossReference-listByISIN.
+      operations:
+      - method: POST
+        name: postnotationcrossreferencelistbyisin
+        description: Factset List of Entitled Notations.
+        call: real-time-quotes-i.postnotationcrossreferencelistbyisin
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: real-time-quotes-i-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Real-Time Quotes API — I. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: factset-translate-isin-instrument
+      description: Factset Translate Isin to Instrument.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: real-time-quotes-i.getinstrumentcrossreferencegetbyisin
+      with:
+        isin: tools.isin
+        _attributes: tools._attributes
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-isin-instrument-translation-history
+      description: Factset Isin to Instrument Translation History.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: real-time-quotes-i.getinstrumentcrossreferencehistorygetbyisin
+      with:
+        isin: tools.isin
+        _attributes: tools._attributes
+        _paginationOffset: tools._paginationOffset
+        _paginationLimit: tools._paginationLimit
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-translate-list-isins-instruments
+      description: Factset Translate a List of Isins to Instruments.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: real-time-quotes-i.postinstrumentcrossreferencelistbyisin
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-retrieve-exchange-rate-instrument
+      description: Factset Retrieve an Exchange Rate Instrument Identifier.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: real-time-quotes-i.getinstrumentexchangerategetbyisocode
+      with:
+        target: tools.target
+        source: tools.source
+        _attributes: tools._attributes
+        _language: tools._language
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-list-entitled-notations
+      description: Factset List of Entitled Notations.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: real-time-quotes-i.postnotationcrossreferencelistbyisin
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

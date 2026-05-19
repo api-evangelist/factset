@@ -1,0 +1,85 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Real-Time Quotes API — Name
+  description: 'FactSet Real-Time Quotes API — Name. 1 operations. Lead operation: Factset Details of a Timezone Identified
+    by Name.. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Name
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: real-time-quotes-name
+    baseUri: https://api.factset.com/wealth/v3
+    description: FactSet Real-Time Quotes API — Name business capability. Self-contained, no shared references.
+    resources:
+    - name: basic-timezone-getByName
+      path: /basic/timezone/getByName
+      operations:
+      - name: getbasictimezonegetbyname
+        method: GET
+        description: Factset Details of a Timezone Identified by Name.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: name
+          in: query
+          type: string
+          required: true
+        - name: _attributes
+          in: query
+          type: array
+          description: Limit the attributes returned in the response to the specified set.
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: real-time-quotes-name-rest
+    port: 8080
+    description: REST adapter for FactSet Real-Time Quotes API — Name. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/basic/timezone/getbyname
+      name: basic-timezone-getbyname
+      description: REST surface for basic-timezone-getByName.
+      operations:
+      - method: GET
+        name: getbasictimezonegetbyname
+        description: Factset Details of a Timezone Identified by Name.
+        call: real-time-quotes-name.getbasictimezonegetbyname
+        with:
+          name: rest.name
+          _attributes: rest._attributes
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: real-time-quotes-name-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Real-Time Quotes API — Name. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: factset-details-timezone-identified-name
+      description: Factset Details of a Timezone Identified by Name.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: real-time-quotes-name.getbasictimezonegetbyname
+      with:
+        name: tools.name
+        _attributes: tools._attributes
+      outputParameters:
+      - type: object
+        mapping: $.

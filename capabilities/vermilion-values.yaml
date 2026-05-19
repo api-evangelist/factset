@@ -1,0 +1,112 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Vermilion API — Values
+  description: 'FactSet Vermilion API — Values. 1 operations. Lead operation: Factset Gets the Entity Values. Self-contained
+    Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Values
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: vermilion-values
+    baseUri: ''
+    description: FactSet Vermilion API — Values business capability. Self-contained, no shared references.
+    resources:
+    - name: v1-tenant-entities-entityCode-values
+      path: /v1/{tenant}/entities/{entityCode}/values
+      operations:
+      - name: getentityvaluesbycode
+        method: GET
+        description: Factset Gets the Entity Values
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: tenant
+          in: path
+          type: string
+          description: The code of the tenancy
+          required: true
+        - name: entityCode
+          in: path
+          type: string
+          description: The code of the entity
+          required: true
+        - name: _sort
+          in: query
+          type: array
+          description: The entity field to sort on. Can only be sorted on entity key, description or secondary key fields.
+            Append "-" to sort in descending order. If no parameter give
+        - name: _paginationLimit
+          in: query
+          type: integer
+          description: Non-negative maximum number of entries to return. Default is 25
+        - name: _paginationOffset
+          in: query
+          type: integer
+          description: Non-negative number of entries to skip. Default is 0
+        - name: showAll
+          in: query
+          type: integer
+          description: Whether to show all field values for each entity row. Value should either be 1 or 0. Default is 0 (false)
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: vermilion-values-rest
+    port: 8080
+    description: REST adapter for FactSet Vermilion API — Values. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/v1/{tenant}/entities/{entitycode}/values
+      name: v1-tenant-entities-entitycode-values
+      description: REST surface for v1-tenant-entities-entityCode-values.
+      operations:
+      - method: GET
+        name: getentityvaluesbycode
+        description: Factset Gets the Entity Values
+        call: vermilion-values.getentityvaluesbycode
+        with:
+          tenant: rest.tenant
+          entityCode: rest.entityCode
+          _sort: rest._sort
+          _paginationLimit: rest._paginationLimit
+          _paginationOffset: rest._paginationOffset
+          showAll: rest.showAll
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: vermilion-values-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Vermilion API — Values. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: factset-gets-entity-values
+      description: Factset Gets the Entity Values
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: vermilion-values.getentityvaluesbycode
+      with:
+        tenant: tools.tenant
+        entityCode: tools.entityCode
+        _sort: tools._sort
+        _paginationLimit: tools._paginationLimit
+        _paginationOffset: tools._paginationOffset
+        showAll: tools.showAll
+      outputParameters:
+      - type: object
+        mapping: $.

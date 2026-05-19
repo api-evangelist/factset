@@ -1,0 +1,106 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset Formula API — Cross
+  description: 'Factset Formula API — Cross. 2 operations. Lead operation: Factset Retrieve Data Items (screening Formulas)
+    for a List of Identifiers or Defined Universe.. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Cross
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: formula-cross
+    baseUri: https://api.factset.com/formula-api
+    description: Factset Formula API — Cross business capability. Self-contained, no shared references.
+    resources:
+    - name: v1-cross-sectional
+      path: /v1/cross-sectional
+      operations:
+      - name: getcrosssectionaldata
+        method: GET
+        description: Factset Retrieve Data Items (screening Formulas) for a List of Identifiers or Defined Universe.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: getcrosssectionaldataforlist
+        method: POST
+        description: Factset Retrieve Data Items (screening Formulas) for a List of Identifiers or Defined Universe.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: formula-cross-rest
+    port: 8080
+    description: REST adapter for Factset Formula API — Cross. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/v1/cross-sectional
+      name: v1-cross-sectional
+      description: REST surface for v1-cross-sectional.
+      operations:
+      - method: GET
+        name: getcrosssectionaldata
+        description: Factset Retrieve Data Items (screening Formulas) for a List of Identifiers or Defined Universe.
+        call: formula-cross.getcrosssectionaldata
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: getcrosssectionaldataforlist
+        description: Factset Retrieve Data Items (screening Formulas) for a List of Identifiers or Defined Universe.
+        call: formula-cross.getcrosssectionaldataforlist
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: formula-cross-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset Formula API — Cross. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: factset-retrieve-data-items-screening
+      description: Factset Retrieve Data Items (screening Formulas) for a List of Identifiers or Defined Universe.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: formula-cross.getcrosssectionaldata
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-retrieve-data-items-screening-2
+      description: Factset Retrieve Data Items (screening Formulas) for a List of Identifiers or Defined Universe.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: false
+      call: formula-cross.getcrosssectionaldataforlist
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

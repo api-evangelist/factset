@@ -1,0 +1,88 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet IRN Custom Symbols API — Link
+  description: 'FactSet IRN Custom Symbols API — Link. 1 operations. Lead operation: Factset Link Custom Symbol to Standard
+    Symbol. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Link
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: irn-custom-symbols-link
+    baseUri: https://api.factset.com/research/irn
+    description: FactSet IRN Custom Symbols API — Link business capability. Self-contained, no shared references.
+    resources:
+    - name: v1-custom-symbols-customSymbolId-link-standard-symbol
+      path: /v1/custom-symbols/{customSymbolId}/link-standard-symbol
+      operations:
+      - name: linkcustomsymboltostandardsymbol
+        method: POST
+        description: Factset Link Custom Symbol to Standard Symbol
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: customSymbolId
+          in: path
+          type: string
+          description: customSymbolId associated with custom symbol
+          required: true
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: irn-custom-symbols-link-rest
+    port: 8080
+    description: REST adapter for FactSet IRN Custom Symbols API — Link. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/v1/custom-symbols/{customsymbolid}/link-standard-symbol
+      name: v1-custom-symbols-customsymbolid-link-standard-symbol
+      description: REST surface for v1-custom-symbols-customSymbolId-link-standard-symbol.
+      operations:
+      - method: POST
+        name: linkcustomsymboltostandardsymbol
+        description: Factset Link Custom Symbol to Standard Symbol
+        call: irn-custom-symbols-link.linkcustomsymboltostandardsymbol
+        with:
+          customSymbolId: rest.customSymbolId
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: irn-custom-symbols-link-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet IRN Custom Symbols API — Link. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: factset-link-custom-symbol-standard
+      description: Factset Link Custom Symbol to Standard Symbol
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: irn-custom-symbols-link.linkcustomsymboltostandardsymbol
+      with:
+        customSymbolId: tools.customSymbolId
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.

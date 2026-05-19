@@ -1,0 +1,71 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Procure to Pay SCIM — Managers
+  description: 'FactSet Procure to Pay SCIM — Managers. 1 operations. Lead operation: Factset Get File Manager Audit Data..
+    Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Managers
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: procure-to-pay-scim-managers
+    baseUri: https://api.factset.com/scim/v2
+    description: FactSet Procure to Pay SCIM — Managers business capability. Self-contained, no shared references.
+    resources:
+    - name: FileManagerAudit
+      path: /FileManagerAudit
+      operations:
+      - name: get
+        method: GET
+        description: Factset Get File Manager Audit Data.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: procure-to-pay-scim-managers-rest
+    port: 8080
+    description: REST adapter for FactSet Procure to Pay SCIM — Managers. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/filemanageraudit
+      name: filemanageraudit
+      description: REST surface for FileManagerAudit.
+      operations:
+      - method: GET
+        name: get
+        description: Factset Get File Manager Audit Data.
+        call: procure-to-pay-scim-managers.get
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: procure-to-pay-scim-managers-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Procure to Pay SCIM — Managers. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: factset-get-file-manager-audit
+      description: Factset Get File Manager Audit Data.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: procure-to-pay-scim-managers.get
+      outputParameters:
+      - type: object
+        mapping: $.

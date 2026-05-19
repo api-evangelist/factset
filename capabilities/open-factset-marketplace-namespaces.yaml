@@ -1,0 +1,154 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Open FactSet Marketplace API — Namespaces
+  description: 'FactSet Open FactSet Marketplace API — Namespaces. 2 operations. Lead operation: Factset Retrieve a Specific
+    Media File. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Namespaces
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: open-factset-marketplace-namespaces
+    baseUri: https://api-sandbox.factset.com
+    description: FactSet Open FactSet Marketplace API — Namespaces business capability. Self-contained, no shared references.
+    resources:
+    - name: ofs-v2-media-download-namespace-scope-guid-fileName
+      path: /ofs/v2/media/download/{namespace}/{scope}/{guid}/{fileName}
+      operations:
+      - name: get
+        method: GET
+        description: Factset Retrieve a Specific Media File
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: namespace
+          in: path
+          type: string
+          description: The namespace of the media file
+          required: true
+        - name: scope
+          in: path
+          type: string
+          description: The scope of the media file
+          required: true
+        - name: guid
+          in: path
+          type: string
+          description: The GUID of the file being requested
+          required: true
+        - name: fileName
+          in: path
+          type: string
+          description: The name you want to show for this file in the uri.
+          required: true
+      - name: head
+        method: HEAD
+        description: Factset Check the existence and retrieve the headers of a spefic media file
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: namespace
+          in: path
+          type: string
+          description: The namespace of the media file
+          required: true
+        - name: scope
+          in: path
+          type: string
+          description: The scope of the media file
+          required: true
+        - name: guid
+          in: path
+          type: string
+          description: The GUID of the file being requested
+          required: true
+        - name: fileName
+          in: path
+          type: string
+          description: The name you want to show for this file in the uri.
+          required: true
+  exposes:
+  - type: rest
+    namespace: open-factset-marketplace-namespaces-rest
+    port: 8080
+    description: REST adapter for FactSet Open FactSet Marketplace API — Namespaces. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/ofs/v2/media/download/{namespace}/{scope}/{guid}/{filename}
+      name: ofs-v2-media-download-namespace-scope-guid-filename
+      description: REST surface for ofs-v2-media-download-namespace-scope-guid-fileName.
+      operations:
+      - method: GET
+        name: get
+        description: Factset Retrieve a Specific Media File
+        call: open-factset-marketplace-namespaces.get
+        with:
+          namespace: rest.namespace
+          scope: rest.scope
+          guid: rest.guid
+          fileName: rest.fileName
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: HEAD
+        name: head
+        description: Factset Check the existence and retrieve the headers of a spefic media file
+        call: open-factset-marketplace-namespaces.head
+        with:
+          namespace: rest.namespace
+          scope: rest.scope
+          guid: rest.guid
+          fileName: rest.fileName
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: open-factset-marketplace-namespaces-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Open FactSet Marketplace API — Namespaces. One tool per consumed operation, routed
+      inline through this capability's consumes block.
+    tools:
+    - name: factset-retrieve-specific-media-file
+      description: Factset Retrieve a Specific Media File
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: open-factset-marketplace-namespaces.get
+      with:
+        namespace: tools.namespace
+        scope: tools.scope
+        guid: tools.guid
+        fileName: tools.fileName
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-check-existence-and-retrieve
+      description: Factset Check the existence and retrieve the headers of a spefic media file
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: open-factset-marketplace-namespaces.head
+      with:
+        namespace: tools.namespace
+        scope: tools.scope
+        guid: tools.guid
+        fileName: tools.fileName
+      outputParameters:
+      - type: object
+        mapping: $.

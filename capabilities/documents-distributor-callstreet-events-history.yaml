@@ -1,0 +1,72 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Documents Distributor - CallStreet Events — History
+  description: 'FactSet Documents Distributor - CallStreet Events — History. 1 operations. Lead operation: Retrieve Historical
+    Audio Recordings and Related Metadata Within Factset Coverage.. Self-contained Naftiko capability covering one Factset
+    business surface.'
+  tags:
+  - Factset
+  - History
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: documents-distributor-callstreet-events-history
+    baseUri: https://api.factset.com
+    description: FactSet Documents Distributor - CallStreet Events — History business capability. Self-contained, no shared
+      references.
+    resources:
+    - name: docs-distributor-audio-v1-history-files
+      path: /docs-distributor/audio/v1/history-files
+      operations:
+      - name: getdocsdistributoraudiov1historyfiles
+        method: GET
+        description: Retrieve Historical Audio Recordings and Related Metadata Within Factset Coverage.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: documents-distributor-callstreet-events-history-rest
+    port: 8080
+    description: REST adapter for FactSet Documents Distributor - CallStreet Events — History. One Spectral-compliant resource
+      per consumed operation, prefixed with /v1.
+    resources:
+    - path: /v1/docs-distributor/audio/v1/history-files
+      name: docs-distributor-audio-v1-history-files
+      description: REST surface for docs-distributor-audio-v1-history-files.
+      operations:
+      - method: GET
+        name: getdocsdistributoraudiov1historyfiles
+        description: Retrieve Historical Audio Recordings and Related Metadata Within Factset Coverage.
+        call: documents-distributor-callstreet-events-history.getdocsdistributoraudiov1historyfiles
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: documents-distributor-callstreet-events-history-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Documents Distributor - CallStreet Events — History. One tool per consumed operation,
+      routed inline through this capability's consumes block.
+    tools:
+    - name: retrieve-historical-audio-recordings-and
+      description: Retrieve Historical Audio Recordings and Related Metadata Within Factset Coverage.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: documents-distributor-callstreet-events-history.getdocsdistributoraudiov1historyfiles
+      outputParameters:
+      - type: object
+        mapping: $.

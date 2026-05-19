@@ -1,0 +1,122 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset PA Engine API — Path
+  description: 'Factset PA Engine API — Path. 2 operations. Lead operation: Factset Get Pa3 Documents and Sub-directories
+    in a Directory. Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Path
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: pa-engine-path
+    baseUri: https://api.factset.com
+    description: Factset PA Engine API — Path business capability. Self-contained, no shared references.
+    resources:
+    - name: analytics-engines-pa-v3-documents-path
+      path: /analytics/engines/pa/v3/documents/{path}
+      operations:
+      - name: getpa3documents
+        method: GET
+        description: Factset Get Pa3 Documents and Sub-directories in a Directory
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: path
+          in: path
+          type: string
+          description: The directory to get the documents and sub-directories in
+          required: true
+    - name: analytics-lookups-v3-accounts-path
+      path: /analytics/lookups/v3/accounts/{path}
+      operations:
+      - name: getaccounts
+        method: GET
+        description: Factset Get Accounts and Sub-directories in a Directory
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: path
+          in: path
+          type: string
+          description: The directory to get the accounts and sub-directories in
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: pa-engine-path-rest
+    port: 8080
+    description: REST adapter for Factset PA Engine API — Path. One Spectral-compliant resource per consumed operation, prefixed
+      with /v1.
+    resources:
+    - path: /v1/analytics/engines/pa/v3/documents/{path}
+      name: analytics-engines-pa-v3-documents-path
+      description: REST surface for analytics-engines-pa-v3-documents-path.
+      operations:
+      - method: GET
+        name: getpa3documents
+        description: Factset Get Pa3 Documents and Sub-directories in a Directory
+        call: pa-engine-path.getpa3documents
+        with:
+          path: rest.path
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/analytics/lookups/v3/accounts/{path}
+      name: analytics-lookups-v3-accounts-path
+      description: REST surface for analytics-lookups-v3-accounts-path.
+      operations:
+      - method: GET
+        name: getaccounts
+        description: Factset Get Accounts and Sub-directories in a Directory
+        call: pa-engine-path.getaccounts
+        with:
+          path: rest.path
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: pa-engine-path-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset PA Engine API — Path. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: factset-get-pa3-documents-and
+      description: Factset Get Pa3 Documents and Sub-directories in a Directory
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: pa-engine-path.getpa3documents
+      with:
+        path: tools.path
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-accounts-and-sub
+      description: Factset Get Accounts and Sub-directories in a Directory
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: pa-engine-path.getaccounts
+      with:
+        path: tools.path
+      outputParameters:
+      - type: object
+        mapping: $.

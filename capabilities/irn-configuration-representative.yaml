@@ -1,0 +1,71 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet IRN Configuration API — Representative
+  description: 'FactSet IRN Configuration API — Representative. 1 operations. Lead operation: Representative. Self-contained
+    Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Representative
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: irn-configuration-representative
+    baseUri: https://api.factset.com/research/irn
+    description: FactSet IRN Configuration API — Representative business capability. Self-contained, no shared references.
+    resources:
+    - name: v1-group-client-sales-representative
+      path: /v1/group/client-sales-representative
+      operations:
+      - name: getclientssalesrepresentative
+        method: GET
+        description: ''
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: irn-configuration-representative-rest
+    port: 8080
+    description: REST adapter for FactSet IRN Configuration API — Representative. One Spectral-compliant resource per consumed
+      operation, prefixed with /v1.
+    resources:
+    - path: /v1/v1/group/client-sales-representative
+      name: v1-group-client-sales-representative
+      description: REST surface for v1-group-client-sales-representative.
+      operations:
+      - method: GET
+        name: getclientssalesrepresentative
+        description: getclientssalesrepresentative
+        call: irn-configuration-representative.getclientssalesrepresentative
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: irn-configuration-representative-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet IRN Configuration API — Representative. One tool per consumed operation, routed inline
+      through this capability's consumes block.
+    tools:
+    - name: getclientssalesrepresentative
+      description: getclientssalesrepresentative
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: irn-configuration-representative.getclientssalesrepresentative
+      outputParameters:
+      - type: object
+        mapping: $.

@@ -1,0 +1,233 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet Procure to Pay SCIM — Users
+  description: 'FactSet Procure to Pay SCIM — Users. 6 operations. Lead operation: Factset Get a List of Users.. Self-contained
+    Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Users
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: procure-to-pay-scim-users
+    baseUri: https://api.factset.com/scim/v2
+    description: FactSet Procure to Pay SCIM — Users business capability. Self-contained, no shared references.
+    resources:
+    - name: Users
+      path: /Users
+      operations:
+      - name: get
+        method: GET
+        description: Factset Get a List of Users.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: post
+        method: POST
+        description: Factset Create a User.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+    - name: Users-id
+      path: /Users/{id}
+      operations:
+      - name: get
+        method: GET
+        description: Factset Get a User.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: put
+        method: PUT
+        description: Factset Replace a User.
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+      - name: patch
+        method: PATCH
+        description: Factset Patch a User (add, Replace, or Remove Attributes of a User.)
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: body
+          in: body
+          type: object
+          description: Request body (JSON).
+          required: false
+      - name: delete
+        method: DELETE
+        description: Factset Delete a User
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: procure-to-pay-scim-users-rest
+    port: 8080
+    description: REST adapter for FactSet Procure to Pay SCIM — Users. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/users
+      name: users
+      description: REST surface for Users.
+      operations:
+      - method: GET
+        name: get
+        description: Factset Get a List of Users.
+        call: procure-to-pay-scim-users.get
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: POST
+        name: post
+        description: Factset Create a User.
+        call: procure-to-pay-scim-users.post
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/users/{id}
+      name: users-id
+      description: REST surface for Users-id.
+      operations:
+      - method: GET
+        name: get
+        description: Factset Get a User.
+        call: procure-to-pay-scim-users.get
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PUT
+        name: put
+        description: Factset Replace a User.
+        call: procure-to-pay-scim-users.put
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: PATCH
+        name: patch
+        description: Factset Patch a User (add, Replace, or Remove Attributes of a User.)
+        call: procure-to-pay-scim-users.patch
+        with:
+          body: rest.body
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: DELETE
+        name: delete
+        description: Factset Delete a User
+        call: procure-to-pay-scim-users.delete
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: procure-to-pay-scim-users-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet Procure to Pay SCIM — Users. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: factset-get-list-users
+      description: Factset Get a List of Users.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: procure-to-pay-scim-users.get
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-create-user
+      description: Factset Create a User.
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: false
+      call: procure-to-pay-scim-users.post
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-user
+      description: Factset Get a User.
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: procure-to-pay-scim-users.get
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-replace-user
+      description: Factset Replace a User.
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: procure-to-pay-scim-users.put
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-patch-user-add-replace
+      description: Factset Patch a User (add, Replace, or Remove Attributes of a User.)
+      hints:
+        readOnly: false
+        destructive: false
+        idempotent: true
+      call: procure-to-pay-scim-users.patch
+      with:
+        body: tools.body
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-delete-user
+      description: Factset Delete a User
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: procure-to-pay-scim-users.delete
+      outputParameters:
+      - type: object
+        mapping: $.

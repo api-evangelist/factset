@@ -1,0 +1,96 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: Factset Universal Screening API — Jobs
+  description: 'Factset Universal Screening API — Jobs. 2 operations. Lead operation: Jobs. Self-contained Naftiko capability
+    covering one Factset business surface.'
+  tags:
+  - Factset
+  - Jobs
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: universal-screening-jobs-2
+    baseUri: https://api.factset.com/universal-screening
+    description: Factset Universal Screening API — Jobs business capability. Self-contained, no shared references.
+    resources:
+    - name: v2-jobs
+      path: /v2/jobs
+      operations:
+      - name: getallactivejobs
+        method: GET
+        description: Retrieve list of all active job ids started by requester's username-serial
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+      - name: deleteallactivejobs
+        method: DELETE
+        description: Delete all active jobs started by the requester's username-serial
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+    authentication:
+      type: basic
+      username: '{{env.FACTSET_USER}}'
+      password: '{{env.FACTSET_PASS}}'
+  exposes:
+  - type: rest
+    namespace: universal-screening-jobs-2-rest
+    port: 8080
+    description: REST adapter for Factset Universal Screening API — Jobs. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/v2/jobs
+      name: v2-jobs
+      description: REST surface for v2-jobs.
+      operations:
+      - method: GET
+        name: getallactivejobs
+        description: Retrieve list of all active job ids started by requester's username-serial
+        call: universal-screening-jobs-2.getallactivejobs
+        outputParameters:
+        - type: object
+          mapping: $.
+      - method: DELETE
+        name: deleteallactivejobs
+        description: Delete all active jobs started by the requester's username-serial
+        call: universal-screening-jobs-2.deleteallactivejobs
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: universal-screening-jobs-2-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for Factset Universal Screening API — Jobs. One tool per consumed operation, routed inline through
+      this capability's consumes block.
+    tools:
+    - name: retrieve-list-all-active-job
+      description: Retrieve list of all active job ids started by requester's username-serial
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: universal-screening-jobs-2.getallactivejobs
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: delete-all-active-jobs-started
+      description: Delete all active jobs started by the requester's username-serial
+      hints:
+        readOnly: false
+        destructive: true
+        idempotent: true
+      call: universal-screening-jobs-2.deleteallactivejobs
+      outputParameters:
+      - type: object
+        mapping: $.

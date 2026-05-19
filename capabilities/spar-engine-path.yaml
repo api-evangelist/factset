@@ -1,0 +1,164 @@
+naftiko: 1.0.0-alpha2
+info:
+  label: FactSet SPAR Engine API — Path
+  description: 'FactSet SPAR Engine API — Path. 3 operations. Lead operation: Factset Get Spar Account Returns Type Details.
+    Self-contained Naftiko capability covering one Factset business surface.'
+  tags:
+  - Factset
+  - Path
+  created: '2026-05-19'
+  modified: '2026-05-19'
+binds:
+- namespace: env
+  keys:
+    FACTSET_API_KEY: FACTSET_API_KEY
+capability:
+  consumes:
+  - type: http
+    namespace: spar-engine-path
+    baseUri: https://api.factset.com
+    description: FactSet SPAR Engine API — Path business capability. Self-contained, no shared references.
+    resources:
+    - name: analytics-engines-spar-v3-accounts-accountPath-returns-type
+      path: /analytics/engines/spar/v3/accounts/{accountPath}/returns-type
+      operations:
+      - name: getsparreturnstype
+        method: GET
+        description: Factset Get Spar Account Returns Type Details
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: accountPath
+          in: path
+          type: string
+          description: URL encoded account path
+          required: true
+    - name: analytics-engines-spar-v3-documents-path
+      path: /analytics/engines/spar/v3/documents/{path}
+      operations:
+      - name: getspar3documents
+        method: GET
+        description: Factset Gets Spar3 Documents and Sub-directories in a Directory
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: path
+          in: path
+          type: string
+          description: The directory to get the documents in
+          required: true
+    - name: analytics-lookups-v3-accounts-path
+      path: /analytics/lookups/v3/accounts/{path}
+      operations:
+      - name: getaccounts
+        method: GET
+        description: Factset Get Accounts and Sub-directories in a Directory
+        outputRawFormat: json
+        outputParameters:
+        - name: result
+          type: object
+          value: $.
+        inputParameters:
+        - name: path
+          in: path
+          type: string
+          description: The directory to get the accounts and sub-directories.
+          required: true
+    authentication:
+      type: bearer
+      token: '{{env.FACTSET_API_KEY}}'
+  exposes:
+  - type: rest
+    namespace: spar-engine-path-rest
+    port: 8080
+    description: REST adapter for FactSet SPAR Engine API — Path. One Spectral-compliant resource per consumed operation,
+      prefixed with /v1.
+    resources:
+    - path: /v1/analytics/engines/spar/v3/accounts/{accountpath}/returns-type
+      name: analytics-engines-spar-v3-accounts-accountpath-returns-type
+      description: REST surface for analytics-engines-spar-v3-accounts-accountPath-returns-type.
+      operations:
+      - method: GET
+        name: getsparreturnstype
+        description: Factset Get Spar Account Returns Type Details
+        call: spar-engine-path.getsparreturnstype
+        with:
+          accountPath: rest.accountPath
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/analytics/engines/spar/v3/documents/{path}
+      name: analytics-engines-spar-v3-documents-path
+      description: REST surface for analytics-engines-spar-v3-documents-path.
+      operations:
+      - method: GET
+        name: getspar3documents
+        description: Factset Gets Spar3 Documents and Sub-directories in a Directory
+        call: spar-engine-path.getspar3documents
+        with:
+          path: rest.path
+        outputParameters:
+        - type: object
+          mapping: $.
+    - path: /v1/analytics/lookups/v3/accounts/{path}
+      name: analytics-lookups-v3-accounts-path
+      description: REST surface for analytics-lookups-v3-accounts-path.
+      operations:
+      - method: GET
+        name: getaccounts
+        description: Factset Get Accounts and Sub-directories in a Directory
+        call: spar-engine-path.getaccounts
+        with:
+          path: rest.path
+        outputParameters:
+        - type: object
+          mapping: $.
+  - type: mcp
+    namespace: spar-engine-path-mcp
+    port: 9090
+    transport: http
+    description: MCP adapter for FactSet SPAR Engine API — Path. One tool per consumed operation, routed inline through this
+      capability's consumes block.
+    tools:
+    - name: factset-get-spar-account-returns
+      description: Factset Get Spar Account Returns Type Details
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: spar-engine-path.getsparreturnstype
+      with:
+        accountPath: tools.accountPath
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-gets-spar3-documents-and
+      description: Factset Gets Spar3 Documents and Sub-directories in a Directory
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: spar-engine-path.getspar3documents
+      with:
+        path: tools.path
+      outputParameters:
+      - type: object
+        mapping: $.
+    - name: factset-get-accounts-and-sub
+      description: Factset Get Accounts and Sub-directories in a Directory
+      hints:
+        readOnly: true
+        destructive: false
+        idempotent: true
+      call: spar-engine-path.getaccounts
+      with:
+        path: tools.path
+      outputParameters:
+      - type: object
+        mapping: $.
