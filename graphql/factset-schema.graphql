@@ -1,0 +1,957 @@
+"""
+FactSet GraphQL API Schema
+Derived from FactSet REST API covering securities data, pricing, fundamentals,
+earnings estimates, ownership data, ESG scores, and portfolio analytics.
+"""
+
+scalar Date
+scalar DateTime
+scalar Float
+scalar JSON
+
+# ─────────────────────────────────────────────
+# Enumerations
+# ─────────────────────────────────────────────
+
+enum CurrencyCode {
+  USD
+  EUR
+  GBP
+  JPY
+  CAD
+  AUD
+  CHF
+  HKD
+  SGD
+  SEK
+  NOK
+  DKK
+  NZD
+  MXN
+  BRL
+  INR
+  CNY
+  KRW
+  ZAR
+  OTHER
+}
+
+enum Frequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  SEMI_ANNUAL
+  ANNUAL
+}
+
+enum PriceType {
+  ADJUSTED
+  UNADJUSTED
+}
+
+enum SecurityType {
+  EQUITY
+  FIXED_INCOME
+  ETF
+  MUTUAL_FUND
+  INDEX
+  DERIVATIVE
+  CURRENCY
+  COMMODITY
+  OTHER
+}
+
+enum ExchangeType {
+  NYSE
+  NASDAQ
+  LSE
+  TSX
+  ASX
+  HKEX
+  SSE
+  TSE
+  EURONEXT
+  OTHER
+}
+
+enum ESGCategory {
+  ENVIRONMENTAL
+  SOCIAL
+  GOVERNANCE
+  COMBINED
+}
+
+enum RatingAction {
+  UPGRADE
+  DOWNGRADE
+  INITIATION
+  REITERATION
+  SUSPENDED
+}
+
+enum OwnershipType {
+  INSTITUTIONAL
+  INSIDER
+  MUTUAL_FUND
+  ETF
+  HEDGE_FUND
+}
+
+enum CalculationStatus {
+  QUEUED
+  EXECUTING
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
+enum SortOrder {
+  ASC
+  DESC
+}
+
+# ─────────────────────────────────────────────
+# Core Security Types
+# ─────────────────────────────────────────────
+
+"""A financial security (equity, bond, ETF, etc.)"""
+type Security {
+  id: ID!
+  ticker: String!
+  isin: String
+  cusip: String
+  sedol: String
+  figi: String
+  name: String!
+  type: SecurityType!
+  exchange: Exchange
+  currency: CurrencyCode!
+  country: String
+  sector: String
+  industry: String
+  subIndustry: String
+  isActive: Boolean!
+  marketCap: Float
+  sharesOutstanding: Float
+  price: Price
+  priceHistory(
+    startDate: Date!
+    endDate: Date!
+    frequency: Frequency
+    priceType: PriceType
+  ): [Price!]
+  fundamentals: Fundamentals
+  earningsEstimates: [EarningsEstimate!]
+  dividends(startDate: Date, endDate: Date): [Dividend!]
+  ownership: OwnershipSummary
+  esgScores: ESGScores
+  analystRatings: [AnalystRating!]
+  companyProfile: CompanyProfile
+  financialStatements: FinancialStatements
+}
+
+"""A stock exchange or trading venue"""
+type Exchange {
+  id: ID!
+  code: String!
+  name: String!
+  country: String!
+  currency: CurrencyCode!
+  timezone: String
+  type: ExchangeType!
+  micCode: String
+  openTime: String
+  closeTime: String
+}
+
+# ─────────────────────────────────────────────
+# Pricing Types
+# ─────────────────────────────────────────────
+
+"""Real-time or end-of-day price data for a security"""
+type Price {
+  securityId: ID!
+  date: Date!
+  open: Float
+  high: Float
+  low: Float
+  close: Float!
+  adjustedClose: Float
+  volume: Float
+  vwap: Float
+  currency: CurrencyCode!
+  priceType: PriceType!
+  splitFactor: Float
+  dividendFactor: Float
+}
+
+"""Real-time quote data"""
+type RealTimeQuote {
+  securityId: ID!
+  ticker: String!
+  bidPrice: Float
+  askPrice: Float
+  lastPrice: Float!
+  lastSize: Float
+  bidSize: Float
+  askSize: Float
+  timestamp: DateTime!
+  exchange: String
+  condition: String
+  currency: CurrencyCode!
+  change: Float
+  changePercent: Float
+  fiftyTwoWeekHigh: Float
+  fiftyTwoWeekLow: Float
+}
+
+# ─────────────────────────────────────────────
+# Fundamentals Types
+# ─────────────────────────────────────────────
+
+"""Core fundamental metrics for a security"""
+type Fundamentals {
+  securityId: ID!
+  asOfDate: Date!
+  peRatio: Float
+  pbRatio: Float
+  psRatio: Float
+  evEbitda: Float
+  evRevenue: Float
+  debtToEquity: Float
+  currentRatio: Float
+  quickRatio: Float
+  returnOnEquity: Float
+  returnOnAssets: Float
+  returnOnCapital: Float
+  grossMargin: Float
+  operatingMargin: Float
+  netMargin: Float
+  revenueGrowth: Float
+  epsGrowth: Float
+  dividendYield: Float
+  payoutRatio: Float
+  bookValuePerShare: Float
+  earningsPerShare: Float
+  freeCashFlowPerShare: Float
+  enterpriseValue: Float
+  beta: Float
+}
+
+"""Income statement data"""
+type IncomeStatement {
+  securityId: ID!
+  fiscalYear: Int!
+  fiscalPeriod: String!
+  reportDate: Date!
+  currency: CurrencyCode!
+  revenue: Float
+  costOfRevenue: Float
+  grossProfit: Float
+  operatingExpenses: Float
+  operatingIncome: Float
+  interestExpense: Float
+  pretaxIncome: Float
+  incomeTax: Float
+  netIncome: Float
+  eps: Float
+  dilutedEps: Float
+  weightedAvgShares: Float
+  dilutedShares: Float
+  ebitda: Float
+  ebit: Float
+  depreciation: Float
+  amortization: Float
+}
+
+"""Balance sheet data"""
+type BalanceSheet {
+  securityId: ID!
+  fiscalYear: Int!
+  fiscalPeriod: String!
+  reportDate: Date!
+  currency: CurrencyCode!
+  totalAssets: Float
+  currentAssets: Float
+  cashAndEquivalents: Float
+  shortTermInvestments: Float
+  accountsReceivable: Float
+  inventory: Float
+  totalLiabilities: Float
+  currentLiabilities: Float
+  accountsPayable: Float
+  shortTermDebt: Float
+  longTermDebt: Float
+  totalDebt: Float
+  shareholdersEquity: Float
+  retainedEarnings: Float
+  commonStock: Float
+  totalCapital: Float
+}
+
+"""Cash flow statement data"""
+type CashFlowStatement {
+  securityId: ID!
+  fiscalYear: Int!
+  fiscalPeriod: String!
+  reportDate: Date!
+  currency: CurrencyCode!
+  operatingCashFlow: Float
+  capitalExpenditures: Float
+  freeCashFlow: Float
+  investingCashFlow: Float
+  financingCashFlow: Float
+  netChangeInCash: Float
+  dividendsPaid: Float
+  shareRepurchases: Float
+  debtIssuance: Float
+  debtRepayment: Float
+  stockBasedCompensation: Float
+}
+
+"""Container for all financial statements"""
+type FinancialStatements {
+  securityId: ID!
+  incomeStatements(periods: Int): [IncomeStatement!]
+  balanceSheets(periods: Int): [BalanceSheet!]
+  cashFlowStatements(periods: Int): [CashFlowStatement!]
+}
+
+# ─────────────────────────────────────────────
+# Earnings Estimates Types
+# ─────────────────────────────────────────────
+
+"""Analyst consensus earnings estimate"""
+type EarningsEstimate {
+  securityId: ID!
+  fiscalYear: Int!
+  fiscalPeriod: String!
+  periodEndDate: Date!
+  currency: CurrencyCode!
+  epsConsensus: Float
+  epsHigh: Float
+  epsLow: Float
+  epsStdDev: Float
+  analystCount: Int
+  revenueConsensus: Float
+  revenueHigh: Float
+  revenueLow: Float
+  ebitdaConsensus: Float
+  lastUpdated: DateTime
+  surprisePct: Float
+  surprise: Float
+}
+
+"""Individual analyst estimate"""
+type AnalystEstimate {
+  id: ID!
+  securityId: ID!
+  analystId: ID!
+  analystName: String
+  firm: String
+  fiscalYear: Int!
+  fiscalPeriod: String!
+  epsEstimate: Float
+  revenueEstimate: Float
+  estimateDate: Date!
+  currency: CurrencyCode!
+}
+
+# ─────────────────────────────────────────────
+# Ownership Types
+# ─────────────────────────────────────────────
+
+"""Summary of ownership for a security"""
+type OwnershipSummary {
+  securityId: ID!
+  asOfDate: Date!
+  institutionalOwnershipPct: Float
+  insiderOwnershipPct: Float
+  publicOwnershipPct: Float
+  sharesHeldByInstitutions: Float
+  sharesHeldByInsiders: Float
+  institutionalHolderCount: Int
+  top10HoldersPct: Float
+}
+
+"""A single institutional holder position"""
+type InstitutionalHolder {
+  id: ID!
+  securityId: ID!
+  holderName: String!
+  holderType: OwnershipType!
+  sharesHeld: Float!
+  marketValue: Float!
+  ownershipPct: Float!
+  changeInShares: Float
+  changeType: String
+  reportDate: Date!
+  currency: CurrencyCode!
+  country: String
+  cik: String
+}
+
+"""Insider transaction record"""
+type InsiderTransaction {
+  id: ID!
+  securityId: ID!
+  insiderName: String!
+  insiderTitle: String
+  transactionDate: Date!
+  transactionType: String!
+  shares: Float!
+  price: Float
+  value: Float
+  sharesOwned: Float
+  formType: String
+  filingDate: Date
+}
+
+# ─────────────────────────────────────────────
+# ESG Types
+# ─────────────────────────────────────────────
+
+"""ESG scores for a security"""
+type ESGScores {
+  securityId: ID!
+  asOfDate: Date!
+  provider: String!
+  overallScore: Float
+  environmentalScore: Float
+  socialScore: Float
+  governanceScore: Float
+  overallRating: String
+  environmentalRating: String
+  socialRating: String
+  governanceRating: String
+  controversy: Float
+  carbonEmissionsScope1: Float
+  carbonEmissionsScope2: Float
+  carbonEmissionsScope3: Float
+  waterUsage: Float
+  wasteGenerated: Float
+  boardDiversity: Float
+  femaleExecutivesPct: Float
+  employeeTurnover: Float
+  workplaceInjuryRate: Float
+  categories: [ESGCategory!]
+}
+
+"""Industry-level ESG benchmark"""
+type ESGBenchmark {
+  industry: String!
+  sector: String!
+  asOfDate: Date!
+  medianOverallScore: Float
+  medianEnvironmentalScore: Float
+  medianSocialScore: Float
+  medianGovernanceScore: Float
+  companiesInSample: Int
+}
+
+# ─────────────────────────────────────────────
+# Analyst Rating Types
+# ─────────────────────────────────────────────
+
+"""Analyst rating or recommendation for a security"""
+type AnalystRating {
+  id: ID!
+  securityId: ID!
+  analystId: ID
+  analystName: String
+  firm: String!
+  rating: String!
+  priorRating: String
+  action: RatingAction!
+  priceTarget: Float
+  priorPriceTarget: Float
+  targetCurrency: CurrencyCode
+  ratingDate: Date!
+  note: String
+}
+
+"""Consensus analyst rating summary"""
+type ConsensusRating {
+  securityId: ID!
+  asOfDate: Date!
+  buyCount: Int!
+  overweightCount: Int!
+  holdCount: Int!
+  underweightCount: Int!
+  sellCount: Int!
+  totalAnalysts: Int!
+  meanRating: Float
+  priceTargetConsensus: Float
+  priceTargetHigh: Float
+  priceTargetLow: Float
+}
+
+# ─────────────────────────────────────────────
+# Company Profile Types
+# ─────────────────────────────────────────────
+
+"""Detailed company profile"""
+type CompanyProfile {
+  securityId: ID!
+  companyName: String!
+  legalName: String
+  description: String
+  website: String
+  employees: Int
+  founded: Int
+  headquarters: Address
+  ceo: String
+  cfo: String
+  industry: String
+  sector: String
+  subIndustry: String
+  sicCode: String
+  naicsCode: String
+  fiscalYearEnd: String
+  incorporationCountry: String
+  listingDate: Date
+  reportingCurrency: CurrencyCode
+  auditor: String
+  executives: [Executive!]
+}
+
+"""Company address"""
+type Address {
+  street1: String
+  street2: String
+  city: String
+  state: String
+  postalCode: String
+  country: String!
+}
+
+"""Company executive"""
+type Executive {
+  id: ID!
+  name: String!
+  title: String!
+  startDate: Date
+  compensation: Float
+  compensationCurrency: CurrencyCode
+}
+
+# ─────────────────────────────────────────────
+# Dividend Types
+# ─────────────────────────────────────────────
+
+"""Dividend payment record"""
+type Dividend {
+  securityId: ID!
+  exDate: Date!
+  payDate: Date
+  recordDate: Date
+  declarationDate: Date
+  amount: Float!
+  adjustedAmount: Float
+  currency: CurrencyCode!
+  frequency: Frequency
+  type: String
+}
+
+# ─────────────────────────────────────────────
+# Portfolio Analytics Types
+# ─────────────────────────────────────────────
+
+"""A portfolio or benchmark for analytics"""
+type Portfolio {
+  id: ID!
+  name: String!
+  description: String
+  currency: CurrencyCode!
+  benchmarkId: String
+  holdings: [PortfolioHolding!]
+  performanceSummary: PortfolioPerformance
+  riskMetrics: RiskMetrics
+  attributionSummary: AttributionSummary
+}
+
+"""A single holding within a portfolio"""
+type PortfolioHolding {
+  securityId: ID!
+  ticker: String!
+  weight: Float!
+  marketValue: Float!
+  shares: Float!
+  price: Float!
+  currency: CurrencyCode!
+  sector: String
+  country: String
+  assetClass: String
+}
+
+"""Portfolio performance metrics"""
+type PortfolioPerformance {
+  portfolioId: ID!
+  startDate: Date!
+  endDate: Date!
+  returnTotal: Float!
+  returnAnnualized: Float
+  benchmarkReturn: Float
+  alpha: Float
+  beta: Float
+  sharpeRatio: Float
+  sortinoRatio: Float
+  informationRatio: Float
+  trackingError: Float
+  maxDrawdown: Float
+  calmarRatio: Float
+  volatility: Float
+}
+
+"""Risk metrics for a portfolio"""
+type RiskMetrics {
+  portfolioId: ID!
+  asOfDate: Date!
+  var95: Float
+  var99: Float
+  cvar95: Float
+  cvar99: Float
+  beta: Float
+  volatilityAnnualized: Float
+  correlationToBenchmark: Float
+  concentrationHerfindahl: Float
+  durationWeighted: Float
+  convexity: Float
+  creditQualitySpread: Float
+}
+
+"""Performance attribution breakdown"""
+type AttributionSummary {
+  portfolioId: ID!
+  startDate: Date!
+  endDate: Date!
+  allocationEffect: Float
+  selectionEffect: Float
+  interactionEffect: Float
+  totalActiveReturn: Float
+  sectorAttributions: [SectorAttribution!]
+}
+
+"""Sector-level attribution"""
+type SectorAttribution {
+  sector: String!
+  portfolioWeight: Float!
+  benchmarkWeight: Float!
+  portfolioReturn: Float!
+  benchmarkReturn: Float!
+  allocationEffect: Float!
+  selectionEffect: Float!
+  totalEffect: Float!
+}
+
+# ─────────────────────────────────────────────
+# Index Types
+# ─────────────────────────────────────────────
+
+"""A market index"""
+type MarketIndex {
+  id: ID!
+  name: String!
+  ticker: String!
+  description: String
+  provider: String
+  currency: CurrencyCode!
+  country: String
+  rebalanceFrequency: Frequency
+  constituentsCount: Int
+  launchDate: Date
+  constituents: [IndexConstituent!]
+  priceHistory(startDate: Date!, endDate: Date!): [Price!]
+}
+
+"""A constituent in a market index"""
+type IndexConstituent {
+  indexId: ID!
+  securityId: ID!
+  ticker: String!
+  name: String!
+  weight: Float!
+  asOfDate: Date!
+  sector: String
+  country: String
+}
+
+# ─────────────────────────────────────────────
+# Fixed Income Types
+# ─────────────────────────────────────────────
+
+"""A fixed income (bond) security"""
+type Bond {
+  id: ID!
+  isin: String
+  cusip: String
+  name: String!
+  issuer: String!
+  couponRate: Float!
+  couponFrequency: Frequency!
+  maturityDate: Date!
+  issueDate: Date
+  faceValue: Float!
+  currency: CurrencyCode!
+  creditRatings: [CreditRating!]
+  yieldToMaturity: Float
+  duration: Float
+  convexity: Float
+  spread: Float
+  callSchedule: [CallDate!]
+}
+
+"""Credit rating from a rating agency"""
+type CreditRating {
+  bondId: ID
+  securityId: ID
+  agency: String!
+  rating: String!
+  outlook: String
+  ratingDate: Date!
+  action: String
+}
+
+"""A bond call date and call price"""
+type CallDate {
+  callDate: Date!
+  callPrice: Float!
+}
+
+# ─────────────────────────────────────────────
+# Economic / Macro Types
+# ─────────────────────────────────────────────
+
+"""A macroeconomic indicator time series"""
+type EconomicIndicator {
+  id: ID!
+  name: String!
+  description: String
+  country: String!
+  frequency: Frequency!
+  unit: String
+  source: String
+  series(startDate: Date, endDate: Date): [EconomicDataPoint!]
+}
+
+"""A single data point in an economic indicator series"""
+type EconomicDataPoint {
+  indicatorId: ID!
+  date: Date!
+  value: Float!
+  revisedValue: Float
+  isRevised: Boolean!
+}
+
+# ─────────────────────────────────────────────
+# Search & Reference Types
+# ─────────────────────────────────────────────
+
+"""Search result for a security lookup"""
+type SecuritySearchResult {
+  securityId: ID!
+  ticker: String!
+  name: String!
+  exchange: String
+  currency: CurrencyCode!
+  type: SecurityType!
+  country: String
+  score: Float
+}
+
+"""Pagination metadata"""
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+  totalCount: Int
+}
+
+"""Paginated list of securities"""
+type SecurityConnection {
+  edges: [SecurityEdge!]!
+  pageInfo: PageInfo!
+}
+
+"""Edge in a security connection"""
+type SecurityEdge {
+  cursor: String!
+  node: Security!
+}
+
+# ─────────────────────────────────────────────
+# PA Engine / Calculation Types
+# ─────────────────────────────────────────────
+
+"""A portfolio analytics calculation job"""
+type Calculation {
+  id: ID!
+  status: CalculationStatus!
+  createdAt: DateTime!
+  completedAt: DateTime
+  parameters: JSON
+  results: CalculationResult
+}
+
+"""Result of a portfolio analytics calculation"""
+type CalculationResult {
+  calculationId: ID!
+  columns: [String!]!
+  rows: [[JSON]]
+  metadata: JSON
+}
+
+# ─────────────────────────────────────────────
+# Input Types
+# ─────────────────────────────────────────────
+
+"""Input for searching securities"""
+input SecuritySearchInput {
+  query: String
+  type: SecurityType
+  exchange: ExchangeType
+  country: String
+  sector: String
+  currency: CurrencyCode
+  limit: Int
+  offset: Int
+  sortBy: String
+  sortOrder: SortOrder
+}
+
+"""Input for price history requests"""
+input PriceHistoryInput {
+  securityIds: [ID!]!
+  startDate: Date!
+  endDate: Date!
+  frequency: Frequency
+  priceType: PriceType
+  currency: CurrencyCode
+}
+
+"""Input for portfolio creation"""
+input CreatePortfolioInput {
+  name: String!
+  description: String
+  currency: CurrencyCode!
+  benchmarkId: String
+  holdings: [PortfolioHoldingInput!]!
+}
+
+"""Input for a single portfolio holding"""
+input PortfolioHoldingInput {
+  securityId: ID!
+  weight: Float!
+  marketValue: Float
+}
+
+# ─────────────────────────────────────────────
+# Root Types
+# ─────────────────────────────────────────────
+
+type Query {
+  """Retrieve a security by its FactSet ID, ISIN, CUSIP, SEDOL, or ticker"""
+  security(id: ID, ticker: String, isin: String, cusip: String, sedol: String): Security
+
+  """Search for securities matching given criteria"""
+  searchSecurities(input: SecuritySearchInput!): SecurityConnection!
+
+  """Retrieve real-time quote data for one or more tickers"""
+  realTimeQuotes(tickers: [String!]!): [RealTimeQuote!]!
+
+  """Retrieve end-of-day price history for a set of securities"""
+  priceHistory(input: PriceHistoryInput!): [Price!]!
+
+  """Retrieve fundamentals for a security"""
+  fundamentals(securityId: ID!): Fundamentals
+
+  """Retrieve financial statements for a security"""
+  financialStatements(securityId: ID!, periods: Int): FinancialStatements
+
+  """Retrieve earnings estimates for a security"""
+  earningsEstimates(securityId: ID!, periods: Int): [EarningsEstimate!]!
+
+  """Retrieve analyst estimates from individual analysts"""
+  analystEstimates(securityId: ID!, fiscalYear: Int): [AnalystEstimate!]!
+
+  """Retrieve institutional ownership data for a security"""
+  institutionalHolders(securityId: ID!, asOfDate: Date, limit: Int): [InstitutionalHolder!]!
+
+  """Retrieve insider transactions for a security"""
+  insiderTransactions(securityId: ID!, startDate: Date, endDate: Date): [InsiderTransaction!]!
+
+  """Retrieve ESG scores for a security"""
+  esgScores(securityId: ID!, provider: String): ESGScores
+
+  """Retrieve ESG benchmark data for an industry"""
+  esgBenchmark(industry: String!, asOfDate: Date): ESGBenchmark
+
+  """Retrieve analyst ratings for a security"""
+  analystRatings(securityId: ID!, limit: Int): [AnalystRating!]!
+
+  """Retrieve consensus rating summary for a security"""
+  consensusRating(securityId: ID!, asOfDate: Date): ConsensusRating
+
+  """Retrieve a market index by ID or ticker"""
+  marketIndex(id: ID, ticker: String): MarketIndex
+
+  """Retrieve a list of available market indices"""
+  marketIndices(country: String, provider: String, limit: Int): [MarketIndex!]!
+
+  """Retrieve a portfolio by ID"""
+  portfolio(id: ID!): Portfolio
+
+  """Retrieve all portfolios for the authenticated user"""
+  portfolios: [Portfolio!]!
+
+  """Retrieve a portfolio analytics calculation"""
+  calculation(id: ID!): Calculation
+
+  """Retrieve a bond by ISIN or CUSIP"""
+  bond(isin: String, cusip: String): Bond
+
+  """Retrieve an economic indicator series"""
+  economicIndicator(id: ID!): EconomicIndicator
+
+  """Search economic indicators by country or keyword"""
+  economicIndicators(country: String, query: String): [EconomicIndicator!]!
+
+  """Retrieve credit ratings for a bond or issuer"""
+  creditRatings(bondId: ID, securityId: ID): [CreditRating!]!
+
+  """Retrieve dividends for a security"""
+  dividends(securityId: ID!, startDate: Date, endDate: Date): [Dividend!]!
+
+  """Retrieve a company profile"""
+  companyProfile(securityId: ID!): CompanyProfile
+
+  """Retrieve available exchanges"""
+  exchanges(country: String): [Exchange!]!
+}
+
+type Mutation {
+  """Create a new portfolio for analytics"""
+  createPortfolio(input: CreatePortfolioInput!): Portfolio!
+
+  """Update an existing portfolio's holdings"""
+  updatePortfolioHoldings(id: ID!, holdings: [PortfolioHoldingInput!]!): Portfolio!
+
+  """Delete a portfolio"""
+  deletePortfolio(id: ID!): Boolean!
+
+  """Submit a portfolio analytics calculation"""
+  submitCalculation(portfolioId: ID!, parameters: JSON): Calculation!
+
+  """Cancel a running calculation"""
+  cancelCalculation(id: ID!): Calculation!
+}
+
+type Subscription {
+  """Subscribe to real-time price updates for a set of tickers"""
+  priceUpdates(tickers: [String!]!): RealTimeQuote!
+
+  """Subscribe to calculation status changes"""
+  calculationStatus(id: ID!): Calculation!
+}
