@@ -1,0 +1,1307 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Fiscal API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Fiscal
+paths:
+  /company/keyItems/fiscalYear/listByInstrument:
+    post:
+      tags:
+      - Fiscal
+      operationId: post/company/keyItems/fiscalYear/listByInstrument
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: Selected fundamentals for a stock with values as of the end of a fiscal year.
+      description: Selected fundamentals for a stock with values as of the end of a fiscal year; any other instrument yields empty values for stock-specific attributes. The endpoint allows the retrieval of data only for specified fiscal years by using the start and end properties. Since a fiscal year and a calendar year do not necessarily match with regard to their start and end dates, the year is derived as the calendar year occupied to a larger extent by the fiscal year, using a June through May fiscal year assignment. That means, fiscal years ending from the 1st of June onwards are assigned to the same calendar year. Dates are interpreted in the timezone of the location of the head office of the company.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostCompanyKeyItemsFiscalYearListByInstrumentRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostCompanyKeyItemsFiscalYearListByInstrument200Response'
+      parameters: []
+components:
+  schemas:
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+        exclusiveMaximum: false
+      maxItems: 50
+      uniqueItems: true
+    LanguageMember:
+      type: string
+      format: isoLanguage
+      description: ISO 639-1 code of the language.
+      maxLength: 2
+      minLength: 2
+      exclusiveMinimum: false
+      exclusiveMaximum: false
+    PostCompanyKeyItemsFiscalYearListByInstrumentRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - id
+          - fiscalYears
+          - currency
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              type: string
+              format: id64
+              x-positive: true
+              description: Identifier of the instrument.
+            fiscalYears:
+              type: object
+              x-property-sort:
+              - start
+              - end
+              description: Response will include data items from the fiscal year specified as start (inclusive) up to the fiscal year specified as end (inclusive). If either is omitted the response will include data items from the earliest or up to the most recent fiscal year available respectively. Alternatively, if both are specified start must be less than end. Either must be at most ten years in the past. Note that earliest data availability varies for each stock.
+              properties:
+                start:
+                  type: number
+                  format: int32
+                  description: Only include data items for a fiscal year greater than or equal to the one specified. Must be greater than or equal to ten years in the past.
+                end:
+                  type: number
+                  format: int32
+                  description: Only include data items for a fiscal year earlier than or equal to the one specified. Must be less than or equal to the current year.
+            currency:
+              type: object
+              x-property-sort:
+              - isoCode
+              description: Currency in which the attributes representing a monetary value are returned. If none is selected, the reporting currency of the company is used.
+              properties:
+                isoCode:
+                  type: string
+                  description: ISO code of the currency.
+                  x-enum-description:
+                  - Euro
+                  - US Dollar
+                  - British Pound Sterling
+                  - Swiss Franc
+                  enum:
+                  - EUR
+                  - USD
+                  - GBP
+                  - CHF
+          required:
+          - id
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+            language:
+              $ref: '#/components/schemas/LanguageMember'
+          x-property-sort:
+          - attributes
+          - language
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+      description: The status member contains the status code of the response.
+      required:
+      - code
+  responses:
+    PostCompanyKeyItemsFiscalYearListByInstrument200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: Selected fundamentals for a stock with values as of the end of a fiscal year.
+                nullable: false
+                type: object
+                x-property-sort:
+                - isin
+                - nsin
+                - name
+                - shortName
+                - type
+                - company
+                - fiscalYearData
+                properties:
+                  isin:
+                    nullable: true
+                    type: string
+                    format: isin
+                    description: The International Securities Identification Number (ISIN) of the instrument. The ISIN is a 12-character code of digits and upper-case letters that uniquely identifies an instrument.
+                  nsin:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - wkn
+                    - valor
+                    description: NSIN data of the instrument.
+                    properties:
+                      wkn:
+                        nullable: true
+                        type: string
+                        description: The WKN (Wertpapierkennnummer, German for Securities Identification Number) of the instrument. The WKN is a 6-character code of digits and upper-case letters that uniquely identifies an instrument.
+                      valor:
+                        nullable: true
+                        type: string
+                        description: 'The Valor number (German: Valorennummer) of the instrument. The Valor number is an integer number that uniquely identifies an instrument.'
+                  name:
+                    nullable: true
+                    type: string
+                    format: localizedString
+                    description: Name of the instrument.
+                  shortName:
+                    nullable: true
+                    type: string
+                    format: localizedString
+                    description: Short name of the instrument.
+                  type:
+                    nullable: false
+                    description: Instrument type as defined by FactSet Digital Solutions. Instrument types are arranged in a hierarchy, with the first level representing the most coarse granularity and further levels successively refining the granularity (see MDG category system 18). See endpoint `/category/get` for possible values.
+                    type: array
+                    items:
+                      type: object
+                      nullable: false
+                      x-property-sort:
+                      - id
+                      - name
+                      properties:
+                        id:
+                          nullable: true
+                          type: number
+                          format: id32
+                          x-positive: true
+                          description: Identifier of the instrument type.
+                        name:
+                          nullable: true
+                          type: string
+                          format: localizedString
+                          description: Name of the instrument type.
+                  company:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - id
+                    - name
+                    - country
+                    description: Details of the company.
+                    properties:
+                      id:
+                        nullable: true
+                        type: number
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the company.
+                      name:
+                        nullable: true
+                        type: string
+                        description: Name of the company.
+                      country:
+                        nullable: false
+                        type: object
+                        x-property-sort:
+                        - id
+                        - name
+                        description: Country where the head office of the company is located. See endpoint `/basic/region/country/list` for possible values.
+                        properties:
+                          id:
+                            nullable: true
+                            type: number
+                            format: id32
+                            x-positive: true
+                            description: Identifier of the country.
+                          name:
+                            nullable: true
+                            type: string
+                            format: localizedString
+                            description: Name of the country.
+                  fiscalYearData:
+                    nullable: false
+                    description: Values as of the end of a fiscal year for the set of selected figures. The figures are clustered based on their specifics but do not exhaust all potentially available data from that cluster. The default sorting is from the most recent fiscal year requested to the most distant in time.
+                    type: array
+                    items:
+                      type: object
+                      nullable: false
+                      x-property-sort:
+                      - fiscalYear
+                      - currency
+                      - price
+                      - freeFloat
+                      - sharesOutstanding
+                      - marketCapitalization
+                      - incomeStatement
+                      - balanceSheet
+                      - cashFlow
+                      - ratios
+                      - perShare
+                      properties:
+                        fiscalYear:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - start
+                          - end
+                          - year
+                          description: Details of a fiscal year.
+                          properties:
+                            start:
+                              nullable: true
+                              type: string
+                              format: date
+                              description: Starting date of the fiscal year.
+                            end:
+                              nullable: true
+                              type: string
+                              format: date
+                              description: Ending date of the fiscal year. All data items as of the end of a fiscal year correspond to this date.
+                            year:
+                              nullable: true
+                              type: number
+                              format: int32
+                              description: Fiscal year.
+                        currency:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - id
+                          - code
+                          description: Currency of the attributes representing a monetary value. See endpoint `/basic/valueUnit/currency/main/list` for possible values.
+                          properties:
+                            id:
+                              nullable: true
+                              type: number
+                              format: id32
+                              x-positive: true
+                              description: Identifier of the currency.
+                            code:
+                              nullable: true
+                              type: string
+                              description: 'Code of the currency: if assigned, a code according to ISO 4217, otherwise a local code.'
+                        price:
+                          nullable: true
+                          type: number
+                          format: real
+                          description: End-of-day price as of the end of the fiscal year. It is used for calculation of all price-related data items corresponding to the end of the fiscal year.
+                        freeFloat:
+                          nullable: true
+                          type: number
+                          format: real
+                          description: Free float, which is the number of shares outstanding available for trading to the public. Closely-held shares (e.g. held by a majority investor) and temporarily restricted shares (e.g. due to insider lock-up periods) are not part of the free float.
+                        sharesOutstanding:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - reported
+                          - average
+                          description: Shares outstanding, which is the number of shares not in possession by the company itself (treasury shares) thus generally available for trading.
+                          properties:
+                            reported:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Number of shares outstanding as reported by the company. This represents the basic (actual) shares outstanding.
+                            average:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - basic
+                              - diluted
+                              properties:
+                                basic:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Twelve-month average of the basic shares outstanding, which is the fiscal-year average of the actual number of shares outstanding.
+                                diluted:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Twelve-month average of the diluted shares outstanding, which is the fiscal-year average of the potential number of shares outstanding, if all convertible instruments, such as convertible bonds or employee stock options, were exercised.
+                        marketCapitalization:
+                          nullable: true
+                          type: number
+                          format: real
+                          description: Market capitalization, which is the market value of the shares outstanding over all types of shares of the company.
+                        incomeStatement:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - sales
+                          - grossIncome
+                          - ebit
+                          - ebitda
+                          - interestIncome
+                          - interestExpense
+                          - loanLossProvision
+                          - netInterestIncome
+                          - netIncome
+                          - operatingIncome
+                          - operatingExpense
+                          - claimLossExpense
+                          - longTermInsuranceReserves
+                          description: Income statement data.
+                          properties:
+                            sales:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Total amount of sales revenue received for the normal operation of the business.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the total sales revenue.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the total amount of sales revenue.
+                            grossIncome:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              - margin
+                              description: Gross income, which is the profit before extraordinary items and preferred and common dividends, but after operating and non-operating income and expenses, reserves, income taxes, minority interest and equity in earnings. Discontinued operations are included only if they result from a purely operating gain or loss on the discontinued business segment.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the gross income.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the gross income.
+                                margin:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Gross income margin, which is the ratio of the gross income, divided by the total sales revenue.
+                            ebit:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              - margin
+                              description: EBIT (earnings before interest and taxes).
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the EBIT.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the EBIT.
+                                margin:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: EBIT margin, which is the ratio of the EBIT, divided by the total sales revenue.
+                            ebitda:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              - margin
+                              description: EBITDA (earnings before interest, taxes, depreciation, and amortization).
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the EBITDA.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the EBITDA.
+                                margin:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: EBITDA margin, which is the ratio of the EBITDA, divided by the total sales revenue.
+                            interestIncome:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Total interest income, which is the income received from all earning assets such as loans and investment securities. Relevant for financial companies.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the interest income.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the interest income.
+                            interestExpense:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Total amount of interest paid on deposits, commercial papers, short and long term debt and others. Relevant for financial companies.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the total amount of interest paid.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the total amount of interest paid.
+                            loanLossProvision:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Provision for loan losses, which is the losses expected as a result of uncollectable or troubled loans. Relevant for financial companies.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the provision for loan losses.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the provision for loan losses.
+                            netInterestIncome:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              - afterLoanLossProvision
+                              description: Net interest income, which is the difference between the total interest income and the total interest expense. Relevant for financial companies.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the net interest income.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the net interest income.
+                                afterLoanLossProvision:
+                                  nullable: false
+                                  type: object
+                                  x-property-sort:
+                                  - value
+                                  - growth
+                                  - netInterestMargin
+                                  description: Net interest income after loan loss provision.
+                                  properties:
+                                    value:
+                                      nullable: true
+                                      type: number
+                                      format: real
+                                      description: Value of the net interest income after loan loss provision.
+                                    growth:
+                                      nullable: true
+                                      type: number
+                                      format: relativeValue
+                                      description: Annual growth rate of the net interest income after loan loss provision.
+                                    netInterestMargin:
+                                      nullable: true
+                                      type: number
+                                      format: relativeValue
+                                      description: Net interest margin, which is the net interest income after loan loss provision divided by the earning assets (total or average).
+                            netIncome:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              - margin
+                              description: Net income, which is the profit before extraordinary items and preferred and common dividends, but after operating and non-operating income and expenses, reserves, income taxes, minority interest and equity in earnings.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the net income.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the net income.
+                                margin:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Net income margin, which is the ratio of the net income, divided by the total sales revenue.
+                            operatingIncome:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              - operatingMargin
+                              - afterInterestExpense
+                              description: Operating income, which is the ordinary profit from the company�"s core operations before payments to owners, returns on investments, and income taxes.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the opearting income.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the operating income.
+                                operatingMargin:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Operating margin, which is the ratio of the operating income, divided by the sales revenue.
+                                afterInterestExpense:
+                                  nullable: false
+                                  type: object
+                                  x-property-sort:
+                                  - value
+                                  - growth
+                                  description: Operating income after interest expenses, which is the total sales revenue minus the operating and interest expenses, the latter net of capitalized interest. Relevant for insurance companies.
+                                  properties:
+                                    value:
+                                      nullable: true
+                                      type: number
+                                      format: real
+                                      description: Value of the operating income after interest expenses.
+                                    growth:
+                                      nullable: true
+                                      type: number
+                                      format: relativeValue
+                                      description: Annual growth rate of the operating income after interest expenses.
+                            operatingExpense:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Total operating expenses, which is the sum of all expenses related to operations.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the total operating expenses.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the total operating expenses.
+                            claimLossExpense:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              - lossRatio
+                              description: Total claim and loss expenses, which is all expenses related to the payment of policy benefits, including adjusters' fees, investigating expenses and other costs associated with settling claims. Relevant for insurance companies.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the total claim and loss expenses.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the total claim and loss expenses.
+                                lossRatio:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Loss ratio, which is the ratio of the total claim and loss expenses divided by the portion of total premiums needed to cover all expenses and benefits. Relevant for insurance companies.
+                            longTermInsuranceReserves:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Long-term insurance reserves, which is  the expected discounted future payments for long-term policies usually determined by regulatory agencies in each country. Relevant for insurance companies.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the of the long-term insurance reserves.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the long-term insurance reserves.
+                        balanceSheet:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - cashAndShortTermInvestments
+                          - totalAssets
+                          - totalDebt
+                          - netDebt
+                          - totalLiabilities
+                          - totalShareholdersEquity
+                          - totalLoans
+                          - cashAndDueFromBanks
+                          - totalDeposits
+                          - totalCash
+                          description: Balance sheet data.
+                          properties:
+                            cashAndShortTermInvestments:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              - ratioToTotalAssets
+                              description: Cash and short-term investments, which is the total value of the most liquid assets, comprised of cash, cash equivalents, and short-term investments.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the cash and short-term investments.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the cash and short-term investments.
+                                ratioToTotalAssets:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Cash-and-short-term-investments-to-total-assets ratio, which is the ratio of the cash and short-term investments, divided by the total assets.
+                            totalAssets:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              - assetTurnover
+                              - returnOnAssets
+                              description: Total assets, which is the total value of resources the company is using for its operations.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the total assets.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the total assets.
+                                assetTurnover:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Asset turnover, which is the ratio of the total sales revenue, divided by the total assets.
+                                returnOnAssets:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Return on assets, which is the ratio of the net income, divided by the two-fiscal-year average of the total assets.
+                            totalDebt:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              - ratioToTotalAssets
+                              - ratioToTotalEquity
+                              description: Total debt, which is the total value of the interest-bearing obligations.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the total debt.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the total debt.
+                                ratioToTotalAssets:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Total-debt-to-total-assets ratio, which is the ratio of the total debt, divided by the total assets.
+                                ratioToTotalEquity:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Total-debt-to-total-equity ratio, which is the ratio of the total debt, divided by the total shareholders' equity.
+                            netDebt:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              - ratioToTotalEquity
+                              description: Net debt, which is all interest-bearing obligations minus cash and cash equivalents.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Vaue of the net debt.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the net debt.
+                                ratioToTotalEquity:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Net-debt-to-total-equity ratio, which is the ratio of the net debt, divided by the total shareholders' equity.
+                            totalLiabilities:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Total liabilities, which is the total value of the debt and other outstanding obligations.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the total liabilities.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the total liabilities.
+                            totalShareholdersEquity:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              - ratioToTotalAssets
+                              - returnOnEquity
+                              description: Total value of the shareholders' equity.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the shareholders' equity.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the total shareholders' equity.
+                                ratioToTotalAssets:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Total-shareholders'-equity-to-total-assets ratio, which is the ratio of the total shareholders' equity, divided by the total assets.
+                                returnOnEquity:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Return on equity (ROE), which is the ratio of the net income, divided by the two-fiscal-year average of the total shareholders' equity.
+                            totalLoans:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Total loans, which is the total amount of money loaned to customers by a financial company before reserves for loan losses but after unearned income. Relevant for financial companies.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the total loans.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the total loans.
+                            cashAndDueFromBanks:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Cash and due from banks, which is the total amount of money due to a financial company from banks. Relevant for financial companies.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the cash and due from banks.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the cash and due from banks.
+                            totalDeposits:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Total amount of deposits, which is the value of money held by a financial company on behalf of its customers. Relevant for financial companies.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the total amount of deposits.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the total amount of deposits.
+                            totalCash:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Total amount of cash and cash equivalents. Not relevant for financial companies.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the total amount of cash and cash equivalents.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the total amount of cash and cash equivalents.
+                        cashFlow:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - netOperating
+                          - capitalExpenditures
+                          - netInvestingCashFlow
+                          - netFinancingCashFlow
+                          description: Cash flow data.
+                          properties:
+                            netOperating:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              - returnOnInvestedCapital
+                              description: Net operating cash flow.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the net operating cash flow.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the net operating cash flow.
+                                returnOnInvestedCapital:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Ratio of the net operating cash flow, divided by the two-fiscal-year average of the total invested capital.
+                            capitalExpenditures:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Total capital expenditures.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the total capital expenditures.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the total capital expenditures.
+                            netInvestingCashFlow:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Net cash flow from investing activities.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the net cash flow from investing activities.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the net cash flow from investing activities.
+                            netFinancingCashFlow:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Net cash flow from financing activities.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the net cash flow from financing activities.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the net cash flow from financing activities.
+                        ratios:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - priceSales
+                          - priceEarnings
+                          - priceBookValue
+                          - priceTangibleBookValue
+                          - priceCashFlow
+                          - priceFreeCashFlow
+                          - dividendYield
+                          - enterpriseValueEbit
+                          - enterpriseValueEbitda
+                          - enterpriseValueSales
+                          - ebitInterestExpense
+                          - loansDeposits
+                          - expense
+                          - combined
+                          description: Key ratios used in a fundamental analysis. For price-related ratios, the end-of-day close price as of the end of the fiscal year is used.
+                          properties:
+                            priceSales:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Ratio of the price, divided by the total sales revenue per share.
+                            priceEarnings:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Ratio of the price, divided by the reported earnings per share (basic or diluted) by the company.
+                            priceBookValue:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Ratio of the price, divided by the book value per share.
+                            priceTangibleBookValue:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Ratio of the price, divided by the tangible (i.e. intangible assets are excluded) book value per share.
+                            priceCashFlow:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Ratio of the price, divided by the cash flow per share.
+                            priceFreeCashFlow:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Ratio of the price, divided by the free (i.e. without subtraction of dividends) cash flow per share.
+                            dividendYield:
+                              nullable: true
+                              type: number
+                              format: relativeValue
+                              description: Ratio of the dividend per share, divided by the price.
+                            enterpriseValueEbit:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Ratio of the enterprise value, divided by the EBIT.
+                            enterpriseValueEbitda:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Ratio of the enterprise value, divided by the EBITDA.
+                            enterpriseValueSales:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Ratio of the enterprise value, divided by the total amount of sales revenue.
+                            ebitInterestExpense:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Ratio of the EBIT, divided by the interest expense (including capitalized interest).
+                            loansDeposits:
+                              nullable: true
+                              type: number
+                              format: relativeValue
+                              description: Ratio of the total loans, divided by the total deposits.
+                            expense:
+                              nullable: true
+                              type: number
+                              format: relativeValue
+                              description: Ratio of the selling, general, and administrative expenses divided by the premiums earned. Relevant for insurance companies.
+                            combined:
+                              nullable: true
+                              type: number
+                              format: relativeValue
+                              description: Sum of the loss and expense ratios. Relevant for insurance companies.
+                        perShare:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - sales
+                          - earnings
+                          - recurringDilutedEarnings
+                          - dilutedEarnings
+                          - dividends
+                          - bookValue
+                          - tangibleBookValue
+                          - cashFlow
+                          - freeCashFlow
+                          description: Key per-share figures used in a fundamental analysis.
+                          properties:
+                            sales:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Total sales revenue per share.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the total sales revenue per share.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the total sales revenue per share.
+                            earnings:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Earnings per share as reported by the company. The number of shares used might be either diluted or basic and the earnings might also include non-recurring earnings. The exact way of provision depends on how the company reports and may follow country-specific reporting patterns.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the reported earnings per share.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the reported earnings per share.
+                            recurringDilutedEarnings:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Recurring (excluding extraordinary items) diluted earnings per share, which is the ratio of the net income excluding extraordinary items, divided by the diluted shares outstanding. An extraordinary item is an atypical and infrequent gain or loss due to an unforeseeable event.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the recurring diluted earnings per share.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the recurring diluted earnings per share.
+                            dilutedEarnings:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Diluted earnings per share, which is the ratio of the net income available to common shareholders (including extraordinary items), divided by the diluted shares outstanding.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the diluted earnings per share.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the diluted earnings per share.
+                            dividends:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Dividends per share, which is the ratio of the total dividends paid out, divided by the shares outstanding. In general, the figure is based on the gross dividend, i.e. before taxes, except for countries with special tax regimes.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the dividends per share.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the diividends per share.
+                            bookValue:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Book value per share, which is the ratio of the book value (common euqity), divided by the shares outstanding.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the book value per share.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the book value per share.
+                            tangibleBookValue:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Tangible book value per share, which is the ratio of the book value excluding intangible assets, divided by the shares outstanding.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the tangible book value per share.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the tangible book value per share.
+                            cashFlow:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Cash flow per share, which is the ratio of the net operating cash flow, divided by the diluted shares outstanding.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the cash flow per share.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the cash flow per share.
+                            freeCashFlow:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - value
+                              - growth
+                              description: Free cash flow per share, which is the ratio of the free cash flow without subtraction of dividends, divided by the diluted shares outstanding.
+                              properties:
+                                value:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Value of the free cash flow per share.
+                                growth:
+                                  nullable: true
+                                  type: number
+                                  format: relativeValue
+                                  description: Annual growth rate of the free cash flow per share.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

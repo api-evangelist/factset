@@ -1,0 +1,303 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Aggregated API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Aggregated
+paths:
+  /prices/orderbook/aggregated/get:
+    get:
+      tags:
+      - Aggregated
+      operationId: get/prices/orderbook/aggregated/get
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: true
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: Factset Orderbook Aggregated by Price.
+      description: Orderbook aggregated by price.
+      parameters:
+      - name: identifier
+        in: query
+        schema:
+          type: string
+          pattern: ^[B-DF-HJ-NP-TV-Z0-9]{6}-[LR]$|^[A-Z0-9.#&*+]{1,47}-[A-Z0-9]{2,4}$|^[0-9]{3,20}$
+          maxLength: 50
+          exclusiveMaximum: false
+          minLength: 3
+          exclusiveMinimum: false
+          description: Identifier to resolve.
+        required: true
+      - name: identifierType
+        in: query
+        schema:
+          type: string
+          description: Type of the identifier.
+          x-enum-description:
+          - MDG identifier of a listing.
+          - FactSet market symbol of a listing.
+          - Regional FactSet ticker symbol, identifying the primary listing in the region.
+          - FactSet Permanent Identifier on listing level.
+          - Regional FactSet Permanent Identifier, identifying the primary listing in the region.
+          enum:
+          - idNotation
+          - tickerExchange
+          - tickerRegion
+          - fdsPermanentIdentifierListing
+          - fdsPermanentIdentifierRegional
+        required: true
+      - name: quality
+        in: query
+        schema:
+          type: string
+          description: Quality of the price.
+          default: RLT
+          x-enum-description:
+          - 'Real-time: intraday prices with minimal technical processing delays.'
+          - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
+          - 'Best: choose the price quality with the least delay, as entitled for the client.'
+          enum:
+          - RLT
+          - DLY
+          - BST
+        required: false
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      - description: Non-negative number of milliseconds to throttle the update rate.
+        name: _subscriptionMinimumInterval
+        in: query
+        schema:
+          type: number
+          format: int32
+          minimum: 1000
+          exclusiveMinimum: false
+          maximum: 300000
+          exclusiveMaximum: false
+          default: 5000
+          x-enum-description:
+          - 1 second
+          - 5 seconds
+          - 10 seconds
+          - 30 seconds
+          - 1 minute
+          - 5 minutes
+          enum:
+          - 1000
+          - 5000
+          - 10000
+          - 30000
+          - 60000
+          - 300000
+      responses:
+        '200':
+          $ref: '#/components/responses/GetPricesOrderbookAggregatedGet200Response'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
+  responses:
+    GetPricesOrderbookAggregatedGet200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  idNotation:
+                    nullable: true
+                    type: string
+                    format: id64
+                    x-positive: true
+                    description: MDG identifier of the listing.
+                  sourceIdentifier:
+                    nullable: true
+                    type: string
+                    description: Identifier used in the request.
+                  quality:
+                    nullable: true
+                    type: string
+                    description: Quality of the price.
+                    x-enum-description:
+                    - 'Real-time: intraday prices with minimal technical processing delays.'
+                    - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
+                    enum:
+                    - RLT
+                    - DLY
+                  asks:
+                    nullable: false
+                    description: List of sell orders aggregated by price.
+                    type: array
+                    items:
+                      type: object
+                      nullable: false
+                      x-property-sort:
+                      - type
+                      - price
+                      - numberOrders
+                      - volume
+                      - time
+                      properties:
+                        type:
+                          nullable: true
+                          description: Order type.
+                          x-pushable: true
+                          type: number
+                          format: int32
+                          x-enum-description:
+                          - The order has a fixed price.
+                          - The order has no price and should be traded to market price.
+                          - The order represents a quote, which cannot execute against other orders.
+                          enum:
+                          - 0
+                          - 1
+                          - 2
+                        price:
+                          nullable: true
+                          description: Price value. The value is 0 if the attribute `type` is 1 (market order). See attribute `valueUnit` in endpoint `/prices/get` for the unit of the price value".
+                          x-pushable: true
+                          type: number
+                          format: real
+                        numberOrders:
+                          nullable: true
+                          description: Number of orders for the price level.
+                          x-pushable: true
+                          type: number
+                          format: int32
+                        volume:
+                          nullable: true
+                          description: Summarized volume for the price level.
+                          x-pushable: true
+                          type: number
+                          format: int32
+                        time:
+                          nullable: true
+                          description: Date and time of the latest change.
+                          x-pushable: true
+                          type: string
+                          format: datetime
+                  bids:
+                    nullable: false
+                    description: List of buy orders aggregated by price.
+                    type: array
+                    items:
+                      type: object
+                      nullable: false
+                      x-property-sort:
+                      - type
+                      - price
+                      - numberOrders
+                      - volume
+                      - time
+                      properties:
+                        type:
+                          nullable: true
+                          description: Order type.
+                          x-pushable: true
+                          type: number
+                          format: int32
+                          x-enum-description:
+                          - The order has a fixed price.
+                          - The order has no price and should be traded to market price.
+                          - The order represents a quote, which cannot execute against other orders.
+                          enum:
+                          - 0
+                          - 1
+                          - 2
+                        price:
+                          nullable: true
+                          description: Price value. The value is 0 if the attribute `type` is 1 (market order). See attribute `valueUnit` in endpoint `/prices/get` for the unit of the price value".
+                          x-pushable: true
+                          type: number
+                          format: real
+                        numberOrders:
+                          nullable: true
+                          description: Number of orders for the price level.
+                          x-pushable: true
+                          type: number
+                          format: int32
+                        volume:
+                          nullable: true
+                          description: Summarized volume for the price level.
+                          x-pushable: true
+                          type: number
+                          format: int32
+                        time:
+                          nullable: true
+                          description: Date and time of the latest change.
+                          x-pushable: true
+                          type: string
+                          format: datetime
+                description: Orderbook.
+                nullable: false
+                x-property-sort:
+                - idNotation
+                - sourceIdentifier
+                - quality
+                - asks
+                - bids
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

@@ -1,0 +1,133 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Cargo API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Cargo
+paths:
+  /analytics/pub-datastore/cargo/v1/groups/{groupId}/objects/{objectId}:
+    get:
+      tags:
+      - Cargo
+      summary: Factset Gets an Object Given an Id. in This Case Id Retrieved From Mapping Location Header, Object Data in Response Body.
+      description: "Raw object data can be found in the response body. This can be either the mapped PDF/PPT or STACH json, depending on the mapping. https://pages.github.factset.com/analytics-reporting/stachschema/#/ \r\n\nOptional request header \"accept-encoding\", with allowed values of \"br\" and \"gzip\". If accept-encoding is passed, the response is compressed."
+      operationId: getCargoEndpoint
+      parameters:
+      - name: groupId
+        in: path
+        description: The ID of the group
+        required: true
+        schema:
+          type: string
+        example: a4186c50f8e74f979d271dd22298c901
+      - name: objectId
+        in: path
+        description: The ID of the object
+        required: true
+        schema:
+          type: string
+        example: fe875bc4150542dea6bc237663a01a0d
+      responses:
+        '200':
+          description: Expected response, returns json response body of the report.
+          headers:
+            Transfer-Encoding:
+              description: Standard HTTP header. Header value will be set to Chunked if Accept-Encoding header is specified.
+              schema:
+                type: string
+            Content-Encoding:
+              description: Standard HTTP header. Header value based on Accept-Encoding Request header.
+              schema:
+                type: string
+            Content-Type:
+              description: Standard HTTP header.
+              schema:
+                type: string
+            X-DataDirect-Request-Key:
+              description: FactSets request key header.
+              schema:
+                type: string
+        '400':
+          description: Invalid parameter provided.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSets request key header.
+              schema:
+                type: string
+        '401':
+          description: Missing or invalid authentication.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSets request key header.
+              schema:
+                type: string
+        '403':
+          description: User is forbidden with current credentials
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSets request key header.
+              schema:
+                type: string
+        '404':
+          description: The provided request does not exist.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSets request key header.
+              schema:
+                type: string
+        '500':
+          description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSets request key header.
+              schema:
+                type: string
+        '503':
+          description: Request timed out. Retry the request in sometime.
+          headers:
+            X-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+            X-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+            X-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-DataDirect-Request-Key:
+              description: FactSets request key header.
+              schema:
+                type: string
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

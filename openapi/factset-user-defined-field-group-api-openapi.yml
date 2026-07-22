@@ -1,0 +1,325 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About User Defined Field Group API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: User Defined Field Group
+  description: CRUD operations on User Defined Field Group
+paths:
+  /user-defined-field-group:
+    get:
+      operationId: listUserDefinedFieldGroups
+      description: List user defined groups
+      tags:
+      - User Defined Field Group
+      parameters:
+      - name: name
+        in: query
+        required: false
+        schema:
+          type: string
+          example: string
+        description: Return only files whose name includes this query
+      - name: _paginationLimit
+        in: query
+        required: false
+        schema:
+          type: number
+          default: 100
+          example: 0
+        description: Number of groups to return
+      - name: _paginationCursor
+        in: query
+        required: false
+        schema:
+          type: string
+          example: string
+        description: Cursor used for paging.  Fetch items after the specified cursor
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/listUserDefinedFieldGroupsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '406':
+          $ref: '#/components/responses/NotAcceptableErrorResponse'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        '501':
+          $ref: '#/components/responses/NotImplementedErrorResponse'
+  /user-defined-field-group/{id}:
+    get:
+      operationId: readUserDefinedGroup
+      description: Read a specific user defined field group and list its fields.
+      tags:
+      - User Defined Field Group
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          example: 270c2fa8-9110-444b-9101-17e10132fe0a
+        description: Unique identifer for the group to be read.
+      - name: _paginationLimit
+        in: query
+        required: false
+        schema:
+          type: number
+          default: 100
+          example: 0
+        description: Number of fields to list from this group
+      - name: _paginationCursor
+        in: query
+        required: false
+        schema:
+          type: string
+          example: string
+        description: Cursor used for paging.  Fetch fields after the specified cursor
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/readUserDefinedGroupResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '406':
+          $ref: '#/components/responses/NotAcceptableErrorResponse'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        '501':
+          $ref: '#/components/responses/NotImplementedErrorResponse'
+components:
+  responses:
+    UnauthorizedErrorResponse:
+      description: Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    UnsupportedMediaTypeErrorResponse:
+      description: The request entity has a media type which the server or resource does not support.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    ForbiddenErrorResponse:
+      description: The request contained valid data and was understood by the server, but the server is refusing action. This may be due to the user not having the necessary permissions for a resource or needing an account of some sort, or attempting a prohibited action.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    NotFoundErrorResponse:
+      description: The requested resource could not be found but may be available in the future. Subsequent requests by the client are permissible.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    NotImplementedErrorResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    InternalServerErrorResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    BadRequestErrorResponse:
+      description: The server cannot or will not process the request due to an apparent client error (e.g., malformed request syntax, size too large, invalid request message framing, or deceptive request routing).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    NotAcceptableErrorResponse:
+      description: The requested resource is capable of generating only content not acceptable according to the Accept headers sent in the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+  schemas:
+    listUserDefinedFieldGroupsResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                nullable: false
+                example: MDpEZWZhdWx0IEdyb3Vw
+              type:
+                type: string
+                enum:
+                - UserDefinedFieldGroup
+                nullable: false
+              name:
+                type: string
+                nullable: false
+                example: MY_GROUP
+            nullable: false
+        meta:
+          type: object
+          properties:
+            pagination:
+              type: object
+              properties:
+                next:
+                  type: string
+                  nullable: true
+                  example: YwAAAA==
+                previous:
+                  type: string
+                  nullable: true
+                  example: AAAAAA==
+              nullable: false
+      nullable: true
+    Errors:
+      type: object
+      description: Information about one or more errors
+      properties:
+        errors:
+          type: array
+          description: List of errors
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Unique identifier for this error instance.  Used to reference this error in logging.
+                example: 270c2fa8-9110-444b-9101-17e10132fe0a
+              code:
+                type: string
+                description: Error code for this error
+                enum:
+                - BadRequestError
+                - UnauthorizedError
+                - ForbiddenError
+                - NotFoundError
+                - NotAcceptableError
+                - ConflictError
+                - UnsupportedMediaTypeError
+                - InternalServerError
+                - NotImplementedError
+              title:
+                type: string
+                description: HTTP reason phrase associcated with this error
+                enum:
+                - Bad Request
+                - Unauthorized
+                - Forbidden
+                - Not Found
+                - Not Acceptable
+                - Conflict
+                - Unsupported Media Type
+                - Internal Server Error
+                - Not Implemented
+              detail:
+                type: string
+                description: Detailed description of the error that occurred
+      required:
+      - errors
+    readUserDefinedGroupResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              nullable: false
+              example: MDpEZWZhdWx0IEdyb3Vw
+            type:
+              type: string
+              enum:
+              - UserDefinedFieldGroup
+              nullable: false
+            name:
+              type: string
+              nullable: false
+              example: MY_GROUP
+            fields:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        nullable: false
+                        example: b1c36b19-1417-4e8c-8d0a-416cf6a92a6a
+                      type:
+                        type: string
+                        enum:
+                        - UserDefinedField
+                        nullable: false
+                      name:
+                        type: string
+                        nullable: false
+                        example: MY_VALUE
+                    nullable: false
+                meta:
+                  type: object
+                  properties:
+                    pagination:
+                      type: object
+                      properties:
+                        next:
+                          type: string
+                          nullable: true
+                          example: YwAAAA==
+                        previous:
+                          type: string
+                          nullable: true
+                          example: AAAAAA==
+                      nullable: false
+      nullable: true
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

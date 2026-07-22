@@ -1,0 +1,337 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Peer List API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Peer List
+paths:
+  /peer-list:
+    get:
+      tags:
+      - Peer List
+      summary: Factset Peer List
+      parameters:
+      - name: id
+        in: query
+        description: Company ticker
+        required: true
+        schema:
+          type: string
+          example: FDS
+      - name: topn
+        in: query
+        description: Limits the number of peers returned.
+        required: false
+        schema:
+          type: number
+          example: 5
+      responses:
+        '200':
+          $ref: '#/components/responses/200OKPeerList'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+        '429':
+          $ref: '#/components/responses/429TooManyRequests'
+        '500':
+          $ref: '#/components/responses/500InternalServerError'
+        '503':
+          $ref: '#/components/responses/503ServiceUnavailable'
+components:
+  schemas:
+    Meta:
+      type: object
+      additionalProperties:
+        type: string
+    ErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorObject'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ErrorObject:
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        title:
+          type: string
+        links:
+          type: object
+          properties:
+            about:
+              type: string
+        detail:
+          type: string
+        source:
+          type: object
+          properties:
+            parameter:
+              type: string
+    PeerListResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/PeerListObject'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    PeerListData:
+      type: object
+      required:
+      - id
+      - name
+      - ticker
+      properties:
+        id:
+          description: The FactSet Entity ID of the peer
+          type: string
+        name:
+          description: The name of the peer
+          type: string
+        ticker:
+          description: The ticker of the peer
+          type: string
+    PeerListObject:
+      description: A list of key-value pairs representing the company's peers
+      type: object
+      required:
+      - peers
+      properties:
+        peers:
+          type: array
+          items:
+            $ref: '#/components/schemas/PeerListData'
+        meta:
+          type: object
+          properties:
+            sources:
+              type: object
+              properties:
+                value:
+                  type: array
+                  items:
+                    type: string
+              description: Where the data is sourced from
+  responses:
+    200OKPeerList:
+      description: Expected response; returns JSON data containing key-value format
+      headers:
+        X-DataDirect-Request-Key:
+          $ref: '#/components/headers/xDataDirectRequestKey'
+        Api-Supported-Versions:
+          $ref: '#/components/headers/apiSupportedVersions'
+        Api-Version:
+          $ref: '#/components/headers/apiVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PeerListResponse'
+          examples:
+            default200ResponseExample:
+              $ref: '#/components/examples/default200PeerListResponse'
+    401Unauthorized:
+      description: Missing or invalid authentication. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For further assistance, file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    429TooManyRequests:
+      description: Too many requests - this API is rate-limited to 20 requests per second. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    404NotFound:
+      description: Not found. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            endpointNotFound:
+              $ref: '#/components/examples/endpointNotFound'
+    503ServiceUnavailable:
+      description: Service unavailable. Typically a timeout, or result of a rejected request to prevent service overload. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    400BadRequest:
+      description: Bad Request. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          $ref: '#/components/headers/xDataDirectRequestKey'
+        Api-Supported-Versions:
+          $ref: '#/components/headers/apiSupportedVersions'
+        Api-Version:
+          $ref: '#/components/headers/apiVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            idRequiredParameterError:
+              $ref: '#/components/examples/idRequiredParameterError'
+            idInvalidParameterError:
+              $ref: '#/components/examples/idInvalidParameterError'
+            unsupportedEntityParameterError:
+              $ref: '#/components/examples/unsupportedEntityParameterError'
+            parameterErrorActual:
+              $ref: '#/components/examples/parameterErrorActual'
+            parameterErrorEstimate:
+              $ref: '#/components/examples/parameterErrorEstimate'
+            parameterErrorTopn:
+              $ref: '#/components/examples/parameterErrorTopn'
+            parameterErrorView:
+              $ref: '#/components/examples/parameterErrorView'
+    500InternalServerError:
+      description: Server error. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+  examples:
+    parameterErrorTopn:
+      summary: topn parameter error
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Invalid parameter: ''topn'''
+    unsupportedEntityParameterError:
+      summary: unsupported entity type
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: Unsupported entity type
+    default200PeerListResponse:
+      summary: (sample response)
+      value:
+        data:
+          peers:
+          - id: 000PLZ-E
+            name: S&P Global, Inc.
+            ticker: SPGI-US
+          - id: 05TYNB-E
+            name: Morningstar, Inc.
+            ticker: MORN-US
+          - id: 06JP5R-E
+            name: MSCI Inc. Class A
+            ticker: MSCI-US
+          - id: 002HJD-E
+            name: BlackRock, Inc.
+            ticker: BLK-US
+          - id: 0GCKWP-E
+            name: IHS Markit Ltd.
+            ticker: INFO-US
+          - id: 000HSZ-E
+            name: Moody's Corporation
+            ticker: MCO-US
+          - id: 06S1MZ-E
+            name: Nasdaq, Inc.
+            ticker: NDAQ-US
+          - id: 0G4Z2V-E
+            name: Donnelley Financial Solutions, Inc.
+            ticker: DFIN-US
+          meta:
+            sources:
+              value:
+              - FactSet Fundamentals
+        meta:
+          requestId: FDS-US
+          fsymId: SQFMK3-R
+    parameterErrorView:
+      summary: view parameter error
+      value:
+        errors:
+        - id: 3838f112-ed5a-4d9d-b0c7-3594d8eab0ed
+          code: parameterError
+          title: 'Invalid parameter: ''view''. Accepted values include: ''FINANCIAL'', ''VALUATION'', ''CAPITALIZATION'', ''MARGINS'' or ''PERFORMANCE'''
+    parameterErrorActual:
+      summary: actual periods parameter error
+      value:
+        errors:
+        - id: 35a62bd5-c4aa-4e6b-9357-0f1b5688e2db
+          code: parameterError
+          title: 'Invalid parameter: ''actual''. Accepted values include nonzero integers'
+    idInvalidParameterError:
+      summary: generic parameter error (invalid parameter)
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Invalid parameter(s): ''id'''
+    parameterErrorEstimate:
+      summary: estimate periods parameter error
+      value:
+        errors:
+        - id: 372a28d1-53ac-49cd-9be5-beb714cd62a8
+          code: parameterError
+          title: 'Invalid parameter: ''estimate''. Accepted values include nonzero integers'
+    endpointNotFound:
+      summary: endpoint not found
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: endpointNotFound
+          title: The requested endpoint does not exist.
+    idRequiredParameterError:
+      summary: generic parameter error (missing parameter)
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Missing required parameter(s): ''id'''
+  headers:
+    xDataDirectRequestKey:
+      description: FactSet request ID
+      schema:
+        type: string
+    apiVersion:
+      description: API version (semantic versioning)
+      schema:
+        type: string
+    apiSupportedVersions:
+      description: Supported API versions (semantic versioning)
+      schema:
+        type: string
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

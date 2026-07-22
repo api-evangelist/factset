@@ -1,0 +1,74 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Upload Custom Document API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Upload Custom Document
+paths:
+  /v1/upload-custom-document:
+    post:
+      tags:
+      - Upload Custom Document
+      summary: Factset Upload a custom document
+      description: Upload any thrid-party documents that need to be included in the final PDF. Once uploaded, the successful response will be a unique fileurl that can be used to add the files to the PDF output using the create-book endpoint. Supported files include Powerpoint, Word, RTF and PDF. The total size should not exceed 250MB and each file should not exceed 10MB.
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  minItems: 1
+      responses:
+        '200':
+          description: Successful response contains file name, fileURL of the book uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Upload_Document_Response'
+        '400':
+          description: Invalid ticker or Unknown error
+        '401':
+          description: Missing or invalid authentication
+components:
+  schemas:
+    Upload_Document_Response:
+      title: Upload Document Response
+      description: Response to Upload Document.
+      type: array
+      items:
+        properties:
+          name:
+            type: string
+            description: Name of the uploaded file
+            example: Custom Upload
+          file_url:
+            type: string
+            description: FIle url
+            example: b33f6b758f2b12562251e5396e21f68ad46648bf19a8f3a9e55f74
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

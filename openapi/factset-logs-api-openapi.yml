@@ -1,0 +1,203 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Logs API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Logs
+paths:
+  /v1/{tenant}/report-instances/{reportInstanceId}/logs:
+    get:
+      operationId: getReportGenerationLogs
+      tags:
+      - Logs
+      summary: Factset Gets a List of Logs for the Report Instance Generation
+      description: Gets a list of logs for the generated report instance. Allows the user to sort on log message, type and date. Also allows for retrieving of just the errors & warnings'
+      parameters:
+      - in: path
+        name: tenant
+        description: The code of the tenancy
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: reportInstanceId
+        description: Used to validate that report file name belongs to the report instance passed
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: errorsOnly
+        description: 'If the parameter is set to true the endpoint should return just errors and warnings E.g: errorsOnly=true'
+        schema:
+          type: string
+      - in: query
+        name: _sort
+        description: The column to sort on. Can add - to sort
+        required: false
+        style: form
+        explode: false
+        schema:
+          type: array
+          maxItems: 1
+          items:
+            type: string
+        examples:
+          sequenceNumber:
+            value:
+            - sequenceNumber
+            description: The sequence number of the log entry
+          message:
+            value:
+            - message
+            description: The log message to sort
+          type:
+            value:
+            - type
+            description: The type of the log to sort
+          updatedDate:
+            value:
+            - updatdeDate
+            description: The updated date of the log to sort
+      - in: query
+        name: _paginationLimit
+        description: Non-negative maximum number of entries to return
+        schema:
+          type: integer
+        examples:
+          pageSize:
+            value: 25
+            description: Non-negative maximum number of entries to return
+      - in: query
+        name: _paginationOffset
+        description: Non-negative number of entries to skip
+        schema:
+          type: integer
+        examples:
+          startIndex:
+            value: 0
+            description: Non-negative maximum number of entries to return
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportInstanceLogList'
+        '401':
+          description: Unauthorised
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAuthenticated
+                  title: User is not authenticated
+        '403':
+          description: No permissions to view reports in VRS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAuthorized
+                  title: No permissions to view this item
+        '404':
+          description: The supplied report instance ID could not be found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notFound
+                  title: The report instance ID passed was not found
+        '406':
+          description: Unsupported Accept header. Header needs to be set to application/json.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAcceptable
+                  title: "Unsupported Accept header. Header needs to be set to\n    application/json"
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    ReportInstanceLogDTO:
+      type: object
+      properties:
+        sequenceNumber:
+          type: integer
+          format: int32
+          example: 10
+        message:
+          type: string
+          example: example_value
+        type:
+          type: string
+          enum:
+          - LOG
+          - ERROR
+          example: LOG
+        updateDate:
+          type: string
+          example: example_value
+    Error:
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        code:
+          type: string
+          example: example_value
+        title:
+          type: string
+          example: Example Title
+    ReportInstanceLogList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportInstanceLogDTO'
+          example: []
+    ErrorList:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+          example: []
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

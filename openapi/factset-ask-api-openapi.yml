@@ -1,0 +1,646 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Ask API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Ask
+paths:
+  /prices/bidAsk/get:
+    get:
+      tags:
+      - Ask
+      operationId: get/prices/bidAsk/get
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: true
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: Factset Most Recent Bid and Ask Prices (best Bid / Offer) for a Notation.
+      description: 'Most recent bid and ask prices (best bid / offer) for a notation.
+
+
+        The endpoint is subscribable to provide push updates. See attribute `_subscriptionMinimalInterval` for valid update rates.'
+      parameters:
+      - name: identifier
+        in: query
+        schema:
+          type: string
+          pattern: ^[B-DF-HJ-NP-TV-Z0-9]{6}-[LR]$|^[A-Z0-9.#&*+]{1,47}-[A-Z0-9]{2,4}$|^[0-9]{3,20}$
+          maxLength: 50
+          exclusiveMaximum: false
+          minLength: 3
+          exclusiveMinimum: false
+          description: Identifier to resolve.
+        required: true
+      - name: identifierType
+        in: query
+        schema:
+          type: string
+          description: Type of the identifier.
+          x-enum-description:
+          - MDG identifier of a listing.
+          - FactSet market symbol of a listing.
+          - Regional FactSet ticker symbol, identifying the primary listing in the region.
+          - FactSet Permanent Identifier on listing level.
+          - Regional FactSet Permanent Identifier, identifying the primary listing in the region.
+          enum:
+          - idNotation
+          - tickerExchange
+          - tickerRegion
+          - fdsPermanentIdentifierListing
+          - fdsPermanentIdentifierRegional
+        required: true
+      - name: quality
+        in: query
+        schema:
+          type: string
+          description: Quality of the price.
+          default: DLY
+          x-enum-description:
+          - 'Real-time: intraday prices with minimal technical processing delays.'
+          - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
+          - 'End-of-day: prices updated once per day after the close of trading, possibly with an exchange-imposed delay of several hours or days.'
+          - 'Best: choose the price quality with the least delay, as entitled for the client.'
+          enum:
+          - RLT
+          - DLY
+          - EOD
+          - BST
+        required: false
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      - description: Minimum number of milliseconds at which updates are send.
+        name: _subscriptionMinimumInterval
+        in: query
+        schema:
+          type: number
+          format: int32
+          default: 5000
+          x-enum-description:
+          - 1 second
+          - 5 seconds
+          - 10 seconds
+          - 30 seconds
+          - 60 seconds
+          - 300 seconds
+          enum:
+          - 1000
+          - 5000
+          - 10000
+          - 30000
+          - 60000
+          - 300000
+      responses:
+        '200':
+          $ref: '#/components/responses/GetPricesBidAskGet200Response'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /prices/bidAsk/list:
+    get:
+      tags:
+      - Ask
+      operationId: get/prices/bidAsk/list
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: Factset Most Recent Bid and Ask Prices (best Bid / Offer) for a List of Notations.
+      description: Most recent bid and ask prices (best bid / offer) for a list of notations.
+      parameters:
+      - name: identifiers
+        in: query
+        schema:
+          description: Set of identifiers to resolve.
+          type: array
+          nullable: false
+          items:
+            type: string
+            minLength: 3
+            exclusiveMinimum: false
+            maxLength: 50
+            exclusiveMaximum: false
+            pattern: ^[B-DF-HJ-NP-TV-Z0-9]{6}-[LR]$|^[A-Z0-9.#&*+]{1,47}-[A-Z0-9]{2,4}$|^[0-9]{3,20}$
+          uniqueItems: true
+          minItems: 1
+          maxItems: 100
+        required: true
+        style: form
+        explode: false
+      - name: identifierType
+        in: query
+        schema:
+          type: string
+          description: Type of the identifier.
+          x-enum-description:
+          - MDG identifier of a listing.
+          - FactSet market symbol of a listing.
+          - Regional FactSet ticker symbol, identifying the primary listing in the region.
+          - FactSet Permanent Identifier on listing level.
+          - Regional FactSet Permanent Identifier, identifying the primary listing in the region.
+          enum:
+          - idNotation
+          - tickerExchange
+          - tickerRegion
+          - fdsPermanentIdentifierListing
+          - fdsPermanentIdentifierRegional
+        required: true
+      - name: quality
+        in: query
+        schema:
+          type: string
+          description: Quality of the price.
+          default: DLY
+          x-enum-description:
+          - 'Real-time: intraday prices with minimal technical processing delays.'
+          - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
+          - 'End-of-day: prices updated once per day after the close of trading, possibly with an exchange-imposed delay of several hours or days.'
+          - 'Best: choose the price quality with the least delay, as entitled for the client.'
+          enum:
+          - RLT
+          - DLY
+          - EOD
+          - BST
+        required: false
+      - name: sameQuality
+        in: query
+        schema:
+          type: boolean
+          default: true
+          description: Ensure that the prices for all notations are of the same quality.
+        required: false
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      responses:
+        '200':
+          $ref: '#/components/responses/GetPricesBidAskList200Response'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  responses:
+    GetPricesBidAskGet200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  idNotation:
+                    nullable: true
+                    type: string
+                    format: id64
+                    x-positive: true
+                    description: MDG identifier of the listing.
+                  sourceIdentifier:
+                    nullable: true
+                    type: string
+                    description: Identifier used in the request.
+                  valueUnit:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - id
+                    description: Value unit of the notation such as a main or fractional currency for equities, a percentage for debt instruments, or points for indices. See endpoint `/basic/valueUnit/list` for possible values.
+                    properties:
+                      id:
+                        nullable: true
+                        type: number
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the valueUnit.
+                  currency:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - id
+                    description: Main currency of the monetary attributes. See endpoint `/basic/valueUnit/currency/main/list` for possible values.
+                    properties:
+                      id:
+                        nullable: true
+                        type: number
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the currency.
+                  market:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - id
+                    description: Market of the notation. See endpoint `/basic/market/list` for possible values.
+                    properties:
+                      id:
+                        nullable: true
+                        type: number
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the market.
+                  quality:
+                    nullable: true
+                    type: string
+                    description: Quality of the price.
+                    x-enum-description:
+                    - 'Real-time: intraday prices with minimal technical processing delays.'
+                    - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
+                    - 'End-of-day: prices updated once per day after the close of trading, possibly with an exchange-imposed delay of several hours or days.'
+                    enum:
+                    - RLT
+                    - DLY
+                    - EOD
+                  bid:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - time
+                    - price
+                    - quoteCondition
+                    - tradingVolume
+                    - tradingValue
+                    description: Most recent bid price of the trading day.
+                    properties:
+                      time:
+                        nullable: true
+                        x-pushable: true
+                        type: string
+                        format: datetime
+                        description: Date and time.
+                        x-cas-attribute: timeLatestBidPrice
+                      price:
+                        nullable: true
+                        x-pushable: true
+                        type: number
+                        format: real
+                        description: Price value. See attribute `valueUnit` for its unit.
+                        x-cas-attribute: valueLatestBidPrice
+                      quoteCondition:
+                        nullable: true
+                        x-pushable: true
+                        type: string
+                        description: Quote condition. Possible values depend on the values delivered by the supplier of the price information.
+                        x-cas-attribute: quoteConditionLatestBidPrice
+                      tradingVolume:
+                        nullable: true
+                        x-pushable: true
+                        type: number
+                        format: real
+                        description: Number of units (e.g. shares) solicited.
+                        x-cas-attribute: tradingVolumeLatestBidPrice
+                      tradingValue:
+                        nullable: true
+                        x-pushable: true
+                        type: number
+                        format: real
+                        description: Monetary equivalent (cash value) of the offer. See attribute `currency` for its unit.
+                        x-cas-attribute: tradingValueLatestBidPrice
+                  ask:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - time
+                    - price
+                    - quoteCondition
+                    - tradingVolume
+                    - tradingValue
+                    description: Most recent ask price of the trading day.
+                    properties:
+                      time:
+                        nullable: true
+                        x-pushable: true
+                        type: string
+                        format: datetime
+                        description: Date and time.
+                        x-cas-attribute: timeLatestAskPrice
+                      price:
+                        nullable: true
+                        x-pushable: true
+                        type: number
+                        format: real
+                        description: Price value. See attribute `valueUnit` for its unit.
+                        x-cas-attribute: valueLatestAskPrice
+                      quoteCondition:
+                        nullable: true
+                        x-pushable: true
+                        type: string
+                        description: Quote condition. Possible values depend on the values delivered by the supplier of the price information.
+                        x-cas-attribute: quoteConditionLatestAskPrice
+                      tradingVolume:
+                        nullable: true
+                        x-pushable: true
+                        type: number
+                        format: real
+                        description: Number of units (e.g. shares) offered.
+                        x-cas-attribute: tradingVolumeLatestAskPrice
+                      tradingValue:
+                        nullable: true
+                        x-pushable: true
+                        type: number
+                        format: real
+                        description: Monetary equivalent (cash value) of the offer. See attribute `currency` for its unit.
+                        x-cas-attribute: tradingValueLatestAskPrice
+                description: Bid and ask prices for the notation.
+                nullable: false
+                x-property-sort:
+                - idNotation
+                - sourceIdentifier
+                - valueUnit
+                - currency
+                - market
+                - quality
+                - bid
+                - ask
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
+    GetPricesBidAskList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                description: Set of bid and ask prices for a list of notations.
+                nullable: false
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                  - idNotation
+                  - sourceIdentifier
+                  - valueUnit
+                  - currency
+                  - market
+                  - quality
+                  - bid
+                  - ask
+                  - status
+                  properties:
+                    idNotation:
+                      nullable: true
+                      type: string
+                      format: id64
+                      x-positive: true
+                      description: MDG identifier of the listing.
+                    sourceIdentifier:
+                      nullable: true
+                      type: string
+                      description: Identifier used in the request.
+                    valueUnit:
+                      nullable: false
+                      type: object
+                      x-property-sort:
+                      - id
+                      description: Value unit of the notation such as a main or fractional currency for equities, a percentage for debt instruments, or points for indices. See endpoint `/basic/valueUnit/list` for possible values.
+                      properties:
+                        id:
+                          nullable: true
+                          type: number
+                          format: id32
+                          x-positive: true
+                          description: Identifier of the valueUnit.
+                    currency:
+                      nullable: false
+                      type: object
+                      x-property-sort:
+                      - id
+                      description: Main currency of the monetary attributes. See endpoint `/basic/valueUnit/currency/main/list` for possible values.
+                      properties:
+                        id:
+                          nullable: true
+                          type: number
+                          format: id32
+                          x-positive: true
+                          description: Identifier of the currency.
+                    market:
+                      nullable: false
+                      type: object
+                      x-property-sort:
+                      - id
+                      description: Market of the notation. See endpoint `/basic/market/list` for possible values.
+                      properties:
+                        id:
+                          nullable: true
+                          type: number
+                          format: id32
+                          x-positive: true
+                          description: Identifier of the market.
+                    quality:
+                      nullable: true
+                      type: string
+                      description: Quality of the price.
+                      x-enum-description:
+                      - 'Real-time: intraday prices with minimal technical processing delays.'
+                      - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
+                      - 'End-of-day: prices updated once per day after the close of trading, possibly with an exchange-imposed delay of several hours or days.'
+                      enum:
+                      - RLT
+                      - DLY
+                      - EOD
+                    bid:
+                      nullable: false
+                      type: object
+                      x-property-sort:
+                      - time
+                      - price
+                      - quoteCondition
+                      - tradingVolume
+                      - tradingValue
+                      description: Most recent bid price of the trading day.
+                      properties:
+                        time:
+                          nullable: true
+                          type: string
+                          format: datetime
+                          description: Date and time.
+                          x-cas-attribute: timeLatestBidPrice
+                        price:
+                          nullable: true
+                          type: number
+                          format: real
+                          description: Price value. See attribute `valueUnit` for its unit.
+                          x-cas-attribute: valueLatestBidPrice
+                        quoteCondition:
+                          nullable: true
+                          type: string
+                          description: Quote condition. Possible values depend on the values delivered by the supplier of the price information.
+                          x-cas-attribute: quoteConditionLatestBidPrice
+                        tradingVolume:
+                          nullable: true
+                          type: number
+                          format: real
+                          description: Number of units (e.g. shares) solicited.
+                          x-cas-attribute: tradingVolumeLatestBidPrice
+                        tradingValue:
+                          nullable: true
+                          type: number
+                          format: real
+                          description: Monetary equivalent (cash value) of the offer. See attribute `currency` for its unit.
+                          x-cas-attribute: tradingValueLatestBidPrice
+                    ask:
+                      nullable: false
+                      type: object
+                      x-property-sort:
+                      - time
+                      - price
+                      - quoteCondition
+                      - tradingVolume
+                      - tradingValue
+                      description: Most recent ask price of the trading day.
+                      properties:
+                        time:
+                          nullable: true
+                          type: string
+                          format: datetime
+                          description: Date and time.
+                          x-cas-attribute: timeLatestAskPrice
+                        price:
+                          nullable: true
+                          type: number
+                          format: real
+                          description: Price value. See attribute `valueUnit` for its unit.
+                          x-cas-attribute: valueLatestAskPrice
+                        quoteCondition:
+                          nullable: true
+                          type: string
+                          description: Quote condition. Possible values depend on the values delivered by the supplier of the price information.
+                          x-cas-attribute: quoteConditionLatestAskPrice
+                        tradingVolume:
+                          nullable: true
+                          type: number
+                          format: real
+                          description: Number of units (e.g. shares) offered.
+                          x-cas-attribute: tradingVolumeLatestAskPrice
+                        tradingValue:
+                          nullable: true
+                          type: number
+                          format: real
+                          description: Monetary equivalent (cash value) of the offer. See attribute `currency` for its unit.
+                          x-cas-attribute: tradingValueLatestAskPrice
+                    status:
+                      nullable: false
+                      type: object
+                      x-property-sort:
+                      - code
+                      - identifier
+                      - details
+                      - encryptedDetails
+                      description: Error status for the requested identifier.
+                      properties:
+                        code:
+                          nullable: true
+                          type: string
+                          description: Code of the error condition.
+                          x-enum-description:
+                          - No error.
+                          - The provided identifier does not refer to a valid listing level identifier.
+                          - Not entitled to see data for the identifier.
+                          - Unable to resolve the provided identifier.
+                          enum:
+                          - none
+                          - parameter
+                          - entitlement
+                          - identifierMapping
+                        identifier:
+                          nullable: true
+                          type: string
+                          description: Provided identifier.
+                        details:
+                          nullable: true
+                          type: string
+                          description: A human-readable, unstructured explanation specific to this occurrence of the problem.
+                        encryptedDetails:
+                          nullable: true
+                          type: string
+                          description: Base64-encoded internal details about the error.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
+  schemas:
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

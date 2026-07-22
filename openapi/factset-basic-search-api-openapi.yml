@@ -1,0 +1,149 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Basic_search API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Basic_search
+paths:
+  /navigator/basic_search:
+    post:
+      tags:
+      - Basic_search
+      summary: Factset Returns the Data Items (along With the Products They Belong To) That Contain at Least One of the Search Terms as a Substring of Either Their Name or Description.
+      requestBody:
+        description: A list of search terms (each term must be at least two characters).
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BasicSearchRequest'
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BasicSearchResponse'
+        '400':
+          description: The request body was not formatted properly.
+        '401':
+          description: You are not authorized to view this page.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          example: '3210'
+          description: Unique identifier for the product
+        name:
+          type: string
+          example: Estimize US Equities
+          description: Name of the product
+        ofmLink:
+          type: string
+          example: https://open.factset.com/products/estimize-us-equities/en-us
+          description: URL to the product page on the Open:FactSet Marketplace
+        ofmProductId:
+          type: string
+          example: 168e9bf8-108c-4912-beca-b658083c7c86
+          description: The id defining a product in the Open:FactSet Marketplace
+        entitled:
+          type: boolean
+          example: true
+          description: Flag indicating if the user is entitled to access the data in their subscriptions
+        providerName:
+          type: string
+          example: Estimize
+          description: Name of the Data Provider for the product
+        dataFeed:
+          type: boolean
+          example: true
+          description: Flag indicating if this product is available in a data feed
+        api:
+          type: boolean
+          example: true
+          description: Flag indicating if this product is available in an api
+        referenceDataFeed:
+          type: boolean
+          example: false
+          description: Flag indicating if this product is maintained by RDF/UCF
+    DataItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 35
+          description: Unique identifier for the data item
+        name:
+          type: string
+          example: fsym_id
+          description: Name of the data item
+        description:
+          type: string
+          example: Factset Perm Id
+          description: Description of the data item
+        entitled:
+          type: boolean
+          example: true
+          description: Flag indicating if the user is entitled to access the data in their subscriptions
+        dataFeed:
+          type: boolean
+          example: true
+          description: Flag indicating if this item is available in a data feed
+        api:
+          type: boolean
+          example: true
+          description: Flag indicating if this item is available in an api
+        referenceDataFeed:
+          type: boolean
+          example: false
+          description: Flag indicating if this product is maintained by RDF/UCF
+    BasicSearchResponse:
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              product:
+                $ref: '#/components/schemas/Product'
+              dataItem:
+                $ref: '#/components/schemas/DataItem'
+            required:
+            - product
+            - dataItem
+          example: []
+    BasicSearchRequest:
+      properties:
+        searchTerms:
+          type: array
+          items:
+            type: string
+          example: []
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

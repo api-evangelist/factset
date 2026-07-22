@@ -1,0 +1,760 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Constituents API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Constituents
+paths:
+  /factset-benchmarks/v1/constituents:
+    get:
+      tags:
+      - Constituents
+      summary: Factset Returns the Requested Benchmark Constituents and Respective Weights, Price and Market Value.
+      operationId: getBenchmarkConstituents
+      description: "Returns the requested Benchmark Constituents and respective Weights, Price and Market Value. You must be authorized for the `ids` requested. Use the helper endpoint **/id-list** for valid identifiers.  \n"
+      parameters:
+      - $ref: '#/components/parameters/constituentIds'
+      - $ref: '#/components/parameters/requestedDate'
+      - $ref: '#/components/parameters/currency'
+      - $ref: '#/components/parameters/regionCalendar'
+      responses:
+        '200':
+          description: Benchmark data items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/benchmarkConstituentsResponse'
+              examples:
+                Result of Benchmark Constituent id SPY-US:
+                  $ref: '#/components/examples/resultofBenchmarkIDSPY-US'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '415':
+          $ref: '#/components/responses/415'
+        '500':
+          $ref: '#/components/responses/500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      tags:
+      - Constituents
+      summary: Factset Returns the Requested Benchmark Constituents and Respective Weights, Price and Market Value.
+      description: 'Returns the requested Benchmark Constituents and respective Weights, Price and Market Value. You must be authorized for the `ids` requested. Use the helper endpoint **/id-list** for valid identifiers.
+
+        '
+      operationId: getBenchmarkConstituentsForList
+      requestBody:
+        required: true
+        description: Requests Benchmark Constituents for the given identifier and date.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/benchmarkConstituentsRequest'
+      responses:
+        '200':
+          description: Benchmark data items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/benchmarkConstituentsResponse'
+              examples:
+                Result of Benchmark Constituent SPY-US:
+                  $ref: '#/components/examples/resultofBenchmarkIDSPY-US'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '415':
+          $ref: '#/components/responses/415'
+        '500':
+          $ref: '#/components/responses/500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /factset-benchmarks/v1/fixed-income-constituents:
+    get:
+      tags:
+      - Constituents
+      summary: Factset Returns the Requested Fixed Income Benchmark Constituents and Respective Weights, Price and Market Value.
+      operationId: getFIBenchmarkConstituents
+      description: 'Returns the requested Fixed Income Benchmark Constituents and respective Weights, Price and Market Value. You must be authorized for the `ids` requested.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/fIConstituentIds'
+      - $ref: '#/components/parameters/requestedDate'
+      - $ref: '#/components/parameters/currency'
+      responses:
+        '200':
+          description: Fixed Income Constituent data items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/fixedIncomeBenchmarkConstituentsResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '415':
+          $ref: '#/components/responses/415'
+        '500':
+          $ref: '#/components/responses/500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      tags:
+      - Constituents
+      summary: Factset Returns the Requested Benchmark Constituents and Respective Weights, Price and Market Value.
+      description: 'Returns the requested Fixed Income Benchmark Constituents and respective Weights, Price and Market Value. You must be authorized for the `ids` requested.
+
+        '
+      operationId: getFIBenchmarkConstituentsForList
+      requestBody:
+        required: true
+        description: Requests Fixed Income Benchmark Constituents for the given identifier and date.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/fixedIncomeBenchmarkConstituentsRequest'
+      responses:
+        '200':
+          description: Fixed Income Constituent data items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/fixedIncomeBenchmarkConstituentsResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '415':
+          $ref: '#/components/responses/415'
+        '500':
+          $ref: '#/components/responses/500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  examples:
+    badRequestInvalidParameters:
+      summary: Bad Request - Passing invalid Benchmark Identifier
+      description: This error message occurs when user is passing Invalid Identifier. Please use the helper endpoint */id-list* for sample Benchmark Identifiers.
+      value:
+        status: Forbidden
+        timestamp: '2020-07-10 15:01:43.634'
+        path: /factset-benchmarks/v1/constituents
+        message: User is not authorized for the id requested, please reach out to FactSet for support
+        subErrors: null
+    badRequestMoreThanOneBenchmarkIdentifier:
+      summary: Bad Request - More Than One Benchmark Identifier
+      description: This error message occurs when user is passing more than one identifier as an input.
+      value:
+        status: Bad Request
+        timestamp: '2020-07-02 12:37:52.731'
+        path: /factset-benchmarks/v1/constituents
+        message: You submitted 2 ids. The max number of ids you may submit is 1. Please try again with fewer ids.
+        subErrors: null
+    badRequestDateFormat:
+      summary: Bad Request - Date Format
+      description: This bad request occurs when a request doesn't use the YYYY-MM-DD in the date parameters. To resolve, convert your date to YYYY-MM-DD.
+      value:
+        status: Bad Request
+        timestamp: '2020-07-02 11:52:36.464'
+        path: /factset-benchmarks/v1/{endpoint}
+        message: 'The date parameter must be in the following date format: YYYY-MM-DD'
+        subErrors: null
+    notWritable:
+      summary: Internal Server Error - Not Writable
+      description: This error may be returned when the server encounters an error writing the JSON response.
+      value:
+        status: Internal Server Error
+        timestamp: '2019-11-05 09:48:29.18'
+        path: /factset-benchmarks/v1/{endpoint}
+        message: Error writing JSON output
+        subErrors: null
+    unsupportedMediaType:
+      summary: Unsupported Media Type
+      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
+      value:
+        status: Unsupported Media Type
+        timestamp: '2020-07-02 09:42:27.237'
+        path: /factset-benchmarks/v1/{endpoint}
+        message: text/html media type is not supported. Supported media types are application/json
+        subErrors: null
+    resultofBenchmarkIDSPY-US:
+      summary: Result of Benchmark Constituent Id SPY-US (only first 10 records for example purpose).
+      description: 'This is the list of all constituents that make up the SPDR S&P 500 ETF (SPY-US) as of 2020-07-01. The ETF is used as a proxy for S&P 500 Benchmark. To limit the response size of specification file, only first 10 items are shown.
+
+        '
+      value:
+        data:
+        - adjHolding: 0.89521
+          adjMarketValue: 304.908526
+          currency: USD
+          date: '2021-03-08'
+          fsymId: SPY-US
+          fsymRegionalId: F07Q7W-R
+          fsymSecurityId: TKPJVY-S
+          price: 340.6
+          requestId: SPY-US
+          unadjHolding: 0.89521
+          weightClose: 0.092687242574555
+        - adjHolding: 15.456894
+          adjMarketValue: 1168.69575534
+          currency: USD
+          date: '2021-03-08'
+          fsymId: SPY-US
+          fsymRegionalId: MKC1SV-R
+          fsymSecurityId: K6TLGQ-S
+          price: 75.61
+          requestId: SPY-US
+          unadjHolding: 15.456894
+          weightClose: 0.355264539145919
+        - adjHolding: 3.212757
+          adjMarketValue: 277.35731181
+          currency: USD
+          date: '2021-03-08'
+          fsymId: SPY-US
+          fsymRegionalId: RFPMVX-R
+          fsymSecurityId: C8QZP6-S
+          price: 86.33
+          requestId: SPY-US
+          unadjHolding: 3.212757
+          weightClose: 0.084312120677006
+        - adjHolding: 1.164754
+          adjMarketValue: 156.34492942
+          currency: USD
+          date: '2021-03-08'
+          fsymId: SPY-US
+          fsymRegionalId: JWH12W-R
+          fsymSecurityId: TLPSG8-S
+          price: 134.23
+          requestId: SPY-US
+          unadjHolding: 1.164754
+          weightClose: 0.047526320724968
+        - adjHolding: 6.780214
+          adjMarketValue: 178.18402392
+          currency: USD
+          date: '2021-03-08'
+          fsymId: SPY-US
+          fsymRegionalId: LY653H-R
+          fsymSecurityId: Q0KPX4-S
+          price: 26.28
+          requestId: SPY-US
+          unadjHolding: 6.780214
+          weightClose: 0.0541650509569
+        - adjHolding: 5.847468
+          adjMarketValue: 261.14792088
+          currency: USD
+          date: '2021-03-08'
+          fsymId: SPY-US
+          fsymRegionalId: FS32CR-R
+          fsymSecurityId: D1QS87-S
+          price: 44.66
+          requestId: SPY-US
+          unadjHolding: 5.847468
+          weightClose: 0.079384728948003
+        - adjHolding: 0.874856
+          adjMarketValue: 256.8139788
+          currency: USD
+          date: '2021-03-08'
+          fsymId: SPY-US
+          fsymRegionalId: CN7T72-R
+          fsymSecurityId: C0SZHB-S
+          price: 293.55
+          requestId: SPY-US
+          unadjHolding: 0.874856
+          weightClose: 0.078067280905002
+        - adjHolding: 3.484578
+          adjMarketValue: 242.178171
+          currency: USD
+          date: '2021-03-08'
+          fsymId: SPY-US
+          fsymRegionalId: X0N4MP-R
+          fsymSecurityId: D506QF-S
+          price: 69.5
+          requestId: SPY-US
+          unadjHolding: 3.484578
+          weightClose: 0.073618232904839
+        - adjHolding: 0.90688
+          adjMarketValue: 539.5210496
+          currency: USD
+          date: '2021-03-08'
+          fsymId: SPY-US
+          fsymRegionalId: V9977J-R
+          fsymSecurityId: JPYYTB-S
+          price: 594.92
+          requestId: SPY-US
+          unadjHolding: 0.90688
+          weightClose: 0.164005641476728
+        - adjHolding: 2.505859
+          adjMarketValue: 855.62555555
+          currency: USD
+          date: '2021-03-08'
+          fsymId: SPY-US
+          fsymRegionalId: KC6WDM-R
+          fsymSecurityId: BV8916-S
+          price: 341.45
+          requestId: SPY-US
+          unadjHolding: 2.505859
+          weightClose: 0.260096280220945
+    generalException:
+      summary: Internal Server Error - General Exception
+      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
+      value:
+        status: Internal Server Error
+        timestamp: '2019-11-01 10:36:01.944'
+        path: /factset-benchmarks/v1/{endpoint}
+        message: Unexpected error
+        subErrors: null
+    badRequestReadTimeout:
+      summary: Bad Request - Read Timeout
+      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
+      value:
+        status: Bad Request
+        timestamp: '2020-07-02 16:18:38.949'
+        path: /factset-benchmarks/v1/{endpoint}
+        message: The request took too long. Try again with a smaller request.
+        subErrors: null
+    badRequestFutureDate:
+      summary: Bad Request - Future Date
+      description: This error message occurs when a future date is requested in the date parameters. Please revise your request to include dates as of today's current date or any prior historical date.
+      value:
+        status: Bad Request
+        timestamp: '2020-06-30 13:38:36.528'
+        path: /factset-benchmarks/v1/{endpoint}
+        message: The use of future dates is not applicable in this endpoint. Please revise your request to include dates up to today's current date.
+        subErrors: null
+    forbidden:
+      summary: Forbidden
+      description: The USERNAME-SERIAL attempted to request the endpoint/ID which is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      value:
+        status: Forbidden
+        timestamp: '2020-07-02 17:21:52.197'
+        path: /factset-benchmarks/v1/{endpoint}
+        message: User is not authorized for the id requested, please reach out to FactSet for support
+        subErrors: null
+    unauthenticated:
+      summary: User Authentication Failed
+      description: This occurs when a user is not properly authenticated or recognized by the service. Please double check the USERNAME-SERIAL and API-Key used to request and ensure you are within the IP range specified for the Key. Report Issue under 401 error for help with troubleshooting.
+      value:
+        status: User Authentication Failed
+        timestamp: '2020-07-02 16:08:07.945'
+        path: /factset-benchmarks/v1/{endpoint}
+        message: User Authentication Failed.
+        subErrors: null
+    badRequestMalformedJSON:
+      summary: Bad Request - Malformed JSON Request
+      description: This error may be returned when the request body is specified as JSON. But is not in proper JSON format.
+      value:
+        status: Bad Request
+        timestamp: '2020-07-02 11:59:09.649'
+        path: /factset-benchmarks/v1/{endpoint}
+        message: Malformed JSON Request
+        subErrors: null
+    badRequestRequiredParameter:
+      summary: Bad Request - Required Parameter Missing
+      description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisks symbol in the specification file.
+      value:
+        status: Bad Request
+        timestamp: '2020-06-30 13:22:09.053'
+        path: /factset-benchmarks/v1/{endpoint}
+        message: The parameter 'ids' is required and may not be empty.
+        subErrors: null
+  responses:
+    '401':
+      description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the **Report Issue** in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/unauthenticated'
+    '415':
+      description: Unsupported Media Type. This error may be returned when the caller sends a resource in a format that is not accepted by the server. This can be fixed by ensuring that Content-Type header is set to the correct value. In this instance, "application/json" would be the appropriate value.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Unsupported Media Type:
+              $ref: '#/components/examples/unsupportedMediaType'
+    '403':
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - forbidden:
+              $ref: '#/components/examples/forbidden'
+    '500':
+      description: Internal Server Error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Internal Server Error - Not Writable:
+              $ref: '#/components/examples/notWritable'
+            Internal Server Error - General Exception:
+              $ref: '#/components/examples/generalException'
+    '400':
+      description: Bad Request. This can occur for several reasons. Please review the "message" for more details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/badRequestDateFormat'
+            Bad Request - Missing Required Parameter:
+              $ref: '#/components/examples/badRequestRequiredParameter'
+            Bad Request - Future Date:
+              $ref: '#/components/examples/badRequestFutureDate'
+            Bad Request - Invalid Parameter:
+              $ref: '#/components/examples/badRequestInvalidParameters'
+            Bad Request - More Than One Benchmark Identifier:
+              $ref: '#/components/examples/badRequestMoreThanOneBenchmarkIdentifier'
+            Bad Request - Malformed JSON:
+              $ref: '#/components/examples/badRequestMalformedJSON'
+            Bad Request - Read Timeout:
+              $ref: '#/components/examples/badRequestReadTimeout'
+  schemas:
+    benchmarkConstituentsResponse:
+      title: Benchmark Constituents Response
+      type: object
+      properties:
+        data:
+          description: 'Array of metric objects representing the metrics that can be requested
+
+            from the estimates APIs.
+
+            '
+          type: array
+          items:
+            $ref: '#/components/schemas/benchmarkConstituent'
+          example: []
+    benchmarkConstituent:
+      title: Benchmark Constituent
+      type: object
+      properties:
+        fsymId:
+          type: string
+          description: Benchmark Id
+          example: SPY-US
+          nullable: true
+        date:
+          description: Date of weight and shares.
+          type: string
+          format: date
+          example: '2020-07-01'
+          nullable: true
+        fsymSecurityId:
+          description: FactSet Security Identifier (-S). If Cash or Generic Id holding, response will just pass through generic id (e.g. CASH_USD).
+          type: string
+          example: TKPJVY-S
+          nullable: true
+        fsymRegionalId:
+          description: FactSet Regional Identifier (-R). If Cash or Generic Id holding, response will just pass through generic id (e.g. CASH_USD).
+          type: string
+          example: F07Q7W-R
+          nullable: true
+        currency:
+          description: Currency code for prices.
+          type: string
+          example: USD
+          nullable: true
+        weightClose:
+          description: Weight of Security in benchmark (percent).
+          type: number
+          format: double
+          example: 0.085717610340781
+          nullable: true
+        adjHolding:
+          description: Shares held adjusted. Units in Millions.
+          type: number
+          format: double
+          example: 0.884722
+          nullable: true
+        unadjHolding:
+          description: Shares held unadjusted. Units in Millions.
+          type: number
+          format: double
+          example: 0.884722
+          nullable: true
+        price:
+          description: Price of shares held.
+          type: number
+          format: double
+          example: 267.97
+          nullable: true
+        adjMarketValue:
+          description: Market value adjusted. Market Value represented in Millions.
+          type: number
+          format: double
+          example: 237.07895434
+          nullable: true
+        requestId:
+          type: string
+          description: Identifier specified in the request
+          example: SPY-US
+    requestedDate:
+      title: Date
+      type: string
+      description: Date of holding expressed in YYYY-MM-DD format.
+      example: '2020-08-06'
+    fixedIncomeBenchmarkConstituent:
+      title: Benchmark Constituent
+      type: object
+      properties:
+        fsymId:
+          type: string
+          description: Benchmark Id
+          example: LHMN0001
+          nullable: true
+        date:
+          description: Date of weight and shares.
+          type: string
+          format: date
+          example: '2021-04-12'
+          nullable: true
+        fsymSecurityId:
+          description: FactSet Security Identifier (-S).
+          type: string
+          example: FV4SC0-S
+          nullable: true
+        weightClose:
+          description: Weight of Security in benchmark (percent).
+          type: number
+          format: double
+          example: 0.00303380596473456
+          nullable: true
+        amountOutstanding:
+          description: Amount Outstanding for the Fixed Income Security.
+          type: number
+          format: double
+          example: 700000
+          nullable: true
+        price:
+          description: Fixed Income Price of security held.
+          type: number
+          format: double
+          example: 106.976
+          nullable: true
+        adjMarketValue:
+          description: Market value adjusted. Market Value represented in Millions.
+          type: number
+          format: double
+          example: 757.233375
+          nullable: true
+        requestId:
+          type: string
+          description: Identifier specified in the request
+          example: LHMN0001
+    constituentIds:
+      title: Constituent Ids
+      type: array
+      items:
+        type: string
+      minItems: 1
+      maxItems: 1
+      description: Benchmark Identifiers. Reference the helper endpoint **/id-list** to get a sample list of  valid identifiers. You must be authorized for the `ids` requested, otherwise you will receive an error.
+      example:
+      - SP50
+    benchmarkConstituentsRequest:
+      type: object
+      title: Benchmark Constituents Request
+      properties:
+        ids:
+          $ref: '#/components/schemas/constituentIds'
+        date:
+          $ref: '#/components/schemas/requestedDate'
+        currency:
+          $ref: '#/components/schemas/currency'
+        calendar:
+          $ref: '#/components/schemas/regionCalendar'
+      required:
+      - ids
+    fIConstituentIds:
+      title: Fixed Income Constituent Ids
+      type: array
+      items:
+        type: string
+      minItems: 1
+      maxItems: 1
+      description: Fixed Income Benchmark Identifiers. Reference the helper endpoint **/id-list** to get a sample list of  valid identifiers. You must be authorized for the `ids` requested, otherwise you will receive an error.
+      example:
+      - LHMN0001
+    errorResponse:
+      type: object
+      title: Error Response
+      properties:
+        status:
+          description: status
+          type: string
+          example: Bad Request
+        timestamp:
+          description: timestamp in YYYY-MM-DD HH:MM:SS.SSS
+          type: string
+          example: '2019-11-01 11:09:41.918'
+          format: date-time
+        path:
+          description: The Endpoint path {package}/version/{endpoint}
+          type: string
+          example: /factset-benchmarks/v1/{endpoint}
+        message:
+          description: The plain text error message
+          type: string
+          example: Validation Error
+        subErrors:
+          description: subErrors related to the error message. Null if not applicable.
+          type: object
+          properties:
+            object:
+              description: the operation ID
+              type: string
+            field:
+              description: Parameter Field Name
+              type: string
+            message:
+              description: Error message
+              type: string
+            rejectedValue:
+              description: Rejected Values in an Array
+              type: array
+              items:
+                type: string
+          example: example_value
+    currency:
+      title: Currency
+      type: string
+      description: Currency for response.
+      example: USD
+    fixedIncomeBenchmarkConstituentsRequest:
+      type: object
+      title: Fixed Income Benchmark Constituents Request
+      properties:
+        ids:
+          $ref: '#/components/schemas/fIConstituentIds'
+        date:
+          $ref: '#/components/schemas/requestedDate'
+        currency:
+          $ref: '#/components/schemas/currency'
+      required:
+      - ids
+    fixedIncomeBenchmarkConstituentsResponse:
+      title: Fixed Income Benchmark Constituents Response
+      type: object
+      properties:
+        data:
+          description: 'Array of metric objects representing the metrics that can be requested
+
+            from the estimates APIs.
+
+            '
+          type: array
+          items:
+            $ref: '#/components/schemas/fixedIncomeBenchmarkConstituent'
+          example: []
+    regionCalendar:
+      title: Calendar
+      type: string
+      default: FIVEDAY
+      description: Calendar of data returned.
+      example: FIVEDAY
+  parameters:
+    requestedDate:
+      name: date
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Date of holding expressed in YYYY-MM-DD format.
+    currency:
+      name: currency
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Currency for response.
+    fIConstituentIds:
+      name: ids
+      in: query
+      required: true
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+        minItems: 1
+        maxItems: 1
+      example: LHMN0001
+      description: Fixed Income Benchmark Identifiers. You must be authorized for the `ids` requested, otherwise you will receive an error. <p>***ids limit** =  1 per request*</p>
+    constituentIds:
+      name: ids
+      in: query
+      required: true
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+        minItems: 1
+        maxItems: 1
+      description: Benchmark Identifiers. Reference the helper endpoint **/id-list** to get a sample list of  valid identifiers. You must be authorized for the `ids` requested, otherwise you will receive an error. <p>***ids limit** =  1 per request*</p>
+    regionCalendar:
+      name: calendar
+      in: query
+      schema:
+        type: string
+      description: Calendar of data returned. The default value is FIVEDAY which displays Monday through Friday, regardless of whether there were trading holidays.
+      required: false
+      examples:
+        fiveday:
+          summary: FIVEDAY
+          description: Displays Monday through Friday, regardless of whether there were trading holidays. This is the default for `calendar`.
+          value: FIVEDAY
+        sevenday:
+          summary: SEVENDAY
+          description: Displays Monday through Sunday.
+          value: SEVENDAY
+        region:
+          summary: Region Specific
+          description: The calendar of a specific region. The example shown here 'NAY' is for the UNITED STATES calendar. You can find the calendar codes for regions on [Online Assistant Page 16610](https://my.apps.factset.com/oa/pages/16610#country).
+          value: NAY
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

@@ -1,0 +1,384 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Standard API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Standard
+paths:
+  /v1/custom-symbols/standard-symbol-metadata/{standardSymbol}:
+    get:
+      tags:
+      - Standard
+      summary: Factset Get All Custom Field and Standard Field Details on a Specific Standard Symbol
+      operationId: GetStandardSymbolMetadataGuid
+      parameters:
+      - name: standardSymbol
+        in: path
+        description: Standard symbol to get associated customSymbolId
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: string
+                format: uuid
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /v1/custom-symbols/{customSymbolId}/link-standard-symbol:
+    post:
+      tags:
+      - Standard
+      summary: Factset Link Custom Symbol to Standard Symbol
+      operationId: LinkCustomSymbolToStandardSymbol
+      parameters:
+      - name: customSymbolId
+        in: path
+        description: customSymbolId associated with custom symbol
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        description: standard symbol name
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/StandardSymbolDto'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StandardSymbolDto'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/StandardSymbolDto'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/StandardSymbolDto'
+      responses:
+        '200':
+          description: Success
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /v1/custom-symbols/standard-symbol-metadata:
+    post:
+      tags:
+      - Standard
+      summary: Factset Create Standard Symbol Metadata
+      operationId: CreateStandardSymbolMetadata
+      requestBody:
+        description: createStandardSymbolMetadataDto object to save
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/CreateStandardSymbolMetadataDto'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStandardSymbolMetadataDto'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/CreateStandardSymbolMetadataDto'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/CreateStandardSymbolMetadataDto'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewItemDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /v1/custom-symbols/standard-symbol-metadata/{standardSymbolId}:
+    patch:
+      tags:
+      - Standard
+      summary: Factset Edit a Standard Symbols Standard Field and Custom Field Data
+      operationId: PatchStandardSymbol
+      parameters:
+      - name: standardSymbolId
+        in: path
+        description: standardSymbolId to update associated standard symbol
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        description: updateCustomSymbolDto object to update
+        content:
+          application/json-patch+json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Operation'
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Operation'
+          text/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Operation'
+          application/*+json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Operation'
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    StandardSymbolDto:
+      required:
+      - standardSymbol
+      type: object
+      properties:
+        standardSymbol:
+          type: string
+          example: example_value
+      additionalProperties: false
+    NewItemDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: abc123
+      additionalProperties: false
+    CreateCustomSymbolCustomFieldValueDto:
+      required:
+      - code
+      type: object
+      properties:
+        code:
+          type: string
+          example: example_value
+        textValue:
+          type: string
+          nullable: true
+          example: example_value
+        numericValue:
+          type: number
+          format: double
+          nullable: true
+          example: 42.5
+        dateValue:
+          type: string
+          nullable: true
+          example: example_value
+        extendedTextValue:
+          type: string
+          nullable: true
+          example: example_value
+        optionValues:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        contactIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          nullable: true
+          example: []
+      additionalProperties: false
+    OperationType:
+      enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      type: integer
+      format: int32
+    Operation:
+      type: object
+      properties:
+        operationType:
+          $ref: '#/components/schemas/OperationType'
+        path:
+          type: string
+          nullable: true
+          example: example_value
+        op:
+          type: string
+          nullable: true
+          example: example_value
+        from:
+          type: string
+          nullable: true
+          example: example_value
+        value:
+          nullable: true
+          example: example_value
+      additionalProperties: false
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+          nullable: true
+          example: example_value
+        title:
+          type: string
+          nullable: true
+          example: Example Title
+        status:
+          type: integer
+          format: int32
+          nullable: true
+          example: 10
+        detail:
+          type: string
+          nullable: true
+          example: example_value
+        instance:
+          type: string
+          nullable: true
+          example: example_value
+      additionalProperties: {}
+    CreateStandardSymbolMetadataDto:
+      required:
+      - standardSymbol
+      type: object
+      properties:
+        standardSymbol:
+          maxLength: 255
+          minLength: 0
+          type: string
+          example: example_value
+        description:
+          type: string
+          nullable: true
+          example: A sample description.
+        typeId:
+          type: string
+          format: uuid
+          example: '500123'
+        subTypeId:
+          type: string
+          format: uuid
+          example: '500123'
+        googleMapsPlaceId:
+          maxLength: 255
+          minLength: 0
+          type: string
+          nullable: true
+          example: '500123'
+        formattedAddress:
+          maxLength: 255
+          minLength: 0
+          type: string
+          nullable: true
+          example: example_value
+        city:
+          maxLength: 50
+          minLength: 0
+          type: string
+          nullable: true
+          example: example_value
+        stateProvince:
+          maxLength: 50
+          minLength: 0
+          type: string
+          nullable: true
+          example: example_value
+        postalCode:
+          maxLength: 10
+          minLength: 0
+          type: string
+          nullable: true
+          example: example_value
+        country:
+          maxLength: 50
+          minLength: 0
+          type: string
+          nullable: true
+          example: example_value
+        customFieldValues:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateCustomSymbolCustomFieldValueDto'
+          nullable: true
+          example: []
+      additionalProperties: false
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

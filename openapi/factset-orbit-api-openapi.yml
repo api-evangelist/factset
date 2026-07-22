@@ -1,0 +1,437 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Orbit API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Orbit
+  description: '<a href=https://go.factset.com/marketplace/catalog/product/china-a-shares-transcripts>Orbit</a> API covers full universe of almost 4,800 companies since the early 2000''s. Content covers 3 types, both in Chinese and English: 1) Earning Call Transcripts 2) Public disclosures on broker onsite research 3) Executive official responses on online platforms.
+
+    '
+paths:
+  /orbit/transcripts/daily:
+    get:
+      tags:
+      - Orbit
+      summary: Returns the daily files from Open:FactSet Partner - Orbit.
+      operationId: getChineseTranscriptsDaily
+      description: Returns the daily files from Open:FactSet Partner - Orbit.
+      parameters:
+      - $ref: '#/components/parameters/_sort'
+      - $ref: '#/components/parameters/_paginationLimit'
+      - $ref: '#/components/parameters/_paginationOffset'
+      - $ref: '#/components/parameters/startDateOrbit'
+      - $ref: '#/components/parameters/endDateOrbit'
+      - $ref: '#/components/parameters/stockCode'
+      - $ref: '#/components/parameters/fileName'
+      - $ref: '#/components/parameters/title'
+      responses:
+        '200':
+          description: Download link & metadata for Orbit data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/orbitResponse'
+              examples:
+                default200ResponseExample:
+                  $ref: '#/components/examples/sampleOrbitResponse'
+        '400':
+          description: Bad request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatus'
+              examples:
+                default400ResponseExample:
+                  $ref: '#/components/examples/ErrorDetails'
+        '401':
+          description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the Report Issue in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatus'
+              examples:
+                default401ResponseExample:
+                  $ref: '#/components/examples/AuthErrorDetails'
+        '403':
+          description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatus'
+              examples:
+                default403ResponseExample:
+                  $ref: '#/components/examples/AuthorizationErrorDetails'
+        '500':
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatus'
+              examples:
+                default500ResponseExample:
+                  $ref: '#/components/examples/serverErrorDetails'
+  /orbit/transcripts/history:
+    get:
+      tags:
+      - Orbit
+      summary: Returns the history files from Open:FactSet Partner - Orbit
+      operationId: getChineseTranscriptsHistory
+      description: 'Returns the historical files from February 28th, 2005 to current date. '
+      parameters:
+      - $ref: '#/components/parameters/_paginationLimit'
+      - $ref: '#/components/parameters/_paginationOffset'
+      - $ref: '#/components/parameters/fileName'
+      responses:
+        '200':
+          description: Download link & metadata for Orbit data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/orbithistoryResponse'
+              examples:
+                default200ResponseExample:
+                  $ref: '#/components/examples/sampleOrbitHistoryResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatus'
+              examples:
+                default400ResponseExample:
+                  $ref: '#/components/examples/ErrorDetails'
+        '401':
+          description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the Report Issue in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatus'
+              examples:
+                default401ResponseExample:
+                  $ref: '#/components/examples/AuthErrorDetails'
+        '403':
+          description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatus'
+              examples:
+                default403ResponseExample:
+                  $ref: '#/components/examples/AuthorizationErrorDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatus'
+              examples:
+                default500ResponseExample:
+                  $ref: '#/components/examples/serverErrorDetails'
+components:
+  parameters:
+    stockCode:
+      name: stockCode
+      in: query
+      description: 'The company/ticker which is associated with the transcript. Please submit a question via Issue Tracker under the Open:FactSet - Partner Communication to get the required list of tickers.
+
+        '
+      required: false
+      schema:
+        type: string
+      example: '601236'
+    _paginationLimit:
+      name: _paginationLimit
+      in: query
+      description: Specifies the maximum number of results to return per result.
+      required: false
+      schema:
+        type: integer
+        maximum: 500
+        minimum: 1
+        default: 20
+    _paginationOffset:
+      name: _paginationOffset
+      in: query
+      description: Specifies the starting point for pagination. This parameter is used to identify the beginning of next set of results. Using this parameter can fetch maximum of first 10000 records.
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    endDateOrbit:
+      name: endDate
+      in: query
+      description: The latest date of the Orbit file the API should fetching for based on fileTimestamp.
+      required: false
+      schema:
+        type: string
+        format: date
+      example: '2021-10-08'
+    title:
+      name: title
+      in: query
+      description: This parameter is used to filter the results based on the headline of the transcript.
+      required: false
+      schema:
+        type: string
+      example: 投资者关系活动记录表2022-001
+    _sort:
+      name: _sort
+      in: query
+      description: Enables to get the data in ascending or descending order based on startTime. Results are in reverse chronological order if this parameter is not used.
+      required: false
+      schema:
+        type: string
+        enum:
+        - startDate
+        - -startDate
+        default: -startDate
+    startDateOrbit:
+      name: startDate
+      in: query
+      description: The earliest date of the Orbit file the API should fetching for based on fileTimestamp.
+      required: false
+      schema:
+        type: string
+        format: date
+      example: '2021-09-01'
+    fileName:
+      name: fileName
+      in: query
+      description: This parameter is used to filters the results based on file name.
+      required: false
+      schema:
+        type: string
+  schemas:
+    OrbitFiles:
+      type: object
+      title: Orbit Object
+      description: Returns Orbit Response.
+      properties:
+        stockCode:
+          description: 'The company/ticker which is associated with the transcript. Please submit a question via Issue Tracker under the Open:FactSet - Partner Communication to get the required list of tickers.
+
+            '
+          type: string
+          example: '601236'
+        eventStartDateTime:
+          description: The timestamp when latest version of the call was published at the source.
+          type: string
+          format: date-time
+          example: '2022-04-26 07:00:00'
+        eventEndDateTime:
+          description: The timestamp when the file is last updated.
+          type: string
+          format: date-time
+          example: '2022-04-26 08:30:00'
+        typesOfInvestorRelationsActivities:
+          description: Specifies the type of the call.
+          type: string
+          example: ecm
+        transcriptUniqueId:
+          description: Unique identifier for the transcript
+          type: string
+          example: 195227c3-0806-3791-84f8-95812edcea51
+        uploadTime:
+          description: The timestamp when the transcript was last uploaded.
+          type: string
+          format: date-time
+          example: '2022-10-16 10:17:16'
+        title:
+          description: The headline of the transcript.
+          type: string
+          example: 投资者关系活动记录表2022-001
+        exchangeCode:
+          description: Exchange Code
+          type: string
+          example: XSHG
+        versionId:
+          description: Helpful to distinguish corrected reports.
+          type: integer
+          example: 1
+        fileName:
+          description: The filename of the transcript.
+          type: string
+          example: 601236-195227c3-0806-3791-84f8-95812edcea51-ch-2022101619.json
+        fileTimestamp:
+          description: The time when file is available for ingestion at the source.
+          type: string
+          format: date-time
+          example: '2022-10-16 19:00:00'
+        updateTimestamp:
+          description: The time when file is processed.
+          type: string
+          format: date-time
+          example: '2022-10-16 19:00:40'
+        fileSize:
+          description: Defines the size of the file.
+          type: integer
+          example: 12744
+        url:
+          description: Download link for the transcripts provided by the Orbit feed.
+          type: string
+          example: https://fdss3-unstructured-data-delivery-orbit-v2-prod.s3.amazonaws.com/2022/10/601236-195227c3-0806-3791-84f8-95812edcea51-ch-2022101619.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA6B6XG7VEYODKETS6%2F20221017%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20221017T141632Z&X-Amz-Expires=1800&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjED0aCXVzLWVhc3QtMSJIMEYCIQDzGmRWCkwvfl8WKsZ3rektfXyQa551ht8wkggj29qufwIhALaFsXrpyISV%2B6A3hASCdStEUtlzUEaBL9Bs0%2BSP3wUaKu4CCBYQARoMOTY2MjgyMTE2NDI1IgxkKPBJ4cINLlvTEkIqywKmD%2BMhpGDpCzI8LfS13Rvs%2FnCQ5S5khGdpMUk8j0kQ4%2F6xoX7SYyXjkn8VFk2OSJkfPpu6XBADJ3H6BmuJvAM5ovraQqQXjx8iuB7LPgYAHoIJNvZDivb8HV%2BmBSwbEoOyCIslX%2FFrlYNU6KmfpvKUZqJRPmpSVdb%2F2%2BwG6rw3WHO6qBxWjwPga2b9U7DvU0LCke0myB8cRhdimWuONNendFNuwm9KnvhrUbszsLT4dIxufiYQarCqQvx0FuMG21%2FPTKWXbpvHbSSG663qqBi2xYmIP%2BmvQ9JvZMkWN%2FOtVhkDqT8YcyaaLshDVv0xDvzdsP6h4YYjDohaABooNIuP1OVJ9fzzUe4F4ZlP5eZDAKKCPOU%2FfG9UitWHxm3feQDe460sVVbiGow7is85fhQsoeHQEfqqLifPXwxo2s72bwaxd2ZJOTYh7ra7MJeTtZoGOp0BJqQMDoOIol1WSTKBI02ne6rUGKfvR6ksj%2BjEQR9OURvMj843tnJketh6IUBNG%2Be0q7Y0YcV2AAKj1Q7nloa%2B6LoRFOyvKwy4SAfNh%2F1KGM8%2F%2FitZfxzOAwI%2BtlEPKuHWL3OWAyusy6VSXaw4PYtJrS9lual9O%2Brz3kK2au4JZnkeZH3KJsIefE4tJ2GcL%2FT3IOt7htI%2BGRZZDGNCHQ%3D%3D&X-Amz-Signature=7272242c3ec00491e43f6e20b39a65050599c033539c3ca8d8aeb2c9565d7ad1
+    meta:
+      title: Meta
+      description: Array of metadata objects.
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/pagination'
+    errorExample:
+      type: object
+      description: Specifies the fields in the error message
+      properties:
+        code:
+          description: It specifies the unique code
+          type: string
+        title:
+          description: ' Specifies the error message'
+          type: string
+        id:
+          description: Specifies the id
+          type: string
+    OrbitHistoryFiles:
+      type: object
+      title: ' Orbit History Object'
+      description: Returns History Response
+      properties:
+        fileSize:
+          description: Defines the size of the file.
+          type: integer
+          example: 210
+        fileName:
+          description: The filename of the folder.
+          type: string
+          example: 2022_03.tar.gz
+        url:
+          description: Download link for the transcripts provided by the Orbit feed.
+          type: string
+          example: https://fdss3-unstructured-data-delivery-orbit-v2-prod.s3.amazonaws.com/archive/2022_03.tar.gz?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA6B6XG7VEZIG27C5D%2F20221017%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20221017T140425Z&X-Amz-Expires=1800&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjED8aCXVzLWVhc3QtMSJIMEYCIQCpnwubbmWR8h7DcyR36f7shl8rj%2BaUM8MCfTtJDz3K7gIhALvaP4DrYVJWwYI5uXlNVX0e7jFh0SDYH58NiUUuWjHZKu4CCBcQARoMOTY2MjgyMTE2NDI1IgwrEfRv2XcQccTycTUqywKK1VtBszZfOTixyF3D3wV2DGa3fJ5dtwSx%2BrhM0TBuhY%2BRzq9DsIdtLJ17odg8tmvpqsnBOIeMp9vgGAq5Y3%2BsVOav1t4iZDFZ%2FvfZNi0TKFPLHrl9I4fDzm2dJ%2FjXg9g07vsguyCAWBr6PvFEjnhvl5Mcpr9%2FcyFKULxQMQp6s%2F39zXmlhdkRNd6nZILBJH7COOd5eGlSm7UQMnmYTg3yJdHHWQ21WdpNy62KxuPs6O6oeVv1FNnL3pJuUYnqv%2BTvSqJlUuxXeathGiuQq9fpy3qahOE%2FnWxMzGuC9zibpj0e7TGDVPmZwf7RZBFNDcFI50cTtR6uRKv1m6zfhty%2BBbjqoqvX3ydqTTpROd%2FEsS4FXaQzXB5dz89YWjie9RM9JTU3fhzDrWoBOi0j%2F12yBtQ37qG%2F4NZeorxhMM%2BgueFQYV9rHNiy7XIBMObBtZoGOp0B9oNulnAKurGgAPZRKysBzw7RsskO19KoaHt2WScN1q4tt8P4SyZ9oTSD9JN%2FbZGpXQggk9HIUHAMeYk14trAyzoojXUFM6GpleF0dPX6qRBRXhkY0KuwZBT1TL6fBH828NWorWRGHSag%2FOnYAwbijOziNmbpnZ2MyhXE8OnyQu9ucFpUXP3Ie%2FqnObzyVIULXRY%2B6yXbRmrxZj46vA%3D%3D&X-Amz-Signature=b7437199bca7bd53d5467abcdb3961cee2ecee10e922644c19fdd9f629293513
+    AuthStatus:
+      type: object
+      description: specifies the error message fields in the response
+      properties:
+        errors:
+          type: array
+          description: An array containing errors
+          items:
+            $ref: '#/components/schemas/errorExample'
+    orbitResponse:
+      type: object
+      title: Orbit Response.
+      description: Returns Orbit Response.
+      properties:
+        data:
+          type: array
+          description: Returns Orbit Response.
+          items:
+            $ref: '#/components/schemas/OrbitFiles'
+        meta:
+          $ref: '#/components/schemas/meta'
+    pagination:
+      title: PaginationItems
+      description: List of pagination objects
+      type: object
+      properties:
+        total:
+          description: Total number of files the API returns for a particular query.
+          type: integer
+        isEstimatedTotal:
+          description: Boolean value that represents whether the total count of files returned is exact or an estimate. This is defaulted to “False” as the API should always return the exact count.
+          type: boolean
+    orbithistoryResponse:
+      type: object
+      title: Orbit History Response
+      description: Returns History Response
+      properties:
+        data:
+          type: array
+          description: Returns History Response
+          items:
+            $ref: '#/components/schemas/OrbitHistoryFiles'
+        meta:
+          $ref: '#/components/schemas/meta'
+  examples:
+    ErrorDetails:
+      summary: sample error response
+      value:
+        errors:
+        - code: Bad Request
+          title: parameterError:['_paginationLimit'] is not a valid parameter(s)
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    AuthErrorDetails:
+      summary: sample error response
+      value:
+        errors:
+        - code: Not Authenticated
+          title: Unauthenticated USERNAME-SERIAL
+          id: fd5a51ff-02cf-48ec-b9b1-913d64863b0
+    sampleOrbitHistoryResponse:
+      summary: Sample Response
+      value:
+        data:
+        - fileName: 2020_02.tar.gz
+          fileSize: 228331
+          url: https://fdss3-unstructured-data-delivery-orbit-v2-prod.s3.amazonaws.com/archive/2020_03.tar.gz?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA6B6XG7VEXROQV7QX%2F20220307%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20220307T125658Z&X-Amz-Expires=1800&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjED0aCXVzLWVhc3QtMSJHMEUCIAFtVRo9geiTlmJhMYKRm6ib0FV87h7w58OD8BZ6KAfMAiEAwGjtb4h4FN%2BzcelveEVPYi2nKOya8%2FcmsQ%2BVkPT3CpkqmwIIpv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARABGgw5NjYyODIxMTY0MjUiDNIC4BziKIboJ5JbXyrvAZyq%2FfQ9T6b6YBBwjmkQwN0cZkIAlbaMARS1bRK8myFICyLqUQfR0p5rWy%2FNGNsXQfHpKPK2v1Pa4Fbwef3dXEGISTeOr4uTFv6zXdA%2BB3gxFB7PPIiFNEuClf3%2FErpeJj1PAJwlzWXH1M0XxR4S%2FtlSwxdXN3F48zxr2YfBl3nWtjPW7Bg%2FTLSlQLWHMd7a5JRheVsJ2eEei7V5FLXN3c3Sp%2BRVX7TSzVgiGq8hzy5VkKhUI0onlvgA4HgAqvZZiJGa%2BjgxMcfkHOfjZiD5JO0U5yIsUayKRsJLqF69q2aaKi9ht3zav2%2BIU17h5rOHMJiCmJEGOpoBkYiceR6PceySRwrB%2F6HEfOC%2Fw4tibsVVvvXEKtluftgqxFfXVr6XQ%2B%2BO%2FwkP3TI7ty1D%2BMN9ia0bxRr6flrviBmZ%2BMr2zbgGZQ8fuHeQS0VTK%2BD9flFTYST%2F6TtN90r21BTI1JQ58kFtBZ3zPDvB1TWenv1DylogGfjAjreNQiQEUTnlU2C%2BsOYx6KVarBLVfrchUkgPcSTCmg%3D%3D&X-Amz-Signature=055c05b0bdf84426eb501089b924cf0683b19c0dba00c7201c802f257259219b
+        meta:
+          pagination:
+            total: 206
+            isEstimatedTotal: false
+    sampleOrbitResponse:
+      summary: Sample Response
+      value:
+        data:
+        - stockCode: '601236'
+          eventStartDateTime: '2020-08-05T14:47:29Z'
+          eventEndDateTime: '2020-08-05T08:47:29Z'
+          typesOfInvestorRelationsActivities: brd
+          transcriptUniqueId: d934bc7c-d81a-31ac-9fb2-aab33576ee8f
+          uploadTime: '2020-08-12T03:54:57Z'
+          title: 'Huafeng spandex: record of investor relations activities of Zhejiang Huafeng spandex Co., Ltd'
+          exchangeCode: XSHE
+          versionId: 1
+          fileName: 002064-d934bc7c-d81a-31ac-9fb2-aab33576ee8f-en-2020080522.json
+          fileTimestamp: '2020-08-05T22:00:00Z'
+          updateTimestamp: '2020-08-24T06:52:02Z'
+          url: https://fdss3-unstructured-data-delivery-orbit.s3.amazonaws.com/2020/08/002137-a54c077f-b6bf-3adc-b8bd-5b1916a4afe0-ch-2020080518.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA4NAFRGHDB4T2AAGA%2F20200826%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20200826T070219Z&X-Amz-Expires=600&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOf%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJGMEQCIHjFdEYooDJ49iNGzEXM6bfDH5%2FhGu2ENWdfc0VGJ0UZAiBUokGCU%2BU0FM1mSHXoPb5BFYqY2HOt%2FNZOJ2Hgfg4IqyrSAQjQ%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F8BEAAaDDg1MjU2MjYyMDg3MCIMUyM10oEUavPMlRRCKqYBdMSLi6yZzjRSwDpWDxeBR%2Fcy2zm1bZECZpHbcB15qiVNRRFWD8qkVHW4fLzvCsEH%2BG49Lnh0Y6BvZtLPWQcNIqX6cXAuaiWCqU2C6LEjFnQEC5M4z45lFBCkkMZpAyhziGT7mfb4kt06z3eqfiOSS1fY1yJbNZ7j2A33QqZj84zOCCLfocHYfrO%2FFLyIkvWJfpnWOVGuNkFzq5JqyIiVL9xDSpEf9jD6kJj6BTrhAZ8b0VUvskzU4sdzszImy03%2Bsb2sF6pEAp8pH2M0uhxPUZLvPssXIrfP6We9Offfnj%2FJplU850N2tj88%2BeZXeDPCNLJLSWNvQePsBCVCZRNQNHCqTA6KMAlZ6qVhcwe4lklw7sWKZgfbo7DoHimgPhv8MqKv8sbBwAh%2B8A1pcGP5QKnsvEqj69nFICs0JbC7voAZRMdl7lUZ0yi03LElFGQAWjpSlMiqj%2Bh6gSwAPuc2uzKECGuRW%2B8UO4O6AMZn%2BGtDifMZI729GqwgdoPfM3%2BSiUV8vlslgZ2ebaPhr3oYRw%3D%3D&X-Amz-Signature=a25b4ceffd67dc38d9021d9f3346f60bcb07501205484ec92c15a523839fbeaf
+        meta:
+          pagination:
+            total: 4730
+            isEstimatedTotal: false
+    AuthorizationErrorDetails:
+      summary: sample error response
+      value:
+        errors:
+        - code: Forbidden
+          title: USERNAME-SERIAL does not have permission
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    serverErrorDetails:
+      summary: sample error response
+      value:
+        errors:
+        - code: Internal server error
+          title: An unexpected error happened
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

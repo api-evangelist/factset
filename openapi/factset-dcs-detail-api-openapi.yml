@@ -1,0 +1,660 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Dcs Detail API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Dcs Detail
+paths:
+  /dcs-detail:
+    get:
+      tags:
+      - Dcs Detail
+      operationId: getDcsDetail
+      summary: Factset Debt Capital Structure (DCS)
+      parameters:
+      - name: id
+        in: query
+        description: Company ticker
+        required: true
+        schema:
+          type: string
+          example: FDS
+      - name: schema
+        in: query
+        description: 'The schema that the data is returned as. The following are descriptions for the accepted values:
+
+          - table_group_level - STACH 2.0 row organized package format with parent-child relationships represented using STACH group level cell metadata
+
+          - table_parent_child_columns - STACH 2.0 row organized package format with parent-child relationships represented using STACH parent-child columns
+
+          '
+        required: false
+        schema:
+          type: string
+          enum:
+          - table_group_level
+          - table_parent_child_columns
+          default: table_parent_child_columns
+      responses:
+        '200':
+          $ref: '#/components/responses/200OKStach'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+        '429':
+          $ref: '#/components/responses/429TooManyRequests'
+        '500':
+          $ref: '#/components/responses/500InternalServerError'
+        '503':
+          $ref: '#/components/responses/503ServiceUnavailable'
+components:
+  schemas:
+    Meta:
+      type: object
+      additionalProperties:
+        type: string
+        nullable: true
+    ErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorObject'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Response:
+      type: object
+      properties:
+        data:
+          title: STACH
+          description: Returns a STACH 2.0 row organized package
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ErrorObject:
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        title:
+          type: string
+        links:
+          type: object
+          properties:
+            about:
+              type: string
+        detail:
+          type: string
+        source:
+          type: object
+          properties:
+            parameter:
+              type: string
+  responses:
+    401Unauthorized:
+      description: Missing or invalid authentication. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For further assistance, file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    429TooManyRequests:
+      description: Too many requests - this API is rate-limited to 20 requests per second. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    200OKStach:
+      description: Expected response; returns JSON data containing STACH 2.0 row organized package format
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+        Api-Supported-Versions:
+          schema:
+            type: string
+          description: Supported API major versions
+        Api-Version:
+          schema:
+            type: string
+          description: API version (semantic versioning)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Response'
+          examples:
+            groupLevelResponse:
+              $ref: '#/components/examples/groupLevelResponse'
+            parentChildColumnsResponse:
+              $ref: '#/components/examples/parentChildColumnsResponse'
+    404NotFound:
+      description: Not found. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            endpointNotFound:
+              $ref: '#/components/examples/endpointNotFound'
+    403Forbidden:
+      description: User is forbidden access with current credentials. Reach out to your local FactSet Account Manager for assistance, or file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            notAuthorized:
+              $ref: '#/components/examples/notAuthorized'
+    503ServiceUnavailable:
+      description: Service unavailable. Typically a timeout, or result of a rejected request to prevent service overload. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    400BadRequest:
+      description: Bad Request. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+        Api-Supported-Versions:
+          schema:
+            type: string
+          description: Supported API major versions
+        Api-Version:
+          schema:
+            type: string
+          description: API version (semantic versioning)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            idRequiredParameterError:
+              $ref: '#/components/examples/idRequiredParameterError'
+            idInvalidParameterError:
+              $ref: '#/components/examples/idInvalidParameterError'
+            schemaInvalidParameterError:
+              $ref: '#/components/examples/schemaInvalidParameterError'
+    500InternalServerError:
+      description: Server error. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            genericServerError:
+              $ref: '#/components/examples/genericServerError'
+  examples:
+    notAuthorized:
+      summary: not authorized
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: notAuthorized
+          title: User is forbidden access with current credentials. For access, contact your FactSet sales representative
+    groupLevelResponse:
+      summary: (sample table group level columns response)
+      description: Subset of rows and columns for an example response
+      value:
+        data:
+          version: '2.0'
+          tables:
+            main:
+              headersDefinition:
+                columns:
+                - id: detailTableHeader
+                  type: string
+                  isDimension: true
+              definition:
+                columns:
+                - id: description
+                  type: string
+                  isDimension: true
+                - id: instrumentID
+                  type: string
+                - id: balanceSheetAmountOutstanding
+                  type: real
+                - id: currentAmountOutstanding
+                  type: real
+                - id: couponRate
+                  type: real
+                - id: couponType
+                  type: string
+                - id: issueDate
+                  type: string
+                - id: maturityDate
+                  type: string
+                - id: issueCurrency
+                  type: string
+                - id: seniority
+                  type: string
+                - id: price
+                  type: real
+                - id: ytw
+                  type: real
+                - id: oas
+                  type: real
+              data:
+                rows:
+                - rowType: Header
+                  cells:
+                  - Description
+                  - Instrument ID
+                  - Balance Sheet Amount Outstanding
+                  - Current Amount Outstanding
+                  - Coupon Rate
+                  - Coupon Type
+                  - Issue Date
+                  - Maturity Date
+                  - Issue Currency
+                  - Seniority
+                  - Price
+                  - YTW (Yield to Worst)
+                  - OAS (LIBOR)
+                  headerCellDetails:
+                    '0':
+                      source: HEADERS
+                      columnIndex: 0
+                    '1':
+                      source: HEADERS
+                      columnIndex: 0
+                    '2':
+                      source: HEADERS
+                      columnIndex: 0
+                    '3':
+                      source: HEADERS
+                      columnIndex: 0
+                    '4':
+                      source: HEADERS
+                      columnIndex: 0
+                    '5':
+                      source: HEADERS
+                      columnIndex: 0
+                    '6':
+                      source: HEADERS
+                      columnIndex: 0
+                    '7':
+                      source: HEADERS
+                      columnIndex: 0
+                    '8':
+                      source: HEADERS
+                      columnIndex: 0
+                    '9':
+                      source: HEADERS
+                      columnIndex: 0
+                    '10':
+                      source: HEADERS
+                      columnIndex: 0
+                    '11':
+                      source: HEADERS
+                      columnIndex: 0
+                    '12':
+                      source: HEADERS
+                      columnIndex: 0
+                - cells:
+                  - Notes/Bonds
+                  - null
+                  - 47848
+                  - 47848
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                  cellDetails:
+                    '0':
+                      groupLevel: 0
+                - cells:
+                  - Industrial Development Revenue Bonds
+                  - DCS8073841
+                  - 2461
+                  - 2461
+                  - 1.388
+                  - null
+                  - null
+                  - 12/2051
+                  - USD
+                  - SNR Sec
+                  - null
+                  - null
+                  - null
+                  cellDetails:
+                    '0':
+                      groupLevel: 1
+                - cells:
+                  - Mobil Corp
+                  - 607059AT9
+                  - 250
+                  - 250
+                  - 8.625
+                  - Fixed
+                  - 08/1991
+                  - 08/2021
+                  - USD
+                  - SNR Unsec
+                  - 104.388
+                  - 0.462109129944423
+                  - 28.7109583146608
+                  cellDetails:
+                    '0':
+                      groupLevel: 1
+                columnMetadata:
+                  balanceSheetAmountOutstanding:
+                    items:
+                      currencyCode:
+                        value: USD
+                      scale:
+                        value: 6
+                  currentAmountOutstanding:
+                    items:
+                      currencyCode:
+                        value: USD
+                      scale:
+                        value: 6
+                  price:
+                    items:
+                      currencyCode:
+                        value: USD
+                  couponRate:
+                    items:
+                      valueType:
+                        value: PERCENTAGE
+                  ytw:
+                    items:
+                      valueType:
+                        value: PERCENTAGE
+                  oas:
+                    items:
+                      valueType:
+                        value: PERCENTAGE
+        meta:
+          requestId: 002Q0G-E
+          fsymId: QG1HR7-R
+          schema: table_group_level
+    idInvalidParameterError:
+      summary: generic parameter error (invalid parameter)
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Invalid parameter(s): ''id'''
+    parentChildColumnsResponse:
+      summary: (sample table parent child columns response)
+      description: Subset of rows and columns for an example STACH 2.0 row organized table with parent-child columns
+      value:
+        data:
+          version: '2.0'
+          tables:
+            main:
+              headersDefinition:
+                columns:
+                - id: detailTableHeader
+                  type: string
+                  isDimension: true
+              definition:
+                columns:
+                - id: description1
+                  type: string
+                  isDimension: true
+                - id: description2
+                  type: string
+                  isDimension: true
+                  parentId: description1
+                - id: description3
+                  type: string
+                  isDimension: true
+                  parentId: description2
+                - id: instrumentID
+                  type: string
+                - id: balanceSheetAmountOutstanding
+                  type: real
+                - id: currentAmountOutstanding
+                  type: real
+                - id: couponRate
+                  type: real
+                - id: couponType
+                  type: string
+                - id: issueDate
+                  type: string
+                - id: maturityDate
+                  type: string
+                - id: issueCurrency
+                  type: string
+                - id: seniority
+                  type: string
+                - id: price
+                  type: real
+                - id: ytw
+                  type: real
+                - id: oas
+                  type: real
+              data:
+                rows:
+                - rowType: Header
+                  cells:
+                  - Description
+                  - null
+                  - null
+                  - Instrument ID
+                  - Balance Sheet Amount Outstanding
+                  - Current Amount Outstanding
+                  - Coupon Rate
+                  - Coupon Type
+                  - Issue Date
+                  - Maturity Date
+                  - Issue Currency
+                  - Seniority
+                  - Price
+                  - YTW (Yield to Worst)
+                  - OAS (LIBOR)
+                  headerCellDetails:
+                    '0':
+                      source: HEADERS
+                      columnIndex: 0
+                    '1':
+                      source: PRIMARY
+                      columnIndex: 1
+                    '2':
+                      source: PRIMARY
+                      columnIndex: 2
+                    '3':
+                      source: HEADERS
+                      columnIndex: 0
+                    '4':
+                      source: HEADERS
+                      columnIndex: 0
+                    '5':
+                      source: HEADERS
+                      columnIndex: 0
+                    '6':
+                      source: HEADERS
+                      columnIndex: 0
+                    '7':
+                      source: HEADERS
+                      columnIndex: 0
+                    '8':
+                      source: HEADERS
+                      columnIndex: 0
+                    '9':
+                      source: HEADERS
+                      columnIndex: 0
+                    '10':
+                      source: HEADERS
+                      columnIndex: 0
+                    '11':
+                      source: HEADERS
+                      columnIndex: 0
+                    '12':
+                      source: HEADERS
+                      columnIndex: 0
+                    '13':
+                      source: HEADERS
+                      columnIndex: 0
+                    '14':
+                      source: HEADERS
+                      columnIndex: 0
+                - cells:
+                  - Notes/Bonds
+                  - null
+                  - null
+                  - null
+                  - 47848
+                  - 47848
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                - cells:
+                  - Notes/Bonds
+                  - Industrial Development Revenue Bonds
+                  - null
+                  - DCS8073841
+                  - 2461
+                  - 2461
+                  - 1.388
+                  - null
+                  - null
+                  - 12/2051
+                  - USD
+                  - SNR Sec
+                  - null
+                  - null
+                  - null
+                  rowMetadata:
+                    interimAmtOutChg:
+                      value: true
+                - cells:
+                  - Notes/Bonds
+                  - Mobil Corp
+                  - null
+                  - 607059AT9
+                  - 250
+                  - 250
+                  - 8.625
+                  - Fixed
+                  - 08/1991
+                  - 08/2021
+                  - USD
+                  - SNR Unsec
+                  - 105.37265
+                  - 0.34193928774702
+                  - 13.6422446732113
+                columnMetadata:
+                  balanceSheetAmountOutstanding:
+                    items:
+                      currencyCode:
+                        value: USD
+                      scale:
+                        value: 6
+                  currentAmountOutstanding:
+                    items:
+                      currencyCode:
+                        value: USD
+                      scale:
+                        value: 6
+                  price:
+                    items:
+                      currencyCode:
+                        value: USD
+                  couponRate:
+                    items:
+                      valueType:
+                        value: PERCENTAGE
+                  ytw:
+                    items:
+                      valueType:
+                        value: PERCENTAGE
+                  oas:
+                    items:
+                      valueType:
+                        value: PERCENTAGE
+        meta:
+          requestId: 002Q0G-E
+          fsymId: QG1HR7-R
+          schema: table_parent_child_columns
+    endpointNotFound:
+      summary: endpoint not found
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: endpointNotFound
+          title: The requested endpoint does not exist.
+    genericServerError:
+      summary: generic server error
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: genericServerError
+          title: Unexpected error processing request
+    idRequiredParameterError:
+      summary: generic parameter error (missing parameter)
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Missing required parameter(s): ''id'''
+    schemaInvalidParameterError:
+      summary: generic parameter error (invalid parameter)
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Invalid parameter(s): ''schema'''
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

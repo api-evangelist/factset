@@ -1,0 +1,185 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Catalog API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Catalog
+paths:
+  /v1/catalog/categories:
+    get:
+      tags:
+      - Catalog
+      summary: Factset Get a list of chart categories
+      operationId: getCategoryList
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryListResponse'
+        '400':
+          description: Bad Input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoriesErrorResponse'
+  /v1/catalog/charts:
+    get:
+      tags:
+      - Catalog
+      summary: Factset Get a list of chart templates that can be used for getting the image from the service.
+      description: You can get all the charts present or can just get the information by categories. The response includes the name of the chart, description, tags and any additional input specific to that chart. Use the information from this response to determine what charts you want and get its image from /images endpoint. Additionally you can also get back a auto generated PDF for the categories you requested for.
+      operationId: getChartList
+      parameters:
+      - in: query
+        name: categories
+        required: false
+        description: A comma delimited string of catgory names to limit the response to certain categories. If nothing is provided, all charts under every category would be listed out.
+        schema:
+          type: string
+      - in: query
+        name: type
+        description: return type of the response
+        required: false
+        schema:
+          type: string
+          enum:
+          - json
+          - pdf
+        example: json
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategorizedChartList'
+            application/pdf:
+              schema:
+                $ref: '#/components/schemas/CatalogPDF'
+        '400':
+          description: Bad Input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChartListErrorResponse'
+components:
+  schemas:
+    ChartList:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the chart
+          example: RSI
+        description:
+          type: string
+          description: A short description about the chart and its contents
+          example: This chart requires a ticker
+        tags:
+          type: array
+          items:
+            type: string
+          description: A list of tags to classify the chart. This is being done so that users can easily group them if required.
+          example:
+          - price
+          - intraday
+        inputs:
+          type: array
+          description: List of additional inputs for the chart
+          items:
+            $ref: '#/components/schemas/ChartInput'
+    ChartListErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          enum:
+          - Invalid Category Name(s)
+          - Unable to build chart-list
+    CategoriesErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: No categories found
+    CategoryListResponse:
+      type: array
+      items:
+        type: string
+        description: Chart categories available for user.
+      example:
+      - commodities
+      - equity
+      - fx
+      - interest_rates
+      - market_analysis
+      - options
+    ChartInput:
+      type: object
+      properties:
+        in:
+          type: string
+          enum:
+          - query
+          - param
+          description: How to apply the additional input. Would be often via query parameter which can be appended to the request with &
+        name:
+          type: string
+          description: The name of the parameter
+          example: tz
+        required:
+          type: boolean
+          description: Whether or not the parameter is required to be specified to get the chart image.
+          example: false
+        description:
+          type: string
+          description: A short description of the input and its use
+          example: Can be used to specify timezone of the chart
+        type:
+          type: string
+          description: The type of value expected for the input
+          example: string
+        example:
+          type: string
+          description: An example value for the input
+          example: America/New_York
+    CatalogPDF:
+      type: string
+      format: binary
+    CategorizedChartList:
+      type: array
+      items:
+        type: object
+        properties:
+          category:
+            type: string
+            example: equity
+            description: Name of the category. This is required when building the request for the chart image.
+          chartList:
+            type: array
+            items:
+              $ref: '#/components/schemas/ChartList'
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

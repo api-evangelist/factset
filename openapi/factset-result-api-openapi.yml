@@ -1,0 +1,2815 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Result API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Result
+paths:
+  /result:
+    post:
+      operationId: getChatResult
+      summary: Factset Retrieve the completed response for your query.
+      description: 'Returns FactSet content and data in response to the query provided to the `/create` endpoint. This endpoint is the final step in the single-question request process.
+
+        Responses contain a combination of Microsoft Adaptive Cards for data/tables and markdown for text.
+
+        '
+      tags:
+      - Result
+      requestBody:
+        description: ID representing the chat process for your query
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatPollingRequest'
+            examples:
+              Example request:
+                $ref: '#/components/examples/ChatPollingRequestExample'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryResponse'
+              examples:
+                Example question:
+                  $ref: '#/components/examples/QueryResponseExample'
+          headers:
+            Api-Supported-Versions:
+              description: Comma-separated list of supported major versions.
+              schema:
+                type: string
+              example: '0'
+            Api-Version:
+              description: Full semantic version of the API.
+              schema:
+                type: string
+              example: 0.1.0
+            RateLimit-Limit:
+              description: Request limit per second.
+              schema:
+                type: integer
+              example: 10
+            RateLimit-Remaining:
+              description: Number of available requests.
+              schema:
+                type: integer
+              example: 9
+            RateLimit-Reset:
+              description: Time remaining (in seconds) until request limit is reset.
+              schema:
+                type: integer
+              example: 1
+            X-RateLimit-Limit-minute:
+              description: Request limit per minute.
+              schema:
+                type: integer
+              example: 300
+            X-RateLimit-Remaining-minute:
+              description: Number of available requests in the current minute.
+              schema:
+                type: integer
+              example: 290
+            X-DataDirect-Request-Key:
+              description: FactSet request ID.
+              schema:
+                type: string
+              example: 65C6BC290A11FB4F
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - You are not properly authenticated for use of this API. Please make sure you are logged in to the developer portal or using a valid API key (managed [here](https://developer.factset.com/manage-api-keys)) for access. If you believe you are seeing this message in error, please reach out to your FactSet Support Team representative.
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/401UnauthorizedError'
+              examples:
+                Example error:
+                  $ref: '#/components/examples/401UnauthorizedErrorExample'
+        '403':
+          description: Forbidden - You do not have the entitlements enabled for this service. Please reach out to your FactSet Support Team representative to receive the proper entitlements.
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/403ForbiddenError'
+              examples:
+                Example error:
+                  $ref: '#/components/examples/403ForbiddenErrorExample'
+        '429':
+          description: Too Many Requests - The /result endpoint is currently rate-limited to 10 requests per second for an individual organization. If you are receiving an unexpected amount of these errors, please contact the API team at [genai.offplatform@factset.com](genai.offplatform@factset.com).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitExceededError'
+              examples:
+                Example error:
+                  $ref: '#/components/examples/RateLimitExceededErrorExample'
+          headers:
+            RateLimit-Limit:
+              description: Request limit per second.
+              schema:
+                type: integer
+              example: 10
+            RateLimit-Remaining:
+              description: Number of available requests.
+              schema:
+                type: integer
+              example: 9
+            RateLimit-Reset:
+              description: Time remaining (in seconds) until request limit is reset.
+              schema:
+                type: integer
+              example: 1
+            Retry-After:
+              description: How long (in seconds) to wait before attempting to send a new request.
+              schema:
+                type: integer
+              example: 1
+            X-RateLimit-Limit-minute:
+              description: Request limit per minute.
+              schema:
+                type: integer
+              example: 300
+            X-RateLimit-Remaining-minute:
+              description: Number of available requests in the current minute.
+              schema:
+                type: integer
+              example: 290
+            X-DataDirect-Request-Key:
+              description: FactSet request ID.
+              schema:
+                type: string
+              example: 65C6BC290A11FB4F
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /analytics/engines/afi/v3/optimizations/{id}/result:
+    get:
+      tags:
+      - Result
+      summary: Factset Get Afi Optimization Result by Id
+      description: This is the endpoint to get the result of a previously requested optimization.
+      operationId: getOptimizationResult
+      parameters:
+      - name: id
+        in: path
+        description: from url, provided from the location header in the Get AFI optimization status by id endpoint
+        required: true
+        schema:
+          type: string
+          description: from url, provided from the location header in the Get AFI optimization status by id endpoint
+      responses:
+        '200':
+          description: Expected response once optimization is completed, returns JSON.
+          headers:
+            Content-Encoding:
+              description: Standard HTTP header. Header value based on Accept-Encoding Request header.
+              schema:
+                type: string
+                description: Standard HTTP header. Header value based on Accept-Encoding Request header.
+            Content-Type:
+              description: Standard HTTP header.
+              schema:
+                type: string
+                description: Standard HTTP header.
+            Transfer-Encoding:
+              description: Standard HTTP header. Header value will be set to Chunked if Accept-Encoding header is specified.
+              schema:
+                type: string
+                description: Standard HTTP header. Header value will be set to Chunked if Accept-Encoding header is specified.
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObjectRoot'
+        '400':
+          description: Invalid identifier provided.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse'
+        '401':
+          description: Missing or invalid authentication.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '403':
+          description: User is forbidden with current credentials
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+        '404':
+          description: Optimization result was already returned, provided id was not a requested optimization, or the optimization was cancelled
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse'
+        '500':
+          description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '503':
+          description: Request timed out. Retry the request in sometime.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+      x-are-multiple-success-responses-different: false
+      x-success-response-types:
+      - status-code: '200'
+        response-type: ObjectRoot
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /analytics/engines/npo/v3/optimizations/{id}/result:
+    get:
+      tags:
+      - Result
+      summary: Factset Get Npo Optimization Result by Id
+      description: This is the endpoint to get the result of a previously requested optimization.
+      operationId: getOptimizationResult
+      parameters:
+      - name: id
+        in: path
+        description: from url, provided from the location header in the Get NPO optimization status by id endpoint
+        required: true
+        schema:
+          type: string
+          description: from url, provided from the location header in the Get NPO optimization status by id endpoint
+      responses:
+        '200':
+          description: Expected response once optimization is completed, returns JSON.
+          headers:
+            Content-Encoding:
+              description: Standard HTTP header. Header value based on Accept-Encoding Request header.
+              schema:
+                type: string
+                description: Standard HTTP header. Header value based on Accept-Encoding Request header.
+            Content-Type:
+              description: Standard HTTP header.
+              schema:
+                type: string
+                description: Standard HTTP header.
+            Transfer-Encoding:
+              description: Standard HTTP header. Header value will be set to Chunked if Accept-Encoding header is specified.
+              schema:
+                type: string
+                description: Standard HTTP header. Header value will be set to Chunked if Accept-Encoding header is specified.
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObjectRoot_2'
+        '400':
+          description: Invalid identifier provided.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_2'
+        '401':
+          description: Missing or invalid authentication.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '403':
+          description: User is forbidden with current credentials
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+        '404':
+          description: Optimization result was already returned, provided id was not a requested optimization, or the optimization was cancelled
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_2'
+        '500':
+          description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '503':
+          description: Request timed out. Retry the request in sometime.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /analytics/engines/pa/v3/calculations/{id}/units/{unitId}/result:
+    get:
+      tags:
+      - Result
+      summary: Factset Get Pa Calculation Result by Id
+      description: "This is the endpoint to get the result of a previously requested calculation.\r\nIf the calculation has finished computing, the body of the response will contain the requested document in JSON."
+      operationId: getCalculationUnitResultById
+      parameters:
+      - name: id
+        in: path
+        description: from url, provided from the location header in the Get PA calculation status by id endpoint
+        required: true
+        schema:
+          type: string
+          description: from url, provided from the location header in the Get PA calculation status by id endpoint
+      - name: unitId
+        in: path
+        description: from url, provided from the location header in the Get PA calculation status by id endpoint
+        required: true
+        schema:
+          type: string
+          description: from url, provided from the location header in the Get PA calculation status by id endpoint
+      responses:
+        '200':
+          description: Expected response once calculation is completed, returns JSON in the format specified in the Calculation parameters.
+          headers:
+            Content-Encoding:
+              description: Standard HTTP header. Header value based on Accept-Encoding Request header.
+              schema:
+                type: string
+                description: Standard HTTP header. Header value based on Accept-Encoding Request header.
+            Content-Type:
+              description: Standard HTTP header.
+              schema:
+                type: string
+                description: Standard HTTP header.
+            Transfer-Encoding:
+              description: Standard HTTP header. Header value will be set to Chunked if Accept-Encoding header is specified.
+              schema:
+                type: string
+                description: Standard HTTP header. Header value will be set to Chunked if Accept-Encoding header is specified.
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObjectRoot_3'
+            application/x-protobuf:
+              schema:
+                $ref: '#/components/schemas/ObjectRoot_3'
+        '400':
+          description: Invalid identifier provided.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_3'
+            application/x-protobuf:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_3'
+        '401':
+          description: Missing or invalid authentication.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '403':
+          description: User is forbidden with current credentials
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+        '404':
+          description: Calculation was already returned, provided id was not a requested calculation, or the calculation was cancelled
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_3'
+            application/x-protobuf:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_3'
+        '500':
+          description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '503':
+          description: Request timed out. Retry the request in sometime.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /analytics/engines/fpo/v3/optimizations/{id}/result:
+    get:
+      tags:
+      - Result
+      summary: Factset Get Fpo Optimization Result by Id
+      description: "This is the endpoint to get the result of a previously requested optimization.\r\nIf the optimization has finished computing, the body of the response will contain result in JSON."
+      operationId: getOptimizationResult
+      parameters:
+      - name: id
+        in: path
+        description: from url, provided from the location header in the Get FPO optimization status by id endpoint
+        required: true
+        schema:
+          type: string
+          description: from url, provided from the location header in the Get FPO optimization status by id endpoint
+      - name: Accept
+        in: header
+        description: Standard HTTP header. Value can be gzip, compress, deflate, br, identity and/or *
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Expected response once optimization is completed, returns JSON.
+          headers:
+            Content-Encoding:
+              description: Standard HTTP header. Header value based on Accept-Encoding Request header.
+              schema:
+                type: string
+                description: Standard HTTP header. Header value based on Accept-Encoding Request header.
+            Content-Type:
+              description: Standard HTTP header.
+              schema:
+                type: string
+                description: Standard HTTP header.
+            Transfer-Encoding:
+              description: Standard HTTP header. Header value will be set to Chunked if Accept-Encoding header is specified.
+              schema:
+                type: string
+                description: Standard HTTP header. Header value will be set to Chunked if Accept-Encoding header is specified.
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObjectRoot_4'
+        '400':
+          description: Invalid identifier provided.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_4'
+        '401':
+          description: Missing or invalid authentication.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '403':
+          description: User is forbidden with current credentials
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+        '404':
+          description: Optimization result was already returned, provided id was not a requested optimization, or the optimization was cancelled
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_4'
+        '500':
+          description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '503':
+          description: Request timed out. Retry the request in sometime.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /batch/v1/result:
+    get:
+      tags:
+      - Result
+      summary: Factset Returns the Response for a Batch Request
+      description: Returns the response data for the underlying batch request that is specified by the id.
+      operationId: getBatchData
+      parameters:
+      - $ref: '#/components/parameters/batchId'
+      responses:
+        '200':
+          description: Request Response Object when batch request has completed and response is created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchDataResponse'
+              examples:
+                Price of AAPL as of March 29 2019:
+                  $ref: '#/components/examples/singleSecurityPrices'
+                Prices for AAPL and TSLA as of March 29th 2019:
+                  $ref: '#/components/examples/twoSecuritiesPrices'
+                One Month of Daily Prices for AAPL in March 2019:
+                  $ref: '#/components/examples/oneMonthSecurityPrices'
+        '202':
+          description: Batch Request has not finished and the result has NOT been created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchStatusResponse'
+              examples:
+                Batch Request Queued:
+                  $ref: '#/components/examples/BatchStatusQueuedResponse'
+                Batch Request Executing:
+                  $ref: '#/components/examples/BatchStatusExecutingResponse'
+        '404':
+          $ref: '#/components/responses/404'
+      deprecated: false
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      tags:
+      - Result
+      summary: Factset Returns the Response for a Batch Request
+      description: 'Return the response data for the underlying batch request that is specified by the id. '
+      operationId: getBatchDataWithPost
+      requestBody:
+        description: Batch Data Request Post Body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchDataRequest'
+            examples:
+              Batch Data Request:
+                $ref: '#/components/examples/BatchDataRequest'
+        required: true
+      responses:
+        '200':
+          description: Request Response Object when batch request has completed and response is created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchDataResponse'
+              examples:
+                Price of AAPL as of March 29 2019:
+                  $ref: '#/components/examples/singleSecurityPrices'
+                Prices for AAPL and TSLA as of March 29th 2019:
+                  $ref: '#/components/examples/twoSecuritiesPrices'
+                One Month of Daily Prices for AAPL in March 2019:
+                  $ref: '#/components/examples/oneMonthSecurityPrices'
+        '202':
+          description: Batch Request has not finished and the result has NOT been created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchStatusResponse'
+              examples:
+                Batch Request Queued:
+                  $ref: '#/components/examples/BatchStatusQueuedResponse'
+                Batch Request Executing:
+                  $ref: '#/components/examples/BatchStatusExecutingResponse'
+        '404':
+          $ref: '#/components/responses/404'
+      deprecated: false
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /analytics/engines/pub/v3/calculations/{id}/units/{unitId}/result:
+    get:
+      tags:
+      - Result
+      summary: Factset Get Pub Calculation Result by Id
+      description: "This is the endpoint to get the result of a previously requested calculation.\r\nIf the calculation has finished computing, the body of the response will contain the requested document in the specified format."
+      operationId: getCalculationUnitResultById
+      parameters:
+      - name: id
+        in: path
+        description: from url, provided from the location header in the Get Pub calculation status by id endpoint
+        required: true
+        schema:
+          type: string
+          description: from url, provided from the location header in the Get Pub calculation status by id endpoint
+      - name: unitId
+        in: path
+        description: from url, provided from the location header in the Get Pub calculation status by id endpoint
+        required: true
+        schema:
+          type: string
+          description: from url, provided from the location header in the Get Pub calculation status by id endpoint
+      - name: Accept
+        in: header
+        description: Standard HTTP header. Value can be gzip, compress, deflate, br, identity and/or *
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Expected response once calculation is completed, returns result in the format specified in the Calculation parameters.
+          headers:
+            Content-Encoding:
+              description: Standard HTTP header. Header value based on Accept-Encoding Request header.
+              schema:
+                type: string
+                description: Standard HTTP header. Header value based on Accept-Encoding Request header.
+            Content-Type:
+              description: Standard HTTP header.
+              schema:
+                type: string
+                description: Standard HTTP header.
+            Transfer-Encoding:
+              description: Standard HTTP header. Header value will be set to Chunked if Accept-Encoding header is specified.
+              schema:
+                type: string
+                description: Standard HTTP header. Header value will be set to Chunked if Accept-Encoding header is specified.
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObjectRoot_5'
+            application/x-protobuf:
+              schema:
+                $ref: '#/components/schemas/ObjectRoot_5'
+            application/pdf:
+              schema:
+                $ref: '#/components/schemas/ObjectRoot_5'
+        '400':
+          description: Invalid identifier provided.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_5'
+            application/x-protobuf:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_5'
+            application/pdf:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_5'
+        '401':
+          description: Missing or invalid authentication.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '403':
+          description: User is forbidden with current credentials
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+        '404':
+          description: Calculation was already returned, provided id was not a requested calculation, or the calculation was cancelled
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_5'
+            application/x-protobuf:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_5'
+            application/pdf:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_5'
+        '500':
+          description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '503':
+          description: Request timed out. Retry the request in sometime.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /calculations/{id}/units/{unitId}/result:
+    get:
+      tags:
+      - Result
+      summary: Factset Get Quant Engine Calculation Result by Id
+      description: "This is the endpoint to get the result of a previously requested calculation.\r\nIf the calculation has finished computing, the body of the response will contain the requested document in JSON."
+      operationId: getCalculationUnitResultById
+      parameters:
+      - name: id
+        in: path
+        description: from url, provided from the location header in the Get Quant Engine calculation status by id endpoint
+        required: true
+        schema:
+          type: string
+          description: from url, provided from the location header in the Get Quant Engine calculation status by id endpoint
+      - name: unitId
+        in: path
+        description: from url, provided from the location header in the Get Quant Engine calculation status by id endpoint
+        required: true
+        schema:
+          type: string
+          description: from url, provided from the location header in the Get Quant Engine calculation status by id endpoint
+      responses:
+        '200':
+          description: Expected response once calculation is completed, returns JSON in the format specified in the Calculation parameters.
+          headers:
+            Content-Encoding:
+              description: Standard HTTP header. Header value based on Accept-Encoding Request header.
+              schema:
+                type: string
+                description: Standard HTTP header. Header value based on Accept-Encoding Request header.
+            Content-Type:
+              description: Standard HTTP header.
+              schema:
+                type: string
+                description: Standard HTTP header.
+            Transfer-Encoding:
+              description: Standard HTTP header. Header value will be set to Chunked if Accept-Encoding header is specified.
+              schema:
+                type: string
+                description: Standard HTTP header. Header value will be set to Chunked if Accept-Encoding header is specified.
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+            application/x-protobuf:
+              schema:
+                type: string
+                format: binary
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Invalid identifier provided.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_6'
+            application/x-protobuf:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_6'
+            application/octet-stream:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_6'
+        '401':
+          description: Missing or invalid authentication.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '403':
+          description: User is forbidden with current credentials
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+        '404':
+          description: Calculation was already returned, provided id was not a requested calculation, or the calculation was cancelled
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_6'
+            application/x-protobuf:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_6'
+            application/octet-stream:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_6'
+        '500':
+          description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '503':
+          description: Request timed out. Retry the request in sometime.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /analytics/engines/spar/v3/calculations/{id}/units/{unitId}/result:
+    get:
+      tags:
+      - Result
+      summary: Factset Get Spar Calculation Result by Id
+      description: "This is the endpoint to get the result of a previously requested calculation.\r\nIf the calculation has finished computing, the body of the response will contain the requested document in JSON."
+      operationId: getCalculationUnitResultById
+      parameters:
+      - name: id
+        in: path
+        description: from url, provided from the location header in the Get SPAR calculation status by id endpoint
+        required: true
+        schema:
+          type: string
+          description: from url, provided from the location header in the Get SPAR calculation status by id endpoint
+      - name: unitId
+        in: path
+        description: from url, provided from the location header in the Get SPAR calculation status by id endpoint
+        required: true
+        schema:
+          type: string
+          description: from url, provided from the location header in the Get SPAR calculation status by id endpoint
+      responses:
+        '200':
+          description: Expected response once calculation is completed, returns JSON in the format specified in the Calculation parameters.
+          headers:
+            Content-Encoding:
+              description: Standard HTTP header. Header value based on Accept-Encoding Request header.
+              schema:
+                type: string
+                description: Standard HTTP header. Header value based on Accept-Encoding Request header.
+            Content-Type:
+              description: Standard HTTP header.
+              schema:
+                type: string
+                description: Standard HTTP header.
+            Transfer-Encoding:
+              description: Standard HTTP header. Header value will be set to Chunked if Accept-Encoding header is specified.
+              schema:
+                type: string
+                description: Standard HTTP header. Header value will be set to Chunked if Accept-Encoding header is specified.
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObjectRoot_6'
+            application/x-protobuf:
+              schema:
+                $ref: '#/components/schemas/ObjectRoot_6'
+        '400':
+          description: Invalid identifier provided.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_7'
+            application/x-protobuf:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_7'
+        '401':
+          description: Missing or invalid authentication.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '403':
+          description: User is forbidden with current credentials
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+        '404':
+          description: Calculation was already returned, provided id was not a requested calculation, or the calculation was cancelled
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_7'
+            application/x-protobuf:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_7'
+        '500':
+          description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '503':
+          description: Request timed out. Retry the request in sometime.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /analytics/engines/vault/v3/calculations/{id}/units/{unitId}/result:
+    get:
+      tags:
+      - Result
+      summary: Factset Get Vault Calculation Result by Id
+      description: "This is the endpoint to get the result of a previously requested calculation.\r\nIf the calculation has finished computing, the body of the response will contain the requested document in JSON."
+      operationId: getCalculationUnitResultById
+      parameters:
+      - name: id
+        in: path
+        description: from url, provided from the location header in the Get Vault calculation status by id endpoint
+        required: true
+        schema:
+          type: string
+          description: from url, provided from the location header in the Get Vault calculation status by id endpoint
+      - name: unitId
+        in: path
+        description: from url, provided from the location header in the Get Vault calculation status by id endpoint
+        required: true
+        schema:
+          type: string
+          description: from url, provided from the location header in the Get Vault calculation status by id endpoint
+      responses:
+        '200':
+          description: Expected response once calculation is completed, returns JSON in the format specified in the Calculation parameters.
+          headers:
+            Content-Encoding:
+              description: Standard HTTP header. Header value based on Accept-Encoding Request header.
+              schema:
+                type: string
+                description: Standard HTTP header. Header value based on Accept-Encoding Request header.
+            Content-Type:
+              description: Standard HTTP header.
+              schema:
+                type: string
+                description: Standard HTTP header.
+            Transfer-Encoding:
+              description: Standard HTTP header. Header value will be set to Chunked if Accept-Encoding header is specified.
+              schema:
+                type: string
+                description: Standard HTTP header. Header value will be set to Chunked if Accept-Encoding header is specified.
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObjectRoot_7'
+            application/x-protobuf:
+              schema:
+                $ref: '#/components/schemas/ObjectRoot_7'
+        '400':
+          description: Invalid identifier provided.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_8'
+            application/x-protobuf:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_8'
+        '401':
+          description: Missing or invalid authentication.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '403':
+          description: User is forbidden with current credentials
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+        '404':
+          description: Calculation was already returned, provided id was not a requested calculation, or the calculation was cancelled
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_8'
+            application/x-protobuf:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse_8'
+        '500':
+          description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '503':
+          description: Request timed out. Retry the request in sometime.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    Error_8:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+          example: abc123
+        code:
+          type: string
+          nullable: true
+          example: example_value
+        title:
+          type: string
+          nullable: true
+          example: Example Title
+        detail:
+          type: string
+          nullable: true
+          example: example_value
+        source:
+          $ref: '#/components/schemas/ErrorSource_4'
+    ErrorSource_5:
+      type: object
+      properties:
+        pointer:
+          type: string
+          nullable: true
+          example: example_value
+        parameter:
+          type: string
+          nullable: true
+          example: example_value
+    ObjectRoot_5:
+      type: object
+      properties:
+        data:
+          type: object
+          example: example_value
+    OpenActiveGraph:
+      type: object
+      properties:
+        action:
+          type: string
+          enum:
+          - OpenActiveGraph
+        label:
+          type: string
+        xml:
+          type: string
+    ErrorObject:
+      description: Represents a single error, with error name and identifiers
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        code:
+          type: string
+    ObjectRoot_3:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          example: example_value
+        meta:
+          nullable: true
+          example: example_value
+    ChatPollingRequest:
+      description: Request body containing the chat conversation ID
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            conversationId:
+              type: string
+              format: uuid
+    ClientErrorResponse_2:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error_3'
+          example: []
+    BatchStatus:
+      title: Batch Status
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: the id of batch request.
+          example: abc123
+        startTime:
+          type: string
+          format: date-time
+          description: Time when the batch request is started. This is in Eastern Time Zone. The date-time format is expressed as [YYYY-MM-DD]T[HH:MM:SSS], following ISO 8601.
+          example: '2026-01-15T10:30:00Z'
+        endTime:
+          type: string
+          format: date-time
+          description: Time when the batch request is ended. This is in Eastern Time Zone. The date-time format is expressed as [YYYY-MM-DD]T[HH:MM:SSS], following ISO 8601.
+          example: '2026-01-15T10:30:00Z'
+        status:
+          type: string
+          enum:
+          - QUEUED
+          - EXECUTING
+          - DONE
+          - FAILED
+          example: QUEUED
+        error:
+          type: string
+          example: Invalid Parameter (s)- curr. Please modify your request to use parameters outlined in the specification for this endpoint.
+          description: Error message.
+    Error_6:
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        detail:
+          type: string
+          example: example_value
+        source:
+          $ref: '#/components/schemas/ErrorSource'
+    NextStep:
+      description: 'NextStep: A serialized list of `action` items, which are directives to a front-end application to perform a certain task i.e. open a FactSet application or component, download an Excel file.
+
+        '
+      type: array
+      items:
+        anyOf:
+        - $ref: '#/components/schemas/OpenComponent'
+        - $ref: '#/components/schemas/OpenUrl'
+        - $ref: '#/components/schemas/OpenActiveGraph'
+    Error_2:
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        detail:
+          type: string
+          example: example_value
+        source:
+          $ref: '#/components/schemas/ErrorSource'
+    Error_3:
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        detail:
+          type: string
+          example: example_value
+        source:
+          $ref: '#/components/schemas/ErrorSource'
+    Error_4:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+          example: abc123
+        code:
+          type: string
+          nullable: true
+          example: example_value
+        title:
+          type: string
+          nullable: true
+          example: Example Title
+        detail:
+          type: string
+          nullable: true
+          example: example_value
+        source:
+          $ref: '#/components/schemas/ErrorSource_2'
+    FederationDataValue:
+      oneOf:
+      - $ref: '#/components/schemas/String'
+      - $ref: '#/components/schemas/AdaptiveCard'
+      - $ref: '#/components/schemas/NextStep'
+    ClientErrorResponse_6:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error_7'
+          nullable: true
+          example: []
+    ErrorSource_3:
+      type: object
+      properties:
+        pointer:
+          type: string
+          nullable: true
+          example: example_value
+        parameter:
+          type: string
+          nullable: true
+          example: example_value
+    401UnauthorizedError:
+      description: Error response for a user without authentication to use the API.
+      type: string
+    BatchData:
+      title: Batch Data
+      description: 'The schema for the batched result is determined by the endpoint you used with the _batch_ parameter.
+
+        Please see the schema for that endpoint for the definition.
+
+        '
+      type: object
+    QueryResponse:
+      description: Query response body containing data from FactSet's Mercury LLM and metadata describing the model interaction
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/FederationData'
+      required:
+      - data
+    RateLimitExceededError:
+      description: Error response when rate limit has been exceeded.
+      type: object
+      properties:
+        message:
+          type: string
+          enum:
+          - API rate limit exceeded
+    Error:
+      description: Wrapper containing metadata and appropriate errors as thrown by the API
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorObject'
+    ObjectRoot_2:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          example: example_value
+    errorResponse:
+      type: object
+      title: Error Response
+      properties:
+        status:
+          description: status
+          type: string
+          example: Bad Request
+        timestamp:
+          description: timestamp in YYYY-MM-DD HH:MM:SS.SSS
+          type: string
+          example: '2019-11-01 11:09:41.918'
+          format: date-time
+        path:
+          description: The Endpoint path {package}/version/{endpoint}
+          type: string
+          example: /factset-prices/v1/prices
+        message:
+          description: The plain text error message
+          type: string
+          example: Validation Error
+        subErrors:
+          description: subErrors related to the error message. Null if not applicable.
+          type: object
+          properties:
+            object:
+              description: the operation ID
+              type: string
+            field:
+              description: Parameter Field Name
+              type: string
+            message:
+              description: Error message
+              type: string
+            rejectedValue:
+              description: Rejected Values in an Array
+              type: array
+              items:
+                type: string
+          example: example_value
+    FederationData:
+      description: Data surfaced by processing the query through FactSet Mercury. Contains financial data, if accessible and available, as well as natural language answer to the query
+      type: object
+      properties:
+        type:
+          description: 'Data type contained in the FederationData value.
+
+            '
+          type: string
+          enum:
+          - string
+          - AdaptiveCard
+          - NextStep
+          nullable: true
+        value:
+          $ref: '#/components/schemas/FederationDataValue'
+    Error_5:
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        detail:
+          type: string
+          example: example_value
+        source:
+          $ref: '#/components/schemas/ErrorSource'
+    ObjectRoot_7:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          example: example_value
+        meta:
+          nullable: true
+          example: example_value
+    OpenUrl:
+      type: object
+      properties:
+        action:
+          type: string
+          enum:
+          - OpenUrl
+        label:
+          type: string
+        category:
+          type: string
+        url:
+          type: object
+          properties:
+            fdsup:
+              type: string
+            http:
+              type: string
+    ClientErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error_2'
+          example: []
+    ErrorSource_2:
+      type: object
+      properties:
+        pointer:
+          type: string
+          nullable: true
+          example: example_value
+        parameter:
+          type: string
+          nullable: true
+          example: example_value
+    ObjectRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          example: example_value
+        meta:
+          type: object
+          example: example_value
+    ClientErrorResponse_5:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error_6'
+          example: []
+    ClientErrorResponse_4:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error_5'
+          example: []
+    ObjectRoot_4:
+      type: object
+      properties:
+        data:
+          type: object
+          example: example_value
+    BatchDataRequest:
+      title: Batch Data Request
+      type: object
+      required:
+      - id
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+          description: Batch Request identifier.
+    ErrorSource:
+      type: object
+      properties:
+        pointer:
+          type: string
+          example: example_value
+        parameter:
+          type: string
+          example: example_value
+    ErrorSource_4:
+      type: object
+      properties:
+        pointer:
+          type: string
+          nullable: true
+          example: example_value
+        parameter:
+          type: string
+          nullable: true
+          example: example_value
+    OpenComponent:
+      type: object
+      properties:
+        action:
+          type: string
+          enum:
+          - OpenComponent
+        name:
+          type: string
+        label:
+          type: string
+        category:
+          type: string
+        parameters:
+          type: object
+        report:
+          type: object
+          properties:
+            fdsup:
+              type: string
+            http:
+              type: string
+    ClientErrorResponse_8:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error_9'
+          nullable: true
+          example: []
+    AdaptiveCard:
+      description: 'AdaptiveCard: Microsoft Adaptive Card containing response data surfaced from FactSet content sets. `Value` property of parent FederationData contains a JSON serialized presentation of a Microsoft Adaptive Card. See [Microsoft docs](https://learn.microsoft.com/en-us/adaptive-cards/) for Adaptive Card documentation, and the [Adaptive Card schema explorer](https://adaptivecards.io/explorer/) for schema details.
+
+        '
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            type:
+              type: string
+            version:
+              type: string
+          required:
+          - type
+          - version
+          additionalProperties: true
+    ClientErrorResponse_3:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error_4'
+          nullable: true
+          example: []
+    BatchStatusResponse:
+      title: Batch Status Response
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/BatchStatus'
+    403ForbiddenError:
+      description: Error response for a user without entitlements to the API.
+      type: string
+    String:
+      description: 'String: Chat response to the query. Provides an answer to the question or references further attached data. `Value` property of parent FederationData contains a string with natural language.
+
+        '
+      type: string
+    BatchDataResponse:
+      title: Batch Data Response
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/BatchData'
+    ClientErrorResponse_7:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error_8'
+          nullable: true
+          example: []
+    ObjectRoot_6:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          example: example_value
+        meta:
+          nullable: true
+          example: example_value
+    Error_7:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+          example: abc123
+        code:
+          type: string
+          nullable: true
+          example: example_value
+        title:
+          type: string
+          nullable: true
+          example: Example Title
+        detail:
+          type: string
+          nullable: true
+          example: example_value
+        source:
+          $ref: '#/components/schemas/ErrorSource_3'
+    Error_9:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+          example: abc123
+        code:
+          type: string
+          nullable: true
+          example: example_value
+        title:
+          type: string
+          nullable: true
+          example: Example Title
+        detail:
+          type: string
+          nullable: true
+          example: example_value
+        source:
+          $ref: '#/components/schemas/ErrorSource_5'
+  examples:
+    singleSecurityPrices:
+      summary: Single Price Record for AAPL as of March 29 2019
+      description: Single Price Record for AAPL
+      value:
+        data:
+        - fsymId: MH33D6-R
+          date: '2019-03-29'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 189.95
+          priceOpen: 189.83
+          priceHigh: 190.08
+          priceLow: 188.54
+          volume: 23563.96
+          requestId: AAPL
+    notFound:
+      summary: Not Found
+      description: The requested item was not found.
+      value:
+        status: Not Found
+        timestamp: '2020-06-12T16:08:51.731Z'
+        path: /batch/v1/status
+        message: The Batch Request was not found. It has probably expired.
+        subErrors: null
+    oneMonthSecurityPrices:
+      summary: One month of daily prices for AAPL for March 2019
+      description: One month of daily open, high, low, and close end-of-day prices and volume for AAPL for March 2019.
+      value:
+        data:
+        - fsymId: MH33D6-R
+          date: '2019-03-01'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 174.97
+          priceOpen: 174.28
+          priceHigh: 175.15
+          priceLow: 172.89
+          volume: 25886.17
+          requestId: AAPL
+        - fsymId: MH33D6-R
+          date: '2019-03-04'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 175.85
+          priceOpen: 175.69
+          priceHigh: 177.75
+          priceLow: 173.97
+          volume: 27436.2
+          requestId: AAPL
+        - fsymId: MH33D6-R
+          date: '2019-03-05'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 175.53
+          priceOpen: 175.94
+          priceHigh: 176
+          priceLow: 174.54
+          volume: 19737.42
+          requestId: AAPL
+        - fsymId: MH33D6-R
+          date: '2019-03-06'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 174.52
+          priceOpen: 174.67
+          priceHigh: 175.49
+          priceLow: 173.94
+          volume: 20810.38
+          requestId: AAPL
+        - fsymId: MH33D6-R
+          date: '2019-03-07'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 172.5
+          priceOpen: 173.87
+          priceHigh: 174.44
+          priceLow: 172.02
+          volume: 24796.37
+          requestId: AAPL
+        - fsymId: MH33D6-R
+          date: '2019-03-08'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 172.91
+          priceOpen: 170.32
+          priceHigh: 173.07
+          priceLow: 169.5
+          volume: 23999.36
+          requestId: AAPL
+        - fsymId: MH33D6-R
+          date: '2019-03-11'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 178.9
+          priceOpen: 175.49
+          priceHigh: 179.12
+          priceLow: 175.35
+          volume: 32011.03
+          requestId: AAPL
+        - fsymId: MH33D6-R
+          date: '2019-03-12'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 180.91
+          priceOpen: 180
+          priceHigh: 182.67
+          priceLow: 179.37
+          volume: 32467.58
+          requestId: AAPL
+        - fsymId: MH33D6-R
+          date: '2019-03-13'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 181.71
+          priceOpen: 182.25
+          priceHigh: 183.3
+          priceLow: 180.92
+          volume: 31032.52
+          requestId: AAPL
+        - fsymId: MH33D6-R
+          date: '2019-03-14'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 183.73
+          priceOpen: 183.9
+          priceHigh: 184.1
+          priceLow: 182.56
+          volume: 23579.51
+          requestId: AAPL
+        - fsymId: MH33D6-R
+          date: '2019-03-15'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 186.12
+          priceOpen: 184.85
+          priceHigh: 187.33
+          priceLow: 183.74
+          volume: 39042.91
+          requestId: AAPL
+        - fsymId: MH33D6-R
+          date: '2019-03-18'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 188.02
+          priceOpen: 185.8
+          priceHigh: 188.39
+          priceLow: 185.79
+          volume: 26219.83
+          requestId: AAPL
+        - fsymId: MH33D6-R
+          date: '2019-03-19'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 186.53
+          priceOpen: 188.35
+          priceHigh: 188.99
+          priceLow: 185.92
+          volume: 31646.37
+          requestId: AAPL
+        - fsymId: MH33D6-R
+          date: '2019-03-20'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 188.16
+          priceOpen: 186.23
+          priceHigh: 189.49
+          priceLow: 184.73
+          volume: 31035.23
+          requestId: AAPL
+        - fsymId: MH33D6-R
+          date: '2019-03-21'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 195.09
+          priceOpen: 190.02
+          priceHigh: 196.33
+          priceLow: 189.81
+          volume: 51034.24
+          requestId: AAPL
+        - fsymId: MH33D6-R
+          date: '2019-03-22'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 191.05
+          priceOpen: 195.34
+          priceHigh: 197.69
+          priceLow: 190.78
+          volume: 42407.67
+          requestId: AAPL
+        - fsymId: MH33D6-R
+          date: '2019-03-25'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 188.74
+          priceOpen: 191.51
+          priceHigh: 191.98
+          priceLow: 186.6
+          volume: 43845.29
+          requestId: AAPL
+        - fsymId: MH33D6-R
+          date: '2019-03-26'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 186.79
+          priceOpen: 191.664
+          priceHigh: 192.88
+          priceLow: 184.58
+          volume: 49800.54
+          requestId: AAPL
+        - fsymId: MH33D6-R
+          date: '2019-03-27'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 188.47
+          priceOpen: 188.75
+          priceHigh: 189.76
+          priceLow: 186.55
+          volume: 29848.43
+          requestId: AAPL
+        - fsymId: MH33D6-R
+          date: '2019-03-28'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 188.72
+          priceOpen: 188.95
+          priceHigh: 189.559
+          priceLow: 187.53
+          volume: 20780.36
+          requestId: AAPL
+        - fsymId: MH33D6-R
+          date: '2019-03-29'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 189.95
+          priceOpen: 189.83
+          priceHigh: 190.08
+          priceLow: 188.54
+          volume: 23563.96
+          requestId: AAPL
+    RateLimitExceededErrorExample:
+      value:
+        message: API rate limit exceeded
+    403ForbiddenErrorExample:
+      value: 'Client does not have the required CACCESS: {00QAI}, Request key: 65CA96B3129489A6'
+    twoSecuritiesPrices:
+      summary: Price Records for AAPL and TSLA as of March 29 2019
+      description: Price Records for AAPL and TSLA as of March 29 2019
+      value:
+        data:
+        - fsymId: MH33D6-R
+          date: '2019-03-29'
+          adjDate: '2014-06-09'
+          currency: USD
+          price: 189.95
+          priceOpen: 189.83
+          priceHigh: 190.08
+          priceLow: 188.54
+          volume: 23563.96
+          requestId: AAPL
+        - fsymId: Q2YN1N-R
+          date: '2019-03-29'
+          adjDate: null
+          currency: USD
+          price: 279.86
+          priceOpen: 278.7
+          priceHigh: 280.16
+          priceLow: 274.5
+          volume: 5991.338
+          requestId: TSLA
+    401UnauthorizedErrorExample:
+      value: Authentication Failed
+    ChatPollingRequestExample:
+      value:
+        data:
+          conversationId: 9c1031c2-5463-47ae-81b3-126a68f0c2a6
+    QueryResponseExample:
+      value:
+        data:
+          id: 9c1031c2-5463-47ae-81b3-126a68f0c2a6
+          data:
+          - type: string
+            value: These banks are ranked to compare the percentage of commercial real estate (CRE) loans to their total loan portfolios to show which have the least exposure to the downturn in commercial occupancy rates.
+          - type: AdaptiveCard
+            value:
+              type: AdaptiveCard
+              version: '1.3'
+              body:
+              - type: TextBlock
+                size: large
+                weight: lighter
+                text: Tesla, Inc. (TSLA-US)
+              - type: ColumnSet
+                columns:
+                - type: Column
+                  width: auto
+                  items:
+                  - type: TextBlock
+                    size: extraLarge
+                    text: $619.4 B
+                  verticalContentAlignment: bottom
+                  spacing: extraLarge
+                - type: Column
+                  width: auto
+                  items:
+                  - type: TextBlock
+                    size: medium
+                    color: light
+                    text: Enterprise Value
+                  verticalContentAlignment: bottom
+                  spacing: extraLarge
+              - type: Image
+                url: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iMTgwIiB2aWV3Qm94PSIwIDAgNDAwIDE4MCI+PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDQwMCAxODAiIHN0eWxlPSJwb3NpdGlvbjogYWJzb2x1dGU7IHBvaW50ZXItZXZlbnRzOiBub25lOyBsZWZ0OiAwcHg7IHRvcDogMHB4OyI+PGRlZnM+PGNsaXBQYXRoIGlkPSJDTElQMCI+PHBhdGggZD0iTSA1IDExIEwgMzUyIDExIEwgMzUyIDE1MiBMIDUgMTUyIFoiLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iQ0xJUDEiPjxwYXRoIGQ9Ik0gNSAxMSBMIDM1MiAxMSBMIDM1MiAxNTIgTCA1IDE1MiBaIi8+PC9jbGlwUGF0aD48L2RlZnM+PGcgbGluZS1taXRlcj0iNCIgc3R5bGU9InRyYW5zZm9ybTogc2NhbGUoMSwgMSk7Ij48ZyBvcGFjaXR5PSIwLjIiPjxwYXRoIGQ9Ik0gNS41IDE1MiBMIDUuNSAxMSBNIDg3LjUgMTUyIEwgODcuNSAxMSBNIDE2OS41IDE1MiBMIDE2OS41IDExIE0gMjUwLjUgMTUyIEwgMjUwLjUgMTEgTSAzMzIuNSAxNTIgTCAzMzIuNSAxMSBNIDUgMTUyLjUgTCAzNTIgMTUyLjUgTSA1IDEzMi41IEwgMzUyIDEzMi41IE0gNSAxMTIuNSBMIDM1MiAxMTIuNSBNIDUgOTIuNSBMIDM1MiA5Mi41IE0gNSA3MS41IEwgMzUyIDcxLjUgTSA1IDUxLjUgTCAzNTIgNTEuNSBNIDUgMzEuNSBMIDM1MiAzMS41IE0gNSAxMS41IEwgMzUyIDExLjUiIGZpbGw9Im5vbmUiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyIgc3Ryb2tlPSJyZ2IoMTA5LDExNywxMzYpIiBzdHJva2Utd2lkdGg9IjEiLz48cGF0aCBkPSJNIDUgMTUyLjUgTCAzNTIgMTUyLjUiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiKDUxLDYzLDc2KSIgc3Ryb2tlLXdpZHRoPSIxIi8+PHBhdGggZD0iTSA1LjUgMTYxIEwgNS41IDE1MiBNIDg3LjUgMTYxIEwgODcuNSAxNTIgTSAxNjkuNSAxNjEgTCAxNjkuNSAxNTIgTSAyNTAuNSAxNjEgTCAyNTAuNSAxNTIgTSAzMzIuNSAxNjEgTCAzMzIuNSAxNTIgTSA1LjUgMTU3IEwgNS41IDE1MiBNIDI1LjUgMTU3IEwgMjUuNSAxNTIgTSA0Ni41IDE1NyBMIDQ2LjUgMTUyIE0gNjYuNSAxNTcgTCA2Ni41IDE1MiBNIDg3LjUgMTU3IEwgODcuNSAxNTIgTSAxMDcuNSAxNTcgTCAxMDcuNSAxNTIgTSAxMjcuNSAxNTcgTCAxMjcuNSAxNTIgTSAxNDguNSAxNTcgTCAxNDguNSAxNTIgTSAxNjkuNSAxNTcgTCAxNjkuNSAxNTIgTSAxODkuNSAxNTcgTCAxODkuNSAxNTIgTSAyMDkuNSAxNTcgTCAyMDkuNSAxNTIgTSAyMzAuNSAxNTcgTCAyMzAuNSAxNTIgTSAyNTAuNSAxNTcgTCAyNTAuNSAxNTIgTSAyNzEuNSAxNTcgTCAyNzEuNSAxNTIgTSAyOTEuNSAxNTcgTCAyOTEuNSAxNTIgTSAzMTEuNSAxNTcgTCAzMTEuNSAxNTIgTSAzMzIuNSAxNTcgTCAzMzIuNSAxNTIgTSAzNTIuNSAxNTcgTCAzNTIuNSAxNTIiIGZpbGw9Im5vbmUiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyIgc3Ryb2tlPSJyZ2IoMTA5LDExNywxMzYpIiBzdHJva2Utd2lkdGg9IjEiLz48cGF0aCBkPSJNIDM1Mi41IDE1MiBMIDM1Mi41IDExIiBmaWxsPSJub25lIiBzdHJva2U9InJnYig1MSw2Myw3NikiIHN0cm9rZS13aWR0aD0iMSIvPjxwYXRoIGQ9Ik0gMzUyIDE1Mi41IEwgMzYxIDE1Mi41IE0gMzUyIDEzMi41IEwgMzYxIDEzMi41IE0gMzUyIDExMi41IEwgMzYxIDExMi41IE0gMzUyIDkyLjUgTCAzNjEgOTIuNSBNIDM1MiA3MS41IEwgMzYxIDcxLjUgTSAzNTIgNTEuNSBMIDM2MSA1MS41IE0gMzUyIDMxLjUgTCAzNjEgMzEuNSBNIDM1MiAxMS41IEwgMzYxIDExLjUiIGZpbGw9Im5vbmUiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyIgc3Ryb2tlPSJyZ2IoMTA5LDExNywxMzYpIiBzdHJva2Utd2lkdGg9IjEiLz48L2c+PHRleHQgeD0iMzkiIHk9IjE3My41IiBmaWxsPSJyZ2IoOTYsMTEyLDEyMykiIGZvbnQtZmFtaWx5PSImcXVvdDtXb3JrIFNhbnMmcXVvdDssIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTAiPicyMDwvdGV4dD48dGV4dCB4PSIxMjIiIHk9IjE3My41IiBmaWxsPSJyZ2IoOTYsMTEyLDEyMykiIGZvbnQtZmFtaWx5PSImcXVvdDtXb3JrIFNhbnMmcXVvdDssIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTAiPicyMTwvdGV4dD48dGV4dCB4PSIyMDIuNSIgeT0iMTczLjUiIGZpbGw9InJnYig5NiwxMTIsMTIzKSIgZm9udC1mYW1pbHk9IiZxdW90O1dvcmsgU2FucyZxdW90Oywgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMCI+JzIyPC90ZXh0Pjx0ZXh0IHg9IjI4My41IiB5PSIxNzMuNSIgZmlsbD0icmdiKDk2LDExMiwxMjMpIiBmb250LWZhbWlseT0iJnF1b3Q7V29yayBTYW5zJnF1b3Q7LCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEwIj4nMjM8L3RleHQ+PHRleHQgeD0iMzgzLjUiIHk9IjE1NS41IiBmaWxsPSJyZ2IoOTYsMTEyLDEyMykiIGZvbnQtZmFtaWx5PSImcXVvdDtXb3JrIFNhbnMmcXVvdDssIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTAiPjA8L3RleHQ+PHRleHQgeD0iMzcxLjUiIHk9IjEzNC41IiBmaWxsPSJyZ2IoOTYsMTEyLDEyMykiIGZvbnQtZmFtaWx5PSImcXVvdDtXb3JrIFNhbnMmcXVvdDssIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTAiPjIwMDwvdGV4dD48dGV4dCB4PSIzNzEuNSIgeT0iMTE0LjUiIGZpbGw9InJnYig5NiwxMTIsMTIzKSIgZm9udC1mYW1pbHk9IiZxdW90O1dvcmsgU2FucyZxdW90Oywgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMCI+NDAwPC90ZXh0Pjx0ZXh0IHg9IjM3MS41IiB5PSI5NC41IiBmaWxsPSJyZ2IoOTYsMTEyLDEyMykiIGZvbnQtZmFtaWx5PSImcXVvdDtXb3JrIFNhbnMmcXVvdDssIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTAiPjYwMDwvdGV4dD48dGV4dCB4PSIzNzEuNSIgeT0iNzQuNSIgZmlsbD0icmdiKDk2LDExMiwxMjMpIiBmb250LWZhbWlseT0iJnF1b3Q7V29yayBTYW5zJnF1b3Q7LCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEwIj44MDA8L3RleHQ+PHRleHQgeD0iMzY1LjUiIHk9IjU0LjUiIGZpbGw9InJnYig5NiwxMTIsMTIzKSIgZm9udC1mYW1pbHk9IiZxdW90O1dvcmsgU2FucyZxdW90Oywgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMCI+MSwwMDA8L3RleHQ+PHRleHQgeD0iMzY1LjUiIHk9IjM0LjUiIGZpbGw9InJnYig5NiwxMTIsMTIzKSIgZm9udC1mYW1pbHk9IiZxdW90O1dvcmsgU2FucyZxdW90Oywgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMCI+MSwyMDA8L3RleHQ+PHRleHQgeD0iMzY0LjUiIHk9IjE0LjUiIGZpbGw9InJnYig5NiwxMTIsMTIzKSIgZm9udC1mYW1pbHk9IiZxdW90O1dvcmsgU2FucyZxdW90Oywgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMCI+MSw0MDA8L3RleHQ+PGcgY2xpcC1wYXRoPSJ1cmwoI0NMSVAxKSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNSwgMTEpIj48cGF0aCBkPSJNIDEwIDEyOCBMIDMwIDExNSBMIDUxIDg5IEwgNzEgNTYgTCA5MiA2MiBMIDExMiA2MCBMIDEzMiA0OSBMIDE1MyAxNCBMIDE3MyAxMiBMIDE5NCA2MSBMIDIxNCA0MSBMIDIzNSA5OSBMIDI1NSA2OCBMIDI3NSA0OCBMIDI5NiA1MiBMIDMxNiA1MyBMIDMzNiA3OCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2IoMzMsMTQ4LDI1NSkiIHN0cm9rZS13aWR0aD0iMiIvPjwvZz48L2c+PC9nPjwvc3ZnPjxzdmcgd2lkdGg9IjQwMCIgaGVpZ2h0PSIxODAiIHZpZXdCb3g9IjAgMCA0MDAgMTgwIiBzdHlsZT0icG9zaXRpb246IGFic29sdXRlOyBwb2ludGVyLWV2ZW50czogbm9uZTsgbGVmdDogMHB4OyB0b3A6IDBweDsiLz48c3ZnIHdpZHRoPSI0MDAiIGhlaWdodD0iMTgwIiB2aWV3Qm94PSIwIDAgNDAwIDE4MCIgc3R5bGU9InBvc2l0aW9uOiBhYnNvbHV0ZTsgcG9pbnRlci1ldmVudHM6IG5vbmU7IGxlZnQ6IDBweDsgdG9wOiAwcHg7Ii8+PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDQwMCAxODAiIHN0eWxlPSJwb3NpdGlvbjogYWJzb2x1dGU7IHBvaW50ZXItZXZlbnRzOiBub25lOyBsZWZ0OiAwcHg7IHRvcDogMHB4OyIvPjwvc3ZnPg==
+              - type: TextBlock
+                size: small
+                color: light
+                isSubtle: true
+                text: As of 06 Feb 2024
+          - type: NextStep
+            value:
+            - action: OpenComponent
+              name: fusion component name
+              label: View All 50 Banks by CRE % of Total Loans
+              category: Company/Security
+              parameters:
+                key1: value1
+                key2: value2
+              report:
+                fdsup: fdsup://...
+                http: http://...
+            - action: OpenActiveGraph
+              label: Download as Active Graph
+              xml: <XML to output an Excel file>
+            - action: OpenUrl
+              label: Screen for Similar Companies
+              category: Screening
+              url:
+                fdsup: fdsup://...
+                http: http://...
+    BatchDataRequest:
+      description: Batch Data Request
+      value:
+        id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+    BatchStatusQueuedResponse:
+      description: Batch Status Queued Response
+      value:
+        data:
+          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+          status: QUEUED
+          startTime: '2021-06-29T18:34:52.168Z'
+          endTime: null
+          error: null
+    BatchStatusExecutingResponse:
+      description: Batch Status Executing Response
+      value:
+        data:
+          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+          status: EXECUTING
+          startTime: '2021-06-29T18:34:52.168Z'
+          endTime: null
+          error: null
+  parameters:
+    batchId:
+      name: id
+      in: query
+      description: Batch Request identifier.
+      schema:
+        type: string
+        format: uuid
+      required: true
+      allowEmptyValue: false
+  responses:
+    '404':
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Batch Request Not Found:
+              $ref: '#/components/examples/notFound'
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

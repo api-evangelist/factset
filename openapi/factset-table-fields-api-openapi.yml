@@ -1,0 +1,142 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Table_fields API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Table_fields
+paths:
+  /navigator/table_fields/{Table_id}:
+    get:
+      tags:
+      - Table_fields
+      summary: Factset Get the List of Fields Associated With a Table for Navigator, and the Code Information for the Specified Data Item, if Applicable.
+      parameters:
+      - in: path
+        required: true
+        name: Table_id
+        description: The id for the Table to fetch the fields for.
+        schema:
+          type: string
+      - in: query
+        name: DataItem_id
+        description: The id for the DataItem. This is required in case the data item is represented as a code in Standard DataFeeds.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TableCodeFieldInfoResponse'
+        '401':
+          description: You are not authorized to view this page.
+        '404':
+          description: The specified Table_id was not found.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    TableCodeFieldInfoResponse:
+      type: object
+      properties:
+        codeInfo:
+          $ref: '#/components/schemas/TableCodeInfo'
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/TableField'
+          example: []
+        entitled:
+          type: boolean
+          example: true
+      required:
+      - codeInfo
+      - fields
+    TableCodeInfo:
+      properties:
+        dataItemIsCode:
+          type: boolean
+          example: true
+          description: Flag indicating if the field is represented as a code in Standard DataFeeds
+        codeFieldId:
+          type: string
+          example: '9019'
+          description: Unique identifier for the code
+        codeString:
+          type: string
+          example: ACCESS_LINES
+          description: String value for the code as it appears in Standard DataFeeds
+    TableField:
+      properties:
+        id:
+          type: string
+          example: '1335'
+          description: Unique identifier for a combination of table and data field
+        dataItemId:
+          type: string
+          example: '1778'
+          description: Unique identifier for the data item
+        name:
+          type: string
+          example: fsym_id
+          description: Name of the data field
+        dataType:
+          type: string
+          example: CHAR(8)
+          description: Data type of the data field
+        position:
+          type: integer
+          example: 1
+          description: Column position of the data field within the table
+        isPrimaryKey:
+          type: boolean
+          example: false
+          description: Flag indicating if the data field is a primary key.
+        nullable:
+          type: boolean
+          example: false
+          description: Flag indicating if a data field is nullable
+        hasCodeDependency:
+          type: boolean
+          example: false
+          description: Flag indicating if the field's value is determined by a code value in its row. The monetary, splitAffected and unitFactor fields for that value will also be inherited from the code.
+        monetary:
+          type: boolean
+          example: false
+          description: Flag indicating if the data field contained in this TableField is monetary. If true, this field can have exchange rates applied to convert to other currencies
+        splitAffected:
+          type: boolean
+          example: true
+          description: Flag indicating if the data field contained in this TableField can be affected by splits
+        unitFactor:
+          type: string
+          example: None
+          description: Factor to indicate what units that the data field is displayed in. If null, the field does not need to have a factor applied to obtain the real value
+        description:
+          type: string
+          example: FactSet Security-Level Permanent Identifier
+          description: A description of the data field within the context of its table
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

@@ -1,0 +1,433 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Issuer API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Issuer
+paths:
+  /debtInstrument/issuer/search:
+    post:
+      tags:
+      - Issuer
+      operationId: post/debtInstrument/issuer/search
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: Factset Search for Issuers of Debt Instruments.
+      description: Search for issuers of debt instruments. FactSet does not consolidate the data provided by different suppliers, therefore the result may contain more than one identifier for a given issuer. The response is limited to 100 results.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostDebtInstrumentIssuerSearchRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostDebtInstrumentIssuerSearch200Response'
+      parameters: []
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /securitizedDerivative/issuer/search:
+    post:
+      tags:
+      - Issuer
+      operationId: post/securitizedDerivative/issuer/search
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: Factset Search for Issuers of Securitized Derivatives.
+      description: Search for issuers of securitized derivatives, including issuer groups, which do not represent actual juristic persons, but are defined by FactSet to facilitate searching. FactSet does not consolidate the data provided by different suppliers, therefore the result may contain more than one identifier for a given issuer. The response is limited to 100 results.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostSecuritizedDerivativeIssuerSearchRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostSecuritizedDerivativeIssuerSearch200Response'
+      parameters: []
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  responses:
+    PostSecuritizedDerivativeIssuerSearch200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                nullable: false
+                type: array
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                  - id
+                  - name
+                  - count
+                  properties:
+                    id:
+                      nullable: true
+                      type: number
+                      format: id32
+                      x-positive: true
+                      description: Identifier of the issuer.
+                    name:
+                      nullable: true
+                      type: string
+                      description: Name of the issuer.
+                    count:
+                      nullable: true
+                      type: number
+                      format: int32
+                      description: Number of securitized derivatives issued.
+                description: List of issuers, including issuer groups, sorted descending by the number of securitized derivatives issued.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+    PostDebtInstrumentIssuerSearch200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                nullable: false
+                type: array
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                  - id
+                  - name
+                  - count
+                  properties:
+                    id:
+                      nullable: true
+                      type: number
+                      format: id32
+                      x-positive: true
+                      description: Identifier of an issuer.
+                    name:
+                      nullable: true
+                      type: string
+                      description: Name of the issuer.
+                    count:
+                      nullable: true
+                      type: number
+                      format: int32
+                      description: Number of debt instruments issued.
+                description: List of issuers, sorted descending by the number of debt instruments issued.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+  schemas:
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+        exclusiveMaximum: false
+      maxItems: 50
+      uniqueItems: true
+    PostSecuritizedDerivativeIssuerSearchRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - role
+          - name
+          - category
+          - underlying
+          - factorCertificates
+          - registrationCountry
+          - market
+          description: The data member contains the request's primary data.
+          properties:
+            role:
+              type: string
+              description: Specify whether legal entities in the role of an issuer or in the role of an issuer group are returned.
+              default: issuerGroup
+              x-enum-description:
+              - Legal entities defined by FactSet and thus not representing an actual juristic person.
+              - Legal entities in the role of an issuer representing an actual juristic person.
+              enum:
+              - issuerGroup
+              - issuer
+            name:
+              type: object
+              x-property-sort:
+              - searchValue
+              description: Issuer name.
+              properties:
+                searchValue:
+                  type: string
+                  pattern: ^[ -!#-&(-+--/0-:=?-Za-zw"]*$
+                  minLength: 3
+                  exclusiveMinimum: false
+                  maxLength: 100
+                  exclusiveMaximum: false
+                  description: Text string to be searched for.
+            category:
+              type: object
+              x-property-sort:
+              - ids
+              description: List of categories of securitized derivatives. Only issuers that have issued securitized derivatives belonging to at least one category in the provided list are returned.
+              properties:
+                ids:
+                  type: array
+                  nullable: false
+                  items:
+                    type: number
+                    format: id32
+                    x-positive: true
+                  maxItems: 20
+                  uniqueItems: true
+                  description: List of category identifiers. See endpoint `/category/listBySystem` for category systems 18 and 23 for valid values.
+            underlying:
+              type: object
+              x-property-sort:
+              - instrument
+              description: List of underlyings of securitized derivatives. Only issuers that have issued at least one securitized derivative on an underlying in the provided list are returned.
+              properties:
+                instrument:
+                  type: object
+                  x-property-sort:
+                  - ids
+                  description: Underlying instrument.
+                  properties:
+                    ids:
+                      type: array
+                      nullable: false
+                      items:
+                        type: string
+                        format: id64
+                        x-positive: true
+                      maxItems: 100
+                      uniqueItems: true
+                      description: List of instrument identifiers.
+            factorCertificates:
+              type: object
+              x-property-sort:
+              - effectiveUnderlying
+              description: Parameters for factor certificates.
+              properties:
+                effectiveUnderlying:
+                  type: object
+                  x-property-sort:
+                  - instrument
+                  description: Selection of the effective underlying. The underlying of a factor certificate is usually a factor index which is an artificial index used to calculate the leveraged daily performance of another financial instrument called its effective underlying. Only issuers that have issued at least one factor certificate on an effective underlying in the provided list are returned.
+                  properties:
+                    instrument:
+                      type: object
+                      x-property-sort:
+                      - ids
+                      description: Selection of the effective underlying using instrument identifiers.
+                      properties:
+                        ids:
+                          type: array
+                          nullable: false
+                          items:
+                            type: string
+                            format: id64
+                            x-positive: true
+                          maxItems: 100
+                          uniqueItems: true
+                          description: List of instrument identifiers.
+            registrationCountry:
+              type: object
+              x-property-sort:
+              - ids
+              description: List of countries of registration for trading of securitized derivatives. Only issuers that have registered at least one securitized derivative in a country in the provided list are returned.
+              properties:
+                ids:
+                  type: array
+                  nullable: false
+                  items:
+                    type: number
+                    format: id32
+                    x-positive: true
+                  maxItems: 20
+                  uniqueItems: true
+                  description: List of country identifiers. See endpoint `/basic/region/country/list` for valid values.
+            market:
+              type: object
+              x-property-sort:
+              - ids
+              description: List of markets where securitized derivatives are traded. Only issuers that have issued at least one securitized derivative traded on a market in the provided list are returned.
+              properties:
+                ids:
+                  type: array
+                  nullable: false
+                  items:
+                    type: number
+                    format: id32
+                    x-positive: true
+                  maxItems: 20
+                  uniqueItems: true
+                  description: List of market identifiers. See endpoint `/basic/market/list` for valid values.
+          example: example_value
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+          - attributes
+          example: example_value
+    PostDebtInstrumentIssuerSearchRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - name
+          - minimumRatingGrade
+          - country
+          - market
+          description: The data member contains the request's primary data.
+          properties:
+            name:
+              type: object
+              x-property-sort:
+              - searchValue
+              description: Issuer name.
+              properties:
+                searchValue:
+                  type: string
+                  pattern: ^[ -!#-&(-+--/0-:=?-Za-zw"]*$
+                  minLength: 3
+                  exclusiveMinimum: false
+                  maxLength: 100
+                  exclusiveMaximum: false
+                  description: Text string to be searched for.
+            minimumRatingGrade:
+              type: object
+              x-property-sort:
+              - debtInstrument
+              description: Minimum rating grade requirements for the issuers or their debt instruments. In either case, only one identifier per rating system is allowed. See endpoint `/rating/grade/listBySystem` for valid values.
+              properties:
+                debtInstrument:
+                  type: object
+                  x-property-sort:
+                  - ids
+                  description: Debt instrument rating. Only issuers whose debt instruments are rated higher than or equal to the rating grades in the provided list are returned.
+                  properties:
+                    ids:
+                      type: array
+                      nullable: false
+                      items:
+                        type: number
+                        format: id32
+                        x-positive: true
+                      maxItems: 5
+                      uniqueItems: true
+                      description: List of rating grade identifiers.
+            country:
+              type: object
+              x-property-sort:
+              - ids
+              description: List of countries of registration of the issuers. Only issuers that are registered in a country in the provided list are returned.
+              properties:
+                ids:
+                  type: array
+                  nullable: false
+                  items:
+                    type: number
+                    format: id32
+                    x-positive: true
+                  maxItems: 20
+                  uniqueItems: true
+                  description: List of country identifiers. See endpoint `/basic/region/country/list` for valid values.
+            market:
+              type: object
+              x-property-sort:
+              - ids
+              description: List of markets where debt instruments are traded. Only issuers that have issued at least one debt instrument traded on a market in the provided list are returned.
+              properties:
+                ids:
+                  type: array
+                  nullable: false
+                  items:
+                    type: number
+                    format: id32
+                    x-positive: true
+                  maxItems: 20
+                  uniqueItems: true
+                  description: List of market identifiers. See endpoint `/basic/market/list` for valid values.
+          example: example_value
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+          - attributes
+          example: example_value
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

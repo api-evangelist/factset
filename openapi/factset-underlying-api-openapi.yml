@@ -1,0 +1,760 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Underlying API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Underlying
+paths:
+  /securitizedDerivative/underlying/list:
+    get:
+      tags:
+      - Underlying
+      operationId: get/securitizedDerivative/underlying/list
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: Factset List of Underlyings With Barrier and Cash Flow Information.
+      description: Provides details regarding the underlyings, their respective barriers and related cash flows (if any) of a securitized derivative. A unique combination of a cash flow and related barrier modalities, such as observation and level, is called a condition. In case of a securitized derivative with multiple underlyings, a condition comprises the respective barriers of all underlyings participating in that condition. Since some underlyings, e.g. an index or a performance difference of a stock and an index (alpha structure), do not represent a directly tradable asset, they do not have a price in the classical sense. Therefore, the term "level" is used instead of "price", e.g. underlying level instead of underlying price.
+      parameters:
+      - name: id
+        in: query
+        schema:
+          type: string
+          format: id64
+          x-positive: true
+          description: Identifier of an instrument.
+        required: true
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      - name: _language
+        in: query
+        schema:
+          type: string
+          format: isoLanguage
+          description: ISO 639-1 code of the language.
+          maxLength: 2
+          minLength: 2
+          exclusiveMinimum: false
+          exclusiveMaximum: false
+      responses:
+        '200':
+          $ref: '#/components/responses/GetSecuritizedDerivativeUnderlyingList200Response'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  responses:
+    GetSecuritizedDerivativeUnderlyingList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: Underlying data, barrier conditions, and related cash flows.
+                nullable: false
+                type: object
+                x-property-sort:
+                - underlyings
+                - barrierTypeConditions
+                properties:
+                  underlyings:
+                    nullable: false
+                    type: array
+                    items:
+                      type: object
+                      nullable: false
+                      x-property-sort:
+                      - name
+                      - valueUnit
+                      - operatingMIC
+                      - notation
+                      - coverRatio
+                      - referenceLevel
+                      - constantLeverage
+                      - calculationLevel
+                      properties:
+                        name:
+                          nullable: true
+                          type: string
+                          format: localizedString
+                          description: Name of the underlying, provided also if there is no notation for the underlying.
+                        valueUnit:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - id
+                          - code
+                          description: Value unit of the underlying, provided also if there is no notation for the underlying. See endpoint `/basic/valueUnit/list` for possible values.
+                          properties:
+                            id:
+                              nullable: true
+                              type: number
+                              format: id32
+                              x-positive: true
+                              description: Identifier of the value unit.
+                            code:
+                              nullable: true
+                              type: string
+                              description: Code of the value unit.
+                        operatingMIC:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - id
+                          - isoCode
+                          - name
+                          description: The operating MIC of the underlying. See endpoint `/basic/mic/operating/list` for possible values.
+                          properties:
+                            id:
+                              nullable: true
+                              type: number
+                              format: id32
+                              x-positive: true
+                              description: Identifier of the operating MIC.
+                            isoCode:
+                              nullable: true
+                              type: string
+                              description: ISO 10383 code of the operating MIC.
+                            name:
+                              nullable: true
+                              type: string
+                              description: English name of the operating MIC.
+                        notation:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - id
+                          - fsym
+                          - instrument
+                          description: Notation of the underlying. If there is no notation for the underlying, the object is null.
+                          properties:
+                            id:
+                              nullable: true
+                              type: string
+                              format: id64
+                              x-positive: true
+                              description: Identifier of the notation.
+                            fsym:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - listing
+                              - regional
+                              description: Notation-level FactSet identifiers of the financial instrument used primarily in FactSet products other than the MDG.
+                              properties:
+                                listing:
+                                  nullable: false
+                                  type: object
+                                  x-property-sort:
+                                  - permanentIdentifier
+                                  - tickerExchange
+                                  - isPrimary
+                                  description: Listing-level identifiers.
+                                  properties:
+                                    permanentIdentifier:
+                                      nullable: true
+                                      type: string
+                                      description: FactSet Permanent Identifier for a notation. The format is six alpha numeric characters, excluding vowels, with an L suffix (XXXXXX-L).
+                                    tickerExchange:
+                                      nullable: true
+                                      type: string
+                                      description: 'FactSet market symbol of the notation, usually consisting of the ticker (e.g. "DAI" for Daimler AG) and the three-character code of the exchange on which the listing is traded (example: DAI-ETR).'
+                                    isPrimary:
+                                      nullable: true
+                                      type: boolean
+                                      description: Indicates whether the notation is the primary notation among all notations within the same region (`true`) or not (`false`).
+                                regional:
+                                  nullable: false
+                                  type: object
+                                  x-property-sort:
+                                  - permanentIdentifier
+                                  - tickerRegion
+                                  - isPrimary
+                                  description: Regional-level identifiers.
+                                  properties:
+                                    permanentIdentifier:
+                                      nullable: true
+                                      type: string
+                                      description: FactSet Permanent Identifier for a set of one or more notations of the same region with the same value unit. The format is six alpha numeric characters, excluding vowels, with an R suffix (XXXXXX-R).
+                                    tickerRegion:
+                                      nullable: true
+                                      type: string
+                                      description: 'FactSet regional symbol of the notation, consisting of the ticker and the two-character code of the country or region where the listing is traded (example: DAI-DE).'
+                                    isPrimary:
+                                      nullable: true
+                                      type: boolean
+                                      description: Indicates whether the notation is in the primary region of the security (`true`) or not (`false`).
+                            instrument:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - id
+                              - fsym
+                              - typeComposite
+                              description: Instrument of the underlying.
+                              properties:
+                                id:
+                                  nullable: true
+                                  type: string
+                                  format: id64
+                                  x-positive: true
+                                  description: Identifier of the instrument.
+                                fsym:
+                                  nullable: false
+                                  type: object
+                                  x-property-sort:
+                                  - security
+                                  description: Instrument-level FactSet identifier of the financial instrument used primarily in FactSet products other than the MDG.
+                                  properties:
+                                    security:
+                                      nullable: false
+                                      type: object
+                                      x-property-sort:
+                                      - permanentIdentifier
+                                      description: Security-level identifier.
+                                      properties:
+                                        permanentIdentifier:
+                                          nullable: true
+                                          type: string
+                                          description: FactSet Permanent Identifier for an instrument. The format is six alpha numeric characters, excluding vowels, with an S suffix (XXXXXX-S).
+                                typeComposite:
+                                  nullable: true
+                                  type: string
+                                  description: Type of composite instrument, in case the underlying is a composite instrument.
+                                  x-enum-description:
+                                  - A basket is a composite instrument which consists of several components. Its value is calculated as the weighted combination of the levels of the components. All weights are positive.
+                                  - An alpha structure is a composite instrument which consists of two components. Its value is calculated as the difference of the performances of the components. The performances are measured starting at the date specified in the conditions of the securitized derivative.
+                                  - 'A futures spread is a composite instrument which is built of two or more different futures contracts as its components. '
+                                  - A factor index is a composite instrument that reflects the day-to-day performance of its component, multiplied with a constant factor. The related capital costs and fees for calculation and administration are not represented.
+                                  enum:
+                                  - basket
+                                  - alphaStructure
+                                  - futuresSpread
+                                  - factorIndex
+                        coverRatio:
+                          nullable: true
+                          type: number
+                          format: real
+                          description: 'Cover ratio. It indicates the number of units of the underlying to which the securitized derivative refers. If the underlying is a bond the cover ratio represents the value of one percentage point. '
+                        referenceLevel:
+                          nullable: true
+                          type: number
+                          format: real
+                          description: Level of the underlying on the issue date of the securitized derivative.
+                        constantLeverage:
+                          nullable: true
+                          type: number
+                          format: real
+                          description: Constant leverage of the underlying for securitized derivatives with constant leverage that do not have a factor index as underlying (i.e. the attribute `typeComposite` of the underlying instrument is not set or is different from factorIndex).
+                        calculationLevel:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - value
+                          - time
+                          description: Details of the underlying regarding the calculation of the barrier key figures, see object `distance`.
+                          properties:
+                            value:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Level of the underlying used for calculation.
+                            time:
+                              nullable: true
+                              type: string
+                              format: datetime
+                              description: Date and time of the level of the underlying used for calculation.
+                    description: Information regarding the underlying(s) of the securitized derivative.
+                  barrierTypeConditions:
+                    nullable: false
+                    type: array
+                    items:
+                      type: object
+                      nullable: false
+                      x-property-sort:
+                      - barrierType
+                      - conditions
+                      properties:
+                        barrierType:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - id
+                          - name
+                          description: Barrier type. It defines, among others, a condition with a direct or indirect consequence for the securitized derivative. See endpoint `securitizedDerivative/barrier/type/list` for possible values.
+                          properties:
+                            id:
+                              nullable: true
+                              type: number
+                              format: id32
+                              x-positive: true
+                              description: Identifier of the barrier type.
+                            name:
+                              nullable: true
+                              type: string
+                              description: English name of the barrier type.
+                        conditions:
+                          nullable: false
+                          type: array
+                          items:
+                            type: object
+                            nullable: false
+                            x-property-sort:
+                            - observation
+                            - barriers
+                            - cashFlow
+                            properties:
+                              observation:
+                                nullable: false
+                                type: object
+                                x-property-sort:
+                                - type
+                                - period
+                                description: Barrier observation modality of the condition.
+                                properties:
+                                  type:
+                                    nullable: true
+                                    type: string
+                                    description: Identifier of the type of observation during the observation period.
+                                    x-enum-description:
+                                    - The barrier is active, i.e. observed on a continuous basis (intraday prices are relevant).
+                                    - The barrier is active, i.e. observed  only at the end of the final auction for the underlying on the relevant exchange (intraday prices are of no relevance).
+                                    enum:
+                                    - continuous
+                                    - eod
+                                  period:
+                                    nullable: true
+                                    type: object
+                                    format: dateRange
+                                    properties:
+                                      start:
+                                        nullable: true
+                                        type: string
+                                        format: date
+                                        description: Starting date of the observation period (inclusive).
+                                      end:
+                                        nullable: true
+                                        type: string
+                                        format: date
+                                        description: Ending date of the observation period (inclusive).
+                                    x-property-sort:
+                                    - start
+                                    - end
+                                    required:
+                                    - start
+                                    - end
+                                    description: Observation period.
+                              barriers:
+                                nullable: false
+                                type: array
+                                items:
+                                  type: object
+                                  nullable: false
+                                  x-property-sort:
+                                  - underlyingIndex
+                                  - single
+                                  - range
+                                  properties:
+                                    underlyingIndex:
+                                      nullable: true
+                                      type: number
+                                      format: int32
+                                      description: Index used to identify the underlying associated with that barrier level, in the array `underlyings`, with the first element having index 0.
+                                    single:
+                                      nullable: false
+                                      type: object
+                                      x-property-sort:
+                                      - level
+                                      - breach
+                                      - distance
+                                      - participationFactor
+                                      description: Barrier with a single limit.
+                                      properties:
+                                        level:
+                                          nullable: false
+                                          type: object
+                                          x-property-sort:
+                                          - absolute
+                                          - relative
+                                          description: Level of the barrier.
+                                          properties:
+                                            absolute:
+                                              nullable: true
+                                              type: number
+                                              format: real
+                                              description: Level in absolute terms.
+                                            relative:
+                                              nullable: true
+                                              type: number
+                                              format: relativeValue
+                                              description: Level relative to the underlying level on the issue date of the securitized derivative.
+                                        breach:
+                                          nullable: false
+                                          type: object
+                                          x-property-sort:
+                                          - isBreached
+                                          - datetimeBreach
+                                          description: Information whether or not, and if yes - when a barrier breach has occurred.
+                                          properties:
+                                            isBreached:
+                                              nullable: true
+                                              type: boolean
+                                              description: If set to true, indicates that the barrier has been breached.
+                                            datetimeBreach:
+                                              nullable: true
+                                              type: string
+                                              format: datetime
+                                              description: Date and time of the breach.
+                                        distance:
+                                          nullable: false
+                                          type: object
+                                          x-property-sort:
+                                          - absolute
+                                          - relative
+                                          description: Distance of the barrier level to the current underlying level.
+                                          properties:
+                                            absolute:
+                                              nullable: true
+                                              type: number
+                                              format: real
+                                              description: Distance in absolute terms.
+                                            relative:
+                                              nullable: true
+                                              type: number
+                                              format: relativeValue
+                                              description: Distance relative to the current underlying level.
+                                        participationFactor:
+                                          nullable: false
+                                          type: object
+                                          x-property-sort:
+                                          - positive
+                                          - negative
+                                          description: Participation factor of the securitized derivative in the performance of the underlying, depending on the exercise right (see attribute `exercise.right` in endpoint `/securitizedDerivative/get`).
+                                          properties:
+                                            positive:
+                                              nullable: true
+                                              type: number
+                                              format: real
+                                              description: 'Participation factor above the barrier for a securitized derivative with exercise right call, and below the barrier for exercise right put. '
+                                            negative:
+                                              nullable: true
+                                              type: number
+                                              format: real
+                                              description: Participation factor above the barrier for a securitized derivative with exercise right put, and below the barrier for exercise right call.
+                                    range:
+                                      nullable: false
+                                      type: object
+                                      x-property-sort:
+                                      - upper
+                                      - lower
+                                      description: Range barrier.
+                                      properties:
+                                        upper:
+                                          nullable: false
+                                          type: object
+                                          x-property-sort:
+                                          - level
+                                          - breach
+                                          - distance
+                                          - participationFactor
+                                          description: Upper bound.
+                                          properties:
+                                            level:
+                                              nullable: false
+                                              type: object
+                                              x-property-sort:
+                                              - absolute
+                                              - relative
+                                              description: Level of the upper bound.
+                                              properties:
+                                                absolute:
+                                                  nullable: true
+                                                  type: number
+                                                  format: real
+                                                  description: Level in absolute terms.
+                                                relative:
+                                                  nullable: true
+                                                  type: number
+                                                  format: relativeValue
+                                                  description: Level relative to the underlying level on the issue date of the securitized derivative.
+                                            breach:
+                                              nullable: false
+                                              type: object
+                                              x-property-sort:
+                                              - isBreached
+                                              - datetimeBreach
+                                              description: Information whether or not, and if yes - when a barrier breach has occurred.
+                                              properties:
+                                                isBreached:
+                                                  nullable: true
+                                                  type: boolean
+                                                  description: If set to true, indicates that the upper bound has been breached.
+                                                datetimeBreach:
+                                                  nullable: true
+                                                  type: string
+                                                  format: datetime
+                                                  description: Date and time of the breach.
+                                            distance:
+                                              nullable: false
+                                              type: object
+                                              x-property-sort:
+                                              - absolute
+                                              - relative
+                                              description: Distance of the upper bound to the current underlying level.
+                                              properties:
+                                                absolute:
+                                                  nullable: true
+                                                  type: number
+                                                  format: real
+                                                  description: Distance in absolute terms.
+                                                relative:
+                                                  nullable: true
+                                                  type: number
+                                                  format: relativeValue
+                                                  description: Distance relative to the current underlying level.
+                                            participationFactor:
+                                              nullable: false
+                                              type: object
+                                              x-property-sort:
+                                              - positive
+                                              - negative
+                                              description: Participation factor of the securitized derivative in the performance of the underlying.
+                                              properties:
+                                                positive:
+                                                  nullable: true
+                                                  type: number
+                                                  format: real
+                                                  description: Participation factor above the upper bound.
+                                                negative:
+                                                  nullable: true
+                                                  type: number
+                                                  format: real
+                                                  description: Participation factor below the upper bound.
+                                        lower:
+                                          nullable: false
+                                          type: object
+                                          x-property-sort:
+                                          - level
+                                          - breach
+                                          - distance
+                                          - participationFactor
+                                          description: Lower bound.
+                                          properties:
+                                            level:
+                                              nullable: false
+                                              type: object
+                                              x-property-sort:
+                                              - absolute
+                                              - relative
+                                              description: Level of the lower bound.
+                                              properties:
+                                                absolute:
+                                                  nullable: true
+                                                  type: number
+                                                  format: real
+                                                  description: Level in absolute terms.
+                                                relative:
+                                                  nullable: true
+                                                  type: number
+                                                  format: relativeValue
+                                                  description: Level relative to the underlying level on the issue date of the securitized derivative.
+                                            breach:
+                                              nullable: false
+                                              type: object
+                                              x-property-sort:
+                                              - isBreached
+                                              - datetimeBreach
+                                              description: Information whether or not, and if yes - when a barrier breach has occurred.
+                                              properties:
+                                                isBreached:
+                                                  nullable: true
+                                                  type: boolean
+                                                  description: If set to true, indicates that the lower bound has been breached.
+                                                datetimeBreach:
+                                                  nullable: true
+                                                  type: string
+                                                  format: datetime
+                                                  description: Date and time of the breach.
+                                            distance:
+                                              nullable: false
+                                              type: object
+                                              x-property-sort:
+                                              - absolute
+                                              - relative
+                                              description: Distance of the lower bound to the current underlying level.
+                                              properties:
+                                                absolute:
+                                                  nullable: true
+                                                  type: number
+                                                  format: real
+                                                  description: Distance in absolute terms.
+                                                relative:
+                                                  nullable: true
+                                                  type: number
+                                                  format: relativeValue
+                                                  description: Distance relative to the current underlying level.
+                                            participationFactor:
+                                              nullable: false
+                                              type: object
+                                              x-property-sort:
+                                              - positive
+                                              - negative
+                                              description: Participation factor of the securitized derivative in the performance of the underlying.
+                                              properties:
+                                                positive:
+                                                  nullable: true
+                                                  type: number
+                                                  format: real
+                                                  description: Participation factor above the lower bound.
+                                                negative:
+                                                  nullable: true
+                                                  type: number
+                                                  format: real
+                                                  description: Participation factor below the lower bound.
+                                description: Barrier modality of the condition, alongside with actual key figure and breach information.
+                              cashFlow:
+                                nullable: false
+                                type: object
+                                x-property-sort:
+                                - currency
+                                - paymentDate
+                                - absolute
+                                - relative
+                                description: Cash flow modality of the condition. A cash flow has either a well-defined amount, or a minimum and/or maximum amount.
+                                properties:
+                                  currency:
+                                    nullable: false
+                                    type: object
+                                    x-property-sort:
+                                    - id
+                                    - isoCode
+                                    description: Main currency in which the monetary amount of the cash flow is paid out. See endpoint `/basic/valueUnit/currency/main/list` for possible values.
+                                    properties:
+                                      id:
+                                        nullable: true
+                                        type: number
+                                        format: id32
+                                        x-positive: true
+                                        description: Idenitifier of the currency.
+                                      isoCode:
+                                        nullable: true
+                                        type: string
+                                        description: Currency code according to ISO 4217.
+                                  paymentDate:
+                                    nullable: true
+                                    type: string
+                                    format: date
+                                    description: Payment date of the cash flow.
+                                  absolute:
+                                    nullable: false
+                                    type: object
+                                    x-property-sort:
+                                    - value
+                                    - minimum
+                                    - maximum
+                                    description: Cash flow in absolute terms.
+                                    properties:
+                                      value:
+                                        nullable: true
+                                        type: number
+                                        format: real
+                                        description: Well-defined amount of the cash flow.
+                                      minimum:
+                                        nullable: true
+                                        type: number
+                                        format: real
+                                        description: Minimum amount of the cash flow.
+                                      maximum:
+                                        nullable: true
+                                        type: number
+                                        format: real
+                                        description: Maximum amount of the cash flow.
+                                  relative:
+                                    nullable: false
+                                    type: object
+                                    x-property-sort:
+                                    - value
+                                    - minimum
+                                    - maximum
+                                    description: Cash flow amount relative to the nominal value of the securitized derivative.
+                                    properties:
+                                      value:
+                                        nullable: true
+                                        type: number
+                                        format: relativeValue
+                                        description: Well-defined ratio of the cash flow.
+                                      minimum:
+                                        nullable: true
+                                        type: number
+                                        format: relativeValue
+                                        description: Minimum ratio of the cash flow.
+                                      maximum:
+                                        nullable: true
+                                        type: number
+                                        format: relativeValue
+                                        description: Maximum ratio of the cash flow.
+                          description: Set of conditions associated with the given barrier type.
+                    description: Set of conditions associated with a particular type of barrier. A condition is defined by the related type and level of the barrier, its observation period, and the resulting cash flow, if any.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+  schemas:
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

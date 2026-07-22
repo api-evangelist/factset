@@ -1,0 +1,313 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Exchange API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Exchange
+paths:
+  /instrument/exchangeRate/get:
+    get:
+      tags:
+      - Exchange
+      operationId: get/instrument/exchangeRate/get
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: "Retrieve an exchange rate instrument identifier using the identifier of the main currencies represented by that exchange rate. \n\n An error is returned if one of the provided parameters is invalid or if no instrument is associated with the given combination of parameters."
+      summary: Factset Retrieve an Exchange Rate Instrument Identifier.
+      parameters:
+      - name: target
+        in: query
+        schema:
+          type: number
+          format: id32
+          x-positive: true
+          description: Identifier of the target main currency. See endpoint `/basic/valueUnit/currency/main/list` for valid values.
+        required: true
+      - name: source
+        in: query
+        schema:
+          type: number
+          format: id32
+          x-positive: true
+          description: Identifier of the source main currency. See endpoint `/basic/valueUnit/currency/main/list` for valid values.
+        required: true
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      - name: _language
+        in: query
+        schema:
+          type: string
+          format: isoLanguage
+          description: ISO 639-1 code of the language.
+          maxLength: 2
+          minLength: 2
+          exclusiveMinimum: false
+          exclusiveMaximum: false
+      responses:
+        '200':
+          $ref: '#/components/responses/GetInstrumentExchangeRateGet200Response'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /instrument/exchangeRate/getByISOCode:
+    get:
+      tags:
+      - Exchange
+      operationId: get/instrument/exchangeRate/getByISOCode
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: "Retrieve an exchange rate instrument identifier using the ISO 4217 code of the main currencies represented by that exchange rate. \n\nAn error is returned if one of the provided parameters is invalid or if no instrument is associated with the given combination of parameters."
+      summary: Factset Retrieve an Exchange Rate Instrument Identifier.
+      parameters:
+      - name: target
+        in: query
+        schema:
+          type: string
+          minLength: 3
+          exclusiveMinimum: false
+          maxLength: 3
+          exclusiveMaximum: false
+          description: ISO 4217 code of the target main currency.
+        required: true
+      - name: source
+        in: query
+        schema:
+          type: string
+          minLength: 3
+          exclusiveMinimum: false
+          maxLength: 3
+          exclusiveMaximum: false
+          description: ISO 4217 code of the source main currency.
+        required: true
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      - name: _language
+        in: query
+        schema:
+          type: string
+          format: isoLanguage
+          description: ISO 639-1 code of the language.
+          maxLength: 2
+          minLength: 2
+          exclusiveMinimum: false
+          exclusiveMaximum: false
+      responses:
+        '200':
+          $ref: '#/components/responses/GetInstrumentExchangeRateGetByISOCode200Response'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  responses:
+    GetInstrumentExchangeRateGetByISOCode200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  instrument:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - id
+                    - name
+                    - shortName
+                    - fsym
+                    description: Details regarding the exchange rate instrument.
+                    properties:
+                      id:
+                        nullable: true
+                        type: string
+                        format: id64
+                        x-positive: true
+                        description: Identifier of the instrument.
+                      name:
+                        nullable: true
+                        type: string
+                        format: localizedString
+                        description: Name of the instrument.
+                      shortName:
+                        nullable: true
+                        type: string
+                        format: localizedString
+                        description: Short name of the instrument.
+                      fsym:
+                        nullable: false
+                        type: object
+                        x-property-sort:
+                        - security
+                        description: Instrument-level FactSet identifier of the financial instrument used primarily in FactSet products other than the MDG.
+                        properties:
+                          security:
+                            nullable: false
+                            type: object
+                            x-property-sort:
+                            - permanentIdentifier
+                            description: Security-level identifier.
+                            properties:
+                              permanentIdentifier:
+                                nullable: true
+                                type: string
+                                description: FactSet Permanent Identifier for an instrument. The format is six alpha numeric characters, excluding vowels, with an S suffix (XXXXXX-S).
+                description: Basic data for an exchange rate.
+                nullable: false
+                x-property-sort:
+                - instrument
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
+    GetInstrumentExchangeRateGet200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  instrument:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - id
+                    - name
+                    - shortName
+                    - fsym
+                    description: Details regarding the exchange rate instrument.
+                    properties:
+                      id:
+                        nullable: true
+                        type: string
+                        format: id64
+                        x-positive: true
+                        description: Identifier of the instrument.
+                      name:
+                        nullable: true
+                        type: string
+                        format: localizedString
+                        description: Name of the instrument.
+                      shortName:
+                        nullable: true
+                        type: string
+                        format: localizedString
+                        description: Short name of the instrument.
+                      fsym:
+                        nullable: false
+                        type: object
+                        x-property-sort:
+                        - security
+                        description: Instrument-level FactSet identifier of the financial instrument used primarily in FactSet products other than the MDG.
+                        properties:
+                          security:
+                            nullable: false
+                            type: object
+                            x-property-sort:
+                            - permanentIdentifier
+                            description: Security-level identifier.
+                            properties:
+                              permanentIdentifier:
+                                nullable: true
+                                type: string
+                                description: FactSet Permanent Identifier for an instrument. The format is six alpha numeric characters, excluding vowels, with an S suffix (XXXXXX-S).
+                description: Basic data for an exchange rate.
+                nullable: false
+                x-property-sort:
+                - instrument
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
+  schemas:
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

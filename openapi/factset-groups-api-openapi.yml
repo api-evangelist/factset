@@ -1,0 +1,1751 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Groups API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Groups
+paths:
+  /analytics/pub-datastore/cargo/v1/groups/{groupId}/objects/{objectId}:
+    get:
+      tags:
+      - Groups
+      summary: Factset Gets an Object Given an Id. in This Case Id Retrieved From Mapping Location Header, Object Data in Response Body.
+      description: "Raw object data can be found in the response body. This can be either the mapped PDF/PPT or STACH json, depending on the mapping. https://pages.github.factset.com/analytics-reporting/stachschema/#/ \r\n\nOptional request header \"accept-encoding\", with allowed values of \"br\" and \"gzip\". If accept-encoding is passed, the response is compressed."
+      operationId: getCargoEndpoint
+      parameters:
+      - name: groupId
+        in: path
+        description: The ID of the group
+        required: true
+        schema:
+          type: string
+        example: a4186c50f8e74f979d271dd22298c901
+      - name: objectId
+        in: path
+        description: The ID of the object
+        required: true
+        schema:
+          type: string
+        example: fe875bc4150542dea6bc237663a01a0d
+      responses:
+        '200':
+          description: Expected response, returns json response body of the report.
+          headers:
+            Transfer-Encoding:
+              description: Standard HTTP header. Header value will be set to Chunked if Accept-Encoding header is specified.
+              schema:
+                type: string
+            Content-Encoding:
+              description: Standard HTTP header. Header value based on Accept-Encoding Request header.
+              schema:
+                type: string
+            Content-Type:
+              description: Standard HTTP header.
+              schema:
+                type: string
+            X-DataDirect-Request-Key:
+              description: FactSets request key header.
+              schema:
+                type: string
+        '400':
+          description: Invalid parameter provided.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSets request key header.
+              schema:
+                type: string
+        '401':
+          description: Missing or invalid authentication.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSets request key header.
+              schema:
+                type: string
+        '403':
+          description: User is forbidden with current credentials
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSets request key header.
+              schema:
+                type: string
+        '404':
+          description: The provided request does not exist.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSets request key header.
+              schema:
+                type: string
+        '500':
+          description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSets request key header.
+              schema:
+                type: string
+        '503':
+          description: Request timed out. Retry the request in sometime.
+          headers:
+            X-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+            X-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+            X-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-DataDirect-Request-Key:
+              description: FactSets request key header.
+              schema:
+                type: string
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /ofs/v2/attributes/groups/{id}:
+    get:
+      summary: Factset Retrieve a Specific Attributes Group Record.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: Globally unique identifier (GUID) of an Attributes Group record
+        schema:
+          example: fd8f12e9-aa8b-4c2a-9e2e-a212f3ec29e1
+        type: string
+        pattern: \{?[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}\}?
+      responses:
+        '200':
+          description: A JSON representation of an Attributes Group record.
+          schema:
+            $ref: '#/definitions/GetAttributesGroupDto'
+        '404':
+          description: Attributes Group record was not found.
+      tags:
+      - Groups
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /ofs/v2/attributes/groups:
+    get:
+      summary: Factset Retrieve a Collection of Attributes Group Records.
+      parameters:
+      - name: limit
+        in: query
+        description: Limit the amount of records per page
+        type: integer
+        default: 10
+      - name: page
+        in: query
+        description: Select which page to show
+        type: integer
+        default: 1
+        minimum: 1
+      responses:
+        '200':
+          description: A JSON representation of collection of Attributes Group records. Might be empty.
+          schema:
+            items:
+              allOf:
+              - $ref: '#/definitions/GetAttributesGroupDto'
+            type: array
+          headers:
+            X-Pagination:
+              description: A JSON containing pagination information. (e.g totalCount,pageSize,currentPage,totalPages,previousPageLink and nextPageLink)
+              type: string
+        '422':
+          description: Unprocessable entity. Validation error response containing the errors in a human readable form.
+          schema:
+            items:
+              type: string
+            type: array
+      tags:
+      - Groups
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /ofs/v2/attributes/groups/used:
+    get:
+      summary: Factset Retrieve a Collection of Attributes Group Records in Use.
+      parameters:
+      - name: limit
+        in: query
+        description: Limit the amount of records per page
+        type: integer
+        default: 10
+      - name: page
+        in: query
+        description: Select which page to show
+        type: integer
+        default: 1
+        minimum: 1
+      responses:
+        '200':
+          description: A JSON representation of collection of Attributes Group records. Might be empty.
+          schema:
+            items:
+              allOf:
+              - $ref: '#/definitions/GetAttributesGroupDto'
+            type: array
+          headers:
+            X-Pagination:
+              description: A JSON containing pagination information. (e.g totalCount,pageSize,currentPage,totalPages,previousPageLink and nextPageLink)
+              type: string
+        '422':
+          description: Unprocessable entity. Validation error response containing the errors in a human readable form.
+          schema:
+            items:
+              type: string
+            type: array
+      tags:
+      - Groups
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /ofs/v2/attributes/groups/search:
+    post:
+      summary: Factset Retrieve a Collection of Attributes Group Records.
+      parameters:
+      - name: body
+        in: body
+        schema:
+          $ref: '#/definitions/PostAttributesGroupSearchDto'
+        type: json
+      responses:
+        '200':
+          description: A JSON representation of collection of Attributes Group records. Might be empty.
+          schema:
+            items:
+              allOf:
+              - $ref: '#/definitions/GetAttributesGroupDto'
+            type: array
+          headers:
+            X-Pagination:
+              description: A JSON containing pagination information. (e.g totalCount,pageSize,currentPage,totalPages,previousPageLink and nextPageLink)
+              type: string
+        '422':
+          description: Unprocessable entity. Validation error response containing the errors in a human readable form.
+          schema:
+            items:
+              type: string
+            type: array
+      tags:
+      - Groups
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /analytics/engines/pa/v3/groups:
+    get:
+      tags:
+      - Groups
+      summary: Factset Get Pa Groups
+      description: This endpoint lists all the PA groups that can be applied to a PA calculation.
+      operationId: getPAGroups
+      responses:
+        '200':
+          description: Expected response, returns a list of PA groups
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            Age:
+              description: Standard HTTP header. Header will specify the age of groupings list cached response.
+              schema:
+                type: integer
+                description: Standard HTTP header. Header will specify the age of groupings list cached response.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupRoot'
+        '401':
+          description: Missing or invalid authentication.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '403':
+          description: User is forbidden with current credentials
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+        '406':
+          description: Unsupported Accept header. Header needs to be set to application/json.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+        '429':
+          description: Rate limit reached. Wait till the time specified in Retry-After header value to make further requests.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            Retry-After:
+              description: Time to wait in seconds before making a new request as the rate limit has reached.
+              schema:
+                type: string
+        '500':
+          description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '503':
+          description: Request timed out. Retry the request in sometime.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /user-defined-field-group:
+    get:
+      operationId: listUserDefinedFieldGroups
+      description: List user defined groups
+      tags:
+      - Groups
+      parameters:
+      - name: name
+        in: query
+        required: false
+        schema:
+          type: string
+          example: string
+        description: Return only files whose name includes this query
+      - name: _paginationLimit
+        in: query
+        required: false
+        schema:
+          type: number
+          default: 100
+          example: 0
+        description: Number of groups to return
+      - name: _paginationCursor
+        in: query
+        required: false
+        schema:
+          type: string
+          example: string
+        description: Cursor used for paging.  Fetch items after the specified cursor
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/listUserDefinedFieldGroupsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '406':
+          $ref: '#/components/responses/NotAcceptableErrorResponse'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        '501':
+          $ref: '#/components/responses/NotImplementedErrorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /user-defined-field-group/{id}:
+    get:
+      operationId: readUserDefinedGroup
+      description: Read a specific user defined field group and list its fields.
+      tags:
+      - Groups
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          example: 270c2fa8-9110-444b-9101-17e10132fe0a
+        description: Unique identifer for the group to be read.
+      - name: _paginationLimit
+        in: query
+        required: false
+        schema:
+          type: number
+          default: 100
+          example: 0
+        description: Number of fields to list from this group
+      - name: _paginationCursor
+        in: query
+        required: false
+        schema:
+          type: string
+          example: string
+        description: Cursor used for paging.  Fetch fields after the specified cursor
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/readUserDefinedGroupResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '406':
+          $ref: '#/components/responses/NotAcceptableErrorResponse'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        '501':
+          $ref: '#/components/responses/NotImplementedErrorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /Groups:
+    get:
+      tags:
+      - Groups
+      summary: Factset Get a List of Groups.
+      security:
+      - basicAuth: []
+      parameters:
+      - $ref: '#/components/parameters/filter'
+      - $ref: '#/components/parameters/startIndex'
+      - $ref: '#/components/parameters/count'
+      - $ref: '#/components/parameters/attributes'
+      - $ref: '#/components/parameters/excludedAttributes'
+      responses:
+        '200':
+          $ref: '#/components/responses/groupsSuccess'
+        '400':
+          $ref: '#/components/responses/invalidFilterError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /Group/{id}:
+    get:
+      tags:
+      - Groups
+      summary: Factset Get a Group.
+      security:
+      - basicAuth: []
+      parameters:
+      - $ref: '#/components/parameters/resourceId'
+      responses:
+        '200':
+          $ref: '#/components/responses/groupSuccess'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '404':
+          $ref: '#/components/responses/groupNotFoundError'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    put:
+      tags:
+      - Groups
+      summary: Factset Replace a Group.
+      security:
+      - basicAuth: []
+      parameters:
+      - $ref: '#/components/parameters/resourceId'
+      requestBody:
+        $ref: '#/components/requestBodies/groupResource'
+      responses:
+        '200':
+          $ref: '#/components/responses/groupSuccess'
+        '400':
+          $ref: '#/components/responses/invalidResourceProvidedError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '404':
+          $ref: '#/components/responses/groupNotFoundError'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      tags:
+      - Groups
+      summary: Factset Patch a Group (add, Replace, or Remove Attributes of a Group.)
+      security:
+      - basicAuth: []
+      parameters:
+      - $ref: '#/components/parameters/resourceId'
+      requestBody:
+        $ref: '#/components/requestBodies/patchGroupResource'
+      responses:
+        '200':
+          $ref: '#/components/responses/groupSuccess'
+        '400':
+          $ref: '#/components/responses/invalidPatchRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /basic/market/group/list:
+    get:
+      tags:
+      - Groups
+      operationId: get/basic/market/group/list
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 2
+      x-supportsPermissionDeniedResponse: false
+      description: List of market groups.
+      summary: Factset List of Market Groups.
+      responses:
+        '200':
+          $ref: '#/components/responses/GetBasicMarketGroupList200Response'
+      parameters:
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      - name: _language
+        in: query
+        schema:
+          type: string
+          format: isoLanguage
+          description: ISO 639-1 code of the language.
+          maxLength: 2
+          minLength: 2
+          exclusiveMinimum: false
+          exclusiveMaximum: false
+      - description: Sortable attributes. The sort order is ascending unless it is prefixed with a minus sign, in which case it is descending. A list of at most 2 (possibly prefixed) attribute name(s) is allowed.
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - name
+            - -name
+            - shortName
+            - -shortName
+          maxItems: 2
+          uniqueItems: true
+          default:
+          - name
+        style: form
+        explode: false
+        name: _sort
+        in: query
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /scim/v2/Groups:
+    get:
+      operationId: getAllRoles
+      tags:
+      - Groups
+      summary: Factset Retrieves a List of Vrs Role
+      description: Retrieves a VRS roles
+      parameters:
+      - in: query
+        name: count
+        description: Non-negative maximum number of entries to return
+        schema:
+          type: integer
+        examples:
+          count:
+            value: 25
+            description: Non-negative maximum number of entries to return
+      - in: query
+        name: startIndex
+        description: The 1-based index of the first query result
+        schema:
+          type: integer
+        examples:
+          startIndex:
+            value: 1
+            description: The 1-based index of the first query result
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimGroupListResponse'
+        '403':
+          description: Forbidden, user does not have permission to view roles
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have permission to view roles
+                status: '403'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      operationId: createRole
+      tags:
+      - Groups
+      summary: Factset Creates a Role
+      description: Creates a VRS role
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimGroup'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+          headers:
+            Location:
+              schema:
+                type: string
+              description: A callback URL to the newly create role, for example https://example.com/VRSAPI/scim/v2/Groups/1
+        '403':
+          description: Forbidden, user does not have permission to create roles
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have permission to create groups
+                status: '403'
+        '409':
+          description: Group already exists
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: Group already exists
+                status: '409'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /scim/v2/Groups/{groupId}:
+    get:
+      operationId: getRoleById
+      tags:
+      - Groups
+      summary: Factset Retrieves a Vrs Role
+      description: Retrieves a VRS role based on the ID
+      parameters:
+      - in: path
+        name: groupId
+        description: The ID of the role
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+          headers:
+            Location:
+              schema:
+                type: string
+              description: A callback URL to the newly create role, for example https://example.com/VRSAPI/scim/v2/Groups/1
+        '403':
+          description: Forbidden, user does not have permission to view roles
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have permission to view roles
+                status: '403'
+        '404':
+          description: Not Found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: Resource 1 not found
+                status: '404'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    delete:
+      operationId: deleteRoleById
+      tags:
+      - Groups
+      summary: Factset Deletes a Vrs Role
+      description: Deletes a VRS role
+      parameters:
+      - in: path
+        name: groupId
+        description: The ID of the group
+        schema:
+          type: string
+        required: true
+      responses:
+        '204':
+          description: No Content
+        '403':
+          description: Forbidden, user does not have permission to delete roles
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have permission to delete roles
+                status: '403'
+        '404':
+          description: Not Found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: Resource 1 not found
+                status: '404'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      operationId: patchRoleById
+      tags:
+      - Groups
+      summary: Factset Add or Remove a User To/from a Group
+      description: Adds or removes a VRS user to/from a VRS role
+      parameters:
+      - in: path
+        name: groupId
+        description: The ID of the role
+        schema:
+          type: string
+        required: true
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimRolePatchRequestBody'
+            example:
+              schemas:
+              - urn:ietf:params:scim:api:messages:2.0:PatchOp
+              Operations:
+              - op: add
+                path: members
+                value:
+                  display: Test user
+                  $ref: VRSAPI/scim/v2/Users/1
+                  value: '1'
+      responses:
+        '200':
+          description: Successfully added user to group
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    put:
+      operationId: updateRoleById
+      tags:
+      - Groups
+      summary: Factset Updates a Vrs Group
+      description: Updates (replaces) a VRS Group with the properties in the JSON
+      parameters:
+      - in: path
+        name: groupId
+        description: The ID of the group
+        schema:
+          type: string
+        required: true
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimGroup'
+      responses:
+        '200':
+          description: Successfully updated group
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+          headers:
+            Location:
+              schema:
+                type: string
+              description: A callback URL to the updated group, for example https://example.com/VRSAPI/scim/v2/Groups/1
+        '403':
+          description: Forbidden, user does not have permission to update groups
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have permission to update groups
+                status: '403'
+        '404':
+          description: Not Found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: Resource 1 not found
+                status: '404'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  responses:
+    invalidResourceProvidedError:
+      description: Provided resource contains invalid data.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            scimType: invalidValue
+            detail: Provided resource contains invalid data.
+            status: '400'
+    groupSuccess:
+      description: Success.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/GroupResource'
+    GetBasicMarketGroupList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                description: List of market groups.
+                nullable: false
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                  - id
+                  - name
+                  - shortName
+                  properties:
+                    id:
+                      nullable: true
+                      type: number
+                      format: id32
+                      x-positive: true
+                      description: Identifier of the market group.
+                    name:
+                      nullable: true
+                      x-sortable: true
+                      x-default-sort-attribute: true
+                      x-default-sort-direction: 1
+                      type: string
+                      format: localizedString
+                      description: Name of the market group.
+                    shortName:
+                      nullable: true
+                      x-sortable: true
+                      type: string
+                      format: localizedString
+                      description: Short name of the market group.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
+    BadRequestErrorResponse:
+      description: The server cannot or will not process the request due to an apparent client error (e.g., malformed request syntax, size too large, invalid request message framing, or deceptive request routing).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    forbiddenError:
+      description: User is not authorized to use this API.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: FIN_WEALTH-999999 is not authorized to use the FactSet SCIM API.
+            status: '403'
+    ForbiddenErrorResponse:
+      description: The request contained valid data and was understood by the server, but the server is refusing action. This may be due to the user not having the necessary permissions for a resource or needing an account of some sort, or attempting a prohibited action.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    NotFoundErrorResponse:
+      description: The requested resource could not be found but may be available in the future. Subsequent requests by the client are permissible.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    groupNotFoundError:
+      description: Group not found.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: Group Domain btud - Pod 04 - CitrixApps - Cymba OMS was not found.
+            status: '404'
+    UnauthorizedErrorResponse:
+      description: Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    invalidPatchRequestError:
+      description: Patch request invalid.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            scimType: invalidValue
+            detail: Provided resource contains invalid data.
+            status: '400'
+    UnsupportedMediaTypeErrorResponse:
+      description: The request entity has a media type which the server or resource does not support.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    NotImplementedErrorResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    invalidFilterError:
+      description: Invalid filter value provided.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            scimType: invalidFilter
+            detail: Invalid filter value.
+            status: '400'
+    NotAcceptableErrorResponse:
+      description: The requested resource is capable of generating only content not acceptable according to the Accept headers sent in the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    internalServerError:
+      description: Internal server error.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    unauthorizedError:
+      description: User has not been authenticated.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: FactSet.net credentials are missing or invalid.
+            status: '401'
+    InternalServerErrorResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    groupsSuccess:
+      description: Success.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/GroupResourceList'
+  schemas:
+    ScimGroupMember:
+      type: object
+      properties:
+        value:
+          type: string
+          example: example_value
+        $ref:
+          type: string
+          description: A callback link which can be used to get the information of the group
+          example: example_value
+        type:
+          type: string
+          example: example_value
+    GroupResourceList:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example:
+          - urn:ietf:params:scim:api:messages:2.0:ListResponse
+        totalResults:
+          type: integer
+          example: 1
+        Resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupResource'
+          example: []
+    listUserDefinedFieldGroupsResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                nullable: false
+                example: MDpEZWZhdWx0IEdyb3Vw
+              type:
+                type: string
+                enum:
+                - UserDefinedFieldGroup
+                nullable: false
+              name:
+                type: string
+                nullable: false
+                example: MY_GROUP
+            nullable: false
+          example: []
+        meta:
+          type: object
+          properties:
+            pagination:
+              type: object
+              properties:
+                next:
+                  type: string
+                  nullable: true
+                  example: YwAAAA==
+                previous:
+                  type: string
+                  nullable: true
+                  example: AAAAAA==
+              nullable: false
+          example: example_value
+      nullable: true
+    ScimMeta:
+      type: object
+      properties:
+        resourceType:
+          type: string
+          example: example_value
+        created:
+          type: string
+          example: example_value
+        lastModified:
+          type: string
+          example: example_value
+        location:
+          type: string
+          example: example_value
+    GroupRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Group'
+          example: example_value
+        meta:
+          nullable: true
+          example: example_value
+    readUserDefinedGroupResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              nullable: false
+              example: MDpEZWZhdWx0IEdyb3Vw
+            type:
+              type: string
+              enum:
+              - UserDefinedFieldGroup
+              nullable: false
+            name:
+              type: string
+              nullable: false
+              example: MY_GROUP
+            fields:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        nullable: false
+                        example: b1c36b19-1417-4e8c-8d0a-416cf6a92a6a
+                      type:
+                        type: string
+                        enum:
+                        - UserDefinedField
+                        nullable: false
+                      name:
+                        type: string
+                        nullable: false
+                        example: MY_VALUE
+                    nullable: false
+                meta:
+                  type: object
+                  properties:
+                    pagination:
+                      type: object
+                      properties:
+                        next:
+                          type: string
+                          nullable: true
+                          example: YwAAAA==
+                        previous:
+                          type: string
+                          nullable: true
+                          example: AAAAAA==
+                      nullable: false
+          example: example_value
+      nullable: true
+    Group:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Group Name
+          nullable: true
+          example: Example Title
+        directory:
+          type: string
+          description: Group Directory
+          nullable: true
+          example: example_value
+        category:
+          type: string
+          description: Group Category
+          nullable: true
+          example: example_value
+    GroupResource:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example:
+          - urn:ietf:params:scim:schemas:core:2.0:Group
+          - urn:scim:schemas:extension:FactSet:EnterpriseHosting:1.0:Group
+          - urn:scim:schemas:extension:FactSet:VRS:1.0:Group
+        id:
+          type: string
+          example: eh:btud:Pod 04 - CitrixApps - Cymba OMS
+          readOnly: true
+        externalId:
+          type: string
+          example: B8FE8BBD-0E04-40B2-9BB3-E5EE17C4C9C9
+        displayName:
+          type: string
+          description: A human-readable name for the Group.
+          example: Domain btud - Pod 04 - CitrixApps - Cymba OMS
+        description:
+          type: string
+          description: A description for the Group.
+          example: Group representing access to the Cymba OMS application.
+        members:
+          type: array
+          description: A list of members of the Group.
+          items:
+            type: object
+            properties:
+              value:
+                type: string
+                description: Identifier of the member of this Group.
+                example: FIN_WEALTH-123456
+              $ref:
+                type: string
+                description: The URI corresponding to a SCIM resource that is a member of this Group.
+                example: https://api.factset.com/scim/v2/Users/FIN_WEALTH-123456
+              type:
+                type: string
+                description: A label indicating the type of resource, e.g., 'User' or 'Group'.
+                example: User
+          example: []
+        urn:scim:schemas:extension:FactSet:EnterpriseHosting:1.0:Group:
+          type: object
+          properties:
+            domainCode:
+              type: string
+              description: Domain code of the Enterprise Hosting pod containing this group.
+              readOnly: true
+              example: btud
+          required:
+          - domainCode
+          readOnly: true
+          example: example_value
+        urn:scim:schemas:extension:FactSet:VRS:1.0:Group:
+          type: object
+          properties:
+            tenant:
+              type: string
+              description: The tenant this role is in
+              example: QA
+            domainCode:
+              type: string
+              description: Domain code of Enterprise Hosting pod in which user resides. REQUIRED.
+              example: btud
+          required:
+          - domainCode
+          example: example_value
+        meta:
+          type: object
+          properties:
+            resourceType:
+              type: string
+              example: Group
+            created:
+              type: string
+              example: '2019-02-11T15:33:31.077+00:00'
+            lastModified:
+              type: string
+              example: '2019-06-07T08:59:37+00:00'
+            location:
+              type: string
+              example: https://api.factset.com/scim/v2/Groups/eh%3Abtud%3APod%2004%20-%20CitrixApps%20-%20Cymba%20OMS
+          readOnly: true
+          example: example_value
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
+    Errors:
+      type: object
+      description: Information about one or more errors
+      properties:
+        errors:
+          type: array
+          description: List of errors
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Unique identifier for this error instance.  Used to reference this error in logging.
+                example: 270c2fa8-9110-444b-9101-17e10132fe0a
+              code:
+                type: string
+                description: Error code for this error
+                enum:
+                - BadRequestError
+                - UnauthorizedError
+                - ForbiddenError
+                - NotFoundError
+                - NotAcceptableError
+                - ConflictError
+                - UnsupportedMediaTypeError
+                - InternalServerError
+                - NotImplementedError
+              title:
+                type: string
+                description: HTTP reason phrase associcated with this error
+                enum:
+                - Bad Request
+                - Unauthorized
+                - Forbidden
+                - Not Found
+                - Not Acceptable
+                - Conflict
+                - Unsupported Media Type
+                - Internal Server Error
+                - Not Implemented
+              detail:
+                type: string
+                description: Detailed description of the error that occurred
+          example: []
+      required:
+      - errors
+    ScimError:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example: []
+        detail:
+          type: string
+          example: example_value
+        status:
+          type: string
+          example: example_value
+    ScimRolePatchRequestBody:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example: []
+        Operations:
+          type: array
+          items:
+            properties:
+              op:
+                type: string
+              path:
+                type: string
+              value:
+                type: object
+                properties:
+                  display:
+                    type: string
+                  $ref:
+                    type: string
+                  value:
+                    type: string
+          example: []
+    Patch:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example: []
+        Operations:
+          type: array
+          items:
+            type: object
+            properties:
+              op:
+                type: string
+              path:
+                type: string
+              value:
+                type: string
+          example: []
+    ScimGroup:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example: []
+        id:
+          type: string
+          example: abc123
+        displayName:
+          type: string
+          example: example_value
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimGroupMember'
+          example: []
+        tenant:
+          type: string
+          example: example_value
+        domainCode:
+          type: string
+          example: example_value
+        meta:
+          $ref: '#/components/schemas/ScimMeta'
+    ScimGroupListResponse:
+      type: object
+      properties:
+        totalResults:
+          type: integer
+          example: 10
+        itemsPerPage:
+          type: integer
+          example: 10
+        startIndex:
+          type: integer
+          example: 10
+        Resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimGroup'
+          example: []
+  parameters:
+    resourceId:
+      name: id
+      description: ID of resource.
+      in: path
+      schema:
+        type: string
+      required: true
+    filter:
+      name: filter
+      description: Resource filter string. See [RFC 7644 section 3.4.2.2](https://tools.ietf.org/html/rfc7644#section-3.4.2.2) for syntax. Note this API implementation also supports a non-standard "re" operator for regular expression matching against strings.
+      in: query
+      schema:
+        type: string
+      required: false
+    startIndex:
+      name: startIndex
+      description: Result start index. The one-based index of the first result to be returned in the list of resources. For example, to exclude the first two resources, use a *startIndex* value of 3. This parameter has a default value of 1. This index applies *after* any resource filtration has been applied as specified by the *filter* argument.
+      in: query
+      schema:
+        type: integer
+      required: false
+    attributes:
+      name: attributes
+      description: Attribute whitelist filter string. A comma-separated list of resource attribute names to be returned in the response, overriding the set of attributes that would be returned by default. Attribute names must be specified in standard attribute notation (see [RFC 7644 section 3.10](https://datatracker.ietf.org/doc/html/rfc7644#section-3.10).) This parameter cannot be used with the *excludedAttributes* parameter.
+      in: query
+      schema:
+        type: string
+      required: false
+    excludedAttributes:
+      name: excludedAttributes
+      description: Attribute blacklist filter string. A comma-separated list of resource attribute names to be excluded in the response, overriding the set of attributes that would be returned by default. Attribute names must be specified in standard attribute notation (see [RFC 7644 section 3.10](https://datatracker.ietf.org/doc/html/rfc7644#section-3.10).) This parameter cannot be used with the *attributes* parameter.
+      in: query
+      schema:
+        type: string
+      required: false
+    count:
+      name: count
+      description: Maximum resource count. The server will not return more resources than this value, although it may return fewer.
+      in: query
+      schema:
+        type: integer
+      required: false
+  requestBodies:
+    patchGroupResource:
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Patch'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:PatchOp
+            Operations:
+            - op: add
+              path: members
+              value:
+              - value: FIN_WEALTH-123456
+    groupResource:
+      description: Group resource.
+      required: true
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/GroupResource'
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+definitions:
+  PostAttributesGroupSearchDto:
+    properties:
+      limit:
+        description: Limit the amount of records per page.
+        example: 10
+        type: integer
+        default: 10
+        maximum: 300
+      page:
+        description: Select which page to show.
+        example: 1
+        type: integer
+        default: 1
+        minimum: 1
+      sort:
+        description: Sort according to  specific field value.
+        example: name:asc
+        type: string
+        default: name:asc
+      fields:
+        description: Fetch only specific fields. The fields' names separated by a comma.
+        example: name,prodType
+        type: string
+      search:
+        description: Search for terms in certain fields.
+        example: name:Country,prodType:Data Feed
+        type: string
+      filter:
+        description: Filter against specific field values.
+        example: name:Region/Country
+        type: string
+    type: object
+  GetAttributesGroupDto:
+    description: A Json representation of an Attributes Group record.
+    properties:
+      id:
+        example: fd8f12e9-aa8b-4c2a-9e2e-a212f3ec29e1
+        type: string
+      name:
+        example: Region/Country
+        type: string
+      prodType:
+        example: Data Feed
+        type: string
+      color:
+        example: tag-color-2
+        type: string
+      type:
+        example: checkbox
+        type: string
+      selection:
+        example: multi
+        type: string
+      created:
+        example: 1531815425
+        type: integer
+      updated:
+        example: 1531815425
+        type: integer
+      attributes:
+        example:
+        - id: 904eb623-2b58-4dba-8e81-61e2ef889bb5
+          name: Europe
+          groupId: fd8f12e9-aa8b-4c2a-9e2e-a212f3ec29e1
+          prodType: Data Feed
+          created: 1531815425
+          updated: 1531815425
+          isUsed: true
+        - id: 8edfdf11-ce9a-45e2-831a-e6d7717736c9
+          name: Global
+          groupId: fd8f12e9-aa8b-4c2a-9e2e-a212f3ec29e1
+          prodType: Data Feed
+          created: 1531815424
+          updated: 1531815424
+          isUsed: true
+        items:
+          properties:
+            name:
+              example: Europe
+              type: string
+            groupId:
+              example: fd8f12e9-aa8b-4c2a-9e2e-a212f3ec29e1
+              type: string
+            prodType:
+              example: Data Feed
+              type: string
+            id:
+              example: 904eb623-2b58-4dba-8e81-61e2ef889bb5
+              type: string
+            created:
+              example: 1531815425
+              type: integer
+            updated:
+              example: 1531815425
+              type: integer
+            isUsed:
+              example: true
+              type: boolean
+          type: object
+        type: array
+    type: object
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

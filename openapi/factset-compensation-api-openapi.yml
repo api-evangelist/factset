@@ -1,0 +1,234 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Compensation API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Compensation
+paths:
+  /factset-people/v1/company-compensation:
+    get:
+      summary: Factset Returns the Compensation Details of the People for the Specified Company Identifier
+      description: 'Returns the list of company-level executive compensation data items for the top executives listed in annual filings.The coverage of the compensation details for the executives are limited to US region. All the compensation figures are expressed in raw units. '
+      tags:
+      - Compensation
+      operationId: getCompanyCompensation
+      parameters:
+      - $ref: '#/components/parameters/companyId'
+      responses:
+        '200':
+          description: Array of Company Compensation objects.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/companyCompensationResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '415':
+          $ref: '#/components/responses/415'
+        '500':
+          $ref: '#/components/responses/500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      summary: Factset Returns the Compensation Details for the People for the Specified Company Identifier
+      description: 'Returns the list of company-level executive compensation data items for the top executives listed in annual filings for the most recent fiscal year. The coverage of the compensation details for the executives are limited to US region. All the compensation figures are expressed in raw units. '
+      tags:
+      - Compensation
+      operationId: getCompanyCompensationForList
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/companyCompensationRequest'
+      responses:
+        '200':
+          description: Array of Company Positions objects.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/companyCompensationResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '415':
+          $ref: '#/components/responses/415'
+        '500':
+          $ref: '#/components/responses/500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    companyCompensationResponse:
+      title: Company Compensation Response
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/companyCompensation'
+          example: []
+    companyCompensationRequest:
+      title: Company Compensation Request
+      type: object
+      properties:
+        ids:
+          $ref: '#/components/schemas/companyIds'
+      required:
+      - ids
+    companyIds:
+      type: array
+      items:
+        type: string
+      minItems: 1
+      maxItems: 1000
+      description: 'The requested company identifier. FactSet Identifiers, tickers, CUSIP, SEDOL, and ISIN are accepted inputs. <p>***ids limit** =  1000 per request*</p> *<p>Make note, GET Method URL request lines are also limited to a total length of 8192 bytes (8KB). In cases where the service allows for thousands of ids, which may lead to exceeding this request line limit of 8KB, its advised for any requests with large request lines to be requested through the respective "POST" method.</p>*
+
+        '
+      example:
+      - AAPL-US
+    companyCompensation:
+      title: Company Compensation
+      type: object
+      description: List of executives and their compensation details for the specified company identifier.
+      properties:
+        name:
+          description: FactSet Name of the person
+          type: string
+          example: Tim Cook
+          nullable: true
+        personId:
+          description: Factset Entity Identifier for the Person
+          type: string
+          example: 05F520-E
+          nullable: true
+        title:
+          description: The requested Position Title
+          type: string
+          example: Chief Executive Officer & Director
+          x-fds-fql-formula: FPD_CO_COMPENSATION(EXEC_TITLE)
+          nullable: true
+        salary:
+          description: Salary of the person. Expressed in USD and raw units.
+          type: number
+          format: integer
+          example: 525846
+          x-fds-fql-formula: FPD_CO_COMPENSATION(SALARY)
+          nullable: true
+        bonus:
+          description: Bonus of the executive during the fiscal year. Expressed in USD and raw units.
+          type: number
+          format: integer
+          example: 48
+          x-fds-fql-formula: FPD_CO_COMPENSATION(BONUS)
+          nullable: true
+        stockAwards:
+          description: Stock awards for the person. Expressed in USD and raw units.
+          type: number
+          format: integer
+          example: null
+          x-fds-fql-formula: FPD_CO_COMPENSATION(STOCK_AWARDS)
+          nullable: true
+        optionsAwards:
+          description: Option Awards for the person. Expressed in USD and raw units.
+          type: number
+          format: integer
+          example: null
+          x-fds-fql-formula: FPD_CO_COMPENSATION(OPTION_AWARDS)
+          nullable: true
+        otherCompensation:
+          description: All the other compensations which are not explicitly defined as salary, bonus, stock awards, or options awards. Expressed in USD and raw units.
+          type: number
+          format: integer
+          example: 11200
+          x-fds-fql-formula: FPD_CO_COMPENSATION(ALL_OTHER_COMP)
+          nullable: true
+        totalCompensation:
+          description: The sum of all compensation for the requested person as reported by the company. Expressed in USD and raw units.
+          type: number
+          format: integer
+          example: 4719062
+          x-fds-fql-formula: FPD_CO_COMPENSATION(TOTAL_COMP)
+          nullable: true
+        nonEquityIncentivePlanComp:
+          description: All the earnings pursuant to awards under non-equity incentive plans. Expressed in USD and raw units.
+          type: number
+          format: integer
+          example: 10731000
+          x-fds-fql-formula: FPD_CO_COMPENSATION(NON_EQ_INCENTIVE_PLAN_COMP)
+          nullable: true
+        nonQualifiedCompEarnings:
+          description: All the other nonqualified defined contribution which are not tax qualified and other contributions. Expressed in USD and raw units.
+          type: number
+          format: integer
+          example: null
+          nullable: true
+        compensationYear:
+          description: The most recent year of compensation is expressed as 'YYYY' as opposed to 'YYYY-MM-DD' format.
+          type: string
+          example: '2020'
+          x-fds-fql-formula: FPD_CO_COMPENSATION(COMP_YEAR)
+          nullable: true
+        requestId:
+          description: Original identifier used for the request.
+          type: string
+          example: TSLA-US
+  parameters:
+    companyId:
+      name: ids
+      description: 'The requested company identifier. FactSet Identifiers, tickers, CUSIP, SEDOL, and ISIN are accepted inputs. <p>***ids limit** =  1000 per request*</p>
+
+        *<p>Make note, GET Method URL request lines are also limited to a total
+
+        length of 8192 bytes (8KB). In cases where the service allows for thousands
+
+        of ids, which may lead to exceeding this request line limit of 8KB, its
+
+        advised for any requests with large request lines to be requested through
+
+        the respective "POST" method.</p>*
+
+        '
+      in: query
+      schema:
+        type: array
+        items:
+          type: string
+        minItems: 1
+        maxItems: 1000
+      required: true
+      explode: false
+      example:
+      - AAPL-US
+      - IBM-US
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

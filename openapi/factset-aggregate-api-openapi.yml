@@ -1,0 +1,527 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Aggregate API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Aggregate
+paths:
+  /stock/recommendation/aggregate/get:
+    get:
+      tags:
+      - Aggregate
+      operationId: get/stock/recommendation/aggregate/get
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: Target price and aggregated recommendations for a stock.
+      description: Target price and aggregated recommendations for a stock.
+      parameters:
+      - name: identifier
+        in: query
+        schema:
+          type: string
+          pattern: ^([B-DF-HJ-NP-TV-Z0-9]{6}-[SLR])|([A-Z0-9.]{1,47}-[A-Z0-9]{2,4})|([0-9]{3,20})|([B-DF-HJ-NP-TV-Z0-9]{6}[0-9])|([A-Z]{2}[A-Z0-9]{9}[0-9])|([A-Z1-9][A-Z0-9]{5})|(0*[0-9]{1,9})|([A-Z0-9]{8}[0-9])$
+          maxLength: 50
+          exclusiveMaximum: false
+          minLength: 3
+          exclusiveMinimum: false
+          description: Identifier to resolve.
+        required: true
+      - name: identifierType
+        in: query
+        schema:
+          type: string
+          description: Type of the identifier.
+          x-enum-description:
+          - MDG identifier of an instrument.
+          - MDG identifier of a listing.
+          - FactSet Permanent Identifier on security level.
+          - FactSet Permanent Identifier on listing level.
+          - Regional FactSet Permanent Identifier.
+          - FactSet market symbol of a listing.
+          - Regional FactSet ticker symbol.
+          - SEDOL or IDII of a listing.
+          - ISIN of an instrument.
+          - WKN of an instrument.
+          - Valor number of an instrument.
+          - CUSIP or CINS identifier of an instrument
+          enum:
+          - idInstrument
+          - idNotation
+          - fdsPermanentIdentifierSecurity
+          - fdsPermanentIdentifierListing
+          - fdsPermanentIdentifierRegional
+          - tickerExchange
+          - tickerRegion
+          - sedol
+          - isin
+          - wkn
+          - valor
+          - cusip
+        required: true
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      responses:
+        '200':
+          $ref: '#/components/responses/GetStockRecommendationAggregateGet200Response'
+  /stock/recommendation/aggregate/history/list:
+    get:
+      tags:
+      - Aggregate
+      operationId: get/stock/recommendation/aggregate/history/list
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: Current and historical trade recommendations and target prices for a stock.
+      description: Current and historical trade recommendations and target prices for a stock.
+      parameters:
+      - name: identifier
+        in: query
+        schema:
+          type: string
+          pattern: ^([B-DF-HJ-NP-TV-Z0-9]{6}-[SLR])|([A-Z0-9.]{1,47}-[A-Z0-9]{2,4})|([0-9]{3,20})|([B-DF-HJ-NP-TV-Z0-9]{6}[0-9])|([A-Z]{2}[A-Z0-9]{9}[0-9])|([A-Z1-9][A-Z0-9]{5})|(0*[0-9]{1,9})|([A-Z0-9]{8}[0-9])$
+          maxLength: 50
+          exclusiveMaximum: false
+          minLength: 3
+          exclusiveMinimum: false
+          description: Identifier to resolve.
+        required: true
+      - name: identifierType
+        in: query
+        schema:
+          type: string
+          description: Type of the identifier.
+          x-enum-description:
+          - MDG identifier of an instrument.
+          - MDG identifier of a listing.
+          - FactSet Permanent Identifier on security level.
+          - FactSet Permanent Identifier on listing level.
+          - Regional FactSet Permanent Identifier.
+          - FactSet market symbol of a listing.
+          - Regional FactSet ticker symbol.
+          - SEDOL or IDII of a listing.
+          - ISIN of an instrument.
+          - WKN of an instrument.
+          - Valor number of an instrument.
+          - CUSIP or CINS identifier of an instrument
+          enum:
+          - idInstrument
+          - idNotation
+          - fdsPermanentIdentifierSecurity
+          - fdsPermanentIdentifierListing
+          - fdsPermanentIdentifierRegional
+          - tickerExchange
+          - tickerRegion
+          - sedol
+          - isin
+          - wkn
+          - valor
+          - cusip
+        required: true
+      - name: snapshots
+        in: query
+        schema:
+          type: array
+          nullable: false
+          items:
+            type: string
+            x-enum-description:
+            - latest
+            - one week ago
+            - one month ago
+            - three months ago
+            - six months ago
+            - one year ago
+            enum:
+            - latest
+            - 1w
+            - 1m
+            - 3m
+            - 6m
+            - 1y
+          description: Choice of historic snapshots for aggregated recommendations.
+          uniqueItems: true
+          maxItems: 6
+          minItems: 1
+        style: form
+        explode: false
+        required: true
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      responses:
+        '200':
+          $ref: '#/components/responses/GetStockRecommendationAggregateHistoryList200Response'
+components:
+  responses:
+    GetStockRecommendationAggregateGet200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: Target price and aggregated recommendations for a stock.
+                nullable: false
+                type: object
+                x-property-sort:
+                - idInstrument
+                - sourceIdentifier
+                - targetPrice
+                - recommendation
+                properties:
+                  idInstrument:
+                    nullable: true
+                    type: string
+                    format: id64
+                    x-positive: true
+                    description: MDG identifier of the instrument.
+                  sourceIdentifier:
+                    nullable: true
+                    type: string
+                    description: Identifier used in the request.
+                  targetPrice:
+                    nullable: false
+                    description: Details of the target price.
+                    type: object
+                    x-property-sort:
+                    - latestUpdate
+                    - mean
+                    - currency
+                    properties:
+                      latestUpdate:
+                        nullable: true
+                        type: string
+                        format: date
+                        description: Date of the latest update.
+                      mean:
+                        nullable: true
+                        type: number
+                        format: real
+                        description: Mean value.
+                      currency:
+                        nullable: false
+                        description: Main currency of the target price. See endpoint `/basic/valueUnit/currency/main/list` for possible values.
+                        type: object
+                        x-property-sort:
+                        - id
+                        - code
+                        properties:
+                          id:
+                            nullable: true
+                            type: number
+                            format: id32
+                            x-positive: true
+                            description: Identifier of the currency.
+                          code:
+                            nullable: true
+                            type: string
+                            description: Code of the currency; if assigned, a code according to ISO 4217, otherwise a local code.
+                  recommendation:
+                    nullable: false
+                    description: Details of the recommendations.
+                    type: object
+                    x-property-sort:
+                    - latestUpdate
+                    - counts
+                    - consensus
+                    properties:
+                      latestUpdate:
+                        nullable: true
+                        type: string
+                        format: date
+                        description: Date of the latest update.
+                      counts:
+                        nullable: false
+                        description: Number of recommendations.
+                        type: object
+                        x-property-sort:
+                        - total
+                        - buy
+                        - overweight
+                        - hold
+                        - underweight
+                        - sell
+                        properties:
+                          total:
+                            nullable: true
+                            type: number
+                            format: int32
+                            description: Total number.
+                          buy:
+                            nullable: true
+                            type: number
+                            format: int32
+                            description: Number of buy recommendations. A buy recommendation contributes with the numeric value 1 when calculating the consensus.
+                          overweight:
+                            nullable: true
+                            type: number
+                            format: int32
+                            description: Number of overweight recommendations. A overweight recommendation contributes with the numeric value 2 when calculating the consensus.
+                          hold:
+                            nullable: true
+                            type: number
+                            format: int32
+                            description: Number of hold recommendations. A hold recommendation contributes with the numeric value 3 when calculating the consensus.
+                          underweight:
+                            nullable: true
+                            type: number
+                            format: int32
+                            description: Number of underweight recommendations. A underweight recommendation contributes with the numeric value 4 when calculating the consensus.
+                          sell:
+                            nullable: true
+                            type: number
+                            format: int32
+                            description: Number of sell recommendations. A sell recommendation contributes with the numeric value 5 when calculating the consensus.
+                      consensus:
+                        nullable: true
+                        type: number
+                        format: real
+                        description: Recommendation consensus, that is the average value of all provided recommendations. Values are in the range from 1.0 to 5.0, whereby 1 represents the strongest buy recommendation, 3 a hold (neutral) recommendation and 5 the strongest sell recommendation.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+    GetStockRecommendationAggregateHistoryList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: List of trade recommendations and target prices for a stock, in unspecified order.
+                nullable: false
+                type: object
+                x-property-sort:
+                - idInstrument
+                - sourceIdentifier
+                - aggregatedRecommendations
+                properties:
+                  idInstrument:
+                    nullable: true
+                    type: string
+                    format: id64
+                    x-positive: true
+                    description: MDG identifier of the instrument.
+                  sourceIdentifier:
+                    nullable: true
+                    type: string
+                    description: Identifier used in the request.
+                  aggregatedRecommendations:
+                    nullable: false
+                    description: List of trade recommendations.
+                    type: array
+                    items:
+                      type: object
+                      nullable: false
+                      x-property-sort:
+                      - snapshot
+                      - targetPrice
+                      - recommendation
+                      properties:
+                        snapshot:
+                          nullable: true
+                          description: Identification of the historic snapshot for aggregated recommendations.
+                          type: string
+                          x-enum-description:
+                          - latest
+                          - one week ago
+                          - one month ago
+                          - three months ago
+                          - six months ago
+                          - one year ago
+                          enum:
+                          - latest
+                          - 1w
+                          - 1m
+                          - 3m
+                          - 6m
+                          - 1y
+                        targetPrice:
+                          nullable: false
+                          description: Details of the target price.
+                          type: object
+                          x-property-sort:
+                          - latestUpdate
+                          - mean
+                          - currency
+                          properties:
+                            latestUpdate:
+                              nullable: true
+                              type: string
+                              format: date
+                              description: Date of the latest update.
+                            mean:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Mean value.
+                            currency:
+                              nullable: false
+                              description: Main currency of the target price. See endpoint `/basic/valueUnit/currency/main/list` for possible values.
+                              type: object
+                              x-property-sort:
+                              - id
+                              - code
+                              properties:
+                                id:
+                                  nullable: true
+                                  type: number
+                                  format: id32
+                                  x-positive: true
+                                  description: Identifier of the currency.
+                                code:
+                                  nullable: true
+                                  type: string
+                                  description: Code of the currency; if assigned, a code according to ISO 4217, otherwise a local code.
+                        recommendation:
+                          nullable: false
+                          description: Details of the recommendations.
+                          type: object
+                          x-property-sort:
+                          - latestUpdate
+                          - counts
+                          - consensus
+                          - change
+                          properties:
+                            latestUpdate:
+                              nullable: true
+                              type: string
+                              format: date
+                              description: Date of the latest update.
+                            counts:
+                              nullable: false
+                              description: Number of recommendations.
+                              type: object
+                              x-property-sort:
+                              - total
+                              - buy
+                              - overweight
+                              - hold
+                              - underweight
+                              - sell
+                              properties:
+                                total:
+                                  nullable: true
+                                  type: number
+                                  format: int32
+                                  description: Total number.
+                                buy:
+                                  nullable: true
+                                  type: number
+                                  format: int32
+                                  description: Number of buy recommendations. A buy recommendation contributes with the numeric value 1 when calculating the consensus.
+                                overweight:
+                                  nullable: true
+                                  type: number
+                                  format: int32
+                                  description: Number of overweight recommendations. A overweight recommendation contributes with the numeric value 2 when calculating the consensus.
+                                hold:
+                                  nullable: true
+                                  type: number
+                                  format: int32
+                                  description: Number of hold recommendations. A hold recommendation contributes with the numeric value 3 when calculating the consensus.
+                                underweight:
+                                  nullable: true
+                                  type: number
+                                  format: int32
+                                  description: Number of underweight recommendations. A underweight recommendation contributes with the numeric value 4 when calculating the consensus.
+                                sell:
+                                  nullable: true
+                                  type: number
+                                  format: int32
+                                  description: Number of sell recommendations. A sell recommendation contributes with the numeric value 5 when calculating the consensus.
+                            consensus:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: 'Recommendation consensus, that is the average value of all provided recommendations. Values are in the range from 1.0 to 5.0, whereby 1 represents the strongest buy recommendation, 3 a hold (neutral) recommendation and 5 the strongest sell recommendation. '
+                            change:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Recommendation change as the difference of the latest (`snapshot=latest`) minus the historic value of the recommendation consensus (attribute `consensus`). Values are in the range from -4 to 4, whereby -4 represents a recommendation change from 5 to 1 and 4 represents a recommendation change from 1 to 5.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+  schemas:
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+      description: The status member contains the status code of the response.
+      required:
+      - code
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

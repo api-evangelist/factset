@@ -1,0 +1,255 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Partners API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Partners
+paths:
+  /ofs/v2/partners/{id}:
+    get:
+      summary: Factset Retrieve a Specific Partner Record.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: Globally unique identifier (GUID) of a partner record
+        schema:
+          example: caa0ee0f-c0fe-427e-9596-491e6c527b3f
+        type: string
+        pattern: \{?[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}\}?
+      responses:
+        '200':
+          $ref: '#/definitions/GetPartnerDto'
+        '404':
+          description: Partner record was not found.
+      tags:
+      - Partners
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /ofs/v2/partners:
+    get:
+      summary: Factset Retrieve a Collection of Partner Records.
+      parameters:
+      - name: limit
+        in: query
+        description: Limit the amount of records per page
+        type: integer
+        default: 10
+      - name: page
+        in: query
+        description: Select which page to show
+        type: integer
+        default: 1
+        minimum: 1
+      responses:
+        '200':
+          description: A JSON representation of collection of Partner records. Might be empty.
+          schema:
+            items:
+              allOf:
+              - $ref: '#/definitions/GetPartnerDto'
+            type: array
+          headers:
+            X-Pagination:
+              description: A JSON containing pagination information. (e.g totalCount,pageSize,currentPage,totalPages,previousPageLink and nextPageLink)
+              type: string
+        '422':
+          description: Unprocessable entity. Validation error response containing the errors in a human readable form.
+          schema:
+            items:
+              type: string
+            type: array
+      tags:
+      - Partners
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /ofs/v2/partners/search:
+    post:
+      summary: Factset Retrieve a Collection of Partner Records.
+      parameters:
+      - name: body
+        in: body
+        schema:
+          $ref: '#/definitions/PostPartnerSearchDto'
+        type: json
+      responses:
+        '200':
+          description: A JSON representation of collection of Partner records. Might be empty.
+          schema:
+            items:
+              allOf:
+              - $ref: '#/definitions/GetPartnerDto'
+            type: array
+          headers:
+            X-Pagination:
+              description: A JSON containing pagination information. (e.g totalCount,pageSize,currentPage,totalPages,previousPageLink and nextPageLink)
+              type: string
+        '422':
+          description: Unprocessable entity. Validation error response containing the errors in a human readable form.
+          schema:
+            items:
+              type: string
+            type: array
+      tags:
+      - Partners
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+definitions:
+  PostPartnerSearchDto:
+    properties:
+      limit:
+        description: Limit the amount of records per page.
+        example: 10
+        type: integer
+        default: 10
+        maximum: 300
+      page:
+        description: Select which page to show.
+        example: 1
+        type: integer
+        default: 1
+        minimum: 1
+      sort:
+        description: Sort according to  specific field value.
+        example: name:asc
+        type: string
+        default: name:asc
+      fields:
+        description: Fetch only specific fields. The fields' names separated by a comma.
+        example: name,marking.state,slug
+        type: string
+      search:
+        description: Search for terms in certain fields.
+        example: name:FactSet
+        type: string
+      filter:
+        description: Filter against specific field values.
+        example: name:FactSet
+        type: string
+    type: object
+  GetPartnerDto:
+    description: A Json representation of a Partner record.
+    properties:
+      id:
+        example: caa0ee0f-c0fe-427e-9596-491e6c527b3f
+        type: string
+      logoUrl:
+        example: /media/download/partners/logo/774c3a5c-cc77-4e4c-b4a8-224a35cb00ba
+        type: string
+      forumTags:
+        example:
+        - id: factset
+          tag: factset
+        items:
+          properties:
+            tag:
+              type: string
+            id:
+              type: string
+          type: object
+        type: array
+      videoUrl:
+        example: https://vimeo.com/320509757
+        type: string
+      firmInfo:
+        example: FactSet creates data and technology solutions for investment professionals around the world, providing instant access to financial data and analytics that investors use to make crucial decisions. We combine our unique proprietary datasets, your in-house data, and third-party unstructured data to help you see and seize opportunity sooner.\n
+        type: string
+      socialMedia:
+        example:
+          linkedin: https://www.linkedin.com/company/factset
+          twitter: https://twitter.com/FactSet
+          facebook: https://www.facebook.com/FactSet/
+        properties:
+          linkedin:
+            type: string
+          facebook:
+            type: string
+          twitter:
+            type: string
+        type: object
+      name:
+        example: FactSet
+        type: string
+      firmId:
+        example: 6992
+        type: integer
+      companyUrl:
+        example: https://www.factset.com/
+        type: string
+      seoMeta:
+        example:
+          partnerTitle: FactSet
+          partnerSummary: FactSet creates data and technology solutions for investment professionals around the world.
+          videoAltText: ''
+        properties:
+          productTitle:
+            type: string
+          productSummary:
+            type: string
+        type: object
+      publishedDate:
+        example: 1568801114
+        type: integer
+      slug:
+        example: factset
+        type: string
+      marking:
+        $ref: '#/definitions/Marking'
+      created:
+        example: 1518816584
+        type: integer
+      updated:
+        example: 1568801114
+        type: integer
+      versionSchema:
+        example:
+          major: 1
+          minor: 0
+          patch: 0
+          versionedId: caa0ee0f-c0fe-427e-9596-491e6c527b3f-1.0.0
+          originalId: caa0ee0f-c0fe-427e-9596-491e6c527b3f
+        properties:
+          major:
+            type: integer
+          minor:
+            type: integer
+          patch:
+            type: integer
+          versionedId:
+            type: string
+          originalId:
+            type: string
+        type: object
+    type: object
+  Marking:
+    properties:
+      state:
+        example: published
+        type: string
+    type: object
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

@@ -1,0 +1,408 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Profiles API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Profiles
+  description: Return information about the person with the specified entity ID.
+paths:
+  /factset-people/v1/profiles:
+    get:
+      summary: Factset Return Information About the Person With the Specified Entity Id.
+      description: 'Returns a summary of basic information about the person referenced by the entityId specified in the URI.
+
+        '
+      tags:
+      - Profiles
+      operationId: getPeopleProfiles
+      parameters:
+      - $ref: '#/components/parameters/profileEntityId'
+      responses:
+        '200':
+          description: Array of Profile Ojects
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/peopleProfilesResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '415':
+          $ref: '#/components/responses/415'
+        '500':
+          $ref: '#/components/responses/500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      summary: Factset Returns Profile Information for a Large List of People.
+      tags:
+      - Profiles
+      operationId: getPeopleProfilesForList
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/peopleProfilesRequest'
+      responses:
+        '200':
+          description: Array of People Profile Objects
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/peopleProfilesResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '415':
+          $ref: '#/components/responses/415'
+        '500':
+          $ref: '#/components/responses/500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /stock/composite/profile/getByNotation:
+    get:
+      tags:
+      - Profiles
+      operationId: get/stock/composite/profile/getByNotation
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: Provides key elements of a stock profile together with the profile of the issuing company.
+      description: Provides key elements of a stock profile together with the profile of the issuing company.
+      parameters:
+      - name: identifier
+        in: query
+        schema:
+          type: string
+          pattern: ^([B-DF-HJ-NP-TV-Z0-9]{6}-[LR])|([A-Z0-9.]{1,47}-[A-Z0-9]{2,4})|([0-9]{3,20})$
+          maxLength: 50
+          exclusiveMaximum: false
+          minLength: 3
+          exclusiveMinimum: false
+          description: Identifier to resolve.
+        required: true
+      - name: identifierType
+        in: query
+        schema:
+          type: string
+          description: Type of the identifier.
+          x-enum-description:
+          - MDG identifier of a listing.
+          - FactSet market symbol of a listing.
+          - Regional FactSet ticker symbol, identifying the primary listing in the region.
+          - FactSet Permanent Identifier on listing level.
+          - Regional FactSet Permanent Identifier, identifying the primary listing in the region.
+          enum:
+          - idNotation
+          - tickerExchange
+          - tickerRegion
+          - fdsPermanentIdentifierListing
+          - fdsPermanentIdentifierRegional
+        required: true
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      - name: _language
+        in: query
+        schema:
+          type: string
+          format: isoLanguage
+          description: ISO 639-1 code of the language.
+          maxLength: 2
+          minLength: 2
+          exclusiveMinimum: false
+          exclusiveMaximum: false
+      responses:
+        '200':
+          $ref: '#/components/responses/GetStockCompositeProfileGetByNotation200Response'
+components:
+  schemas:
+    peopleProfilesRequest:
+      title: Profiles Request
+      type: object
+      properties:
+        ids:
+          $ref: '#/components/schemas/ids'
+      required:
+      - ids
+    profile:
+      title: Profile
+      type: object
+      description: Basic information about a person entity.
+      properties:
+        requestId:
+          type: string
+          description: Person identifier used in the request.
+          example: 0DPHLH-E
+        personId:
+          description: FactSet Entity Identifier for the Person
+          type: string
+          example: 0DPHLH-E
+          nullable: true
+        lastName:
+          description: Last Name
+          type: string
+          example: Snow
+          x-fds-fql-formula: FPD_PERSON('LAST_NAME')
+          nullable: true
+        factsetName:
+          description: Name
+          type: string
+          example: Philip Snow
+          x-fds-fql-formula: FPD_PERSON('NAME')
+          nullable: true
+        firstName:
+          description: First Name
+          type: string
+          example: Frederick
+          x-fds-fql-formula: FPD_PERSON('FIRST_NAME')
+          nullable: true
+        middleName:
+          description: Middle Name
+          type: string
+          example: Philip
+          x-fds-fql-formula: FPD_PERSON('MIDDLE_NAME')
+          nullable: true
+        formalName:
+          description: Formal Name
+          type: string
+          example: Frederick Philip Snow
+          x-fds-fql-formula: FPD_PERSON('FORMAL_NAME')
+          nullable: true
+        properName:
+          description: Proper Name
+          type: string
+          example: Snow Frederick Philip CFA
+          x-fds-fql-formula: PROPER_NAME
+          nullable: true
+        salutation:
+          description: Primary Salutation of Name
+          type: string
+          example: Mr.
+          x-fds-fql-formula: FPD_PERSON(SALUTATION)
+          nullable: true
+        highestDegree:
+          description: The Highest Held Degree Code.
+          type: string
+          example: GRD
+          x-fds-fql-formula: FPD_PERSON('EDU_DEGREE_CODE')
+          nullable: true
+        highestDegreeInst:
+          description: The Highest Degree Institution Name.
+          type: string
+          example: Thunderbird School of Global Management
+          x-fds-fql-formula: FPD_PERSON('EDU_INST')
+          nullable: true
+        suffix:
+          description: Suffix of Name
+          type: string
+          example: CFA
+          x-fds-fql-formula: FPD_PERSON('SUFFIX')
+          nullable: true
+        age:
+          description: Person's age in years.
+          type: number
+          format: integer
+          example: 57
+          x-fds-fql-formula: FPD_PERSON('AGE')
+          nullable: true
+        gender:
+          description: Person's Gender.
+          type: string
+          example: Male
+          x-fds-fql-formula: FPD_PERSON('GENDER')
+          nullable: true
+        salary:
+          description: Most Recent Salary
+          type: number
+          format: integer
+          example: 525846
+          x-fds-fql-formula: FPD_PERSON('SALARY')
+          nullable: true
+        totalCompensation:
+          description: Most Recent Total Compensation
+          type: number
+          format: integer
+          example: 4719062
+          x-fds-fql-formula: FPD_PERSON(TOTAL_COMP)
+          nullable: true
+        primaryCompanyId:
+          description: Entity identifier of primary `Company` of employment.
+          type: string
+          example: 0016YD-E
+          nullable: true
+        primaryCompanyName:
+          description: Name of primary company of employment
+          type: string
+          example: FactSet Research Systems, Inc.
+          x-fds-fql-formula: FPD_PERSON('PRIMARY_CO_NAME')
+          nullable: true
+        primaryTitle:
+          description: Title at primary `Company` of employment
+          type: string
+          example: Chief Executive Officer & Director
+          x-fds-fql-formula: FPD_PERSON(PRIMARY_TITLE)
+          nullable: true
+        biography:
+          description: Brief biography of the person requested.
+          type: string
+          example: Frederick Philip Snow is Chief Executive Officer & Director at FactSet Research Systems, Inc. He is also on the board of FactSet Systems India Pvt Ltd., Quantopian, Inc. and Vermilion Holdings Ltd. and Member of CFA Institute. Mr. Snow received an undergraduate degree from the University of California, Berkeley and a graduate degree from Thunderbird School of Global Management.
+          x-fds-fql-formula: FPD_PERSON('BIO')
+          nullable: true
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+      description: The status member contains the status code of the response.
+      required:
+      - code
+    ids:
+      type: array
+      items:
+        type: string
+      minItems: 1
+      maxItems: 1000
+      description: 'FactSet People Entity Ids.
+
+        '
+      example:
+      - 0DPHLH-E
+    peopleProfilesResponse:
+      title: Profiles Response
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/profile'
+          example: []
+  responses:
+    GetStockCompositeProfileGetByNotation200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: Description missing
+                nullable: false
+                type: object
+                x-property-sort:
+                - idNotation
+                - sourceIdentifier
+                - description
+                - CEO
+                - industry
+                - headquarters
+                - symbol
+                properties:
+                  idNotation:
+                    nullable: true
+                    type: string
+                    format: id64
+                    x-positive: true
+                    description: MDG identifier of the listing.
+                  sourceIdentifier:
+                    nullable: true
+                    type: string
+                    description: Identifier used in the request.
+                  description:
+                    nullable: true
+                    type: string
+                    format: localizedString
+                    description: Body of the background text for the description of the company.
+                  CEO:
+                    nullable: true
+                    type: string
+                    description: Full name of the CEO officer.
+                  industry:
+                    nullable: true
+                    type: string
+                    format: localizedString
+                    description: Name of the industry category.
+                  headquarters:
+                    nullable: true
+                    type: string
+                    format: localizedString
+                    description: Postal address and name of the country for theheadquarters of the company
+                  symbol:
+                    nullable: true
+                    type: string
+                    description: The symbol of the notation. It is a market-specific code to identify the notation. Which characters can be part of a symbol depends on the market. If a market does not define a proprietary symbol, but uses a different identifier (for example, the ISIN or the WKN) to identify notations, no symbol will be set for the notations of that market.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+  parameters:
+    profileEntityId:
+      name: ids
+      description: List of FactSet Person Entity identifier.
+      in: query
+      schema:
+        type: array
+        items:
+          type: string
+        minItems: 1
+        maxItems: 500
+      required: true
+      explode: false
+      example:
+      - 0DPHLH-E
+      - 07MZV9-E
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

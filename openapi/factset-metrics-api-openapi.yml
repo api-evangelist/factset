@@ -1,0 +1,325 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Metrics API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Metrics
+  description: Discover available FactSet Fundamental metrics and ratios that can be used across the API endpoints.
+paths:
+  /metrics:
+    get:
+      tags:
+      - Metrics
+      operationId: getMetrics
+      summary: Returns Available Factset Fundamental Metrics and Ratios.
+      description: 'Returns list of available FF_* metrics that can be used in the `metrics` parameter of related endpoints. These are related to FactSet Fundamentals standardized data. Leave Category and Subcategory blank to request all available items.
+
+
+        For methodology definitions, reference the `oaPageId` or `oaUrl` response items to launch the available methodology page.'
+      parameters:
+      - $ref: '#/components/parameters/category'
+      - $ref: '#/components/parameters/subcategory'
+      - $ref: '#/components/parameters/metricDataType'
+      responses:
+        '200':
+          description: Metrics catalog returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+              examples:
+                incomeStatementMetrics:
+                  summary: Income statement metrics
+                  value:
+                    data:
+                    - metric: FF_SALES
+                      name: Sales/Revenue - Total
+                      category: INCOME_STATEMENT
+                      subcategory: INCOME_STATEMENT
+                      oaPageId: D10585
+                      oaUrl: https://my.apps.factset.com/oa/pages/D10585
+                      factor: 1000000
+                      sdfPackage: BASIC
+                      dataType: doubleArray
+                    - metric: FF_GROSS_INC
+                      name: Gross Income
+                      category: INCOME_STATEMENT
+                      subcategory: INCOME_STATEMENT
+                      oaPageId: D10586
+                      oaUrl: https://my.apps.factset.com/oa/pages/D10586
+                      factor: 1000000
+                      sdfPackage: BASIC
+                      dataType: doubleArray
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  responses:
+    Forbidden:
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. Please reach out to FactSet Account Team for assistance with authorization.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UnsupportedMediaType:
+      description: Unsupported Media Type. Ensure that the Content-Type header is set to "application/json".
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    BadRequest:
+      description: Bad Request. This can occur for several reasons. Please review the error message for details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalServerError:
+      description: Internal Server Error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    ErrorResponse:
+      type: object
+      title: Error Response
+      description: Standard error response wrapper.
+      properties:
+        errors:
+          type: array
+          description: An array containing error details.
+          items:
+            $ref: '#/components/schemas/Error'
+          example: []
+    MetricsResponse:
+      type: object
+      title: Metrics Response
+      description: Response wrapper containing an array of available metrics and their metadata.
+      properties:
+        data:
+          type: array
+          description: Array of metric objects representing the metrics that can be requested from the fundamentals APIs.
+          items:
+            $ref: '#/components/schemas/Metric'
+          example: []
+    Error:
+      type: object
+      title: Error
+      description: A single error detail object.
+      properties:
+        id:
+          type: string
+          description: A UUID for this particular occurrence of the problem.
+          examples:
+          - adb01824-252f-4420-b0c6-35a1e3507ef5
+        code:
+          type: string
+          description: Error status code description.
+          examples:
+          - Bad Request
+        title:
+          type: string
+          description: The plain text error message.
+          examples:
+          - Validation Error
+        links:
+          type: object
+          description: The endpoint path for reference.
+          properties:
+            about:
+              type: string
+              description: API path that generated the error.
+              examples:
+              - /factset-fundamentals/v2/fundamentals
+          example: example_value
+    Metric:
+      type: object
+      title: Metric
+      description: Metadata for a single available fundamental metric including its category, data type, and documentation reference.
+      properties:
+        metric:
+          type:
+          - string
+          - 'null'
+          description: Metric identifier to be used as input in the metrics parameter.
+          examples:
+          - FF_ASSETS
+        name:
+          type:
+          - string
+          - 'null'
+          description: Plain text name of the metric.
+          examples:
+          - Total Assets
+        category:
+          type:
+          - string
+          - 'null'
+          description: Primary category such as INCOME_STATEMENT, BALANCE_SHEET, CASH_FLOW, or RATIOS.
+          examples:
+          - BALANCE_SHEET
+        subcategory:
+          type:
+          - string
+          - 'null'
+          description: Sub-category such as ASSETS, SUPPLEMENTAL, SHAREHOLDERS_EQUITY, VALUATION, PROFITABILITY, etc.
+          examples:
+          - ASSETS
+        oaPageId:
+          type:
+          - string
+          - 'null'
+          description: Online Assistant Page ID in D***** format for methodology lookup.
+          examples:
+          - D10585
+        oaUrl:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Online Assistant URL for methodology definitions.
+          examples:
+          - https://my.apps.factset.com/oa/pages/D10585
+        factor:
+          type:
+          - integer
+          - 'null'
+          description: The factor for the metric (e.g. 1000000 = millions).
+          examples:
+          - 1000000
+        sdfPackage:
+          type:
+          - string
+          - 'null'
+          description: Standard Data Feed package availability. BASIC or ADVANCED. Null indicates API-only availability.
+          enum:
+          - BASIC
+          - ADVANCED
+          examples:
+          - BASIC
+        dataType:
+          type:
+          - string
+          - 'null'
+          description: The data type for the metric (date, doubleArray, float, floatArray, intArray, string, stringArray).
+          examples:
+          - doubleArray
+  parameters:
+    metricDataType:
+      name: metricDataType
+      in: query
+      required: false
+      description: Filter metrics by data type. Returns only metrics matching the specified type (integer, float, or string).
+      schema:
+        type: string
+        enum:
+        - integer
+        - float
+        - string
+    category:
+      name: category
+      in: query
+      required: false
+      description: Filters the list of FF_* metrics by major category. Categories include INCOME_STATEMENT, BALANCE_SHEET, CASH_FLOW, RATIOS, FINANCIAL_SERVICES, INDUSTRY_METRICS, PENSION_AND_POSTRETIREMENT, MARKET_DATA, MISCELLANEOUS, and DATES.
+      schema:
+        type: string
+        enum:
+        - INCOME_STATEMENT
+        - BALANCE_SHEET
+        - CASH_FLOW
+        - RATIOS
+        - FINANCIAL_SERVICES
+        - INDUSTRY_METRICS
+        - PENSION_AND_POSTRETIREMENT
+        - MARKET_DATA
+        - MISCELLANEOUS
+        - DATES
+    subcategory:
+      name: subcategory
+      in: query
+      required: false
+      description: Sub-category filter for the primary category requested. Choose a related sub-category for the category requested. For example, RATIOS supports FINANCIAL, GROWTH_RATE, LIQUIDITY, PROFITABILITY, SIZE, and VALUATION.
+      schema:
+        type: string
+        enum:
+        - ASSETS
+        - BALANCE_SHEET
+        - HEALTHCARE
+        - LIABILITIES
+        - PER_SHARE
+        - SHAREHOLDERS_EQUITY
+        - SUPPLEMENTAL
+        - CASH_FLOW
+        - CHANGE_IN_CASH
+        - FINANCING
+        - INVESTING
+        - OPERATING
+        - DATES
+        - INCOME_STATEMENT
+        - NON-OPERATING
+        - NET_INCOME
+        - RETAIL
+        - AIRLINES
+        - BANK
+        - BANKING
+        - HOTELS_AND_GAMING
+        - METALS_AND_MINING
+        - OIL_AND_GAS
+        - PHARMACEUTICAL
+        - REIT
+        - TELECOM
+        - UTILITY
+        - INSURANCE
+        - HOMEBUILDING
+        - MARKET_DATA
+        - CLASSIFICATION
+        - CORPORATE_DATA
+        - FINANCIAL_RECORDS
+        - INDICATOR
+        - EMPLOYEES_AND_MANAGEMENT
+        - PENSION_AND_POSTRETIREMENT
+        - FINANCIAL
+        - GROWTH_RATE
+        - LIQUIDITY
+        - PROFITABILITY
+        - SIZE
+        - VALUATION
+        - OTHER
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

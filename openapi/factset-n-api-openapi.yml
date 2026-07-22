@@ -1,0 +1,501 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About N API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: N
+paths:
+  /instrument/crossReference/getByWKN:
+    get:
+      tags:
+      - N
+      operationId: get/instrument/crossReference/getByWKN
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Translate a given WKN to the respective most recent instrument identifier, retrieved from the Cross Reference Service.
+      summary: Factset Translate Wkn to Instrument.
+      parameters:
+      - name: wkn
+        in: query
+        schema:
+          description: Source WKN to be translated.
+          type: string
+          minLength: 6
+          exclusiveMinimum: false
+          maxLength: 6
+          exclusiveMaximum: false
+          pattern: ^[A-Z0-9]*$
+        required: true
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      responses:
+        '200':
+          $ref: '#/components/responses/GetInstrumentCrossReferenceGetByWKN200Response'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /instrument/crossReference/listByWKN:
+    post:
+      tags:
+      - N
+      operationId: post/instrument/crossReference/listByWKN
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Translate a given list of WKNs to the respective most recent instrument identifiers, retrieved from the Cross Reference Service.
+      summary: Factset Translate a List of Wkns to Instruments.
+      requestBody:
+        description: Request Body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostInstrumentCrossReferenceListByWKNRequest'
+        required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/PostInstrumentCrossReferenceListByWKN200Response'
+      parameters: []
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /instrument/crossReference/history/getByWKN:
+    get:
+      tags:
+      - N
+      operationId: get/instrument/crossReference/history/getByWKN
+      x-supportsOffsetBasedPaging: true
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Retrieve the complete translation history of a given WKN to the respective instrument association from the Cross Reference Service. The results are sorted in descending order, starting with the most recent.
+      summary: Factset Wkn to Instrument Translation History.
+      parameters:
+      - name: wkn
+        in: query
+        schema:
+          description: Source WKN to be translated.
+          type: string
+          pattern: ^[A-Z0-9]*$
+          minLength: 6
+          exclusiveMinimum: false
+          maxLength: 6
+          exclusiveMaximum: false
+        required: true
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      - description: Non-negative number of entries to skip, or 0 (default).
+        name: _paginationOffset
+        in: query
+        schema:
+          type: number
+          format: int32
+          minimum: 0
+          exclusiveMinimum: false
+          default: 0
+      - description: Non-negative maximum number of entries to return.
+        name: _paginationLimit
+        in: query
+        schema:
+          type: number
+          format: int32
+          minimum: 0
+          exclusiveMinimum: false
+          maximum: 500
+          exclusiveMaximum: false
+          default: 10
+      responses:
+        '200':
+          $ref: '#/components/responses/GetInstrumentCrossReferenceHistoryGetByWKN200Response'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  responses:
+    GetInstrumentCrossReferenceHistoryGetByWKN200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                description: List of instruments.
+                nullable: false
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                  - id
+                  - validity
+                  properties:
+                    id:
+                      nullable: true
+                      type: string
+                      format: id64
+                      x-positive: true
+                      description: Identifier of the instrument.
+                    validity:
+                      nullable: true
+                      type: object
+                      format: timeRange
+                      properties:
+                        start:
+                          nullable: true
+                          type: string
+                          format: datetime
+                          description: The starting point of the time range (inclusive).
+                        end:
+                          nullable: true
+                          type: string
+                          format: datetime
+                          description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
+                      x-property-sort:
+                      - start
+                      - end
+                      required:
+                      - start
+                      - end
+                      description: Time range that this translation is valid for.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                  pagination:
+                    $ref: '#/components/schemas/OffsetBasedPaginationOutputObject'
+                x-property-sort:
+                - status
+                - pagination
+            x-property-sort:
+            - data
+            - meta
+    GetInstrumentCrossReferenceGetByWKN200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  id:
+                    nullable: true
+                    type: string
+                    format: id64
+                    x-positive: true
+                    description: Identifier of the instrument.
+                  fsym:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - security
+                    description: Instrument-level FactSet identifier of the financial instrument used primarily in FactSet products other than the MDG.
+                    properties:
+                      security:
+                        nullable: false
+                        type: object
+                        x-property-sort:
+                        - permanentIdentifier
+                        description: Security-level identifier.
+                        properties:
+                          permanentIdentifier:
+                            nullable: true
+                            type: string
+                            description: FactSet Permanent Identifier for an instrument. The format is six alpha numeric characters, excluding vowels, with an S suffix (XXXXXX-S).
+                  validity:
+                    nullable: true
+                    type: object
+                    format: timeRange
+                    properties:
+                      start:
+                        nullable: true
+                        type: string
+                        format: datetime
+                        description: The starting point of the time range (inclusive).
+                      end:
+                        nullable: true
+                        type: string
+                        format: datetime
+                        description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
+                    x-property-sort:
+                    - start
+                    - end
+                    required:
+                    - start
+                    - end
+                    description: Time range that this translation is valid for.
+                description: Instrument response.
+                nullable: false
+                x-property-sort:
+                - id
+                - fsym
+                - validity
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
+    PostInstrumentCrossReferenceListByWKN200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                description: List of instruments.
+                nullable: false
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                  - id
+                  - fsym
+                  - validity
+                  - sourceWKN
+                  - status
+                  properties:
+                    id:
+                      nullable: true
+                      type: string
+                      format: id64
+                      x-positive: true
+                      description: Identifier of the instrument.
+                    fsym:
+                      nullable: false
+                      type: object
+                      x-property-sort:
+                      - security
+                      description: Instrument-level FactSet identifier of the financial instrument used primarily in FactSet products other than the MDG.
+                      properties:
+                        security:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - permanentIdentifier
+                          description: Security-level identifier.
+                          properties:
+                            permanentIdentifier:
+                              nullable: true
+                              type: string
+                              description: FactSet Permanent Identifier for an instrument. The format is six alpha numeric characters, excluding vowels, with an S suffix (XXXXXX-S).
+                    validity:
+                      nullable: true
+                      type: object
+                      format: timeRange
+                      properties:
+                        start:
+                          nullable: true
+                          type: string
+                          format: datetime
+                          description: The starting point of the time range (inclusive).
+                        end:
+                          nullable: true
+                          type: string
+                          format: datetime
+                          description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
+                      x-property-sort:
+                      - start
+                      - end
+                      required:
+                      - start
+                      - end
+                      description: Time range that this translation is valid for.
+                    sourceWKN:
+                      nullable: true
+                      type: string
+                      description: The source WKN that the instrument is translated for.
+                    status:
+                      nullable: false
+                      type: object
+                      x-property-sort:
+                      - code
+                      - identifier
+                      description: Error status for the requested identifier
+                      properties:
+                        code:
+                          nullable: true
+                          type: string
+                          description: Code of the error condition.
+                          x-enum-description:
+                          - No error.
+                          - The provided identifier does not refer to a valid WKN.
+                          - Not entitled to see data for the instrument.
+                          enum:
+                          - none
+                          - parameter
+                          - entitlement
+                        identifier:
+                          nullable: true
+                          type: string
+                          description: Provided identifier.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
+  schemas:
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+        exclusiveMaximum: false
+      maxItems: 50
+      uniqueItems: true
+    PostInstrumentCrossReferenceListByWKNRequest:
+      x-property-sort:
+      - data
+      - meta
+      description: Request Body
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - wkns
+          description: The data member contains the request's primary data.
+          properties:
+            wkns:
+              description: List of source WKNs to be translated.
+              type: array
+              nullable: false
+              items:
+                type: string
+                minLength: 6
+                exclusiveMinimum: false
+                maxLength: 6
+                exclusiveMaximum: false
+                pattern: ^[A-Z0-9]*$
+              uniqueItems: true
+              minItems: 1
+              maxItems: 10
+          required:
+          - wkns
+          example: example_value
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+          - attributes
+          example: example_value
+    OffsetBasedPaginationOutputObject:
+      type: object
+      description: Pagination attributes for the offset-based pagination strategy.
+      properties:
+        total:
+          type: number
+          format: int32
+          description: Total number of entries in the result set.
+          example: 42.5
+        isEstimatedTotal:
+          type: boolean
+          description: Flag indicating that the value of "total" is estimated.
+          example: true
+      required:
+      - total
+      - isEstimatedTotal
+      x-property-sort:
+      - total
+      - isEstimatedTotal
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

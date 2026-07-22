@@ -1,0 +1,1438 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Key Stats API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Key Stats
+paths:
+  /key-stats:
+    description: Returns key financial metrics for private and public companies, as well as ETFs and mutual funds.  This endpoint provides a quick and easy way to obtain fundamental financial data. These key statistics can be used to evaluate a company's financial health, compare it to other companies in the same industry, and make informed investment decisions.
+    get:
+      tags:
+      - Key Stats
+      summary: Factset Key Stats
+      parameters:
+      - name: id
+        in: query
+        description: Company ticker
+        required: true
+        schema:
+          type: string
+          example: FDS
+      responses:
+        '200':
+          $ref: '#/components/responses/200OKKeyStats'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+        '429':
+          $ref: '#/components/responses/429TooManyRequests'
+        '500':
+          $ref: '#/components/responses/500InternalServerError'
+        '503':
+          $ref: '#/components/responses/503ServiceUnavailable'
+components:
+  schemas:
+    Meta:
+      type: object
+      additionalProperties:
+        type: string
+    ErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorObject'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ErrorObject:
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        title:
+          type: string
+        links:
+          type: object
+          properties:
+            about:
+              type: string
+        detail:
+          type: string
+        source:
+          type: object
+          properties:
+            parameter:
+              type: string
+    KeyStatsResponse:
+      type: object
+      description: Key statistics data for the requested id
+      properties:
+        data:
+          $ref: '#/components/schemas/KeyStatsObject'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    KeyStatsObject:
+      oneOf:
+      - $ref: '#/components/schemas/KeyStatsEntityObject'
+      - $ref: '#/components/schemas/KeyStatsFundObject'
+    KeyStatsEntityObject:
+      type: object
+      description: Key Statistics for the provided entity
+      properties:
+        range52Week:
+          description: The highest and lowest prices at which a stock as traded over the past 52 weeks
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        averageDailyVol:
+          description: The average number of shares traded per day
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        basicShares:
+          description: Number of basic shares. Also known as common shares or ordinary shares, this datapoint represents ownership in a company and offers the potential for capital appreciation and dividend payments
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        marketCap:
+          description: The total value of a company's outstanding shares
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        dividendYield:
+          description: Represents return on investment from dividends
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        firstDate:
+          description: The day on which a private company's shares became available for purchase by the public for the first time
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+                  format: date
+                  description: Date formatted to YYYY-MM-DD
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        dilutedShares:
+          description: The total number of a company's outstanding shares that would exist if all securities that could potentially be converted into common shares, such as outstanding shares, stock options, warrants, and convertible securities
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        dilutedMarketCap:
+          description: The total theoretical market value of a company, including all shares that could potentially be converted into common shares, such as outstanding shares, stock options, warrants, and convertible securities
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        enterpriseValue:
+          description: The total value of a company
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        wacc:
+          description: The weighted average cost of capital, or the average cost of all company's capital sources, including debt and equity , weighted by their respective proportions in the company's capital structure
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        float:
+          description: The percentage of a company's outstanding shares that are available for trading by the public, excluding shares that are closely held or restricted
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        institutional:
+          description: The percentage of a company's outstanding shares that are owned by institutional investors
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        top10InstitutionalHolders:
+          description: Percentage owned by 10 largest institutional investors in a company, based on the number of shares they hold
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        brokerContributors:
+          description: Number of brokerage firms that provide research and analysis on the company
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        averageRating:
+          description: The mean recommendation score given by financial analysts covering a particular stock
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        targetPrice:
+          description: The price level at which an analyst or brokerage firm predicts a stock will trade in the future
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        ltGrowthRate:
+          description: The estimated rate at which a company's earnings are expected to grow over a multi-year period
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        revenue:
+          description: The total amount of money that a company earns from its primary business activities, such as the sale of goods or services, before deducting any expenses or taxes
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+            asOfDate:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+                  format: date
+        employees:
+          description: The total count of individuals who are employed by a company
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+            asOfDate:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+                  format: date
+        fundingRounds:
+          description: Number of stages of financing that a startup or early-stage company goes through
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        estimatedVcRaised:
+          description: The estimated total amount of venture capital funding that a company has fraised from investors
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        lastFunding:
+          description: The most recent date on which a company raised capital from investors in a funding round.
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+                  format: date
+                  description: Date formatted to YYYY-MM-DD
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        firstFunding:
+          description: The first date a company raised capital from an external investor
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+                  format: date
+                  description: Date formatted to YYYY-MM-DD
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        latestPostMoneyValuation:
+          description: The estimated total value of a company after its most recent funding round, taking into account the new capital that was raised
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+            asOfDate:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+                  format: date
+        activeInvestors:
+          description: The total count of individual or institutional investors that have invested in a company and currently hold a position in its securities
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        totalInvestors:
+          description: The total count of individual or institutional investors that have invested in a company at any point in time, including those that may no longer hold a position in its securities
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        premiums:
+          description: The portion of gross premiums that an insurance company has earned by providing coverage for a certain period of time
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        grossPremiums:
+          description: The total amount of premiums collected by an insurance company from policyholders before taking into account any expenses or claims payments
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        grossAssets:
+          description: The total value of a company's assets, including both tangible assets such as property and equipment, and intangible assets such as intellectual property or goodwill, without taking into account any liabilities or deductions
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        totalDeposits:
+          description: The sum of all funds held in deposit accounts, including checking accounts, savings accounts, money market accounts, and certificates of deposit, among others
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        branches:
+          description: The total count of physical locations, such as buildings or offices, where a bank offers its products and services to customers
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        netInterestIncome:
+          description: The difference between the interest earned by a financial institution on its interest-earning assets, such as loans and investments, and the interest paid on its interest-bearing liabilities, such as deposits and borrowings
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+        meta:
+          type: object
+          properties:
+            sources:
+              type: object
+              properties:
+                value:
+                  type: array
+                  items:
+                    type: string
+              description: Where the data is sourced from
+    KeyStatsFundObject:
+      description: Key Statistics for the provided fund
+      type: object
+      properties:
+        expenseRatio:
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+                  nullable: true
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+          description: The net expense ratio, or total expense ratio, represents the percentage of assets of the fund used to run and manage the fund, after any fee waivers or reimbursements that may be in effect. Ongoing charge is collected as the Net Expense ratio for Mutual Funds if the Net Expense Ratio is not available.
+        distributionYield:
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+                  nullable: true
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+          description: LTM (Last Twelve Months) trailing 12-month yield of distributions made by the fund, relative to the current price. Distinct from Dividend Yield, which measures distributions made by the portfolio's holdings. This data point is returned as a percentage.
+        aumShareDaily:
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+          description: The AUM (Actual) is the market value of total assets that a fund manages on behalf of investors based on the shares outstanding, multiplied by the net asset value from the preceding day, at share class level. Data is updated daily.
+        aumFundMonth:
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+          description: The AUM (Actual) is the market value of total assets that a fund manages on behalf of investors based on the shares outstanding, multiplied by the net asset value from the month end at a fund level. Data is updated monthly, based on the last trading day of the month.
+        outstandingShare:
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+          description: Returns historical shares outstanding figures for the specified share class.
+        fundFlowYTD:
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+          description: The dollars invested or divested from a fund over one calendar year, based on the creation/redemption process. Data returned may not be related to overall volume or price movement. All fund flow inputs use transaction-day values to ensure that all AUM and flows are fully comparable and reflective of the same, verified market conditions.
+        firstNavRecord:
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+                  format: date
+                  description: Date formatted to YYYY-MM-DD
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+          description: Returns the first NAV record available in FactSet’s database. This may not equal the first trading record of the fund.
+        dailyTradingVol:
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+          description: The daily trading volume of the fund as a dollar value.
+        averageSpread:
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: number
+                  nullable: true
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+          description: The 45-day median of daily time-weighted percentage differences between the highest-posted price a market participant is willing to pay to buy a fund and the lowest-posted price at which a market participant is willing to sell a fund.
+        inceptionDateShare:
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+                  format: date
+                  description: Date formatted to YYYY-MM-DD
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+          description: Launch date of the share class.
+        inceptionDateFund:
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+                  format: date
+                  description: Date formatted to YYYY-MM-DD
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+          description: Launch date of the fund.
+        availableForSale:
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+          description: Determines where the fund is available for sale.
+        currencyIso:
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+          description: Returns currency ISO code for a listing.
+        esgCompliance:
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+          description: Determines if the fund is ESG compliant or not.
+        sfdrClassification:
+          type: object
+          required:
+          - value
+          - label
+          properties:
+            value:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+            label:
+              type: object
+              required:
+              - value
+              properties:
+                value:
+                  type: string
+          description: Article 6 - Fund is not ESG but makes disclosures on the integration of sustainable risks. Article 8 - Preferences for products having ESG Characteristics. Article 9 - Preferences for products having Sustainable Objectives. Article 0 - The type or structure of the fund is out of ESG requirements. NA - No information available.
+        meta:
+          type: object
+          properties:
+            sources:
+              type: object
+              properties:
+                value:
+                  type: array
+                  items:
+                    type: string
+              description: Where the data is sourced from
+            asOfDate:
+              type: object
+              properties:
+                value:
+                  type: array
+                  items:
+                    type: string
+                    format: date
+              description: Data as of date
+  examples:
+    noData200KeyStatsResponse:
+      summary: no data response
+      value:
+        data: null
+        meta:
+          requestId: 0N57YY-E
+          fsymId: null
+          noData: true
+          message: There is no data for this request.
+    parameterErrorTopn:
+      summary: topn parameter error
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Invalid parameter: ''topn'''
+    unsupportedEntityParameterError:
+      summary: unsupported entity type
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: Unsupported entity type
+    parameterErrorView:
+      summary: view parameter error
+      value:
+        errors:
+        - id: 3838f112-ed5a-4d9d-b0c7-3594d8eab0ed
+          code: parameterError
+          title: 'Invalid parameter: ''view''. Accepted values include: ''FINANCIAL'', ''VALUATION'', ''CAPITALIZATION'', ''MARGINS'' or ''PERFORMANCE'''
+    parameterErrorActual:
+      summary: actual periods parameter error
+      value:
+        errors:
+        - id: 35a62bd5-c4aa-4e6b-9357-0f1b5688e2db
+          code: parameterError
+          title: 'Invalid parameter: ''actual''. Accepted values include nonzero integers'
+    idInvalidParameterError:
+      summary: generic parameter error (invalid parameter)
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Invalid parameter(s): ''id'''
+    parameterErrorEstimate:
+      summary: estimate periods parameter error
+      value:
+        errors:
+        - id: 372a28d1-53ac-49cd-9be5-beb714cd62a8
+          code: parameterError
+          title: 'Invalid parameter: ''estimate''. Accepted values include nonzero integers'
+    endpointNotFound:
+      summary: endpoint not found
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: endpointNotFound
+          title: The requested endpoint does not exist.
+    idRequiredParameterError:
+      summary: generic parameter error (missing parameter)
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Missing required parameter(s): ''id'''
+    default200KeyStatsResponse:
+      summary: sample response
+      value:
+        data:
+          range52Week:
+            value:
+              value: $317.55 - 495.39
+            label:
+              value: 52 Week Range
+          averageDailyVol:
+            value:
+              value: 300330.25
+            label:
+              value: Avg Daily Vol (3 Mo)
+          basicShares:
+            value:
+              value: 37896.579
+            label:
+              value: Basic Shares (000)
+          marketCap:
+            value:
+              value: 14179.383999
+            label:
+              value: Market Cap (M)
+          dividendYield:
+            value:
+              value: 0.983615616279391
+            label:
+              value: Dividend Yield
+          firstDate:
+            value:
+              value: '1996-06-28'
+            label:
+              value: IPO Date
+          dilutedShares:
+            value:
+              value: 39266.127
+            label:
+              value: FD Shares Out (000)
+          dilutedMarketCap:
+            value:
+              value: 14691.814201
+            label:
+              value: FD Mkt Cap (M)
+          enterpriseValue:
+            value:
+              value: 14458.443201
+            label:
+              value: EV (M)
+          wacc:
+            value:
+              value: 6.76303
+            label:
+              value: WACC
+          float:
+            value:
+              value: 99.9248
+            label:
+              value: Float
+          institutional:
+            value:
+              value: 91.3343
+            label:
+              value: Institutional
+          top10InstitutionalHolders:
+            value:
+              value: 48.76016379
+            label:
+              value: Top 10 Inst Hldrs
+          brokerContributors:
+            value:
+              value: 18
+            label:
+              value: Broker Contributors
+          averageRating:
+            value:
+              value: Hold (2.11)
+            label:
+              value: Avg Rating
+          targetPrice:
+            value:
+              value: $462.41
+            label:
+              value: Target Price
+          ltGrowthRate:
+            value:
+              value: 10
+            label:
+              value: LT Growth Rate
+          meta:
+            sources:
+              value:
+              - FactSet Fundamentals
+              - FactSet Estimates
+              - FactSet Capital Structure
+              - FactSet Ownership
+        meta:
+          requestId: FDS-US
+          fsymId: SQFMK3-R
+  responses:
+    401Unauthorized:
+      description: Missing or invalid authentication. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For further assistance, file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    429TooManyRequests:
+      description: Too many requests - this API is rate-limited to 20 requests per second. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    404NotFound:
+      description: Not found. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            endpointNotFound:
+              $ref: '#/components/examples/endpointNotFound'
+    200OKKeyStats:
+      description: Expected response; returns the JSON in a simple key-value format
+      headers:
+        X-DataDirect-Request-Key:
+          $ref: '#/components/headers/xDataDirectRequestKey'
+        Api-Supported-Versions:
+          $ref: '#/components/headers/apiSupportedVersions'
+        Api-Version:
+          $ref: '#/components/headers/apiVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/KeyStatsResponse'
+          examples:
+            default200ResponseExample:
+              $ref: '#/components/examples/default200KeyStatsResponse'
+            noDataResponse:
+              $ref: '#/components/examples/noData200KeyStatsResponse'
+    503ServiceUnavailable:
+      description: Service unavailable. Typically a timeout, or result of a rejected request to prevent service overload. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    400BadRequest:
+      description: Bad Request. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          $ref: '#/components/headers/xDataDirectRequestKey'
+        Api-Supported-Versions:
+          $ref: '#/components/headers/apiSupportedVersions'
+        Api-Version:
+          $ref: '#/components/headers/apiVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            idRequiredParameterError:
+              $ref: '#/components/examples/idRequiredParameterError'
+            idInvalidParameterError:
+              $ref: '#/components/examples/idInvalidParameterError'
+            unsupportedEntityParameterError:
+              $ref: '#/components/examples/unsupportedEntityParameterError'
+            parameterErrorActual:
+              $ref: '#/components/examples/parameterErrorActual'
+            parameterErrorEstimate:
+              $ref: '#/components/examples/parameterErrorEstimate'
+            parameterErrorTopn:
+              $ref: '#/components/examples/parameterErrorTopn'
+            parameterErrorView:
+              $ref: '#/components/examples/parameterErrorView'
+    500InternalServerError:
+      description: Server error. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+  headers:
+    xDataDirectRequestKey:
+      description: FactSet request ID
+      schema:
+        type: string
+    apiVersion:
+      description: API version (semantic versioning)
+      schema:
+        type: string
+    apiSupportedVersions:
+      description: Supported API versions (semantic versioning)
+      schema:
+        type: string
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

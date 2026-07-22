@@ -1,0 +1,1810 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Mpo API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Mpo
+paths:
+  /mpo/v1/optimizeFPO:
+    post:
+      consumes:
+      - application/x-protobuf
+      produces:
+      - application/x-protobuf
+      parameters:
+      - in: body
+        name: MultiPeriodInput
+        description: Multiperiod protobuf input
+        schema:
+          $ref: '#/definitions/optimizer.inputs.MultiPeriodInput'
+      responses:
+        '200':
+          description: Multiperiod protobuf output
+          schema:
+            $ref: '#/definitions/optimizer.outputs.MultiPeriodOutput'
+      tags:
+      - Mpo
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+definitions:
+  optimizer.inputs.Asset:
+    type: object
+    properties:
+      symbol:
+        type: string
+      price:
+        type: number
+        format: double
+    required: []
+  optimizer.inputs.FactorExposureTerm:
+    type: object
+    properties:
+      name:
+        type: string
+      multiplier:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      factors:
+        type: array
+        items:
+          type: string
+      direction:
+        $ref: '#/definitions/optimizer.inputs.EObjectiveTermDirection.Enum'
+      rel_to_benchmark:
+        type: boolean
+      benchmark_index:
+        type: integer
+        format: int32
+    required: []
+  optimizer.inputs.MPLimitTailRiskConstraint:
+    type: object
+    properties:
+      constraint:
+        $ref: '#/definitions/optimizer.inputs.LimitTailRiskConstraint'
+      constraint_on:
+        $ref: '#/definitions/optimizer.inputs.BoundSource.Enum'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+      across_periods:
+        $ref: '#/definitions/optimizer.inputs.AcrossPeriods'
+    required: []
+  optimizer.inputs.MPRoundlotsConstraint:
+    type: object
+    properties:
+      constraint:
+        $ref: '#/definitions/optimizer.inputs.RoundlotsConstraint'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+    required: []
+  optimizer.inputs.MPTradeThresholdConstraint:
+    type: object
+    properties:
+      constraint:
+        $ref: '#/definitions/optimizer.inputs.TradeThresholdConstraint'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+    required: []
+  optimizer.inputs.MultiPeriodConstraints:
+    type: object
+    properties:
+      expected_returns:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPExpectedReturnConstraint'
+      diversification:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPDiversificationConstraint'
+      factor_exposures:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPFactorExposureConstraint'
+      general_linear:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPGeneralLinearConstraint'
+      holding_threshold:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPHoldingsThresholdConstraint'
+      leverage:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPLeverageConstraint'
+      num_of_assets:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPNumberofAssetsConstraint'
+      sensitivity:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPSensitivityConstraint'
+      weight_constraint:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPHoldingsWeightConstraint'
+      number_of_buys:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPNumberOfBuysConstraint'
+      number_of_sells:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPNumberOfSellsConstraint'
+      round_lots:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPRoundlotsConstraint'
+      trade_threshold:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPTradeThresholdConstraint'
+      trading_turnover:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPTurnoverConstraint'
+      risk_contribution:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPRiskContributionConstraint'
+      risk_volatility:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPRiskVolatilityConstraint'
+      tail_risk:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPLimitTailRiskConstraint'
+        description: MultiPeriod-Specific
+      target_probability:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPTargetProbabilityConstraint'
+    required: []
+  optimizer.inputs.TurnoverConstraint:
+    type: object
+    properties:
+      name:
+        type: string
+      max:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      custom_asset:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      penalty:
+        $ref: '#/definitions/optimizer.inputs.Penalty'
+      groups:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.ConstraintGroup'
+      level:
+        $ref: '#/definitions/optimizer.inputs.EConstraintLevel.Enum'
+      value_type:
+        $ref: '#/definitions/optimizer.inputs.EConstraintValueType.Enum'
+      asset_type:
+        $ref: '#/definitions/optimizer.inputs.EFPOConstraintAssetType.Enum'
+      turnover_type:
+        $ref: '#/definitions/optimizer.inputs.EConstraintTurnoverType.Enum'
+      hierarchy:
+        type: integer
+        format: int32
+    required: []
+    description: '15'
+  optimizer.inputs.EObjectiveRiskType.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    - 2
+    description: "0 - eETL \n1 - eStandardDeviation \n2 - eVariance "
+  optimizer.inputs.EObjectiveTermDirection.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    description: "0 - eMinimize \n1 - eMaximize "
+  optimizer.inputs.MultiPeriodOptions:
+    type: object
+    properties:
+      options:
+        $ref: '#/definitions/optimizer.inputs.Options'
+      weight_rebalance_periods:
+        type: array
+        items:
+          type: integer
+          format: int32
+      total_periods_count:
+        type: integer
+        format: int32
+      initial_point_randomization_count:
+        type: integer
+        format: int32
+    required: []
+  optimizer.inputs.SparseMatrix:
+    type: object
+    properties:
+      rows:
+        type: integer
+        format: int32
+      columns:
+        type: integer
+        format: int32
+      indexPointer:
+        type: array
+        items:
+          type: integer
+          format: int32
+      indices:
+        type: array
+        items:
+          type: integer
+          format: int32
+      value:
+        type: array
+        items:
+          type: number
+          format: double
+    required: []
+    description: Represents a sparse matrix in the CSR format
+  optimizer.inputs.MPSensitivityTerm:
+    type: object
+    properties:
+      term:
+        $ref: '#/definitions/optimizer.inputs.SensitivityTerm'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+      across_periods:
+        $ref: '#/definitions/optimizer.inputs.AcrossPeriods'
+    required: []
+  optimizer.inputs.LeverageConstraint:
+    type: object
+    properties:
+      name:
+        type: string
+      value:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      value_type:
+        $ref: '#/definitions/optimizer.inputs.ELeverageValueType.Enum'
+      hierarchy:
+        type: integer
+        format: int32
+      groups:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.ConstraintGroup'
+      level:
+        $ref: '#/definitions/optimizer.inputs.EConstraintLevel.Enum'
+    required: []
+    description: '6'
+  optimizer.inputs.ExpectedReturn:
+    type: object
+    properties:
+      alpha:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      alpha_unit:
+        $ref: '#/definitions/optimizer.inputs.EAlphaUnitType.Enum'
+    required: []
+  optimizer.inputs.MPGeneralLinearConstraint:
+    type: object
+    properties:
+      constraint:
+        $ref: '#/definitions/optimizer.inputs.GeneralLinearConstraint'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+      across_periods:
+        $ref: '#/definitions/optimizer.inputs.AcrossPeriods'
+    required: []
+  optimizer.inputs.FactorExposureAttributes:
+    type: object
+    properties:
+      min:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      max:
+        $ref: '#/definitions/optimizer.inputs.Value'
+    required: []
+  optimizer.inputs.GroupDefinition:
+    type: object
+    properties:
+      univ_indices:
+        type: array
+        items:
+          type: integer
+          format: int32
+    required: []
+    description: 'Contains the subset of assets associated with a
+
+      constraint group. (excluding Factor groups, as the
+
+      optimizer will be respondible for fetching the risk
+
+      model and expanding factor groups.'
+  optimizer.inputs.Labels:
+    type: object
+    properties:
+      factor:
+        $ref: '#/definitions/optimizer.inputs.Factor'
+      security:
+        $ref: '#/definitions/optimizer.inputs.Security'
+    required: []
+    description: Labeling and index information to be able to reconstruct the calculated data results to the provided inputs from the request.
+  optimizer.inputs.QuantRiskModel:
+    type: object
+    properties:
+      raw_data:
+        $ref: '#/definitions/optimizer.inputs.QuantRiskModelRawData'
+      request_info:
+        $ref: '#/definitions/optimizer.inputs.QuantRiskRequestInfo'
+    required: []
+  optimizer.inputs.ETransactionCostUnitType.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    description: "0 - ePercent \n1 - eCostPerShare "
+  optimizer.inputs.MPVolatilityTerm:
+    type: object
+    properties:
+      term:
+        $ref: '#/definitions/optimizer.inputs.VolatilityTerm'
+      term_on:
+        $ref: '#/definitions/optimizer.inputs.BoundSource.Enum'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+      across_periods:
+        $ref: '#/definitions/optimizer.inputs.AcrossPeriods'
+    required: []
+  optimizer.inputs.MPExpectedReturnConstraint:
+    type: object
+    properties:
+      constraint:
+        $ref: '#/definitions/optimizer.inputs.ExpectedReturnConstraint'
+      constraint_on:
+        $ref: '#/definitions/optimizer.inputs.BoundSource.Enum'
+      annualization_factor:
+        type: number
+        format: double
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+      across_periods:
+        $ref: '#/definitions/optimizer.inputs.AcrossPeriods'
+    required: []
+  optimizer.inputs.EFPOConstraintAssetType.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    - 2
+    description: "0 - eAll \n1 - eCustom \n2 - eBuyList "
+  optimizer.inputs.MPRiskContributionConstraint:
+    type: object
+    properties:
+      constraint:
+        $ref: '#/definitions/optimizer.inputs.RiskContributionConstraint'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+    required: []
+  optimizer.inputs.ValueReference:
+    type: object
+    properties:
+      asset_values:
+        type: number
+        format: double
+    required: []
+    description: 'Contains the results of an asset-level formula from FPO,
+
+      mapping the TotalUniverse asset index to resulting value.
+
+      The list of ValueReferences in the LookupTables should
+
+      provide results for ALL formulae referenced throughout
+
+      the FPO strategy. When the optimizer encounters a "reference"
+
+      value in the strategy, it will come here to resolve the
+
+      value for each asset within the scope of that reference.'
+  optimizer.inputs.ExpectedReturnConstraint:
+    type: object
+    properties:
+      name:
+        type: string
+      min:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      max:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      return_value:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      use_strategy_return_value:
+        type: boolean
+      penalty:
+        $ref: '#/definitions/optimizer.inputs.Penalty'
+      groups:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.ConstraintGroup'
+      level:
+        $ref: '#/definitions/optimizer.inputs.EConstraintLevel.Enum'
+      return_type:
+        $ref: '#/definitions/optimizer.inputs.EConstraintReturnType.Enum'
+      rel_to_benchmark:
+        type: boolean
+      benchmark_index:
+        type: integer
+        format: int32
+      hierarchy:
+        type: integer
+        format: int32
+    required: []
+    description: '1'
+  VAR.StatusIndicator:
+    type: number
+    enum:
+    - 0
+    - 1
+    description: "0 - eSuccess \n1 - eFailure "
+  optimizer.inputs.AcrossPeriods.RollingPeriods:
+    type: object
+    properties:
+      frequency:
+        type: integer
+        format: int32
+      method:
+        $ref: '#/definitions/optimizer.inputs.RollingMethod.Enum'
+    required: []
+  optimizer.inputs.TailRiskTerm:
+    type: object
+    properties:
+      name:
+        type: string
+      multiplier:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      direction:
+        $ref: '#/definitions/optimizer.inputs.EObjectiveTermDirection.Enum'
+      risk_measure:
+        $ref: '#/definitions/optimizer.inputs.TailRiskMeasure.Enum'
+      confidence_level:
+        type: number
+        format: double
+      use_centered_etl:
+        type: boolean
+      active_risk:
+        type: boolean
+      benchmark_index:
+        type: integer
+        format: int32
+    required: []
+  optimizer.inputs.AssetPrice.EPriceSource:
+    type: number
+    enum:
+    - 0
+    - 1
+    description: "0 - eTotalUniverse \n1 - eOverride "
+  optimizer.inputs.DiversificationRatioTerm:
+    type: object
+    properties:
+      name:
+        type: string
+      multiplier:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      direction:
+        $ref: '#/definitions/optimizer.inputs.EObjectiveTermDirection.Enum'
+    required: []
+  optimizer.inputs.Portfolios:
+    type: object
+    properties:
+      initial:
+        $ref: '#/definitions/optimizer.inputs.Portfolio'
+      benchmarks:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.Portfolio'
+        description: index 0 is always the "Primary Benchmark"
+      buylist:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.BuyListItem'
+      cash_univ_index:
+        type: integer
+        format: int32
+    required: []
+  optimizer.inputs.MPGeneralLinearTerm:
+    type: object
+    properties:
+      term:
+        $ref: '#/definitions/optimizer.inputs.GeneralLinearTerm'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+      across_periods:
+        $ref: '#/definitions/optimizer.inputs.AcrossPeriods'
+    required: []
+  optimizer.inputs.MPDiversificationConstraint:
+    type: object
+    properties:
+      constraint:
+        $ref: '#/definitions/optimizer.inputs.DiversificationConstraint'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+    required: []
+  optimizer.inputs.MPLeverageConstraint:
+    type: object
+    properties:
+      constraint:
+        $ref: '#/definitions/optimizer.inputs.LeverageConstraint'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+    required: []
+  optimizer.inputs.VolatilityTerm:
+    type: object
+    properties:
+      name:
+        type: string
+      multiplier:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      direction:
+        $ref: '#/definitions/optimizer.inputs.EObjectiveTermDirection.Enum'
+      risk_type:
+        $ref: '#/definitions/optimizer.inputs.EObjectiveRiskType.Enum'
+        description: 'TODO:  RiskModel'
+      factors:
+        type: array
+        items:
+          type: string
+      active_risk:
+        type: boolean
+      benchmark_index:
+        type: integer
+        format: int32
+    required: []
+  optimizer.inputs.RiskModel:
+    type: object
+    properties:
+      simulated_risk_model:
+        $ref: '#/definitions/optimizer.inputs.SimulatedRiskModel'
+      quant_risk_model:
+        $ref: '#/definitions/optimizer.inputs.QuantRiskModel'
+      raw_model:
+        $ref: '#/definitions/optimizer.inputs.RawRiskModel'
+    required: []
+  optimizer.inputs.MPNumberOfBuysConstraint:
+    type: object
+    properties:
+      constraint:
+        $ref: '#/definitions/optimizer.inputs.NumberOfBuysConstraint'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+    required: []
+  optimizer.inputs.BuyListItem:
+    type: object
+    properties:
+      univ_index:
+        type: integer
+        format: int32
+      price:
+        $ref: '#/definitions/optimizer.inputs.AssetPrice'
+        description: if null, use total univ pricing
+    required: []
+  optimizer.inputs.STARRTerm:
+    type: object
+    properties:
+      name:
+        type: string
+      multiplier:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      risk_free_rate:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      direction:
+        $ref: '#/definitions/optimizer.inputs.EObjectiveTermDirection.Enum'
+      confidence_level:
+        type: number
+        format: double
+      use_centered_etl:
+        type: boolean
+      active_risk:
+        type: boolean
+      benchmark_index:
+        type: integer
+        format: int32
+    required: []
+  optimizer.inputs.MPHoldingsWeightConstraint:
+    type: object
+    properties:
+      constraint:
+        $ref: '#/definitions/optimizer.inputs.HoldingsWeightConstraint'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+    required: []
+  optimizer.inputs.Derivative.Future.EComputationMethod.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    - 2
+    description: "0 - eCost \n1 - eTotalCost \n2 - eMarkToMarket "
+  optimizer.inputs.CompositeConstituent:
+    type: object
+    properties:
+      univ_index:
+        type: integer
+        format: int32
+      weight:
+        type: number
+        format: double
+      price:
+        $ref: '#/definitions/optimizer.inputs.AssetPrice'
+    required: []
+  optimizer.inputs.SimulatedRiskModel:
+    type: object
+    properties:
+      raw_data:
+        $ref: '#/definitions/VAR.DistributionDataMessage'
+      request_info:
+        $ref: '#/definitions/optimizer.inputs.SimulatedRiskRequestInfo'
+    required: []
+  optimizer.inputs.TotalUniverse:
+    type: object
+    properties:
+      assets:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.Asset'
+      composite_assets:
+        $ref: '#/definitions/optimizer.inputs.CompositeAsset'
+      derivatives:
+        $ref: '#/definitions/optimizer.inputs.Derivative'
+    required: []
+  optimizer.inputs.RollingMethod.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    description: "0 - eValuePerPath \n1 - eAllValues \n2 - eMinPerStep \n3 - eMaxPerStep "
+  optimizer.inputs.AcrossPeriods:
+    type: object
+    properties:
+      start_period:
+        type: integer
+        format: int32
+      end_period:
+        type: integer
+        format: int32
+      rolling:
+        $ref: '#/definitions/optimizer.inputs.AcrossPeriods.RollingPeriods'
+    required: []
+  optimizer.inputs.TargetProbabilityConstraint:
+    type: object
+    properties:
+      name:
+        type: string
+      threshold_min:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      threshold_max:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      min_probability:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      max_probability:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      hierarchy:
+        type: integer
+        format: int32
+    required: []
+  optimizer.inputs.EConstraintLevel.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    - 2
+    description: "0 - ePortfolio \n1 - eGroup \n2 - eAsset "
+  optimizer.inputs.GeneralLinearConstraint:
+    type: object
+    properties:
+      name:
+        type: string
+      security_attribute:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      min:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      max:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      penalty:
+        $ref: '#/definitions/optimizer.inputs.Penalty'
+      groups:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.ConstraintGroup'
+      weighting_method:
+        $ref: '#/definitions/optimizer.inputs.EWeightingMethodType.Enum'
+      level:
+        $ref: '#/definitions/optimizer.inputs.EConstraintLevel.Enum'
+      hierarchy:
+        type: integer
+        format: int32
+      rel_to_benchmark:
+        type: boolean
+      benchmark_index:
+        type: integer
+        format: int32
+    required: []
+    description: '4'
+  optimizer.inputs.TargetProbabilityTerm:
+    type: object
+    properties:
+      name:
+        type: string
+      multiplier:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      direction:
+        $ref: '#/definitions/optimizer.inputs.EObjectiveTermDirection.Enum'
+      threshold_min:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      threshold_max:
+        $ref: '#/definitions/optimizer.inputs.Value'
+    required: []
+  optimizer.inputs.MPSensitivityConstraint:
+    type: object
+    properties:
+      constraint:
+        $ref: '#/definitions/optimizer.inputs.SensitivityConstraint'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+      across_periods:
+        $ref: '#/definitions/optimizer.inputs.AcrossPeriods'
+    required: []
+  optimizer.inputs.Derivative.Future:
+    type: object
+    properties:
+      contract_size:
+        type: number
+        format: double
+      method:
+        $ref: '#/definitions/optimizer.inputs.Derivative.Future.EComputationMethod.Enum'
+      using_pa_multiply:
+        type: boolean
+    required: []
+  optimizer.inputs.HoldingsThresholdConstraint:
+    type: object
+    properties:
+      name:
+        type: string
+      custom_asset:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      min:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      groups:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.ConstraintGroup'
+      asset_type:
+        $ref: '#/definitions/optimizer.inputs.EFPOConstraintAssetType.Enum'
+      level:
+        $ref: '#/definitions/optimizer.inputs.EConstraintLevel.Enum'
+        description: Scope can be asset
+      unit:
+        $ref: '#/definitions/optimizer.inputs.EConstraintUnitType.Enum'
+      hierarchy:
+        type: integer
+        format: int32
+    required: []
+    description: '5'
+  optimizer.inputs.RawRiskModel.Simulations:
+    type: object
+    properties:
+      id:
+        type: string
+      simulatedReturns:
+        type: array
+        items:
+          type: number
+          format: double
+    required: []
+  optimizer.inputs.SharpeRatioTerm:
+    type: object
+    properties:
+      name:
+        type: string
+      multiplier:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      risk_free_rate:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      direction:
+        $ref: '#/definitions/optimizer.inputs.EObjectiveTermDirection.Enum'
+      active_risk:
+        type: boolean
+      benchmark_index:
+        type: integer
+        format: int32
+    required: []
+  optimizer.inputs.OnPeriods:
+    type: object
+    properties:
+      periods:
+        type: array
+        items:
+          type: integer
+          format: int32
+    required: []
+  optimizer.inputs.MPFactorExposureConstraint:
+    type: object
+    properties:
+      constraint:
+        $ref: '#/definitions/optimizer.inputs.FactorExposureConstraint'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+      across_periods:
+        $ref: '#/definitions/optimizer.inputs.AcrossPeriods'
+    required: []
+  optimizer.inputs.MultiPeriodStrategy:
+    type: object
+    properties:
+      objective:
+        $ref: '#/definitions/optimizer.inputs.MultiPeriodObjective'
+      constraints:
+        $ref: '#/definitions/optimizer.inputs.MultiPeriodConstraints'
+      transaction_cost:
+        $ref: '#/definitions/optimizer.inputs.TransactionCost'
+      options:
+        $ref: '#/definitions/optimizer.inputs.MultiPeriodOptions'
+      expected_return:
+        $ref: '#/definitions/optimizer.inputs.ExpectedReturn'
+    required: []
+  optimizer.inputs.TransactionCost:
+    type: object
+    properties:
+      unit_type:
+        $ref: '#/definitions/optimizer.inputs.ETransactionCostUnitType.Enum'
+      buy_cost:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      sell_cost:
+        $ref: '#/definitions/optimizer.inputs.Value'
+    required: []
+  optimizer.inputs.DiversificationConstraint:
+    type: object
+    properties:
+      name:
+        type: string
+      asset_value:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      max_percent:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      penalty:
+        $ref: '#/definitions/optimizer.inputs.Penalty'
+      groups:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.ConstraintGroup'
+      unit:
+        $ref: '#/definitions/optimizer.inputs.EConstraintUnitType.Enum'
+      level:
+        $ref: '#/definitions/optimizer.inputs.EConstraintLevel.Enum'
+      hierarchy:
+        type: integer
+        format: int32
+    required: []
+    description: '2'
+  optimizer.inputs.EConstraintTurnoverType.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    - 2
+    description: "0 - eTotal \n1 - eBuy \n2 - eSell "
+  optimizer.inputs.QuantRiskModelRawData:
+    type: object
+    properties:
+      labels:
+        $ref: '#/definitions/optimizer.inputs.Labels'
+      RawAssetCovarianceMatrix:
+        $ref: '#/definitions/optimizer.inputs.SparseMatrix'
+      RawFactorExposure:
+        $ref: '#/definitions/optimizer.inputs.SparseMatrix'
+      RawFactorCovarianceMatrix:
+        $ref: '#/definitions/optimizer.inputs.DenseMatrix'
+      RiskModelCoverageFlag:
+        type: array
+        items:
+          type: integer
+          format: int32
+    required: []
+  optimizer.inputs.ELeverageValueType.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    description: "0 - eFixedValue \n1 - eMaximumValue "
+  optimizer.inputs.ExpectedReturnTerm:
+    type: object
+    properties:
+      name:
+        type: string
+      multiplier:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      return_values:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      direction:
+        $ref: '#/definitions/optimizer.inputs.EObjectiveTermDirection.Enum'
+      use_alpha:
+        type: boolean
+      rel_to_benchmark:
+        type: boolean
+      benchmark_index:
+        type: integer
+        format: int32
+    required: []
+  optimizer.inputs.NumberofAssetsConstraint:
+    type: object
+    properties:
+      name:
+        type: string
+      min:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      max:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      groups:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.ConstraintGroup'
+      level:
+        $ref: '#/definitions/optimizer.inputs.EConstraintLevel.Enum'
+      hierarchy:
+        type: integer
+        format: int32
+    required: []
+    description: '7'
+  optimizer.inputs.MPFactorExposureTerm:
+    type: object
+    properties:
+      term:
+        $ref: '#/definitions/optimizer.inputs.FactorExposureTerm'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+      across_periods:
+        $ref: '#/definitions/optimizer.inputs.AcrossPeriods'
+    required: []
+  optimizer.inputs.EValueType.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    description: "0 - eNA \n1 - eRaw \n2 - eReference \n3 - eExpandRaw "
+  google.protobuf.ListValue:
+    type: object
+    properties:
+      values:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.Value'
+    required: []
+  VAR.DistributionDataMessage:
+    type: object
+    properties:
+      description:
+        $ref: '#/definitions/VAR.DistributionDescription'
+      securitySimulations:
+        type: array
+        items:
+          $ref: '#/definitions/VAR.SimulatedReturns'
+      status:
+        $ref: '#/definitions/VAR.DistributionStatus'
+    required: []
+  optimizer.inputs.MPTailRiskTerm:
+    type: object
+    properties:
+      term:
+        $ref: '#/definitions/optimizer.inputs.TailRiskTerm'
+      term_on:
+        $ref: '#/definitions/optimizer.inputs.BoundSource.Enum'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+      across_periods:
+        $ref: '#/definitions/optimizer.inputs.AcrossPeriods'
+    required: []
+  optimizer.inputs.NumberOfSellsConstraint:
+    type: object
+    properties:
+      name:
+        type: string
+      max:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      groups:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.ConstraintGroup'
+      level:
+        $ref: '#/definitions/optimizer.inputs.EConstraintLevel.Enum'
+      hierarchy:
+        type: integer
+        format: int32
+    required: []
+    description: '11'
+  optimizer.inputs.HoldingsWeightConstraint:
+    type: object
+    properties:
+      name:
+        type: string
+      custom_asset:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      min:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      max:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      penalty:
+        $ref: '#/definitions/optimizer.inputs.Penalty'
+      groups:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.ConstraintGroup'
+      unit:
+        $ref: '#/definitions/optimizer.inputs.EConstraintUnitType.Enum'
+      weight_type:
+        $ref: '#/definitions/optimizer.inputs.EFPOConstraintWeightType.Enum'
+      level:
+        $ref: '#/definitions/optimizer.inputs.EConstraintLevel.Enum'
+      asset_type:
+        $ref: '#/definitions/optimizer.inputs.EFPOConstraintAssetType.Enum'
+      rel_to_benchmark:
+        type: boolean
+      benchmark_index:
+        type: integer
+        format: int32
+      hierarchy:
+        type: integer
+        format: int32
+      apply_only_to_direct:
+        type: boolean
+    required: []
+    description: '9'
+  optimizer.outputs.MultiPeriodOutput:
+    type: object
+    properties:
+      periods:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.outputs.Periods'
+      raw_stats:
+        type: string
+        description: temporary
+    required: []
+  optimizer.inputs.RiskModelForPeriods:
+    type: object
+    properties:
+      risk_model:
+        $ref: '#/definitions/optimizer.inputs.RiskModel'
+      periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+    required: []
+    description: Must have *one* model for each period
+  optimizer.inputs.MPTargetProbabilityTerm:
+    type: object
+    properties:
+      term:
+        $ref: '#/definitions/optimizer.inputs.TargetProbabilityTerm'
+      constrain_on:
+        $ref: '#/definitions/optimizer.inputs.BoundSource.Enum'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+      across_periods:
+        $ref: '#/definitions/optimizer.inputs.AcrossPeriods'
+    required: []
+  optimizer.inputs.TradeThresholdConstraint:
+    type: object
+    properties:
+      name:
+        type: string
+      min:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      custom_asset:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      groups:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.ConstraintGroup'
+      level:
+        $ref: '#/definitions/optimizer.inputs.EConstraintLevel.Enum'
+      unit:
+        $ref: '#/definitions/optimizer.inputs.EConstraintUnitType.Enum'
+      asset_type:
+        $ref: '#/definitions/optimizer.inputs.EFPOConstraintAssetType.Enum'
+      hierarchy:
+        type: integer
+        format: int32
+    required: []
+    description: '13'
+  VAR.DistributionDescription:
+    type: object
+    properties:
+      riskModel:
+        type: string
+      factorGroup:
+        type: string
+      factors:
+        type: array
+        items:
+          type: string
+      distributionType:
+        $ref: '#/definitions/VAR.DistributionType'
+      reportDate:
+        type: integer
+        format: int32
+      reportCurrency:
+        type: string
+      horizonInTradingDays:
+        type: number
+        format: float
+      returnDates:
+        type: array
+        items:
+          type: integer
+          format: int32
+        description: Only possibly defined for historical distributions
+    required: []
+  optimizer.inputs.BoundSource.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    description: "0 - ePortfolioReturn \n1 - ePortfolioValue \n2 - eFundingRatio \n3 - eSurplusReturn \n4 - eDrawdownPercent \n5 - eDrawdownValue "
+  optimizer.inputs.MPObjectiveRatioTerm:
+    type: object
+    properties:
+      sharpe_ratio:
+        $ref: '#/definitions/optimizer.inputs.SharpeRatioTerm'
+      starr:
+        $ref: '#/definitions/optimizer.inputs.STARRTerm'
+      diversification_ratio:
+        $ref: '#/definitions/optimizer.inputs.DiversificationRatioTerm'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+      across_periods:
+        $ref: '#/definitions/optimizer.inputs.AcrossPeriods'
+    required: []
+  VAR.SimulatedReturns:
+    type: object
+    properties:
+      entity:
+        type: string
+      returns:
+        type: array
+        items:
+          type: number
+          format: float
+    required: []
+  optimizer.inputs.Options:
+    type: object
+    properties:
+      maxRunTime:
+        type: integer
+        format: int32
+      ConvergenceTolerance:
+        type: number
+        format: double
+      cash_flow_formula:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      convert_weights_to_cash_for_ip:
+        type: boolean
+      convert_weights_to_cash_for_bmk:
+        type: boolean
+      composite_asset_lookthrough_level:
+        type: integer
+        format: int32
+    required: []
+  optimizer.inputs.RiskVolatilityConstraint:
+    type: object
+    properties:
+      name:
+        type: string
+      max_value_of_risk:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      level:
+        $ref: '#/definitions/optimizer.inputs.EConstraintLevel.Enum'
+      penalty:
+        $ref: '#/definitions/optimizer.inputs.Penalty'
+      groups:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.ConstraintGroup'
+      risk_type:
+        $ref: '#/definitions/optimizer.inputs.EConstraintRiskType.Enum'
+      active_risk:
+        type: boolean
+      benchmark_index:
+        type: integer
+        format: int32
+      hierarchy:
+        type: integer
+        format: int32
+    required: []
+    description: '18'
+  optimizer.inputs.Derivative:
+    type: object
+    properties:
+      offset_index:
+        type: integer
+        format: int32
+        description: Index of the offset. E.g. CASH_USD_FUT for Futures or 2nd leg for Forwards. -1 if no offset generated
+      future:
+        $ref: '#/definitions/optimizer.inputs.Derivative.Future'
+      forward:
+        type: boolean
+        description: Nothing else is needed for forwards.
+    required: []
+  optimizer.inputs.Portfolio:
+    type: object
+    properties:
+      holdings:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.PortfolioItem'
+    required: []
+  optimizer.inputs.TailRiskMeasure.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    description: "0 - ETL \n1 - VaR "
+  optimizer.inputs.SimulatedRiskRequestInfo:
+    type: object
+    properties:
+      url:
+        type: string
+        description: GET
+      lima_header:
+        type: string
+    required: []
+  optimizer.inputs.MultiPeriodObjective:
+    type: object
+    properties:
+      factor_exposure:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPFactorExposureTerm'
+      volatility:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPVolatilityTerm'
+      general_linear:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPGeneralLinearTerm'
+      expected_return:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPExpectedReturnTerm'
+      sensitivity:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPSensitivityTerm'
+      objective_ratio:
+        $ref: '#/definitions/optimizer.inputs.MPObjectiveRatioTerm'
+      tail_risk:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPTailRiskTerm'
+        description: MultiPeriod-Specific
+      target_probability:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.MPTargetProbabilityTerm'
+    required: []
+  optimizer.inputs.PortfolioItem:
+    type: object
+    properties:
+      univ_index:
+        type: integer
+        format: int32
+      price:
+        $ref: '#/definitions/optimizer.inputs.AssetPrice'
+        description: if null, use total univ pricing
+      shares:
+        type: number
+        format: double
+    required: []
+  optimizer.inputs.SensitivityTerm:
+    type: object
+    properties:
+      name:
+        type: string
+      multiplier:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      sensitivity_attribute:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      direction:
+        $ref: '#/definitions/optimizer.inputs.EObjectiveTermDirection.Enum'
+      rel_to_benchmark:
+        type: boolean
+      benchmark_index:
+        type: integer
+        format: int32
+    required: []
+  optimizer.inputs.MPTargetProbabilityConstraint:
+    type: object
+    properties:
+      constraint:
+        $ref: '#/definitions/optimizer.inputs.TargetProbabilityConstraint'
+      constraint_on:
+        $ref: '#/definitions/optimizer.inputs.BoundSource.Enum'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+      across_periods:
+        $ref: '#/definitions/optimizer.inputs.AcrossPeriods'
+    required: []
+  optimizer.inputs.SensitivityConstraint:
+    type: object
+    properties:
+      name:
+        type: string
+      min:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      max:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      sensitivity_attribute:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      penalty:
+        $ref: '#/definitions/optimizer.inputs.Penalty'
+      groups:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.ConstraintGroup'
+      level:
+        $ref: '#/definitions/optimizer.inputs.EConstraintLevel.Enum'
+      rel_to_benchmark:
+        type: boolean
+      benchmark_index:
+        type: integer
+        format: int32
+      hierarchy:
+        type: integer
+        format: int32
+      unit:
+        $ref: '#/definitions/optimizer.inputs.EConstraintUnitType.Enum'
+    required: []
+    description: '8'
+  optimizer.inputs.DenseMatrix:
+    type: object
+    properties:
+      value:
+        type: array
+        items:
+          $ref: '#/definitions/google.protobuf.ListValue'
+        description: 2D array of doubles
+    required: []
+    description: Represents a dense matrix
+  optimizer.inputs.Factor:
+    type: object
+    properties:
+      ids:
+        type: array
+        items:
+          type: string
+      names:
+        type: array
+        items:
+          type: string
+    required: []
+    description: Labels relevant to calculation-levels with 'Factor' in the name
+  optimizer.inputs.EAggregationMethod.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    description: "0 - eWeights \n1 - eQuantity "
+  optimizer.inputs.MultiPeriodRiskModels:
+    type: object
+    properties:
+      risk_models:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.RiskModelForPeriods'
+    required: []
+  optimizer.inputs.FactorExposureConstraint:
+    type: object
+    properties:
+      name:
+        type: string
+      penalty:
+        $ref: '#/definitions/optimizer.inputs.Penalty'
+      rel_to_benchmark:
+        type: boolean
+      benchmark_index:
+        type: integer
+        format: int32
+      factors:
+        $ref: '#/definitions/optimizer.inputs.FactorExposureAttributes'
+        description: id --> min/max
+      hierarchy:
+        type: integer
+        format: int32
+      groups:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.ConstraintGroup'
+    required: []
+    description: '3'
+  optimizer.inputs.MPNumberofAssetsConstraint:
+    type: object
+    properties:
+      constraint:
+        $ref: '#/definitions/optimizer.inputs.NumberofAssetsConstraint'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+    required: []
+  optimizer.inputs.MPNumberOfSellsConstraint:
+    type: object
+    properties:
+      constraint:
+        $ref: '#/definitions/optimizer.inputs.NumberOfSellsConstraint'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+    required: []
+  optimizer.inputs.Security:
+    type: object
+    properties:
+      ids:
+        type: array
+        items:
+          type: string
+    required: []
+    description: Labels relevant to calculation-levels with 'Security' in the name
+  optimizer.inputs.MPExpectedReturnTerm:
+    type: object
+    properties:
+      term:
+        $ref: '#/definitions/optimizer.inputs.ExpectedReturnTerm'
+      term_on:
+        $ref: '#/definitions/optimizer.inputs.BoundSource.Enum'
+      annualization_factor:
+        type: number
+        format: double
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+      across_periods:
+        $ref: '#/definitions/optimizer.inputs.AcrossPeriods'
+    required: []
+  optimizer.inputs.MPTurnoverConstraint:
+    type: object
+    properties:
+      constraint:
+        $ref: '#/definitions/optimizer.inputs.TurnoverConstraint'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+      across_periods:
+        $ref: '#/definitions/optimizer.inputs.AcrossPeriods'
+    required: []
+  optimizer.inputs.RawRiskModel:
+    type: object
+    properties:
+      simulations:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.RawRiskModel.Simulations'
+    required: []
+  optimizer.inputs.EFPOConstraintWeightType.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    description: "0 - ePercentOfPortfolioValue \n1 - ePercentOfExposure "
+  optimizer.inputs.MultiPeriodInput:
+    type: object
+    properties:
+      strategy:
+        $ref: '#/definitions/optimizer.inputs.MultiPeriodStrategy'
+      universe:
+        $ref: '#/definitions/optimizer.inputs.TotalUniverse'
+      portfolios:
+        $ref: '#/definitions/optimizer.inputs.Portfolios'
+      riskmodels:
+        $ref: '#/definitions/optimizer.inputs.MultiPeriodRiskModels'
+      lookup_tables:
+        $ref: '#/definitions/optimizer.inputs.LookupTables'
+      output_statistics:
+        type: boolean
+    required: []
+  optimizer.inputs.AssetPrice:
+    type: object
+    properties:
+      source:
+        $ref: '#/definitions/optimizer.inputs.AssetPrice.EPriceSource'
+      price_override:
+        type: number
+        format: double
+    required: []
+  optimizer.inputs.MPHoldingsThresholdConstraint:
+    type: object
+    properties:
+      constraint:
+        $ref: '#/definitions/optimizer.inputs.HoldingsThresholdConstraint'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+    required: []
+  optimizer.inputs.EConstraintPenaltyType.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    - 2
+    description: "0 - eLinear \n1 - eQuadratic \n2 - eScaledQuadratic "
+  optimizer.inputs.QuantRiskRequestInfo:
+    type: object
+    properties:
+      service_url:
+        type: string
+        description: POST
+      json_post_body:
+        type: string
+      lima_header:
+        type: string
+      pickup_base_url:
+        type: string
+    required: []
+  optimizer.inputs.EAlphaUnitType.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    description: "0 - ePercent \n1 - eAbsolute "
+  optimizer.inputs.Value:
+    type: object
+    properties:
+      value_type:
+        $ref: '#/definitions/optimizer.inputs.EValueType.Enum'
+      raw_value:
+        type: number
+        format: double
+      ref_index:
+        type: integer
+        format: int32
+    required: []
+  optimizer.outputs.Periods:
+    type: object
+    properties:
+      weights:
+        type: number
+        format: double
+    required: []
+  optimizer.inputs.NumberOfBuysConstraint:
+    type: object
+    properties:
+      name:
+        type: string
+      max:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      groups:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.ConstraintGroup'
+      level:
+        $ref: '#/definitions/optimizer.inputs.EConstraintLevel.Enum'
+      hierarchy:
+        type: integer
+        format: int32
+    required: []
+    description: '10'
+  VAR.DistributionStatus:
+    type: object
+    properties:
+      indicator:
+        $ref: '#/definitions/VAR.StatusIndicator'
+      message:
+        type: string
+    required: []
+  optimizer.inputs.EConstraintRiskType.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    description: "0 - eStandardDevition \n1 - eVariance "
+  optimizer.inputs.EConstraintUnitType.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    - 2
+    description: "0 - eCurrency \n1 - ePercentage \n2 - eNumber "
+  optimizer.inputs.RoundlotsConstraint:
+    type: object
+    properties:
+      name:
+        type: string
+      asset_level:
+        $ref: '#/definitions/optimizer.inputs.Value'
+        description: No Negative Value
+      custom_asset:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      groups:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.ConstraintGroup'
+      level:
+        $ref: '#/definitions/optimizer.inputs.EConstraintLevel.Enum'
+      asset_type:
+        $ref: '#/definitions/optimizer.inputs.EFPOConstraintAssetType.Enum'
+      general_value:
+        type: number
+        format: double
+      hierarchy:
+        type: integer
+        format: int32
+    required: []
+    description: '12'
+  optimizer.inputs.GeneralLinearTerm:
+    type: object
+    properties:
+      name:
+        type: string
+      multiplier:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      attribute:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      direction:
+        $ref: '#/definitions/optimizer.inputs.EObjectiveTermDirection.Enum'
+      method:
+        $ref: '#/definitions/optimizer.inputs.EAggregationMethod.Enum'
+      rel_to_benchmark:
+        type: boolean
+      benchmark_index:
+        type: integer
+        format: int32
+    required: []
+  optimizer.inputs.EConstraintValueType.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    description: "0 - eMarketValue \n1 - eExposureValue "
+  VAR.DistributionType:
+    type: number
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    description: "0 - eMonteCarlo \n1 - eExtremeEventSimulation \n2 - eHistorical \n3 - eFactorStressTest \n4 - eExtremeEventStressTest \n5 - eStressTestPerSe \n6 - eFactorExposure "
+  optimizer.inputs.MPRiskVolatilityConstraint:
+    type: object
+    properties:
+      constraint:
+        $ref: '#/definitions/optimizer.inputs.RiskVolatilityConstraint'
+      constraint_on:
+        $ref: '#/definitions/optimizer.inputs.BoundSource.Enum'
+      on_periods:
+        $ref: '#/definitions/optimizer.inputs.OnPeriods'
+      across_periods:
+        $ref: '#/definitions/optimizer.inputs.AcrossPeriods'
+    required: []
+  optimizer.inputs.CompositeAsset:
+    type: object
+    properties:
+      constituents:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.CompositeConstituent'
+    required: []
+  optimizer.inputs.Penalty:
+    type: object
+    properties:
+      enabled:
+        type: boolean
+      penalty_type:
+        $ref: '#/definitions/optimizer.inputs.EConstraintPenaltyType.Enum'
+      penalty_value:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      max_violation:
+        $ref: '#/definitions/optimizer.inputs.Value'
+    required: []
+  optimizer.inputs.RiskContributionConstraint:
+    type: object
+    properties:
+      name:
+        type: string
+      max_percent:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      custom_asset:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      groups:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.ConstraintGroup'
+      level:
+        $ref: '#/definitions/optimizer.inputs.EConstraintLevel.Enum'
+      asset_type:
+        $ref: '#/definitions/optimizer.inputs.EFPOConstraintAssetType.Enum'
+      risk_type:
+        $ref: '#/definitions/optimizer.inputs.EConstraintRiskType.Enum'
+      hierarchy:
+        type: integer
+        format: int32
+    required: []
+    description: '17'
+  optimizer.inputs.EWeightingMethodType.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    description: "0 - eWeights \n1 - eShares "
+  optimizer.inputs.ConstraintGroup:
+    type: object
+    properties:
+      min:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      max:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      id:
+        type: string
+      nested_groups:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.ConstraintGroup'
+      group_lookup_index:
+        type: integer
+        format: int32
+    required: []
+  optimizer.inputs.LimitTailRiskConstraint:
+    type: object
+    properties:
+      name:
+        type: string
+      risk_measure:
+        $ref: '#/definitions/optimizer.inputs.TailRiskMeasure.Enum'
+      max_risk:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      confidence_level:
+        $ref: '#/definitions/optimizer.inputs.Value'
+      penalty:
+        $ref: '#/definitions/optimizer.inputs.Penalty'
+      active_risk:
+        type: boolean
+      benchmark_index:
+        type: integer
+        format: int32
+      hierarchy:
+        type: integer
+        format: int32
+    required: []
+  optimizer.inputs.EConstraintReturnType.Enum:
+    type: number
+    enum:
+    - 0
+    - 1
+    description: "0 - eTarget \n1 - eMaximizeProbability "
+  optimizer.inputs.LookupTables:
+    type: object
+    properties:
+      groups:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.GroupDefinition'
+        description: tables to be referenced by index from the strategy.
+      values:
+        type: array
+        items:
+          $ref: '#/definitions/optimizer.inputs.ValueReference'
+    required: []
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

@@ -1,0 +1,381 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Level API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Level
+paths:
+  /category/listByLevel:
+    get:
+      tags:
+      - Level
+      operationId: get/category/listByLevel
+      x-supportsOffsetBasedPaging: true
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: Factset List of Categories Assigned to a Category Level.
+      description: List of categories assigned to a category level.
+      parameters:
+      - name: id
+        in: query
+        schema:
+          type: number
+          format: id32
+          x-positive: true
+          description: Identifier of a category level. See attribute `levels` in endpoint `/category/system/get` for valid values.
+        required: true
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      - name: _language
+        in: query
+        schema:
+          type: string
+          format: isoLanguage
+          description: ISO 639-1 code of the language.
+          maxLength: 2
+          minLength: 2
+          exclusiveMinimum: false
+          exclusiveMaximum: false
+      - description: Non-negative number of entries to skip, or 0 (default).
+        name: _paginationOffset
+        in: query
+        schema:
+          type: number
+          format: int32
+          minimum: 0
+          exclusiveMinimum: false
+          default: 0
+      - description: Non-negative maximum number of entries to return.
+        name: _paginationLimit
+        in: query
+        schema:
+          type: number
+          format: int32
+          minimum: 0
+          exclusiveMinimum: false
+          maximum: 500
+          exclusiveMaximum: false
+          default: 20
+      responses:
+        '200':
+          $ref: '#/components/responses/GetCategoryListByLevel200Response'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /category/level/get:
+    get:
+      tags:
+      - Level
+      operationId: get/category/level/get
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: Factset Details of a Category Level.
+      description: Details of a category level.
+      parameters:
+      - name: id
+        in: query
+        schema:
+          type: number
+          format: id32
+          x-positive: true
+          description: Identifier of a category level. See attribute `levels` in endpoint `/category/system/get` for valid values.
+        required: true
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      - name: _language
+        in: query
+        schema:
+          type: string
+          format: isoLanguage
+          description: ISO 639-1 code of the language.
+          maxLength: 2
+          minLength: 2
+          exclusiveMinimum: false
+          exclusiveMaximum: false
+      responses:
+        '200':
+          $ref: '#/components/responses/GetCategoryLevelGet200Response'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  responses:
+    GetCategoryLevelGet200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  name:
+                    nullable: true
+                    type: string
+                    format: localizedString
+                    description: Name of the level.
+                  number:
+                    nullable: true
+                    type: number
+                    format: int32
+                    description: Number of the category level, starting with 1.
+                  hasLeafCategories:
+                    nullable: true
+                    type: boolean
+                    description: Indicates whether the category level has leaf categories.
+                  system:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - id
+                    - name
+                    description: Details of the system this level belongs to.
+                    properties:
+                      id:
+                        nullable: true
+                        type: number
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the category system.
+                      name:
+                        nullable: true
+                        type: string
+                        format: localizedString
+                        description: Name of the category system.
+                description: Details of the category level.
+                nullable: false
+                x-property-sort:
+                - name
+                - number
+                - hasLeafCategories
+                - system
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
+    GetCategoryListByLevel200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  system:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - id
+                    - name
+                    description: Category system.
+                    properties:
+                      id:
+                        nullable: true
+                        type: number
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the category system.
+                      name:
+                        nullable: true
+                        type: string
+                        format: localizedString
+                        description: Name of the category system.
+                  parent:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - id
+                    - name
+                    description: Parent level. The attributes of the parent level are `null` if this category level is the first level.
+                    properties:
+                      id:
+                        nullable: true
+                        type: number
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the category level.
+                      name:
+                        nullable: true
+                        type: string
+                        format: localizedString
+                        description: Name of the category level.
+                  categories:
+                    nullable: false
+                    type: array
+                    items:
+                      type: object
+                      nullable: false
+                      x-property-sort:
+                      - id
+                      - code
+                      - name
+                      - description
+                      - active
+                      - parent
+                      properties:
+                        id:
+                          nullable: true
+                          type: number
+                          format: id32
+                          x-positive: true
+                          description: Identifier of the category.
+                        code:
+                          nullable: true
+                          type: string
+                          description: Code commonly used for this category.
+                        name:
+                          nullable: true
+                          type: string
+                          format: localizedString
+                          description: Name of the category.
+                        description:
+                          nullable: true
+                          type: string
+                          format: localizedString
+                          description: Description of the category.
+                        active:
+                          nullable: true
+                          type: boolean
+                          description: Indicates whether this category is active.
+                        parent:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - id
+                          - name
+                          description: Parent category. The attributes of the parent category are `null` if this category is on the first level.
+                          properties:
+                            id:
+                              nullable: true
+                              type: number
+                              format: id32
+                              x-positive: true
+                              description: Identifier of the category.
+                            name:
+                              nullable: true
+                              type: string
+                              format: localizedString
+                              description: Name of the category.
+                    description: List of categories.
+                description: List of the categories.
+                nullable: false
+                x-property-sort:
+                - system
+                - parent
+                - categories
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                  pagination:
+                    $ref: '#/components/schemas/OffsetBasedPaginationOutputObject'
+                x-property-sort:
+                - status
+                - pagination
+            x-property-sort:
+            - data
+            - meta
+  schemas:
+    OffsetBasedPaginationOutputObject:
+      type: object
+      description: Pagination attributes for the offset-based pagination strategy.
+      properties:
+        total:
+          type: number
+          format: int32
+          description: Total number of entries in the result set.
+          example: 42.5
+        isEstimatedTotal:
+          type: boolean
+          description: Flag indicating that the value of "total" is estimated.
+          example: true
+      required:
+      - total
+      - isEstimatedTotal
+      x-property-sort:
+      - total
+      - isEstimatedTotal
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

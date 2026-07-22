@@ -1,0 +1,303 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Coverage API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Coverage
+paths:
+  /level1/coverage:
+    get:
+      tags:
+      - Coverage
+      operationId: requestTickHistoryCoverage
+      summary: Factset Returns the Coverage for the Requested Ticker/isin Along With Other Response Fields for Level1 Data.
+      description: Returns coverage for specified tickers for Level1 Data
+      parameters:
+      - $ref: '#/components/parameters/tickerCoverage'
+      - $ref: '#/components/parameters/isoCodeCoverage'
+      - $ref: '#/components/parameters/isin'
+      responses:
+        '200':
+          description: Success</p>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/coverageResponse'
+              examples:
+                default200ResponseExample:
+                  $ref: '#/components/examples/sampleCoverageResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status'
+              examples:
+                default400ResponseExample:
+                  $ref: '#/components/examples/400Example'
+        '401':
+          description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the Report Issue in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status'
+              examples:
+                default400ResponseExample:
+                  $ref: '#/components/examples/401Example'
+        '403':
+          description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status'
+              examples:
+                default400ResponseExample:
+                  $ref: '#/components/examples/403Example'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status'
+              examples:
+                default400ResponseExample:
+                  $ref: '#/components/examples/429Example'
+        '500':
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status'
+              examples:
+                default400ResponseExample:
+                  $ref: '#/components/examples/500Example'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  examples:
+    401Example:
+      summary: sample error response
+      value:
+        errors:
+        - code: Not Authenticated
+          title: USERNAME-SERIAL does not have permission
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    403Example:
+      summary: sample error response
+      value:
+        errors:
+        - code: Forbidden
+          title: USERNAME-SERIAL does not have permission
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    500Example:
+      summary: sample error response
+      value:
+        errors:
+        - code: Internal server error
+          title: An unexpected error happened
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    sampleCoverageResponse:
+      summary: sample Response
+      value:
+        data:
+        - ticker: IBM
+          factsetExchangeCode: MUN
+          startDate: '2012-01-02'
+          latestTradeDate: '2023-01-01'
+          companyName: International Business Machines
+          isin: US3030751057
+          currency: USD
+          lastExchangeCode: '14002'
+          lastExchangeName: NYSE - Nasdaq Regional
+          primaryTickerExchange: IBM-NYS
+        - ticker: IBM
+          factsetExchangeCode: CAN
+          startDate: '2012-01-02'
+          latestTradeDate: '2023-01-01'
+          companyName: International Business Machines
+          isin: US3030751057
+          currency: EUR
+          lastExchangeCode: '257'
+          lastExchangeName: Turquoise
+          primaryTickerExchange: NOKIA-EUR
+    429Example:
+      summary: sample error response
+      value:
+        errors:
+        - code: Too Many Requests
+          title: quantityLimitsExceeded
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    400Example:
+      summary: Sample error Response
+      value:
+        errors:
+        - code: Bad Request
+          title: parameterError:['_id'] is not a valid parameter(s)
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+  schemas:
+    errorExample:
+      type: object
+      description: Specifies the fields in the error message
+      properties:
+        code:
+          description: It specifies the unique code
+          type: string
+          example: example_value
+        title:
+          description: ' Specifies the error message'
+          type: string
+          example: Example Title
+        id:
+          description: Specifies the id
+          type: string
+          example: abc123
+    coverageTickHistory:
+      title: Coverage Object
+      type: object
+      description: Returns Coverage Response of the requested ticker with unique isocode within a date range
+      properties:
+        ticker:
+          description: a unique ticker given to a company
+          type: string
+          example: example_value
+        factsetExchangeCode:
+          description: FactSet specific exchange code.
+          type: string
+          example: example_value
+        startDate:
+          description: 'The date for (or from which) the coverage is required. '
+          type: string
+          format: date
+          example: '2026-01-15'
+        latestTradeDate:
+          description: This specifies the latest traded date from tick history.
+          type: string
+          format: date
+          example: '2026-01-15'
+        companyName:
+          description: Name of the firm
+          type: string
+          example: example_value
+        isin:
+          description: 'returns the ISIN of the requested company '
+          type: string
+          example: example_value
+        currency:
+          description: Represents 3 digit ISO code for the currency
+          type: string
+          example: example_value
+        lastExchangeCode:
+          description: the last traded exhange code from tick history
+          type: string
+          example: example_value
+        lastExchangeName:
+          description: the last traded exchange name from tick history
+          type: string
+          example: example_value
+        primaryTickerExchange:
+          description: the primary ticker iso
+          type: string
+          example: example_value
+    coverageResponse:
+      type: object
+      description: Returns coverage for Level1 Data
+      properties:
+        data:
+          description: Returns Coverage Response
+          type: array
+          items:
+            $ref: '#/components/schemas/coverageTickHistory'
+          example: []
+    status:
+      type: object
+      description: specifies the error message fields in the response
+      properties:
+        errors:
+          type: array
+          description: An array containing errors
+          items:
+            $ref: '#/components/schemas/errorExample'
+          example: []
+  parameters:
+    isin:
+      name: isins
+      in: query
+      description: "<P> Specifies the ISIN of the record. </p>\n\n  Please enter either the `tickers` or `isins` parameter. \n  \n<P> Maximum 10 ISINs per request.</p>   \n \n"
+      required: false
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          minItems: 1
+          maxItems: 10
+      examples:
+        noId:
+          summary: ''
+          value: []
+        oneId:
+          summary: One identifier
+          value:
+          - US3030751057
+        multipleIds:
+          summary: Multiple Identifiers
+          value:
+          - US3030751057
+          - ARDEUT110202
+    tickerCoverage:
+      name: tickers
+      in: query
+      description: "<P> The requested list of one or more tickers.</p>\n\n The `tickers` and `isins`  parameters provide two different ways to specify the identifiers for data retrieved. Please enter either the tickers or isins parameter.\n \n<P> Maximum 10 tickers per request</p>  \n \n"
+      required: false
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          minItems: 1
+          maxItems: 10
+      examples:
+        oneId:
+          summary: One identifier
+          value:
+          - CBA
+        multipleIds:
+          summary: Multiple Identifiers
+          value:
+          - CBA
+          - BHP
+    isoCodeCoverage:
+      name: factsetExchangeCode
+      in: query
+      description: '<p>This parameter is used to filter the results based on the FactSet specific regional or composite exchange code.</p>
+
+        **NOTE**:Does not support multiple factsetExchangeCodes'
+      required: false
+      example: AUS
+      schema:
+        type: string
+        minItems: 1
+        maxItems: 1
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

@@ -1,0 +1,172 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Teams API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Teams
+paths:
+  /v1/teams:
+    get:
+      tags:
+      - Teams
+      summary: Factset Get All Teams
+      operationId: GetTeams
+      parameters:
+      - name: X-IRN-Ignore-Permissions
+        in: header
+        schema:
+          type: boolean
+          default: false
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TeamSummaryDto'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /v1/teams/{teamId}:
+    get:
+      tags:
+      - Teams
+      summary: Factset Get Team Details for the Given Id Provided
+      operationId: GetTeam
+      parameters:
+      - name: teamId
+        in: path
+        description: Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-IRN-Ignore-Permissions
+        in: header
+        description: ''
+        schema:
+          type: boolean
+          default: false
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamConfigDto'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    TeamConfigDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: abc123
+        name:
+          type: string
+          nullable: true
+          example: Example Title
+        code:
+          type: string
+          nullable: true
+          example: example_value
+        defaultSubjectId:
+          type: string
+          format: uuid
+          nullable: true
+          example: '500123'
+        userIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          nullable: true
+          example: []
+      additionalProperties: false
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+          nullable: true
+          example: example_value
+        title:
+          type: string
+          nullable: true
+          example: Example Title
+        status:
+          type: integer
+          format: int32
+          nullable: true
+          example: 10
+        detail:
+          type: string
+          nullable: true
+          example: example_value
+        instance:
+          type: string
+          nullable: true
+          example: example_value
+      additionalProperties: {}
+    TeamSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: abc123
+        name:
+          type: string
+          nullable: true
+          example: Example Title
+        code:
+          type: string
+          nullable: true
+          example: example_value
+      additionalProperties: false
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

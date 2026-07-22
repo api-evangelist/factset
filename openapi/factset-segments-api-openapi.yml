@@ -1,0 +1,512 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Segments API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Segments
+  description: Access business and geographic segment data including revenue, operating income, assets, depreciation, and capital expenditures by segment.
+paths:
+  /segments:
+    get:
+      tags:
+      - Segments
+      operationId: getSegments
+      summary: Factset Returns Company Segment Data.
+      description: 'Retrieves business and geographic segment data for individual companies. Segment metrics include SALES, OPINC (operating income), ASSETS, DEP (depreciation), and CAPEX (capital expenditures).
+
+
+        The `/segments` endpoint supports Long Running asynchronous requests up to **20 minutes** via batch parameter. Id limits are increased to 2,000 ids per request when using batch capability.'
+      parameters:
+      - $ref: '#/components/parameters/ids'
+      - $ref: '#/components/parameters/segmentMetrics'
+      - $ref: '#/components/parameters/segmentType'
+      - $ref: '#/components/parameters/segmentPeriodicity'
+      - $ref: '#/components/parameters/fiscalPeriodStart'
+      - $ref: '#/components/parameters/fiscalPeriodEnd'
+      - $ref: '#/components/parameters/batch'
+      responses:
+        '200':
+          description: Segment data returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegmentsResponse'
+              examples:
+                businessSegments:
+                  summary: Business segments for AAPL-US
+                  value:
+                    data:
+                    - requestId: AAPL-US
+                      fsymId: MH33D6-R
+                      metric: SALES
+                      label: iPhone
+                      date: '2023-09-30'
+                      value: 200583000000
+                    - requestId: AAPL-US
+                      fsymId: MH33D6-R
+                      metric: SALES
+                      label: Mac
+                      date: '2023-09-30'
+                      value: 29357000000
+                    - requestId: AAPL-US
+                      fsymId: MH33D6-R
+                      metric: SALES
+                      label: Services
+                      date: '2023-09-30'
+                      value: 85200000000
+        '202':
+          $ref: '#/components/responses/BatchAccepted'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      tags:
+      - Segments
+      operationId: postSegments
+      summary: Factset Returns Company Segment Data for a List of Identifiers.
+      description: Retrieves segment data via POST for large identifier sets. Supports up to 30,000 ids per batch request.
+      requestBody:
+        required: true
+        description: Request object for segment data
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SegmentsRequest'
+      responses:
+        '200':
+          description: Segment data returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegmentsResponse'
+        '202':
+          $ref: '#/components/responses/BatchAccepted'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      title: Error Response
+      description: Standard error response wrapper.
+      properties:
+        errors:
+          type: array
+          description: An array containing error details.
+          items:
+            $ref: '#/components/schemas/Error'
+          example: []
+    FiscalPeriod:
+      type: object
+      title: Fiscal Period
+      description: Fiscal period date range specification. Calendar dates that will fall back to the most recently completed period during resolution.
+      properties:
+        start:
+          type: string
+          format: date
+          description: The fiscal period start expressed as YYYY-MM-DD.
+          examples:
+          - '2023-01-01'
+        end:
+          type: string
+          format: date
+          description: The fiscal period end expressed as YYYY-MM-DD.
+          examples:
+          - '2024-01-01'
+    SegmentsRequest:
+      type: object
+      title: Segments Request
+      description: Wrapper for segments request body.
+      required:
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/SegmentsRequestBody'
+    BatchStatus:
+      type: object
+      title: Batch Status
+      description: Status information for an asynchronous batch request.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The batch request identifier.
+          example: abc123
+        startTime:
+          type: string
+          format: date-time
+          description: Time when the batch request started (Eastern Time Zone).
+          example: '2026-01-15T10:30:00Z'
+        endTime:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time when the batch request ended. Null if still processing.
+          example: '2026-01-15T10:30:00Z'
+        status:
+          type: string
+          description: Current batch processing status.
+          enum:
+          - queued
+          - executing
+          - created
+          - failed
+          example: queued
+        error:
+          $ref: '#/components/schemas/BatchError'
+    Segment:
+      type: object
+      title: Segment
+      description: A single business or geographic segment data point for a company.
+      properties:
+        requestId:
+          type: string
+          description: Identifier that was used for the request.
+          examples:
+          - AAPL-US
+        fsymId:
+          type:
+          - string
+          - 'null'
+          description: FactSet Regional Security Identifier.
+          examples:
+          - MH33D6-R
+        metric:
+          type:
+          - string
+          - 'null'
+          description: The segment metric (SALES, OPINC, ASSETS, DEP, CAPEX).
+          examples:
+          - SALES
+        label:
+          type:
+          - string
+          - 'null'
+          description: Report labels of the segment type requested.
+          examples:
+          - iPhone
+        date:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: Date for the period requested in YYYY-MM-DD format.
+          examples:
+          - '2023-09-30'
+        value:
+          description: Segment metric value. May be a number or string.
+          oneOf:
+          - type: 'null'
+          - type: string
+          - type: number
+            format: double
+          example: example_value
+    Error:
+      type: object
+      title: Error
+      description: A single error detail object.
+      properties:
+        id:
+          type: string
+          description: A UUID for this particular occurrence of the problem.
+          examples:
+          - adb01824-252f-4420-b0c6-35a1e3507ef5
+        code:
+          type: string
+          description: Error status code description.
+          examples:
+          - Bad Request
+        title:
+          type: string
+          description: The plain text error message.
+          examples:
+          - Validation Error
+        links:
+          type: object
+          description: The endpoint path for reference.
+          properties:
+            about:
+              type: string
+              description: API path that generated the error.
+              examples:
+              - /factset-fundamentals/v2/fundamentals
+          example: example_value
+    SegmentsRequestBody:
+      type: object
+      title: Segments Request Body
+      description: Request parameters for segment data.
+      required:
+      - ids
+      - metrics
+      properties:
+        ids:
+          $ref: '#/components/schemas/SecurityIds'
+        metrics:
+          type: string
+          description: Segment metric. SALES, OPINC, ASSETS, DEP, or CAPEX.
+          enum:
+          - SALES
+          - OPINC
+          - ASSETS
+          - DEP
+          - CAPEX
+          example: SALES
+        segmentType:
+          type: string
+          description: Segment type. BUS = Business, GEO = Geographic.
+          enum:
+          - BUS
+          - GEO
+          default: BUS
+          example: BUS
+        periodicity:
+          type: string
+          description: Segment periodicity. ANN or ANN_R only.
+          enum:
+          - ANN
+          - ANN_R
+          default: ANN
+          example: ANN
+        fiscalPeriod:
+          $ref: '#/components/schemas/FiscalPeriod'
+        batch:
+          $ref: '#/components/schemas/BatchFlag'
+    BatchError:
+      type:
+      - object
+      - 'null'
+      title: Batch Error
+      description: Error information for a failed batch request.
+      properties:
+        id:
+          type: string
+          description: A UUID for this particular occurrence of the problem.
+          example: abc123
+        code:
+          type: string
+          description: Error code.
+          example: example_value
+        title:
+          type: string
+          description: The plain text error message.
+          example: Example Title
+    SegmentsResponse:
+      type: object
+      title: Segments Response
+      description: Response wrapper containing an array of segment data items.
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Segment'
+          example: []
+    BatchStatusResponse:
+      type: object
+      title: Batch Status Response
+      description: Wrapper for batch request status.
+      properties:
+        data:
+          $ref: '#/components/schemas/BatchStatus'
+    BatchFlag:
+      type: string
+      title: Batch Flag
+      description: Enable asynchronous batch processing. Y = Enable, N = Disable.
+      enum:
+      - Y
+      - N
+      default: N
+    SecurityIds:
+      type: array
+      title: Security Identifiers
+      description: List of security identifiers. Accepted types include Market Tickers, SEDOL, ISINs, CUSIPs, or FactSet Permanent Ids. Limit of 1,000 per non-batch request / 30,000 per batch request.
+      items:
+        type: string
+      minItems: 1
+      maxItems: 30000
+      examples:
+      - - FDS-US
+      - - FDS-US
+        - AAPL-US
+        - MSFT-US
+  responses:
+    InternalServerError:
+      description: Internal Server Error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UnsupportedMediaType:
+      description: Unsupported Media Type. Ensure that the Content-Type header is set to "application/json".
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    BadRequest:
+      description: Bad Request. This can occur for several reasons. Please review the error message for details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. Please reach out to FactSet Account Team for assistance with authorization.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    BatchAccepted:
+      description: Batch request has been accepted for processing.
+      headers:
+        Location:
+          description: Path to batch request status endpoint.
+          schema:
+            type: string
+          example: batch-status?id=2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BatchStatusResponse'
+  parameters:
+    segmentType:
+      name: segmentType
+      in: query
+      required: false
+      description: Segment type for the metrics. BUS = Business segments, GEO = Geographic segments.
+      schema:
+        type: string
+        enum:
+        - BUS
+        - GEO
+        default: BUS
+    fiscalPeriodStart:
+      name: fiscalPeriodStart
+      in: query
+      required: false
+      description: The fiscal period start expressed as YYYY-MM-DD. Calendar date that will fall back to the most recent completed period during resolution.
+      schema:
+        type: string
+        format: date
+        examples:
+        - '2023-01-01'
+    fiscalPeriodEnd:
+      name: fiscalPeriodEnd
+      in: query
+      required: false
+      description: The fiscal period end expressed as YYYY-MM-DD. Calendar date that will fall back to the most recently completed period during resolution.
+      schema:
+        type: string
+        format: date
+        examples:
+        - '2024-01-01'
+    segmentMetrics:
+      name: metrics
+      in: query
+      required: true
+      explode: false
+      description: Segment data metric. SALES = Sales/Revenue, OPINC = Operating Income/Loss, ASSETS = Total Assets, DEP = Depreciation Expense, CAPEX = Capital Expenditures.
+      schema:
+        type: string
+        enum:
+        - SALES
+        - OPINC
+        - ASSETS
+        - DEP
+        - CAPEX
+      examples:
+        sales:
+          summary: Segment sales revenue
+          value: SALES
+    segmentPeriodicity:
+      name: periodicity
+      in: query
+      required: false
+      description: Periodicity for segment data. ANN = Annual Original, ANN_R = Annual Latest (includes restatements).
+      schema:
+        type: string
+        enum:
+        - ANN
+        - ANN_R
+        default: ANN
+    batch:
+      name: batch
+      in: query
+      required: false
+      description: Enables asynchronous batch processing, supporting long-running requests up to 20 minutes. Upon requesting batch=Y, the service will respond with HTTP 202. Use batch-status to check completion and batch-result to retrieve results.
+      schema:
+        type: string
+        enum:
+        - Y
+        - N
+        default: N
+    ids:
+      name: ids
+      in: query
+      required: true
+      explode: false
+      description: The requested list of security identifiers. Accepted ID types include Market Tickers, SEDOL, ISINs, CUSIPs, or FactSet Permanent Ids. Limit of 1,000 per non-batch request / 2,000 per batch request (GET) or 30,000 per batch request (POST).
+      schema:
+        type: array
+        items:
+          type: string
+        minItems: 1
+        maxItems: 2000
+      examples:
+        singleId:
+          summary: One equity identifier
+          value:
+          - AAPL-US
+        multipleIds:
+          summary: Multiple equity identifiers
+          value:
+          - FDS-US
+          - AAPL-US
+          - MSFT-US
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

@@ -1,0 +1,418 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About File API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: File
+paths:
+  /ofs/v2/media/download/{namespace}/{scope}/{guid}/{fileName}:
+    get:
+      summary: Factset Retrieve a Specific Media File
+      parameters:
+      - name: namespace
+        in: path
+        required: true
+        description: The namespace of the media file
+        schema:
+          example: partners
+        type: string
+        pattern: (partners|products|resources)
+        enum:
+        - partners
+        - products
+        - resources
+      - name: scope
+        in: path
+        required: true
+        description: The scope of the media file
+        schema:
+          example: logo
+        type: string
+        pattern: (logo|avatar|documents)
+        enum:
+        - logo
+        - avatar
+        - documents
+      - name: guid
+        in: path
+        required: true
+        description: The GUID of the file being requested
+        schema:
+          example: 774c3a5c-cc77-4e4c-b4a8-224a35cb00ba
+        type: string
+      - name: fileName
+        in: path
+        required: true
+        description: The name you want to show for this file in the uri.
+        schema:
+          example: FactSet.png
+        type: string
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Not Found
+      tags:
+      - File
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    head:
+      summary: Factset Check the existence and retrieve the headers of a spefic media file
+      parameters:
+      - name: namespace
+        in: path
+        required: true
+        description: The namespace of the media file
+        schema:
+          example: partners
+        type: string
+        pattern: (partners|products|resources)
+        enum:
+        - partners
+        - products
+        - resources
+      - name: scope
+        in: path
+        required: true
+        description: The scope of the media file
+        schema:
+          example: logo
+        type: string
+        pattern: (logo|avatar|documents)
+        enum:
+        - logo
+        - avatar
+        - documents
+      - name: guid
+        in: path
+        required: true
+        description: The GUID of the file being requested
+        schema:
+          example: 774c3a5c-cc77-4e4c-b4a8-224a35cb00ba
+        type: string
+      - name: fileName
+        in: path
+        required: true
+        description: The name you want to show for this file in the uri.
+        schema:
+          example: FactSet.png
+        type: string
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Not Found
+      tags:
+      - File
+  /FileManagerAudit:
+    get:
+      tags:
+      - File
+      summary: Factset Get File Manager Audit Data.
+      security:
+      - basicAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/fileManagerAuditSuccess'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /analytics/quant/fpe/v1/files/{server}/{file}:
+    post:
+      tags:
+      - File
+      summary: Factset Starts a File Upload
+      description: This endpoint takes a file and uploads it
+      parameters:
+      - name: server
+        in: path
+        description: The server to upload the file to. Either `interactive` or `batch`.
+        required: true
+        schema:
+          type: string
+          description: The server to upload the file to. Either `interactive` or `batch`.
+      - name: file
+        in: path
+        description: The file name to upload the file to. Existing directory can be specified.
+        required: true
+        schema:
+          type: string
+          description: The file name to upload the file to. Existing directory can be specified.
+      requestBody:
+        content:
+          '*':
+            schema:
+              type: string
+              format: binary
+      responses:
+        '202':
+          description: Expected response, contains the relative URL in the Location header to check the status of the upload.
+          headers:
+            Location:
+              description: Relative URL to check status of the request.
+              schema:
+                type: string
+                description: Relative URL to check status of the request.
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileUploadStatus'
+        '500':
+          description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+        '503':
+          description: Request timeout. Retry the request later
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /v1/{tenant}/report-instances/{reportInstanceId}/results/{reportFileName}:
+    get:
+      operationId: getReportFile
+      tags:
+      - File
+      summary: Factset Gets the Generated File
+      description: Get the generated file for a report instance. Users can fetch the generated report once the genration is finished. The report instance id and the report file name are passed in as path paramters
+      parameters:
+      - in: path
+        name: tenant
+        description: The code of the tenancy
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: reportInstanceId
+        description: Used to validate that report file name belongs to the report instance passed
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: reportFileName
+        description: 'The report file name that has to be retrieved. report file name. E.g: xyz.pdf'
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+        '400':
+          description: The supplied report instance id was either missing or invalid or the report instance was not found. The supplied report file name was either invalid or not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: parameterError
+                  title: The ID passed is not a numerical value
+        '401':
+          description: Unauthorised
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAuthenticated
+                  title: User is not authenticated
+        '403':
+          description: No permissions to view the generated file in VRS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAuthorized
+                  title: No permissions to view this item
+        '406':
+          description: Unsupported Accept header. Header needs to be set to application/json.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAcceptable
+                  title: "Unsupported Accept header. Header needs to be set to\n    application/json"
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    FileUploadStatus:
+      properties:
+        id:
+          type: string
+          description: The unique ID for this upload
+          example: abc123
+        status:
+          type: string
+          enum:
+          - pending
+          - failed
+          - completed
+          - running
+          example: pending
+    ErrorList:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+          example: []
+    Error:
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        code:
+          type: string
+          example: example_value
+        title:
+          type: string
+          example: Example Title
+    FileManagerAudit:
+      type: array
+      items:
+        type: object
+        properties:
+          username:
+            type: string
+            description: The FactSet username associated with the file paths.
+          paths:
+            type: object
+            description: Object containing all file paths and their associated attributes.
+            additionalProperties:
+              type: array
+              description: A file path and its associated attributes.
+              items:
+                type: object
+                description: Attributes of the file.
+                properties:
+                  entity:
+                    type: object
+                    description: The entity associated with the file's attributes.
+                    properties:
+                      name:
+                        type: string
+                        description: The name of the entity.
+                      type:
+                        type: string
+                        description: The type of the entity.
+                    required:
+                    - name
+                    - type
+                  permissions:
+                    type: object
+                    description: Object describing the permissions the associated entity has regarding the associated file.
+                    properties:
+                      read:
+                        type: boolean
+                        description: Whether the associated entity has permission to read the associated file.
+                      write:
+                        type: boolean
+                        description: Whether the associated entity has permission to write the associated file.
+                      maintain:
+                        type: boolean
+                        description: Whether the associated entity has permission to maintain the associated file.
+                    required:
+                    - read
+                    - write
+                    - maintain
+                  permission-override:
+                    type: object
+                    properties:
+                      read:
+                        type: boolean
+                      write:
+                        type: boolean
+                      maintain:
+                        type: boolean
+                    required:
+                    - read
+                    - write
+                    - maintain
+                  inheritance-distance:
+                    type: integer
+                required:
+                - entity
+                - permissions
+        required:
+        - username
+        - paths
+      example:
+      - username: fds_demo_va_sc
+        paths:
+          /sc/fds_demo_va_sc/:
+          - entity:
+              name: fds_demo_eur:245600
+              type: user
+            permissions:
+              read: true
+              write: true
+              maintain: true
+            permission-overrides:
+              read: true
+              write: true
+              maintain: true
+            inheritance-distance: 0
+  responses:
+    fileManagerAuditSuccess:
+      description: Success.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FileManagerAudit'
+    internalServerError:
+      description: Internal server error.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

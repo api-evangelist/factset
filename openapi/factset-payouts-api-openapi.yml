@@ -1,0 +1,642 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Payouts API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Payouts
+paths:
+  /portfolio/payout/create:
+    post:
+      tags:
+      - Payouts
+      operationId: post/portfolio/payout/create
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Add a payout to a portfolio.
+      summary: Add a payout to a portfolio.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPortfolioPayoutCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/PostPortfolioPayoutCreate201Response'
+      parameters: []
+  /portfolio/payout/delete:
+    post:
+      tags:
+      - Payouts
+      operationId: post/portfolio/payout/delete
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: "Delete a payout of a portfolio.\n\nCertain error conditions yield errors as follows: \n\n|Error Condition|HTTP Error|\n|-------|--------|\n|Invalid payout identifier.|400 Bad Request|"
+      summary: Delete a payout of a portfolio.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPortfolioPayoutDeleteRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostPortfolioPayoutDelete200Response'
+      parameters: []
+  /portfolio/payout/list:
+    post:
+      tags:
+      - Payouts
+      operationId: post/portfolio/payout/list
+      x-supportsOffsetBasedPaging: true
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 3
+      x-supportsPermissionDeniedResponse: false
+      description: List of payouts in a portfolio.
+      summary: List of payouts in a portfolio.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPortfolioPayoutListRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostPortfolioPayoutList200Response'
+      parameters: []
+  /portfolio/payout/modify:
+    post:
+      tags:
+      - Payouts
+      operationId: post/portfolio/payout/modify
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: "Modify a payout in a portfolio.\n\nCertain error conditions yield errors as follows: \n\n|Error Condition|HTTP Error|\n|-------|--------|\n|At least one of the parameters `notation`, `type`, `amount`, `transaction` or `time` must be set.|400 Bad Request|\n|Invalid payout identifier.|400 Bad Request|"
+      summary: Modify a payout in a portfolio.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPortfolioPayoutModifyRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostPortfolioPayoutModify200Response'
+      parameters: []
+components:
+  schemas:
+    PostPortfolioPayoutListRequest:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - id
+          - filter
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the portfolio.
+              type: string
+              format: id64
+              x-positive: true
+            filter:
+              type: object
+              x-property-sort:
+              - instrument
+              description: Criteria that filter the items in the response list; only items that match all of the criteria are returned.
+              properties:
+                instrument:
+                  type: object
+                  x-property-sort:
+                  - id
+                  description: Filtering the payouts by instrument.
+                  properties:
+                    id:
+                      description: Identifier of the instrument.
+                      type: string
+                      format: id64
+                      x-positive: true
+          required:
+          - id
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+            sort:
+              description: Sortable attributes. The sort order is ascending unless it is prefixed with a minus sign, in which case it is descending. A list of at most 3 (possibly prefixed) attribute name(s) is allowed.
+              type: array
+              items:
+                type: string
+                enum:
+                - type
+                - -type
+                - time
+                - -time
+                - amount
+                - -amount
+              maxItems: 3
+              uniqueItems: true
+              default:
+              - time
+            pagination:
+              type: object
+              description: Pagination attributes for the offset-based pagination strategy.
+              properties:
+                offset:
+                  type: number
+                  format: int32
+                  minimum: 0
+                  exclusiveMinimum: false
+                  default: 0
+                  description: Non-negative number of entries to skip, or 0 (default).
+                limit:
+                  type: number
+                  format: int32
+                  minimum: 1
+                  exclusiveMinimum: false
+                  maximum: 500
+                  exclusiveMaximum: false
+                  default: 20
+                  description: Non-negative maximum number of entries to return.
+              x-property-sort:
+              - offset
+              - limit
+          x-property-sort:
+          - attributes
+          - sort
+          - pagination
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+        exclusiveMaximum: false
+      maxItems: 50
+      uniqueItems: true
+    PostPortfolioPayoutCreateRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - id
+          - type
+          - notation
+          - time
+          - amount
+          - transaction
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the portfolio.
+              type: string
+              format: id64
+              x-positive: true
+            type:
+              description: 'Payout type. '
+              type: string
+              x-enum-description:
+              - Dividend
+              - Payout
+              - Coupon
+              - Subscription right
+              - Other
+              enum:
+              - dividend
+              - payout
+              - coupon
+              - subscriptionRight
+              - other
+            notation:
+              description: Notation of the position.
+              type: object
+              x-property-sort:
+              - id
+              properties:
+                id:
+                  description: Identifier of the notation.
+                  type: string
+                  format: id64
+                  x-positive: true
+              required:
+              - id
+            time:
+              description: Date and time of the payout.
+              type: string
+              format: datetime
+            amount:
+              description: Amount of the payout in the portfolio's base currency.
+              type: number
+              format: real
+            transaction:
+              description: Associates the payout with a sub-position opened by a specific buy transaction. If omitted, the payout will be associated with all sub-positions of the notation in the portfolio.
+              type: object
+              x-property-sort:
+              - id
+              properties:
+                id:
+                  description: Identifier of the buy transaction.
+                  type: string
+                  format: id64
+                  x-positive: true
+              required:
+              - id
+          required:
+          - id
+          - type
+          - notation
+          - time
+          - amount
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+          - attributes
+    OffsetBasedPaginationOutputObject:
+      type: object
+      description: Pagination attributes for the offset-based pagination strategy.
+      properties:
+        total:
+          type: number
+          format: int32
+          description: Total number of entries in the result set.
+        isEstimatedTotal:
+          type: boolean
+          description: Flag indicating that the value of "total" is estimated.
+      required:
+      - total
+      - isEstimatedTotal
+      x-property-sort:
+      - total
+      - isEstimatedTotal
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+      description: The status member contains the status code of the response.
+      required:
+      - code
+    PostPortfolioPayoutModifyRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - id
+          - payout
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the portfolio.
+              type: string
+              format: id64
+              x-positive: true
+            payout:
+              description: Payout of the portfolio.
+              type: object
+              x-property-sort:
+              - id
+              - type
+              - notation
+              - time
+              - amount
+              - transaction
+              properties:
+                id:
+                  type: string
+                  format: id64
+                  x-positive: true
+                  description: Identifier of the payout.
+                type:
+                  description: 'Payout type. '
+                  type: string
+                  x-enum-description:
+                  - Dividend
+                  - Payout
+                  - Coupon
+                  - Subscription right
+                  - Other
+                  enum:
+                  - dividend
+                  - payout
+                  - coupon
+                  - subscriptionRight
+                  - other
+                notation:
+                  description: Notation of the transaction.
+                  type: object
+                  x-property-sort:
+                  - id
+                  properties:
+                    id:
+                      description: Identifier of the notation
+                      type: string
+                      format: id64
+                      x-positive: true
+                  required:
+                  - id
+                time:
+                  description: Date and time of the payout.
+                  type: string
+                  format: datetime
+                amount:
+                  description: Amount of the payout in the portfolio's base currency.
+                  type: number
+                  format: real
+                transaction:
+                  description: Associates the payout with a sub-position opened by a specific buy transaction and removes the existing association if available.
+                  type: object
+                  x-property-sort:
+                  - id
+                  properties:
+                    id:
+                      description: Identifier of the buy transaction.
+                      type: string
+                      format: id64
+                      x-positive: true
+              required:
+              - id
+          required:
+          - id
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+          - attributes
+    PostPortfolioPayoutDeleteRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - id
+          - payout
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the portfolio.
+              type: string
+              format: id64
+              x-positive: true
+            payout:
+              description: Payout of the portfolio.
+              type: object
+              x-property-sort:
+              - id
+              properties:
+                id:
+                  type: string
+                  format: id64
+                  x-positive: true
+                  description: Identifier of the payout.
+              required:
+              - id
+          required:
+          - id
+          - payout
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+          - attributes
+  responses:
+    PostPortfolioPayoutDelete200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: The response is always empty.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+    PostPortfolioPayoutList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: List of payouts.
+                nullable: false
+                type: array
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                  - id
+                  - instrument
+                  - notation
+                  - type
+                  - time
+                  - amount
+                  - transaction
+                  properties:
+                    id:
+                      nullable: true
+                      type: string
+                      format: id64
+                      x-positive: true
+                      description: Identifier of payout.
+                    instrument:
+                      nullable: false
+                      type: object
+                      x-property-sort:
+                      - id
+                      description: Details of the instrument
+                      properties:
+                        id:
+                          nullable: true
+                          description: Identifier of the instrument.
+                          type: string
+                          format: id64
+                          x-positive: true
+                    notation:
+                      nullable: false
+                      description: Notation of the payout.
+                      type: object
+                      x-property-sort:
+                      - id
+                      properties:
+                        id:
+                          nullable: true
+                          description: Identifier of the notation.
+                          type: string
+                          format: id64
+                          x-positive: true
+                    type:
+                      nullable: true
+                      x-sortable: true
+                      type: string
+                      description: Type of payout.
+                      x-enum-description:
+                      - Dividend
+                      - Payout
+                      - Coupon
+                      - Subscription right
+                      - Other
+                      enum:
+                      - dividend
+                      - payout
+                      - coupon
+                      - subscriptionRight
+                      - other
+                    time:
+                      nullable: true
+                      x-sortable: true
+                      x-default-sort-attribute: true
+                      x-default-sort-direction: 1
+                      type: string
+                      format: datetime
+                      description: Date and time of the payout.
+                    amount:
+                      nullable: true
+                      x-sortable: true
+                      type: number
+                      format: real
+                      description: Amount of the payout in the portfolio's base currency.
+                    transaction:
+                      nullable: false
+                      description: Buy transaction with which the payout is associated; all contained attributes are null if the payout is not associated with any specific buy transaction.
+                      type: object
+                      x-property-sort:
+                      - id
+                      properties:
+                        id:
+                          nullable: true
+                          description: Identifier of the buy transaction.
+                          type: string
+                          format: id64
+                          x-positive: true
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                  pagination:
+                    $ref: '#/components/schemas/OffsetBasedPaginationOutputObject'
+                x-property-sort:
+                - status
+                - pagination
+    PostPortfolioPayoutCreate201Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                nullable: false
+                type: object
+                x-property-sort:
+                - id
+                properties:
+                  id:
+                    nullable: true
+                    type: string
+                    format: id64
+                    x-positive: true
+                    description: Identifier of the payout.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+    PostPortfolioPayoutModify200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data: {}
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

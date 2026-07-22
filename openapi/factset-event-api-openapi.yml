@@ -1,0 +1,288 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Event API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Event
+paths:
+  /events/details/{eventId}:
+    get:
+      tags:
+      - Event
+      operationId: getEventDetailById
+      description: Fetch Signals event headlines plus all additional event details for a single requested Signal event
+      parameters:
+      - $ref: '#/components/parameters/eventIdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/eventDetail'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse'
+        '429':
+          description: API Rate Limit Exceeded
+          headers:
+            Api-Version:
+              $ref: '#/components/headers/Api-Version'
+            Api-Supported-Versions:
+              $ref: '#/components/headers/Api-Supported-Versions'
+            RateLimit-Limit:
+              $ref: '#/components/headers/RateLimit-Limit'
+            RateLimit-Remaining:
+              $ref: '#/components/headers/RateLimit-Remaining'
+            RateLimit-Reset:
+              $ref: '#/components/headers/RateLimit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rateLimitResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    eventDetailDataItem:
+      allOf:
+      - $ref: '#/components/schemas/eventHeadlineDataItem'
+      - type: object
+        required:
+        - created
+        - updated
+        - details
+        properties:
+          created:
+            type: string
+            format: date-time
+            description: Date/Time in UTC the event was first recorded in our data store.
+            example: '2021-04-26T06:39:40.094Z'
+          updated:
+            type: string
+            format: date-time
+            description: Date/Time in UTC the event was last updated.
+            example: '2021-04-26T06:39:40.094Z'
+          details:
+            type: object
+            description: Signal specific event properties.
+            additionalProperties: true
+    eventDetail:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/eventDetailDataItem'
+        meta:
+          $ref: '#/components/schemas/eventMeta'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errorItem'
+          example: []
+    idResolutionsMeta:
+      type: object
+      properties:
+        tickerRegion:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+          example: example_value
+        regionalPermId:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+          example: '500123'
+    eventHeadlineDataItem:
+      type: object
+      required:
+      - requestId
+      - signalId
+      - signalName
+      - theme
+      - source
+      - eventId
+      - eventDate
+      - summary
+      - userRelevanceScore
+      properties:
+        requestId:
+          type: string
+          description: The id that was requested. This can be a ticker, cusip or factset entity id.
+          example: '500123'
+        companyName:
+          type: string
+          description: Name of the company reported in signal. Omitted if null.
+          example: example_value
+        signalId:
+          type: string
+          description: Signal Id for this event. e.g. dilutionTrigger
+          example: '500123'
+        signalName:
+          type: string
+          description: Signal Name for this event. e.g. dilutionTrigger
+          example: example_value
+        theme:
+          type: string
+          description: Theme name of the signal for this event. e.g. Debt Capital Structure
+          example: example_value
+        source:
+          type: string
+          description: Primary data provider for the signal this event belongs to. e.g. FactSet, Bitvore
+          example: example_value
+        eventId:
+          type: string
+          format: uuid
+          description: A unique id for this event.
+          example: '500123'
+        eventDate:
+          type: string
+          format: date
+          description: The UTC date/time of the event in ISO 8601 format.
+          example: '2026-01-15'
+        summary:
+          type: string
+          description: One sentence summary of the event.
+          example: example_value
+        userRelevanceScore:
+          type: number
+          format: float
+          description: Relevancy score of this event for the requesting user on a scale of 0 to 1. Higher value indicates more relevancy.
+          example: 42.5
+        created:
+          type: string
+          format: date-time
+          description: Date/Time in UTC the event was first recorded in our data store.
+          example: '2021-04-26T06:39:40.094Z'
+    errorItem:
+      type: object
+      required:
+      - id
+      - code
+      - title
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: abc123
+        code:
+          type: string
+          example: parameterError
+        title:
+          type: string
+          example: Invalid type/value
+        detail:
+          type: string
+          example: Value must be a valid UTC date/time that conforms to ISO 8601 format
+        source:
+          type: object
+          properties:
+            parameter:
+              type: string
+          example: example_value
+    rateLimitResponse:
+      title: Rate Limit Error Object
+      description: Error returned if any of the user's rate limit have been reached.
+      properties:
+        message:
+          type: string
+          example: API rate limit exceeded
+    errorResponse:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+          description: A short description of the error.
+          example: There was an error processing your request. Please try again later.
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errorItem'
+          description: Optional list of errors. e.g. Validation errors for multiple parameters
+          example: []
+    eventMeta:
+      type: object
+      required:
+      - signalRequestId
+      - idResolutions
+      properties:
+        signalRequestId:
+          type: string
+          format: uuid
+          example: '500123'
+        idResolutions:
+          $ref: '#/components/schemas/idResolutionsMeta'
+  headers:
+    RateLimit-Reset:
+      description: Time remaining (in seconds) until the quota is reset.
+      schema:
+        type: integer
+        example: 1000
+    Api-Version:
+      description: Full semantic version of the API.
+      schema:
+        type: string
+        example: 1.0.0
+    RateLimit-Remaining:
+      description: Remaining number of requests in the current time window.
+      schema:
+        type: integer
+        example: 4
+    RateLimit-Limit:
+      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
+      schema:
+        type: integer
+        example: 5
+    Api-Supported-Versions:
+      description: Comma-separated list of supported major versions.
+      schema:
+        type: string
+        example: '1'
+  parameters:
+    eventIdParam:
+      name: eventId
+      in: path
+      required: true
+      description: The UUID of the event to return.
+      schema:
+        type: string
+        format: uuid
+        minimum: 1
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

@@ -1,0 +1,219 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Providers API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Providers
+paths:
+  /ServiceProviderConfig:
+    get:
+      tags:
+      - Providers
+      summary: Factset Get Server Configuration.
+      security:
+      - basicAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/serviceProviderConfigSuccess'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  responses:
+    unauthorizedError:
+      description: User has not been authenticated.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: FactSet.net credentials are missing or invalid.
+            status: '401'
+    serviceProviderConfigSuccess:
+      description: Success.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/ServiceProviderConfig'
+    internalServerError:
+      description: Internal server error.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    ServiceProviderConfig:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example:
+          - urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig
+        documentationUri:
+          type: string
+          description: An HTTP-addressable URL pointing to the service provider's human-consumable help documentation.
+          readOnly: true
+          example: https://developer-staging.factset.com/api-catalog/scim-api
+        patch:
+          type: object
+          description: A complex type that specifies PATCH configuration options.
+          properties:
+            supported:
+              type: boolean
+              description: A Boolean value specifying whether or not the operation is supported.
+              readOnly: true
+              example: false
+          required:
+          - supported
+          readOnly: true
+          example: example_value
+        bulk:
+          type: object
+          description: A complex type that specifies bulk configuration options.
+          properties:
+            supported:
+              type: boolean
+              description: A Boolean value specifying whether or not the operation is supported.
+              readOnly: true
+              example: false
+            maxOperations:
+              type: integer
+              description: An integer value specifying the maximum number of operations.
+              readOnly: true
+              example: 0
+            maxPayloadSize:
+              type: integer
+              description: An integer value specifying the maximum payload size in bytes.
+              readOnly: true
+              example: 0
+          required:
+          - supported
+          - maxOperations
+          - maxPayloadSize
+          example: example_value
+        filter:
+          type: object
+          description: A complex type that specifies FILTER options.
+          properties:
+            supported:
+              type: boolean
+              description: A Boolean value specifying whether or not the operation is supported.
+              readOnly: true
+              example: false
+            maxResults:
+              type: integer
+              description: An integer value specifying the maximum number of resources returned in a response.
+              readOnly: true
+              example: 0
+          required:
+          - supported
+          - maxResults
+          example: example_value
+        changePassword:
+          type: object
+          description: A complex type that specifies configuration options related to changing a password.
+          properties:
+            supported:
+              type: boolean
+              description: A Boolean value specifying whether or not the operation is supported.
+              readOnly: true
+              example: false
+          required:
+          - supported
+          example: example_value
+        sort:
+          type: object
+          description: A complex type that specifies sort result options.
+          properties:
+            supported:
+              type: boolean
+              description: A Boolean value specifying whether or not the operation is supported.
+              readOnly: true
+              example: false
+          required:
+          - supported
+          example: example_value
+        etag:
+          type: object
+          description: A complex type that specifies ETag configuration options.
+          properties:
+            supported:
+              type: boolean
+              description: A Boolean value specifying whether or not the operation is supported.
+              readOnly: true
+              example: false
+          required:
+          - supported
+          example: example_value
+        authenticationSchemes:
+          type: object
+          description: A complex type that specifies supported authentication scheme properties.
+          properties:
+            type:
+              type: string
+              description: The authentication scheme.
+              readOnly: true
+              example: httpbasic
+            name:
+              type: string
+              description: The common authentication scheme name, e.g., HTTP Basic.
+              readOnly: true
+              example: HTTP Basic
+            description:
+              type: string
+              description: A description of the authentication scheme.
+              readOnly: true
+              example: FactSet API key authentication.
+            specUri:
+              type: string
+              description: An HTTP-addressable URL pointing to the authentication scheme's specification.
+              readOnly: true
+              example: https://datatracker.ietf.org/doc/rfc7617/
+            documentationUri:
+              type: string
+              description: An HTTP-addressable URL pointing to the authentication scheme's usage documentation.
+              readOnly: true
+              example: https://developer.factset.com/authentication
+          required:
+          - type
+          - name
+          - description
+          example: example_value
+      required:
+      - patch
+      - bulk
+      - filter
+      - changePassword
+      - sort
+      - etag
+      - authenticationSchemes
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

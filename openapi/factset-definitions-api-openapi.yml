@@ -1,0 +1,171 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Definitions API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Definitions
+paths:
+  /v1/{tenant}/reports/{reportDefinitionCode}:
+    get:
+      operationId: getReportDefinitionByCode
+      tags:
+      - Definitions
+      summary: Factset Gets a Report Definition
+      description: Gets a report defintion based on the code specified
+      parameters:
+      - in: path
+        name: tenant
+        description: The code of the tenancy
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: reportDefinitionCode
+        description: The code of the report definition
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportDefinitionData'
+        '400':
+          description: The supplied report definition code was either missing or invalid, or the report definition was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: parameterError
+                  title: The report definition code passed was invalid
+        '401':
+          description: Unauthorised
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAuthenticated
+                  title: User is not authenticated
+        '403':
+          description: No permissions to view reports in VRS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAuthorized
+                  title: No permissions to view this item
+        '404':
+          description: The supplied report definition code was was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notFound
+                  title: The report definition code passed was not found
+        '406':
+          description: Unsupported Accept header. Header needs to be set to application/json.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAcceptable
+                  title: Unsupported Accept header. Header needs to be set to application/json
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    EntityDTO:
+      type: object
+      properties:
+        entityId:
+          type: integer
+          format: int32
+          example: '500123'
+        name:
+          type: string
+          example: Example Title
+        code:
+          type: string
+          example: example_value
+    ReportDefinitionDTO:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Example Title
+        code:
+          type: string
+          example: example_value
+        releaseTag:
+          type: string
+          example: example_value
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityDTO'
+          example: []
+    ErrorList:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+          example: []
+    ReportDefinitionData:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ReportDefinitionDTO'
+    Error:
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        code:
+          type: string
+          example: example_value
+        title:
+          type: string
+          example: Example Title
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

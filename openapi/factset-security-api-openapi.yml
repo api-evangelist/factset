@@ -1,0 +1,2176 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Security API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Security
+paths:
+  /factset-global-prices/v1/security-shares:
+    get:
+      tags:
+      - Security
+      summary: Factset Gets Shares Outstanding Information for Securities.
+      operationId: getSharesOutstanding
+      description: Returns security level shares outstanding data for the given ids and dates. At this time, all values returned are split adjusted.
+      parameters:
+      - $ref: '#/components/parameters/idsBatchMax1000'
+      - $ref: '#/components/parameters/startDateSS'
+      - $ref: '#/components/parameters/endDate'
+      - $ref: '#/components/parameters/frequency'
+      - $ref: '#/components/parameters/calendar'
+      - $ref: '#/components/parameters/batch'
+      responses:
+        '200':
+          description: Array of security shares outstanding information for a given date range and list of securities
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sharesOutstandingResponse'
+              examples:
+                Shares Outstanding:
+                  $ref: '#/components/examples/sharesOutstanding'
+        '202':
+          description: Batch request has been accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchStatusResponse'
+              examples:
+                Batch Request Accepted:
+                  $ref: '#/components/examples/BatchStatusAcceptedResponse'
+          headers:
+            Location:
+              description: Path to Batch Request status.
+              schema:
+                type: string
+              example: batch-status?id=2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+        '400':
+          $ref: '#/components/responses/SO400'
+        '401':
+          $ref: '#/components/responses/SO401'
+        '403':
+          $ref: '#/components/responses/SO403'
+        '415':
+          $ref: '#/components/responses/SO415'
+        '500':
+          $ref: '#/components/responses/SO500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      tags:
+      - Security
+      summary: Factset Gets Shares Outstanding Information for Securities.
+      description: Returns security level shares outstanding data for the given ids and dates. At this time, all values returned are split adjusted.
+      operationId: postSharesOutstanding
+      requestBody:
+        required: true
+        description: Request object for `Shares Outstanding`.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/sharesOutstandingRequest'
+      responses:
+        '200':
+          description: Array of shares outstanding
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sharesOutstandingResponse'
+        '202':
+          description: Batch request has been accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchStatusResponse'
+              examples:
+                Batch Request Accepted:
+                  $ref: '#/components/examples/BatchStatusAcceptedResponse'
+          headers:
+            Location:
+              description: Path to Batch Request status.
+              schema:
+                type: string
+              example: batch-status?id=2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+        '400':
+          $ref: '#/components/responses/SO400'
+        '401':
+          $ref: '#/components/responses/SO401'
+        '403':
+          $ref: '#/components/responses/SO403'
+        '415':
+          $ref: '#/components/responses/SO415'
+        '500':
+          $ref: '#/components/responses/SO500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /analytics/security-modeling/v3/securities/retrieve:
+    post:
+      tags:
+      - Security
+      summary: Factset Get Existing Securities
+      description: This endpoint gets all existing securities.
+      operationId: getSecurities
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SMRetrieveParametersRoot'
+      responses:
+        '200':
+          description: Expected response, returns a list of existing securities.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SMRetrieveResponseRoot'
+        '401':
+          description: Missing or invalid authentication.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '403':
+          description: User is forbidden with current credentials
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+        '406':
+          description: Unsupported Accept header. Header needs to be set to application/json.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+        '429':
+          description: Rate limit reached. Wait till the time specified in Retry-After header value to make further requests.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            Retry-After:
+              description: Time to wait in seconds before making a new request as the rate limit has reached.
+              schema:
+                type: string
+        '500':
+          description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '503':
+          description: Request timed out. Retry the request in sometime.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /analytics/security-modeling/v3/securities/upsert:
+    post:
+      tags:
+      - Security
+      summary: Factset Create or Update Securities
+      description: This endpoint is to create or update existing securities.
+      operationId: upsertSecurities
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SMCreateParametersRoot'
+      responses:
+        '200':
+          description: Expected response, returns a status of operation along with errors and warnings if found any.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SMCreateResponseRoot'
+        '401':
+          description: Missing or invalid authentication.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '403':
+          description: User is forbidden with current credentials
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+        '406':
+          description: Unsupported Accept header. Header needs to be set to application/json.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+        '429':
+          description: Rate limit reached. Wait till the time specified in Retry-After header value to make further requests.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            Retry-After:
+              description: Time to wait in seconds before making a new request as the rate limit has reached.
+              schema:
+                type: string
+        '500':
+          description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '503':
+          description: Request timed out. Retry the request in sometime.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /analytics/security-modeling/v3/securities/delete:
+    post:
+      tags:
+      - Security
+      summary: Factset Delete Existing Securities
+      description: This endpoint deletes existing securities.
+      operationId: deleteSecurities
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SMDeleteParametersRoot'
+      responses:
+        '200':
+          description: Expected response, deletes existing securities.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SMDeleteResponseRoot'
+        '401':
+          description: Missing or invalid authentication.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '403':
+          description: User is forbidden with current credentials
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+        '406':
+          description: Unsupported Accept header. Header needs to be set to application/json.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+        '429':
+          description: Rate limit reached. Wait till the time specified in Retry-After header value to make further requests.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            Retry-After:
+              description: Time to wait in seconds before making a new request as the rate limit has reached.
+              schema:
+                type: string
+        '500':
+          description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '503':
+          description: Request timed out. Retry the request in sometime.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  responses:
+    SO401:
+      description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the **Report Issue** in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/soErrorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/sounauthenticated'
+    SO400:
+      description: Bad Request. This can occur for several reasons. Please review the "message" for more details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/soErrorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/sobadRequestDateFormat'
+            Bad Request - Missing Required Parameter:
+              $ref: '#/components/examples/sobadRequestRequiredParameter'
+            Bad Request - Future Date:
+              $ref: '#/components/examples/sobadRequestFutureDate'
+            Bad Request - Invalid Parameter:
+              $ref: '#/components/examples/sobadRequestInvalidParameters'
+            Bad Request - Malformed JSON:
+              $ref: '#/components/examples/sobadRequestMalformedJSON'
+            Bad Request - Read Timeout:
+              $ref: '#/components/examples/sobadRequestReadTimeout'
+    SO500:
+      description: Internal Server Error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/soErrorResponse'
+          examples:
+            Internal Server Error - Not Writable:
+              $ref: '#/components/examples/sonotWritable'
+            Internal Server Error - General Exception:
+              $ref: '#/components/examples/sogeneralException'
+    SO403:
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/soErrorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/soforbidden'
+    SO415:
+      description: Unsupported Media Type. This error may be returned when the caller sends a resource in a format that is not accepted by the server. This can be fixed by ensuring that Content-Type header is set to the correct value. In this instance, "application/json" would be the appropriate value.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/soErrorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/sounsupportedMediaType'
+  schemas:
+    SMRetrieveResponseRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SMRetrieveResponse'
+          example: []
+        meta:
+          type: object
+          nullable: true
+          example: example_value
+    batchErrorObject:
+      type: object
+      nullable: true
+      properties:
+        id:
+          description: A UUID for this particular occurrence of the problem.
+          type: string
+          nullable: true
+          example: adb01824-252f-4420-b0c6-35a1e3507ef5
+        code:
+          description: status
+          type: string
+          nullable: true
+          example: GenericError
+        links:
+          description: The Endpoint path {package}/version/{endpoint}
+          type: object
+          properties:
+            about:
+              description: details.
+              type: string
+              example: /factset-global-prices/v1/{endpoint}
+          example: example_value
+        title:
+          description: The plain text error message
+          type: string
+          nullable: true
+          example: Validation Error
+    sharesOutstandingResponseObject:
+      type: object
+      title: Shares Outstanding Object
+      properties:
+        fsymId:
+          description: Security-level FactSet Permanent Identifier associated with the identifier.
+          type: string
+          example: C6J726-S
+          nullable: true
+        date:
+          description: Date of the record in YYYY-MM-DD format.
+          type: string
+          format: date
+          example: '2022-08-10'
+          nullable: true
+        documentId:
+          description: Unique Identifier for each document or filing which contains the outstanding shares position.
+          type: string
+          example: '956881'
+          nullable: true
+        requestId:
+          description: FactSet Security Permanent Identifier that was used for the request.
+          type: string
+          example: C6J726-S
+          nullable: true
+        reportDate:
+          description: Reporting date of the position.
+          type: string
+          format: date
+          example: '2022-08-02'
+          nullable: true
+        publicationDate:
+          description: Exact date that results have been communicated to the market.
+          type: string
+          format: date
+          example: '2022-08-04'
+          nullable: true
+        fiscalYear:
+          description: The company's fiscal year corresponding to the report.
+          type: integer
+          example: 2022
+          nullable: true
+        reportingPeriodDescription:
+          description: Textual description of the reporting period.
+          type: string
+          example: 2nd Quarter
+          nullable: true
+        reportingPeriod:
+          description: 'Code representing the unique reporting period. Options are as follows:
+
+            - 1 - 1st Quarter
+
+            - 2 - 2nd Quarter
+
+            - 3 - 3rd Quarter
+
+            - 4 - 4th Quarter
+
+            - 6 - Mid-Year
+
+            '
+          type: integer
+          example: 3
+          nullable: true
+        description:
+          description: Different stock types based on the rights and benefits from ownership.
+          type: string
+          example: Class A Shares
+          nullable: true
+        adrDescription:
+          description: Different stock types based on the rights and benefits from ownership for the ADR.
+          type: string
+          example: Class A Shares
+          nullable: true
+        adrRatio:
+          description: Number of common or ordinary shares that are equivalent to one American Depositary Receipt (ADR).
+          type: number
+          example: 0.5
+          nullable: true
+        adrFsymId:
+          description: Unique FactSet generated identifier assigned to a security, representing the ADR security.
+          type: string
+          example: V9GGRZ-S
+          nullable: true
+        totalOutstanding:
+          description: Number of shares outstanding as of `date`.
+          type: number
+          example: 1351.828
+          nullable: true
+        adrTotalOutstanding:
+          description: Number of shares outstanding for the ADR as of `date`.
+          type: number
+          example: 980.22284
+          nullable: true
+      additionalProperties: false
+    SMDeleteParametersRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SMDeleteParameters'
+          example: []
+        meta:
+          type: object
+          nullable: true
+          example: example_value
+    batch:
+      description: 'Enables the ability to asynchronously "batch" the request, supporting a long-running request for up to 20 minutes. Upon requesting batch=Y, the service will respond back with an HTTP Status Code of 202. Once a batch request is submitted, use batch status to see if the job has been completed. Once completed, retrieve the results of the request via batch-result. When using Batch, ids limit is increased to 10000 ids per request, though limits on query string via GET method still apply. It''s advised to submit large lists of ids via POST method. Please note that the number of unique currencies present in the requested ids is limited to 50 per request.
+
+        '
+      type: string
+      enum:
+      - Y
+      - N
+      default: N
+    idsBatchMax2000:
+      type: array
+      items:
+        type: string
+      description: "The requested list of security identifiers. Accepted ID types include Market Tickers, SEDOL, ISINs, CUSIPs, or FactSet Permanent Ids. \n<p>ids limit =  500 per non-batch request / 2000 per batch request for a single day and 50 per multi-day request</p>\n"
+      example:
+      - FDS-US
+    calendar:
+      title: Calendar
+      type: string
+      enum:
+      - FIVEDAY
+      - SEVENDAY
+      - US
+      default: FIVEDAY
+      description: Calendar of data returned. SEVENDAY includes weekends.
+      example: FIVEDAY
+    SMCreateParameters:
+      required:
+      - fields
+      - securityName
+      type: object
+      properties:
+        securityName:
+          type: string
+          example: example_value
+        location:
+          type: string
+          nullable: true
+          example: example_value
+        asofdate:
+          type: string
+          nullable: true
+          example: example_value
+        fields:
+          $ref: '#/components/schemas/OneOfSMFields'
+    SMCustomCashFlowFields:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/SMFields'
+      properties:
+        cashFlowAmounts:
+          type: array
+          items:
+            type: number
+            format: double
+            nullable: true
+          nullable: true
+          example: []
+        cashFlowDates:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        country:
+          type: string
+          nullable: true
+          example: example_value
+        currency:
+          type: string
+          nullable: true
+          example: example_value
+        issueName:
+          type: string
+          nullable: true
+          example: example_value
+        parAmt:
+          type: number
+          format: double
+          nullable: true
+          example: 42.5
+        parentName:
+          type: string
+          nullable: true
+          example: example_value
+        ratingFitch:
+          type: string
+          nullable: true
+          example: example_value
+        ratingFitchDates:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        ratingFitchValues:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        ratingMoodysDates:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        ratingMoodysValues:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        ratingSpDates:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        ratingSpValues:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        secondaryToVendorFlag:
+          type: boolean
+          nullable: true
+          example: true
+        sector:
+          type: string
+          nullable: true
+          example: example_value
+        sectorBarclay1:
+          type: string
+          nullable: true
+          example: example_value
+        sectorBarclay2:
+          type: string
+          nullable: true
+          example: example_value
+        sectorBarclay3:
+          type: string
+          nullable: true
+          example: example_value
+        sectorBarclay4:
+          type: string
+          nullable: true
+          example: example_value
+        sectorDef:
+          type: string
+          nullable: true
+          example: example_value
+        sectorIndustry:
+          type: string
+          nullable: true
+          example: example_value
+        sectorMain:
+          type: string
+          nullable: true
+          example: example_value
+        sectorMerrill1:
+          type: string
+          nullable: true
+          example: example_value
+        sectorMerrill2:
+          type: string
+          nullable: true
+          example: example_value
+        sectorMerrill3:
+          type: string
+          nullable: true
+          example: example_value
+        sectorMerrill4:
+          type: string
+          nullable: true
+          example: example_value
+        sectorSubGroup:
+          type: string
+          nullable: true
+          example: example_value
+        vendorCoverageDate:
+          type: string
+          nullable: true
+          example: example_value
+    SMRetrieveParametersRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SMRetrieveParameters'
+          example: []
+        meta:
+          type: object
+          nullable: true
+          example: example_value
+    endDate:
+      title: End Date
+      type: string
+      description: 'The end date requested for a given date range in **YYYY-MM-DD** format. Future dates (T+1) are not accepted in this endpoint.
+
+        '
+      example: '2021-06-30'
+    SMDeleteParameters:
+      required:
+      - securityName
+      type: object
+      properties:
+        securityName:
+          type: string
+          example: example_value
+        location:
+          type: string
+          nullable: true
+          example: example_value
+        asofdate:
+          type: string
+          nullable: true
+          example: example_value
+        securityType:
+          enum:
+          - Bond
+          - CCF
+          type: string
+          nullable: true
+          example: Bond
+    BatchStatus:
+      title: Batch Status
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: the id of batch request.
+          example: abc123
+        startTime:
+          type: string
+          format: date-time
+          description: Time when the batch request is started. This is in Eastern Time Zone. The date-time format is expressed as [YYYY-MM-DD]T[HH:MM:SSS], following ISO 8601.
+          example: '2026-01-15T10:30:00Z'
+        endTime:
+          type: string
+          format: date-time
+          description: Time when the batch request is ended. This is in Eastern Time Zone. The date-time format is expressed as [YYYY-MM-DD]T[HH:MM:SSS], following ISO 8601.
+          nullable: true
+          example: '2026-01-15T10:30:00Z'
+        status:
+          type: string
+          enum:
+          - queued
+          - executing
+          - created
+          - failed
+          example: queued
+        error:
+          $ref: '#/components/schemas/batchErrorObject'
+    SMCreateParametersRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SMCreateParameters'
+          example: []
+        meta:
+          type: object
+          nullable: true
+          example: example_value
+    sharesOutstandingRequest:
+      title: Shares Outstanding Request Body
+      description: Shares Outstanding Request Body
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/sharesOutstandingRequestBody'
+      required:
+      - data
+    SMFields:
+      required:
+      - securityType
+      type: object
+      properties:
+        securityType:
+          enum:
+          - Bond
+          - CCF
+          type: string
+          example: Bond
+    OneOfFieldsFields:
+      oneOf:
+      - $ref: '#/components/schemas/SMBondFields'
+      - $ref: '#/components/schemas/SMCustomCashFlowFields'
+      nullable: true
+      discriminator:
+        propertyName: securityType
+        mapping:
+          Bond: '#/components/schemas/SMBondFields'
+          CCF: '#/components/schemas/SMCustomCashFlowFields'
+    SMCreateResponseRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SMCreateResponse'
+          example: []
+        meta:
+          type: object
+          nullable: true
+          example: example_value
+    SMRetrieveResponse:
+      type: object
+      properties:
+        securityName:
+          type: string
+          nullable: true
+          example: example_value
+        status:
+          enum:
+          - success
+          - failure
+          type: string
+          example: success
+        location:
+          type: string
+          nullable: true
+          example: example_value
+        asofdate:
+          type: string
+          nullable: true
+          example: example_value
+        fields:
+          $ref: '#/components/schemas/OneOfFieldsFields'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/SMError'
+          nullable: true
+          example: []
+    SMError:
+      type: object
+      properties:
+        detail:
+          type: string
+          nullable: true
+          example: example_value
+    startDate:
+      title: Start Date
+      type: string
+      description: 'The start date requested for a given date range in **YYYY-MM-DD** format. Future dates (T+1) are not accepted in this endpoint.
+
+        '
+      example: '2020-06-30'
+    SMWarning:
+      type: object
+      properties:
+        detail:
+          type: string
+          nullable: true
+          example: example_value
+    soErrorResponse:
+      type: object
+      title: Error Response
+      description: Error Default Response
+      properties:
+        errors:
+          type: array
+          description: An array containing errors
+          items:
+            $ref: '#/components/schemas/soErrorObject'
+          example: []
+    SMCreateResponse:
+      type: object
+      properties:
+        securityName:
+          type: string
+          nullable: true
+          example: example_value
+        status:
+          enum:
+          - success
+          - failure
+          type: string
+          example: success
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/SMWarning'
+          nullable: true
+          example: []
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/SMError'
+          nullable: true
+          example: []
+    soErrorObject:
+      type: object
+      properties:
+        id:
+          description: A UUID for this particular occurrence of the problem.
+          type: string
+          example: adb01824-252f-4420-b0c6-35a1e3507ef5
+        code:
+          description: status
+          type: string
+          example: Bad Request
+        links:
+          description: The Endpoint path {package}/version/{endpoint}
+          type: object
+          properties:
+            about:
+              description: Details.
+              type: string
+              example: /factset-global-prices/v1/securtiy-shares
+          example: example_value
+        title:
+          description: The plain text error message
+          type: string
+          example: Validation Error
+    BatchStatusResponse:
+      title: Batch Status Response
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/BatchStatus'
+    sharesOutstandingResponse:
+      type: object
+      title: Shares Outstanding Response
+      properties:
+        data:
+          description: Array of Shares Outstanding Objects
+          type: array
+          items:
+            $ref: '#/components/schemas/sharesOutstandingResponseObject'
+          example: []
+    SMBondFields:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/SMFields'
+      properties:
+        144aFlag:
+          type: boolean
+          nullable: true
+          example: true
+        aperiodicMultipliers:
+          type: array
+          items:
+            type: number
+            format: double
+            nullable: true
+          nullable: true
+          example: []
+        aperiodicResetDates:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        aperiodicSpreads:
+          type: array
+          items:
+            type: number
+            format: double
+            nullable: true
+          nullable: true
+          example: []
+        businessDayConv:
+          type: string
+          nullable: true
+          example: example_value
+        callAnnouncedDate:
+          type: string
+          nullable: true
+          example: example_value
+        callDates:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        callFreq:
+          type: string
+          nullable: true
+          example: example_value
+        callNoticeDays:
+          type: integer
+          format: int32
+          nullable: true
+          example: 10
+        callPrices:
+          type: array
+          items:
+            type: number
+            format: double
+            nullable: true
+          nullable: true
+          example: []
+        cashRate:
+          type: number
+          format: double
+          nullable: true
+          example: 42.5
+        cognity:
+          type: string
+          nullable: true
+          example: example_value
+        conversionIdentifier:
+          type: string
+          nullable: true
+          example: example_value
+        conversionRatio:
+          type: number
+          format: double
+          nullable: true
+          example: 42.5
+        conversionType:
+          type: string
+          nullable: true
+          example: example_value
+        convertibleFlag:
+          type: boolean
+          nullable: true
+          example: true
+        country:
+          type: string
+          nullable: true
+          example: example_value
+        coupon:
+          type: number
+          format: double
+          nullable: true
+          example: 42.5
+        couponType:
+          type: string
+          nullable: true
+          example: example_value
+        creditSpreadAdjustmentSingle:
+          type: number
+          format: double
+          nullable: true
+          example: 42.5
+        currency:
+          type: string
+          nullable: true
+          example: example_value
+        dayCountBasis:
+          type: string
+          nullable: true
+          example: example_value
+        defaultedDate:
+          type: string
+          nullable: true
+          example: example_value
+        federalTaxExemptFlag:
+          type: boolean
+          nullable: true
+          example: true
+        firstPayDate:
+          type: string
+          nullable: true
+          example: example_value
+        firstResetDate:
+          type: string
+          nullable: true
+          example: example_value
+        floatFormula:
+          type: string
+          nullable: true
+          example: example_value
+        fltDayCountBasis:
+          type: string
+          nullable: true
+          example: example_value
+        fltFirstPayDate:
+          type: string
+          nullable: true
+          example: example_value
+        fltPayFreq:
+          type: string
+          nullable: true
+          example: example_value
+        histCouponDates:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        histCoupons:
+          type: array
+          items:
+            type: number
+            format: double
+            nullable: true
+          nullable: true
+          example: []
+        histRcvAssumpDates:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        histRcvAssumpMonths:
+          type: array
+          items:
+            type: integer
+            format: int32
+            nullable: true
+          nullable: true
+          example: []
+        histRcvAssumpRates:
+          type: array
+          items:
+            type: number
+            format: double
+            nullable: true
+          nullable: true
+          example: []
+        histRcvAssumpTargetDates:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        inflationType:
+          type: string
+          nullable: true
+          example: example_value
+        issueDate:
+          type: string
+          nullable: true
+          example: example_value
+        issueName:
+          type: string
+          nullable: true
+          example: example_value
+        issuerId:
+          type: string
+          nullable: true
+          example: '500123'
+        lastModifiedSource:
+          type: string
+          nullable: true
+          example: example_value
+        lastModifiedSourceMeta:
+          type: string
+          nullable: true
+          example: example_value
+        lastModifiedTime:
+          type: string
+          nullable: true
+          example: example_value
+        lifeCap:
+          type: number
+          format: double
+          nullable: true
+          example: 42.5
+        lifeFloor:
+          type: number
+          format: double
+          nullable: true
+          example: 42.5
+        lockoutDays:
+          type: integer
+          format: int32
+          nullable: true
+          example: 10
+        lookBackDays:
+          type: integer
+          format: int32
+          nullable: true
+          example: 10
+        makeWholeCallFlag:
+          type: boolean
+          nullable: true
+          example: true
+        makeWholeExpireDate:
+          type: string
+          nullable: true
+          example: example_value
+        makeWholeSpread:
+          type: number
+          format: double
+          nullable: true
+          example: 42.5
+        matrixDates:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        matrixMultipliers:
+          type: array
+          items:
+            type: number
+            format: double
+            nullable: true
+          nullable: true
+          example: []
+        matrixPricedFlag:
+          type: boolean
+          nullable: true
+          example: true
+        matrixSpreads:
+          type: array
+          items:
+            type: number
+            format: double
+            nullable: true
+          nullable: true
+          example: []
+        matrixUseScheduleFlag:
+          type: boolean
+          nullable: true
+          example: true
+        maturityDate:
+          type: string
+          nullable: true
+          example: example_value
+        maturityPrice:
+          type: number
+          format: double
+          nullable: true
+          example: 42.5
+        monthsToRecovery:
+          type: number
+          format: double
+          nullable: true
+          example: 42.5
+        multiplier:
+          type: number
+          format: double
+          nullable: true
+          example: 42.5
+        notionalFlag:
+          type: boolean
+          nullable: true
+          example: true
+        observationShift:
+          type: integer
+          format: int32
+          nullable: true
+          example: 10
+        origAmtIssued:
+          type: number
+          format: double
+          nullable: true
+          example: 42.5
+        parentName:
+          type: string
+          nullable: true
+          example: example_value
+        parPrice:
+          type: number
+          format: double
+          nullable: true
+          example: 42.5
+        parserInfo:
+          type: string
+          nullable: true
+          example: example_value
+        paymentDelay:
+          type: integer
+          format: int32
+          nullable: true
+          example: 10
+        payFreq:
+          type: string
+          nullable: true
+          example: example_value
+        periodCap:
+          type: number
+          format: double
+          nullable: true
+          example: 42.5
+        periodFloor:
+          type: number
+          format: double
+          nullable: true
+          example: 42.5
+        pikExpDate:
+          type: string
+          nullable: true
+          example: example_value
+        pikRate:
+          type: integer
+          format: int32
+          nullable: true
+          example: 10
+        preferredSecExDateLen:
+          type: integer
+          format: int32
+          nullable: true
+          example: 10
+        preferredSecExDateUnits:
+          type: string
+          nullable: true
+          example: example_value
+        preferredSecFlag:
+          type: boolean
+          nullable: true
+          example: true
+        preferredSecType:
+          type: string
+          nullable: true
+          example: example_value
+        principalType:
+          type: string
+          nullable: true
+          example: example_value
+        putDates:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        putNoticeDays:
+          type: integer
+          format: int32
+          nullable: true
+          example: 10
+        putFreq:
+          type: string
+          nullable: true
+          example: example_value
+        putPrices:
+          type: array
+          items:
+            type: number
+            format: double
+            nullable: true
+          nullable: true
+          example: []
+        pvtPlacementFlag:
+          type: boolean
+          nullable: true
+          example: true
+        ratingFitch:
+          type: string
+          nullable: true
+          example: example_value
+        ratingFitchDates:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        ratingFitchValues:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        ratingMoodysDates:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        ratingMoodysValues:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        ratingSpDates:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        ratingSpValues:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        recoveryPercentage:
+          type: number
+          format: double
+          nullable: true
+          example: 42.5
+        redemptionDate:
+          type: string
+          nullable: true
+          example: example_value
+        redemptionOpt:
+          type: string
+          nullable: true
+          example: example_value
+        redemptionPrice:
+          type: number
+          format: double
+          nullable: true
+          example: 42.5
+        reinstatedDate:
+          type: string
+          nullable: true
+          example: example_value
+        resetDelay:
+          type: integer
+          format: int32
+          nullable: true
+          example: 10
+        resetFreq:
+          type: string
+          nullable: true
+          example: example_value
+        refIndex:
+          type: string
+          nullable: true
+          example: example_value
+        secondaryToVendorFlag:
+          type: boolean
+          nullable: true
+          example: true
+        sector:
+          type: string
+          nullable: true
+          example: example_value
+        sectorBarclay1:
+          type: string
+          nullable: true
+          example: example_value
+        sectorBarclay2:
+          type: string
+          nullable: true
+          example: example_value
+        sectorBarclay3:
+          type: string
+          nullable: true
+          example: example_value
+        sectorBarclay4:
+          type: string
+          nullable: true
+          example: example_value
+        sectorDef:
+          type: string
+          nullable: true
+          example: example_value
+        sectorIndustry:
+          type: string
+          nullable: true
+          example: example_value
+        sectorMain:
+          type: string
+          nullable: true
+          example: example_value
+        sectorMerrill1:
+          type: string
+          nullable: true
+          example: example_value
+        sectorMerrill2:
+          type: string
+          nullable: true
+          example: example_value
+        sectorMerrill3:
+          type: string
+          nullable: true
+          example: example_value
+        sectorMerrill4:
+          type: string
+          nullable: true
+          example: example_value
+        sectorSubGroup:
+          type: string
+          nullable: true
+          example: example_value
+        sinkAmts:
+          type: array
+          items:
+            type: number
+            format: double
+            nullable: true
+          nullable: true
+          example: []
+        sinkDates:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        spread:
+          type: number
+          format: double
+          nullable: true
+          example: 42.5
+        state:
+          type: string
+          nullable: true
+          example: example_value
+        status:
+          type: string
+          nullable: true
+          example: example_value
+        statusDates:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        statusValues:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        stepCashRates:
+          type: array
+          items:
+            type: number
+            format: double
+            nullable: true
+          nullable: true
+          example: []
+        stepCouponDates:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        stepCoupons:
+          type: array
+          items:
+            type: number
+            format: double
+            nullable: true
+          nullable: true
+          example: []
+        stepPikRates:
+          type: array
+          items:
+            type: number
+            format: double
+            nullable: true
+          nullable: true
+          example: []
+        vendorCoverageDate:
+          type: string
+          nullable: true
+          example: example_value
+        vRDNFlag:
+          type: boolean
+          nullable: true
+          example: true
+    SMRetrieveParameters:
+      required:
+      - securityName
+      type: object
+      properties:
+        securityName:
+          type: string
+          example: example_value
+        location:
+          type: string
+          nullable: true
+          example: example_value
+        asofdate:
+          type: string
+          nullable: true
+          example: example_value
+        securityType:
+          enum:
+          - Bond
+          - CCF
+          type: string
+          nullable: true
+          example: Bond
+    frequency:
+      title: Frequency
+      type: string
+      enum:
+      - D
+      - AD
+      - W
+      - M
+      - AM
+      - AQ
+      - CQ
+      - ASA
+      - CSA
+      - AY
+      - CY
+      default: D
+      description: "Controls the display frequency of the data returned.\n  * **D** = Daily\n  * **AD** = Actual Daily\n  * **W** = Weekly, based on the last day of the week of the start date.\n  * **M** = Monthly, based on the last trading day of the month.\n  * **AM** = Monthly, based on the start date (e.g., if the start date is June 16, data is displayed for June 16, May 16, April 16 etc.).\n  * **AQ** =  Actual Quarterly\n  * **CQ** = Quarterly based on the last trading day of the calendar quarter (March, June, September, or December).\n  * **ASA** = Actual Semi-annual\n  * **CSA** = Calendar Semi-annual\n  * **AY** = Actual Annual, based on the start date.\n  * **CY** = Calendar Annual, based on the last trading day of the calendar year.\n"
+      example: M
+    SMDeleteResponse:
+      type: object
+      properties:
+        securityName:
+          type: string
+          nullable: true
+          example: example_value
+        status:
+          enum:
+          - success
+          - failure
+          type: string
+          example: success
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/SMError'
+          nullable: true
+          example: []
+    SMDeleteResponseRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SMDeleteResponse'
+          example: []
+        meta:
+          type: object
+          nullable: true
+          example: example_value
+    sharesOutstandingRequestBody:
+      title: Shares Outstanding Request Body
+      description: Shares Outstanding Request Body
+      type: object
+      properties:
+        ids:
+          $ref: '#/components/schemas/idsBatchMax2000'
+        startDate:
+          $ref: '#/components/schemas/startDate'
+        endDate:
+          $ref: '#/components/schemas/endDate'
+        frequency:
+          $ref: '#/components/schemas/frequency'
+        calendar:
+          $ref: '#/components/schemas/calendar'
+        batch:
+          $ref: '#/components/schemas/batch'
+      required:
+      - ids
+    OneOfSMFields:
+      oneOf:
+      - $ref: '#/components/schemas/SMBondFields'
+      - $ref: '#/components/schemas/SMCustomCashFlowFields'
+      discriminator:
+        propertyName: securityType
+        mapping:
+          Bond: '#/components/schemas/SMBondFields'
+          CCF: '#/components/schemas/SMCustomCashFlowFields'
+  examples:
+    sobadRequestReadTimeout:
+      summary: Bad Request - Read Timeout
+      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Bad Request
+          links:
+            about: /factset-global-prices/v1/{endpoint}
+          title: The request took too long. Try again with a smaller request.
+    sobadRequestFutureDate:
+      summary: Bad Request - Future Date
+      description: This error message occurs when a future date is requested in the startDate and endDate parameters. Please revise your request to include dates as of today's current date or any prior historical date.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Bad Request
+          links:
+            about: /factset-global-prices/v1/{endpoint}
+          title: The use of future dates is not applicable in this endpoint. Please revise your request to include dates up to today's current date.
+    sonotWritable:
+      summary: Internal Server Error - Not Writable
+      description: This error may be returned when the server encounters an error writing the JSON response.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Internal Server Error
+          links:
+            about: /factset-global-prices/v1/{endpoint}
+          title: Error writing JSON output
+    sobadRequestRequiredParameter:
+      summary: Bad Request - Required Parameter Missing
+      description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisks symbol in the specification file.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Bad Request
+          links:
+            about: /factset-global-prices/v1/{endpoint}
+          title: The parameter 'ids' is required and may not be empty.
+    sobadRequestMalformedJSON:
+      summary: Bad Request - Malformed JSON Request
+      description: This error may be returned when the request body is specified as JSON, but is not in proper JSON format.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Bad Request
+          links:
+            about: /factset-global-prices/v1/{endpoint}
+          title: Malformed JSON Request
+    BatchStatusAcceptedResponse:
+      description: Batch Status Accepted Response
+      value:
+        data:
+          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+          status: queued
+          startTime: '2021-06-29T18:34:52.168Z'
+          endTime: null
+          error: null
+    sobadRequestDateFormat:
+      summary: Bad Request - Date Format
+      description: This bad request occurs when a request doesn't use the YYYY-MM-DD in the date parameters. To resolve, convert your date to YYYY-MM-DD.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Bad Request
+          links:
+            about: /factset-global-prices/v1/{endpoint}
+          title: 'The date parameter must be in the following date format: YYYY-MM-DD'
+    sounsupportedMediaType:
+      summary: Unsupported Media Type
+      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Unsupported Media Type
+          links:
+            about: /factset-global-prices/v1/{endpoint}
+          title: text/html media type is not supported. Supported media types are application/json.
+    sogeneralException:
+      summary: Internal Server Error - General Exception
+      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Internal Server Error
+          links:
+            about: /factset-global-prices/v1/{endpoint}
+          title: Unexpected error
+    sobadRequestInvalidParameters:
+      summary: Bad Request - Invalid Parameters
+      description: This error message occurs when a request parameter is used in which is not recognized by the service. Please revise your request to include only the parameters listed in the specification. Typical causes are spelling mistakes and use of improper casing.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Bad Request
+          links:
+            about: /factset-global-prices/v1/{endpoint}
+          title: 'Invalid Parameter (s): fakeParameterName1 fakeParameterName2. Please modify your request to use parameters outlined in the specification for this endpoint.'
+    sharesOutstanding:
+      summary: Shares Outstanding Response of FactSet (FDS-US)
+      value:
+        data:
+        - fsymId: C6J726-S
+          date: '2023-08-10'
+          documentId: '956881'
+          requestId: C6J726-S
+          reportDate: '2022-08-02'
+          publicationDate: '2022-08-04'
+          fiscalYear: 2022
+          reportingPeriodDescription: 2nd Quarter
+          reportingPeriod: 3
+          description: Ordinary Shares
+          adrRatio: 1
+          adrFsymId: V9GGRZ-S
+          adrDescription: American Despository Shares
+          totalOutstanding: 980.22284
+          adrTotalOutstanding: 225.30467
+    sounauthenticated:
+      summary: User Authentication Failed
+      description: This occurs when a user is not properly authenticated or recognized by the service. Please double check the USERNAME-SERIAL and API-Key used to request and ensure you are within the IP range specified for the Key. Report Issue under 401 error for help with troubleshooting.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: User Authentication Failed
+          links:
+            about: /factset-global-prices/v1/{endpoint}
+          title: User Authentication Failed.
+    soforbidden:
+      summary: Forbidden
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Forbidden
+          links:
+            about: /factset-global-prices/v1/{endpoint}
+          title: User is not authorized for the id requested, please reach out to FactSet for support
+  parameters:
+    frequency:
+      name: frequency
+      in: query
+      schema:
+        type: string
+        enum:
+        - D
+        - AD
+        - W
+        - M
+        - AM
+        - AQ
+        - CQ
+        - ASA
+        - CSA
+        - AY
+        - CY
+        default: D
+      description: "Controls the display frequency of the data returned.\n  * **D** = Daily\n  * **AD** = Actual Daily\n  * **W** = Weekly, based on the last day of the week of the start date.\n  * **M** = Monthly, based on the last trading day of the month.\n  * **AM** = Monthly, based on the start date (e.g., if the start date is June 16, data is displayed for June 16, May 16, April 16 etc.).\n  * **AQ** =  Actual Quarterly\n  * **CQ** = Quarterly based on the last trading day of the calendar quarter (March, June, September, or December).\n  * **ASA** = Actual Semi-annual\n  * **CSA** = Calendar Semi-annual\n  * **AY** = Actual Annual, based on the start date.\n  * **CY** = Calendar Annual, based on the last trading day of the calendar year.\n  \n"
+    endDate:
+      name: endDate
+      in: query
+      required: false
+      schema:
+        type: string
+      description: 'The end date requested for a given date range in **YYYY-MM-DD** format. The input end date must be after the input start date. Future dates (T+1) are not accepted in this endpoint.
+
+        '
+      example: '2021-08-27'
+    startDateSS:
+      name: startDate
+      in: query
+      required: false
+      schema:
+        type: string
+        default: '2021-08-27T00:00:00.000Z'
+      description: 'The start date requested for a given date range in **YYYY-MM-DD** format. The input start date must be before the input end date. Future dates (T+1) are not accepted in this endpoint.
+
+        '
+      example: '2021-08-27'
+    calendar:
+      name: calendar
+      in: query
+      schema:
+        type: string
+        enum:
+        - FIVEDAY
+        - SEVENDAY
+        - US
+        default: FIVEDAY
+      description: Calendar of data returned. SEVENDAY includes weekends.
+      example: FIVEDAY
+    idsBatchMax1000:
+      name: ids
+      in: query
+      schema:
+        type: array
+        items:
+          type: string
+      required: true
+      explode: false
+      description: The requested list of security identifiers. Accepted ID types include Market Tickers, SEDOL, ISINs, CUSIPs, or FactSet Permanent Ids.<p>***ids limit** =  500 per non-batch request / 1000 per batch request for a single day and 50 per multi-day request*</p> *<p>Make note, GET Method URL request lines are also limited to a total length of 8192 bytes (8KB). In cases where the service allows for thousands of ids, which may lead to exceeding this request line limit of 8KB, it's advised for any requests with large request lines to be requested through the respective "POST" method.</p>*
+      examples:
+        oneEquityId:
+          summary: One Equity Market Identifier
+          value:
+          - AAPL-USA
+        multipleEquityIds:
+          summary: Multiple Equity Market Identifiers
+          value:
+          - FDS-US
+          - AAPL-US
+          - MSFT-US
+    batch:
+      name: batch
+      in: query
+      description: 'Enables the ability to asynchronously "batch" the request, supporting a long-running request for up to 20 minutes. Upon requesting batch=Y, the service will respond with an HTTP Status Code of 202.
+
+        Once a batch request is submitted, use batch status to see if the job has been completed. Once completed, retrieve the results of the request via batch-result. When using Batch, ids limit is increased to 10000 ids per request, though limits on query string via GET method still apply. It''s advised to submit large lists of ids via POST method.
+
+        <B>Please note that the number of unique currencies present in the requested ids is limited to 50 per request.</B>
+
+        '
+      schema:
+        type: string
+        enum:
+        - Y
+        - N
+        default: N
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

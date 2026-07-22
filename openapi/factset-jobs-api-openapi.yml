@@ -1,0 +1,845 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Jobs API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Jobs
+paths:
+  /factset-people/v1/jobs:
+    get:
+      summary: Factset Returns the Job History of the Person.
+      description: 'Returns the `Job` history of the person referenced by the entityId specified in the request.
+
+        '
+      tags:
+      - Jobs
+      operationId: getPeopleJobs
+      parameters:
+      - $ref: '#/components/parameters/entityId'
+      - $ref: '#/components/parameters/status'
+      - $ref: '#/components/parameters/level'
+      - $ref: '#/components/parameters/type'
+      responses:
+        '200':
+          description: Array of Job objects.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/peopleJobsResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '415':
+          $ref: '#/components/responses/415'
+        '500':
+          $ref: '#/components/responses/500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      summary: Factset Returns the Job History for the Large List of People.
+      description: 'Returns the `Job` history of the person referenced by the entityId specified in the request.
+
+        '
+      tags:
+      - Jobs
+      operationId: getPeopleJobsForList
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/peopleJobsRequest'
+      responses:
+        '200':
+          description: Array of Job objects.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/peopleJobsResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '415':
+          $ref: '#/components/responses/415'
+        '500':
+          $ref: '#/components/responses/500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /jobs/{type}/{name}:
+    parameters:
+    - schema:
+        $ref: '#/components/schemas/jobTypes'
+      name: type
+      in: path
+      required: true
+      description: The jobs type
+    - schema:
+        type: string
+      name: name
+      in: path
+      required: true
+      description: The jobs name
+    get:
+      summary: Factset Get Details for the Given Prb Job
+      tags:
+      - Jobs
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/jobDetailsResponse'
+              examples:
+                PA:
+                  value:
+                    data:
+                      documents:
+                        my_task_1:
+                        - Client:/equity/long_short/my PA document
+                        my_task_2:
+                        - Client:/equity/long_short/my other PA document
+                        - Client:/equity/long_only/my PA document
+                      tasks:
+                      - my_task_1
+                      - my_task_2
+                      accounts:
+                        my_task_1:
+                        - portfolioId: client:/some_path/some_portfolio.actm
+                          isSplit: true
+                          includeParent: true
+                          level: '1'
+                          latestComponentsOnly: true
+                        my_task_2:
+                        - portfolioId: client:/some_other_path/some__other_portfolio.acct
+                          isSplit: true
+                          includeParent: true
+                          level: all
+                          latestComponentsOnly: true
+                      runs:
+                      - statusDescription: job has completed with success
+                        status: created
+                        prbStatus: success
+                        submitTime: '2019-08-24T14:15:22Z'
+                        startTime: '2019-08-24T14:15:22Z'
+                        endTime: '2019-08-24T14:15:22Z'
+                        runDuration: 0
+                        isApiTriggered: true
+                        id: '565642'
+                PD:
+                  value:
+                    data:
+                      documents:
+                        default:
+                        - Client:/equity/long_short/my document1
+                      runs:
+                      - statusDescription: job has completed with success
+                        status: created
+                        prbStatus: success
+                        submitTime: '2019-08-24T14:15:22Z'
+                        startTime: '2019-08-24T14:15:22Z'
+                        endTime: '2019-08-24T14:15:22Z'
+                        runDuration: 1235
+                        isApiTriggered: true
+                        id: '3456'
+                PI:
+                  value:
+                    data:
+                      documents:
+                        my_task_1:
+                        - Client:/equity/long_short/my PA document
+                      tasks:
+                      - my_task_1
+                      accounts:
+                        my_task_1:
+                        - portfolioId: client:/some_path/some_portfolio.actm
+                      runs:
+                      - statusDescription: job has completed with success
+                        status: created
+                        prbStatus: success
+                        submitTime: '2019-08-24T14:15:22Z'
+                        startTime: '2019-08-24T14:15:22Z'
+                        endTime: '2019-08-24T14:15:22Z'
+                        runDuration: 4567
+                        isApiTriggered: true
+                        id: '1234'
+          headers:
+            X-DataDirect-Request-Key:
+              $ref: '#/components/headers/X-DataDirect-Request-Key'
+            X-FactSet-Api-Request-Key:
+              $ref: '#/components/headers/X-FactSet-Api-Request-Key'
+            X-FactSet-Api-RateLimit-Limit:
+              $ref: '#/components/headers/X-FactSet-Api-RateLimit-Limit'
+            X-FactSet-Api-RateLimit-Remaining:
+              $ref: '#/components/headers/X-FactSet-Api-RateLimit-Remaining'
+            X-FactSet-Api-RateLimit-Reset:
+              $ref: '#/components/headers/X-FactSet-Api-RateLimit-Reset'
+        '400':
+          description: Invalid post body parameters.
+          headers:
+            X-DataDirect-Request-Key:
+              $ref: '#/components/headers/X-DataDirect-Request-Key'
+            X-FactSet-Api-Request-Key:
+              $ref: '#/components/headers/X-FactSet-Api-Request-Key'
+            X-FactSet-Api-RateLimit-Limit:
+              $ref: '#/components/headers/X-FactSet-Api-RateLimit-Limit'
+            X-FactSet-Api-RateLimit-Remaining:
+              $ref: '#/components/headers/X-FactSet-Api-RateLimit-Remaining'
+            X-FactSet-Api-RateLimit-Reset:
+              $ref: '#/components/headers/X-FactSet-Api-RateLimit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/clientErrorResponse'
+        '401':
+          description: Missing or invalid authentication.
+          headers:
+            X-DataDirect-Request-Key:
+              $ref: '#/components/headers/X-DataDirect-Request-Key'
+            X-FactSet-Api-Request-Key:
+              $ref: '#/components/headers/X-FactSet-Api-Request-Key'
+        '403':
+          description: User is forbidden with current credentials
+          headers:
+            X-DataDirect-Request-Key:
+              $ref: '#/components/headers/X-DataDirect-Request-Key'
+            X-FactSet-Api-Request-Key:
+              $ref: '#/components/headers/X-FactSet-Api-Request-Key'
+            X-FactSet-Api-RateLimit-Limit:
+              $ref: '#/components/headers/X-FactSet-Api-RateLimit-Limit'
+            X-FactSet-Api-RateLimit-Remaining:
+              $ref: '#/components/headers/X-FactSet-Api-RateLimit-Remaining'
+            X-FactSet-Api-RateLimit-Reset:
+              $ref: '#/components/headers/X-FactSet-Api-RateLimit-Reset'
+        '404':
+          description: Not Found - invalid inputs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/clientErrorResponse'
+          headers:
+            X-DataDirect-Request-Key:
+              $ref: '#/components/headers/X-DataDirect-Request-Key'
+            X-FactSet-Api-Request-Key:
+              $ref: '#/components/headers/X-FactSet-Api-Request-Key'
+            X-FactSet-Api-RateLimit-Limit:
+              $ref: '#/components/headers/X-FactSet-Api-RateLimit-Limit'
+            X-FactSet-Api-RateLimit-Remaining:
+              $ref: '#/components/headers/X-FactSet-Api-RateLimit-Remaining'
+            X-FactSet-Api-RateLimit-Reset:
+              $ref: '#/components/headers/X-FactSet-Api-RateLimit-Reset'
+        '429':
+          description: Rate limit reached. Wait till the time specified in Retry-After header value to make further requests.
+          headers:
+            X-DataDirect-Request-Key:
+              $ref: '#/components/headers/X-DataDirect-Request-Key'
+            X-FactSet-Api-Request-Key:
+              $ref: '#/components/headers/X-FactSet-Api-Request-Key'
+            Retry-After:
+              description: Time to wait in seconds before making a new request as the rate limit has reached.
+              schema:
+                type: string
+        '500':
+          description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting.
+          headers:
+            X-DataDirect-Request-Key:
+              $ref: '#/components/headers/X-DataDirect-Request-Key'
+            X-FactSet-Api-Request-Key:
+              $ref: '#/components/headers/X-FactSet-Api-Request-Key'
+        '503':
+          description: Request timed out. Retry the request in sometime.
+          headers:
+            X-DataDirect-Request-Key:
+              $ref: '#/components/headers/X-DataDirect-Request-Key'
+            X-FactSet-Api-Request-Key:
+              $ref: '#/components/headers/X-FactSet-Api-Request-Key'
+      operationId: getDetailsForJob
+      parameters:
+      - schema:
+          type: array
+          items:
+            enum:
+            - documents
+            - tasks
+            - accounts
+            - runs
+            type: string
+          maxItems: 4
+        explode: false
+        in: query
+        name: attribute
+        description: The attribute parameter accepts a list of the given enums, separated by commas. Each of them returns the respective data associated with the job. Runs returns the run history of the job.
+      description: Use this endpoint to fetch the documents, tasks, accounts, and/or runs for the PRB job given in the path. Please note jobs with type PD will not return tasks nor accounts so this will be ignored if given as part of the array of attributes in the request.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /v2/jobs:
+    get:
+      description: Retrieve list of all active job ids started by requester's username-serial
+      operationId: GetAllActiveJobs
+      responses:
+        '200':
+          $ref: '#/components/responses/ActiveJobsResponse'
+        '401':
+          $ref: '#/components/responses/Error401Response'
+        '404':
+          $ref: '#/components/responses/Error404Response'
+        '500':
+          $ref: '#/components/responses/Generic500ErrorResponse'
+      tags:
+      - Jobs
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    delete:
+      description: Delete all active jobs started by the requester's username-serial
+      operationId: DeleteAllActiveJobs
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/Error401Response'
+        '404':
+          $ref: '#/components/responses/Error404Response'
+        '500':
+          $ref: '#/components/responses/Generic500ErrorResponse'
+      tags:
+      - Jobs
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    clientErrorResponse:
+      description: The response schema for reporting errors
+      properties:
+        errors:
+          description: List of errors
+          items:
+            $ref: '#/components/schemas/error'
+          type: array
+          example: []
+      type: object
+    error:
+      description: Full details of any error
+      properties:
+        code:
+          description: The error code
+          type: string
+          example: example_value
+        detail:
+          description: Explanation specific to the occurrence of the error
+          type: string
+          example: example_value
+        id:
+          description: Identifier for the error
+          type: string
+          example: abc123
+        source:
+          $ref: '#/components/schemas/errorSource'
+        title:
+          description: The title of the error
+          type: string
+          example: Example Title
+      type: object
+    type:
+      description: Select only Jobs of a certain type board member or employee.
+      enum:
+      - ALL
+      - BRD
+      - EMP
+      default: ALL
+    ErrorObject:
+      properties:
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+        id:
+          description: A unique ID for the occurrence of the error. It is advised to log this code and include it if you contact FactSet support desk.
+          type: string
+          example: abc123
+        source:
+          $ref: '#/components/schemas/ErrorObjectSource'
+        title:
+          description: a description of the error
+          type: string
+          example: Example Title
+      type: object
+      description: Associated Error Objects
+    accountsForJobAddProp:
+      description: The details of the account under the task in the object key
+      properties:
+        includeParent:
+          description: Indicates whether or not the parent portfolio is included as a separate portfolio when isSplit is true
+          nullable: true
+          type: boolean
+          example: true
+        isSplit:
+          description: Indicates whether the portfolio's components if any would be treated as individual portfolios when the job is run
+          nullable: true
+          type: boolean
+          example: true
+        latestComponentsOnly:
+          description: When selected, the ACTM/CSTM will be split and will only return components that are still held in the ACTM. I.e., when the end date is "Latest," it will not return components where the end date occurs before Latest.
+          nullable: true
+          type: boolean
+          example: true
+        level:
+          description: The number of levels when isSplit is true that the job will expand down to for a composite portfolio (CSTM or ACTM). "1" means only the first level will be expanded. "all" will be the value if all levels are expanded down.
+          nullable: true
+          type: string
+          example: example_value
+        portfolioId:
+          description: The full file path including portfolio name and type
+          type: string
+          example: '500123'
+      type: object
+    ids:
+      type: array
+      items:
+        type: string
+      minItems: 1
+      maxItems: 1000
+      description: 'FactSet People Entity Ids.
+
+        '
+      example:
+      - 0DPHLH-E
+    status_2:
+      description: The status of the job as per FactSets API standards
+      enum:
+      - cancelled
+      - created
+      - executing
+      - failed
+      - queued
+      example: queued
+      title: status
+      type: string
+    documentsForJob:
+      additionalProperties:
+        description: The tasks under each document
+        items:
+          type: string
+        type: array
+      description: Shows the documents for each job where relevant with a collection of tasks under each document
+      example:
+        my_task_1:
+        - Client:/equity/long_short/my PA document
+        my_task_2:
+        - Client:/equity/long_only/my PA document
+        - Client:/equity/long_short/my other PA document
+      title: documentsForJob
+      type: object
+    errorSource:
+      description: The pointer and parameter of the error
+      properties:
+        parameter:
+          description: Indicates which path or URI query parameter caused the error
+          type: string
+          example: example_value
+        pointer:
+          description: Pointer to the associated entity in the request body
+          type: string
+          example: example_value
+      type: object
+    prbStatus:
+      description: The status of the job as per the application
+      enum:
+      - failed
+      - pending
+      - running
+      - soft
+      - stopped
+      - success
+      - warning
+      example: running
+      title: prbStatus
+      type: string
+    status:
+      type: string
+      description: Select only Jobs with a certain status primary, active, or inactive.
+      enum:
+      - ALL
+      - PRIMARY
+      - ACTIVE
+      - INACTIVE
+      default: ALL
+    ActiveJobsData:
+      description: Object containing active jobs ids
+      properties:
+        data:
+          $ref: '#/components/schemas/ActiveJobIDs'
+    peopleJobsRequest:
+      title: Jobs Request
+      type: object
+      properties:
+        ids:
+          $ref: '#/components/schemas/ids'
+        status:
+          $ref: '#/components/schemas/status'
+        level:
+          $ref: '#/components/schemas/level'
+        type:
+          $ref: '#/components/schemas/type'
+      required:
+      - ids
+    accountsForJob:
+      additionalProperties:
+        description: An array of the details of the account/s under the task/s in the object key/s
+        items:
+          $ref: '#/components/schemas/accountsForJobAddProp'
+        type: array
+      description: Please note for PI jobs you will only see portfolioId
+      example:
+        my_task_1:
+        - includeParent: true
+          isSplit: true
+          latestComponentsOnly: true
+          level: string
+          portfolioId: string
+      title: accountsForJob
+      type: object
+    ErrorObjectSource:
+      properties:
+        parameter:
+          type: string
+          example: example_value
+      description: For errors and warnings found in screens, contains the paramID the error/warning belongs to
+      type: object
+    ErrorArray:
+      description: An array of errors
+      properties:
+        errors:
+          items:
+            $ref: '#/components/schemas/ErrorObject'
+          type: array
+          description: Array of Error Objects
+          example: []
+      type: object
+    job:
+      title: Job
+      type: object
+      description: Basic information about a person's `Job`.
+      properties:
+        companyCity:
+          description: City the job is located in.
+          type: string
+          example: Norwalk
+          x-fds-fql-formula: FPD_PERSON_JOBS(CITY)
+          nullable: true
+        companyId:
+          description: FactSet Identifier for the company.
+          type: string
+          example: 0016YD-E
+          nullable: true
+        companyName:
+          description: Name of the company.
+          type: string
+          example: FactSet Research Systems, Inc.
+          x-fds-fql-formula: FPD_PERSON_JOBS(CO_NAME)
+          nullable: true
+        jobEndDate:
+          description: Ending date for the Job.
+          type: string
+          format: date
+          example: '0001-01-01'
+          x-fds-fql-formula: FPD_PERSON_JOBS(EDATE)
+          nullable: true
+        jobFunctionCode:
+          description: Job function code.
+          type: string
+          example: CEO
+          x-fds-fql-formula: FPD_PERSON_JOBS(JOB_FUNC_CODE)
+          nullable: true
+        jobFunctionName:
+          description: Description of the job.
+          type: string
+          example: Chief Executive Officer
+          x-fds-fql-formula: FPD_PERSON_JOBS(JOB_FUNC_DESC)
+          nullable: true
+        jobStartDate:
+          description: Starting date for the Job.
+          type: string
+          format: date
+          example: '2015-07-01'
+          x-fds-fql-formula: FPD_PERSON_JOBS(SDATE)
+          nullable: true
+        jobTitle:
+          description: Job Title
+          type: string
+          example: Chief Executive Officer & Director
+          x-fds-fql-formula: FPD_PERSON_JOBS(TITLE)
+          nullable: true
+        personId:
+          description: FactSet Entity Identifier for the Person.
+          type: string
+          example: 0DPHLH-E
+          nullable: true
+        requestId:
+          description: Original identifier used for the request.
+          type: string
+          example: 0DPHLH-E
+    tasksForJob:
+      description: A list of tasks for the given job
+      example:
+      - my_task_1
+      items:
+        example: my_task_1
+        type: string
+      title: tasksForJob
+      type: array
+      maxItems: 200
+    peopleJobsResponse:
+      title: Jobs Response
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/job'
+          example: []
+    statusDescription:
+      description: Further details on the job's status
+      example: job has completed with success
+      title: statusDescription
+      type: string
+      maxLength: 500
+    runsForJob:
+      description: Provides full details of when the job has been run
+      example:
+        endTime: '2019-08-24T14:15:22Z'
+        id: '2365478'
+        isApiTriggered: true
+        prbStatus: success
+        runDuration: 6000
+        startTime: '2019-08-24T14:15:22Z'
+        status: created
+        statusDescription: job has completed with success
+        submitTime: '2019-08-24T14:15:22Z'
+      properties:
+        endTime:
+          description: The date and time the job was finished processing
+          format: date-time
+          type: string
+          example: '2026-01-15T10:30:00Z'
+        id:
+          description: The ID of the run
+          type: string
+          example: abc123
+        isApiTriggered:
+          description: Indicates whether the job was triggered via the PRB API
+          type: boolean
+          example: true
+        prbStatus:
+          $ref: '#/components/schemas/prbStatus'
+        runDuration:
+          description: Number of seconds between startTime and endTime
+          type: number
+          example: 42.5
+        startTime:
+          description: The date and time the job started running after being submitted and potentially waiting in any queue
+          format: date-time
+          type: string
+          example: '2026-01-15T10:30:00Z'
+        status:
+          $ref: '#/components/schemas/status_2'
+        statusDescription:
+          $ref: '#/components/schemas/statusDescription'
+        submitTime:
+          description: The date and time the job was submitted
+          format: date-time
+          type: string
+          example: '2026-01-15T10:30:00Z'
+      title: runsForJob
+      type: object
+    jobDetailsResponse:
+      description: Provides the requested details for the specified job and if no attributes are provided, full details will be given
+      properties:
+        data:
+          description: The main object in the jobDetailsResponse schema
+          properties:
+            accounts:
+              $ref: '#/components/schemas/accountsForJob'
+            documents:
+              $ref: '#/components/schemas/documentsForJob'
+            runs:
+              description: An array of information for each run
+              items:
+                $ref: '#/components/schemas/runsForJob'
+              type: array
+            tasks:
+              $ref: '#/components/schemas/tasksForJob'
+          type: object
+          example: example_value
+      title: jobDetailsResponse
+      type: object
+    ActiveJobIDs:
+      properties:
+        id:
+          items:
+            type: string
+          type: array
+          example: abc123
+      description: Array of active jobs ids associated with the account
+      type: object
+    level:
+      description: Select the level of detail only main Jobs or include other Jobs at a company.
+      type: string
+      enum:
+      - SUMMARY
+      - DETAIL
+      default: DETAIL
+    jobTypes:
+      description: PA - Portfolio Analysis, PUB - Publisher, ADF - Analytics DataFeed, PI - Portfolio Insight, PD - Portfolio Dashboard, Portfolio Vault - vault
+      enum:
+      - ADF
+      - PA
+      - PD
+      - PI
+      - PUB
+      - vault
+      example: vault
+      title: jobTypes
+      type: string
+    ErrorCode:
+      description: Factset API specific error codes
+      enum:
+      - notAuthenticated
+      - notAuthorized
+      - notFound
+      - endpointNotFound
+      - parameterError
+      - genericServerError
+      - resourceGone
+      - quantityLimitsExceeded
+      - universal_screening_parameterError
+      - universal_screening_parameterWarning
+      type: string
+  responses:
+    Error401Response:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorArray'
+      description: Invalid or missing authentication.
+    Error404Response:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorArray'
+      description: Job ID not found.
+    ActiveJobsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ActiveJobsData'
+      description: ActiveJobsResponse contains id of all of a user's active jobs
+    Generic500ErrorResponse:
+      description: Internal Server Error
+      headers:
+        Request-Key:
+          description: Provide this key when reporting this issue
+          schema:
+            type: string
+  headers:
+    X-FactSet-Api-RateLimit-Reset:
+      description: Number of seconds remaining till rate limit resets.
+      schema:
+        type: string
+    X-FactSet-Api-RateLimit-Remaining:
+      description: Number of requests left for the time window.
+      schema:
+        type: string
+    X-FactSet-Api-RateLimit-Limit:
+      description: Number of allowed requests for the time window.
+      schema:
+        type: string
+    X-FactSet-Api-Request-Key:
+      description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+      schema:
+        type: string
+        description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+    X-DataDirect-Request-Key:
+      description: FactSet's request key header.
+      schema:
+        type: string
+        description: FactSet's request key header.
+  parameters:
+    status:
+      name: status
+      description: Select only Jobs with a certain status primary, active, or inactive.
+      in: query
+      schema:
+        type: string
+        enum:
+        - ALL
+        - PRIMARY
+        - ACTIVE
+        - INACTIVE
+        default: ALL
+    type:
+      name: type
+      description: Select only Jobs of a certain type board member or employee.
+      in: query
+      schema:
+        type: string
+        enum:
+        - ALL
+        - BRD
+        - EMP
+        default: ALL
+    level:
+      name: level
+      description: Select the level of detail only main Jobs or include other Jobs at a company.
+      in: query
+      schema:
+        type: string
+        enum:
+        - SUMMARY
+        - DETAIL
+        default: DETAIL
+    entityId:
+      name: ids
+      description: List of FactSet Person Entity identifier.
+      in: query
+      schema:
+        type: array
+        items:
+          type: string
+        minItems: 1
+        maxItems: 1000
+      required: true
+      explode: false
+      example:
+      - 0DPHLH-E
+      - 07MZV9-E
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

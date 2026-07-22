@@ -1,0 +1,580 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Kind API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Kind
+paths:
+  /news/article/listByMediaKind:
+    post:
+      tags:
+      - Kind
+      operationId: post/news/article/listByMediaKind
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: true
+      x-supportsPush: true
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: Factset List News Articles Which Contain Media of Specific Media Kinds.
+      description: List news articles which contain media of specific media kinds.
+      requestBody:
+        description: Request Body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostNewsArticleListByMediaKindRequest'
+        required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/PostNewsArticleListByMediaKind200Response'
+      parameters: []
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /basic/media/kind/list:
+    get:
+      tags:
+      - Kind
+      operationId: get/basic/media/kind/list
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: Factset List of Media Kinds.
+      description: List of media kinds.
+      responses:
+        '200':
+          $ref: '#/components/responses/GetBasicMediaKindList200Response'
+      parameters:
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  responses:
+    GetBasicMediaKindList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                description: List of media kinds.
+                nullable: false
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                  - id
+                  - name
+                  - description
+                  properties:
+                    id:
+                      nullable: true
+                      type: number
+                      format: id32
+                      x-positive: true
+                      description: Identifier of a media kind.
+                    name:
+                      nullable: true
+                      type: string
+                      description: English name of the media kind.
+                    description:
+                      nullable: true
+                      type: string
+                      description: English description of the media kind.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
+    PostNewsArticleListByMediaKind200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                description: News articles that match the filter criteria ordered by descending article time.
+                nullable: false
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                  - code
+                  - time
+                  - headline
+                  - summary
+                  - types
+                  - language
+                  - distributor
+                  - publisher
+                  - categories
+                  - chain
+                  - instruments
+                  properties:
+                    code:
+                      nullable: true
+                      description: Identifier of the news article.
+                      type: string
+                    time:
+                      nullable: true
+                      x-pushable: true
+                      description: Date and time of the news article.
+                      type: string
+                      format: datetime
+                    headline:
+                      nullable: true
+                      x-pushable: true
+                      description: Headline of the news article represented as text with HTML entity encoding but without HTML tags.
+                      type: string
+                    summary:
+                      nullable: true
+                      x-pushable: true
+                      description: Textual summary of the body of the news article or `null` if no summary was provided by the news article distributor.
+                      type: string
+                    types:
+                      nullable: false
+                      description: Types of news article. See endpoint `/news/article/type/list` for possible values.
+                      type: array
+                      items:
+                        type: object
+                        nullable: false
+                        x-property-sort:
+                        - id
+                        properties:
+                          id:
+                            nullable: true
+                            description: Identifier of the type of news article.
+                            type: number
+                            format: id32
+                            x-positive: true
+                    language:
+                      nullable: false
+                      description: Language of the news article. See endpoint `/basic/language/list` for possible values.
+                      type: object
+                      x-property-sort:
+                      - id
+                      properties:
+                        id:
+                          nullable: true
+                          description: Identifier of the language.
+                          type: number
+                          format: id32
+                          x-positive: true
+                    distributor:
+                      nullable: false
+                      description: Distributor of the news article. See endpoint `/news/distributor/list` for possible values.
+                      type: object
+                      x-property-sort:
+                      - id
+                      properties:
+                        id:
+                          nullable: true
+                          description: Identifier of the distributor.
+                          type: number
+                          format: id32
+                          x-positive: true
+                    publisher:
+                      nullable: false
+                      description: Publisher of the news article. See endpoint `/news/publisher/list` for possible values.
+                      type: object
+                      x-property-sort:
+                      - id
+                      properties:
+                        id:
+                          nullable: true
+                          description: Identifier of the publisher.
+                          type: number
+                          format: id32
+                          x-positive: true
+                    categories:
+                      nullable: false
+                      description: Categories related to the news article. See endpoint `/category/list` for possible values.
+                      type: array
+                      items:
+                        type: object
+                        nullable: false
+                        x-property-sort:
+                        - id
+                        properties:
+                          id:
+                            nullable: true
+                            x-pushable: true
+                            description: Identifier of the category.
+                            type: number
+                            format: id32
+                            x-positive: true
+                    chain:
+                      nullable: false
+                      description: Article chain.
+                      type: object
+                      x-property-sort:
+                      - id
+                      properties:
+                        id:
+                          nullable: true
+                          x-pushable: true
+                          description: Identifier of the news article chain.
+                          type: string
+                          format: id64
+                          x-positive: true
+                    instruments:
+                      nullable: false
+                      description: Set of stock instruments related to the article. The set is not updated in the course of corporate actions, e.g. when the related company obtains a new instrument after a spin-off.
+                      type: array
+                      items:
+                        type: object
+                        nullable: false
+                        x-property-sort:
+                        - id
+                        - fsym
+                        properties:
+                          id:
+                            nullable: true
+                            x-pushable: true
+                            description: Identifier of the instrument.
+                            type: string
+                            format: id64
+                            x-positive: true
+                          fsym:
+                            nullable: false
+                            type: object
+                            x-property-sort:
+                            - security
+                            description: Instrument-level FactSet identifier of the financial instrument used primarily in FactSet products other than the MDG.
+                            properties:
+                              security:
+                                nullable: false
+                                type: object
+                                x-property-sort:
+                                - permanentIdentifier
+                                description: Security-level identifier.
+                                properties:
+                                  permanentIdentifier:
+                                    nullable: true
+                                    x-pushable: true
+                                    description: FactSet Permanent Identifier for an instrument. The format is six alpha numeric characters, excluding vowels, with an S suffix (XXXXXX-S).
+                                    type: string
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                  pagination:
+                    $ref: '#/components/schemas/CursorBasedPaginationOutputObjectWithoutTotal'
+                x-property-sort:
+                - status
+                - pagination
+            x-property-sort:
+            - data
+            - meta
+  schemas:
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+        exclusiveMaximum: false
+      maxItems: 50
+      uniqueItems: true
+    PostNewsArticleListByMediaKindRequest:
+      x-property-sort:
+      - data
+      - meta
+      description: Request Body
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - ids
+          - filter
+          description: The data member contains the request's primary data.
+          properties:
+            ids:
+              type: array
+              nullable: false
+              items:
+                type: number
+                format: id32
+                x-positive: true
+              minItems: 1
+              maxItems: 20
+              uniqueItems: true
+              description: List of media kind identifiers. See endpoint `/basic/media/kind/list` for valid values.
+            filter:
+              description: Criteria that filter the items in the response list; only items that match all of the criteria are returned.
+              type: object
+              x-property-sort:
+              - range
+              - categories
+              - regions
+              - distributor
+              - publisher
+              - language
+              - types
+              properties:
+                range:
+                  type: object
+                  format: timeRange
+                  properties:
+                    start:
+                      type: string
+                      format: datetime
+                      description: The starting point of the time range (inclusive), or `null` to indicate that the time range extends indefinitely into the past.
+                      x-allowNullValue: true
+                    end:
+                      type: string
+                      format: datetime
+                      description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
+                      x-allowNullValue: true
+                  x-property-sort:
+                  - start
+                  - end
+                  required:
+                  - start
+                  - end
+                  description: Time range for matching the news article's date. At most one of the attributes `start` or `end` may be `null`.
+                categories:
+                  type: object
+                  x-property-sort:
+                  - ids
+                  description: Filter for specific categories of the news article. Use a category system of type news with endpoint `/category/listBySystem` for valid values.
+                  properties:
+                    ids:
+                      type: array
+                      nullable: false
+                      items:
+                        type: number
+                        format: id32
+                        x-positive: true
+                      minItems: 1
+                      maxItems: 100
+                      uniqueItems: true
+                      description: Identifiers of the categories.
+                regions:
+                  type: object
+                  x-property-sort:
+                  - ids
+                  description: Filter for specific regions of the content of the news article. See endpoint `/basic/region/list` for valid values.
+                  properties:
+                    ids:
+                      type: array
+                      nullable: false
+                      items:
+                        type: number
+                        format: id32
+                        x-positive: true
+                      minItems: 1
+                      maxItems: 100
+                      uniqueItems: true
+                      description: Identifiers of the regions.
+                distributor:
+                  type: object
+                  x-property-sort:
+                  - ids
+                  description: Filter for specific distributors of the news article. See endpoint `/news/distributor/list` for valid values.
+                  properties:
+                    ids:
+                      type: array
+                      nullable: false
+                      items:
+                        type: number
+                        format: id32
+                        x-positive: true
+                      minItems: 1
+                      maxItems: 100
+                      uniqueItems: true
+                      description: Identifiers of the distributors.
+                publisher:
+                  type: object
+                  x-property-sort:
+                  - ids
+                  description: Filter for specific publishers of the news article. See endpoint `/news/publisher/list` for valid values.
+                  properties:
+                    ids:
+                      type: array
+                      nullable: false
+                      items:
+                        type: number
+                        format: id32
+                        x-positive: true
+                      minItems: 1
+                      maxItems: 100
+                      uniqueItems: true
+                      description: Identifiers of the publishers.
+                language:
+                  type: object
+                  x-property-sort:
+                  - ids
+                  description: Filter for specific languages of the news article. See endpoint `/basic/language/list` for valid values.
+                  properties:
+                    ids:
+                      type: array
+                      nullable: false
+                      items:
+                        type: number
+                        format: id32
+                        x-positive: true
+                      minItems: 1
+                      maxItems: 100
+                      uniqueItems: true
+                      description: Identifiers of the languages.
+                types:
+                  type: object
+                  x-property-sort:
+                  - ids
+                  description: Filter for specific types of the news article. See endpoint `/news/article/type/list` for valid values.
+                  properties:
+                    ids:
+                      type: array
+                      nullable: false
+                      items:
+                        type: number
+                        format: id32
+                        x-positive: true
+                      minItems: 1
+                      maxItems: 100
+                      uniqueItems: true
+                      description: Identifiers of the article types.
+          required:
+          - ids
+          example: example_value
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+            subscription:
+              type: object
+              description: Object defining the subscription attributes.
+              properties:
+                minimumInterval:
+                  type: number
+                  format: int32
+                  minimum: 0
+                  exclusiveMinimum: false
+                  maximum: 5000
+                  exclusiveMaximum: false
+                  default: 0
+                  description: Non-negative number of milliseconds to throttle the update rate from 0ms to 5000ms. Set to 0 for sending updates immediately.
+              x-property-sort:
+              - minimumInterval
+            pagination:
+              type: object
+              description: Pagination attributes for the cursor-based pagination strategy.
+              properties:
+                cursor:
+                  type: string
+                  maxLength: 50
+                  exclusiveMaximum: false
+                  description: Starting point as returned in the attributes `pagination.next` or `pagination.previous` by a prior invocation of this endpoint, or undefined (default).
+                limit:
+                  type: number
+                  format: int32
+                  minimum: 1
+                  exclusiveMinimum: false
+                  maximum: 500
+                  exclusiveMaximum: false
+                  default: 20
+                  description: Non-negative maximum number of entries to return.
+              x-property-sort:
+              - cursor
+              - limit
+          x-property-sort:
+          - attributes
+          - subscription
+          - pagination
+          example: example_value
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
+    CursorBasedPaginationOutputObjectWithoutTotal:
+      type: object
+      description: Pagination attributes for the cursor-based pagination strategy; a total element count is not supported.
+      properties:
+        next:
+          type: string
+          description: The next cursor position to use in the parameter `pagination.cursor` for an endpoint that supports cursor-based pagination, otherwise `null`.
+          example: example_value
+        previous:
+          type: string
+          description: The previous cursor position to use in the parameter `pagination.cursor` for an endpoint that supports cursor-based pagination. If a previous cursor position is not supported or available, `previous` is `null`.
+          example: example_value
+      required:
+      - next
+      - previous
+      x-property-sort:
+      - next
+      - previous
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

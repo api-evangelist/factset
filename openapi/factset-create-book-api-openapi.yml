@@ -1,0 +1,109 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Create Book API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Create Book
+paths:
+  /v1/create-book:
+    post:
+      tags:
+      - Create Book
+      summary: Factset Kicks off request to create a book with reports of your choice
+      description: This end point retrieves book name and book_id for the PDF book you create. All the book options such as name of the book, ticker, pagination options, and reports can be specified in the request body. Please refer to the documentation for valid section ids and report ids.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createBookPostRequest'
+      responses:
+        '200':
+          description: Successful response contains book name and book ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Enable_Book_Info'
+        '400':
+          description: Invalid ticker/section_id/report_id
+        '401':
+          description: Missing or invalid authentication
+components:
+  schemas:
+    createBookPostRequest:
+      title: Request Body for Post Request
+      description: The request body allows users to input the name of the book, ticker
+      type: object
+      properties:
+        book_name:
+          type: string
+          description: name of the book
+          example: Company Book for FDS
+        ticker:
+          type: string
+          description: Identifier.
+          example: FDS-US
+        pagination:
+          type: object
+          description: options for pagination
+          properties:
+            cover:
+              example: 'true'
+            divider:
+              example: 'true'
+            toc:
+              example: 'true'
+        content:
+          type: array
+          description: Content sections
+          items:
+            oneOf:
+            - type: object
+              properties:
+                section_id:
+                  example: COMPANY_OVERVIEW
+                reports:
+                  type: array
+                  items:
+                    oneOf:
+                    - type: string
+                      example: COMPANY_SNAPSHOT_IB
+                    - type: string
+                      example: COMPANY_SNAPSHOT_IM
+                    - type: string
+                      example: ENTITY_STRUCTURE
+    Enable_Book_Info:
+      title: Book Information Request
+      description: Request to enable book information for the client.
+      type: object
+      properties:
+        bookName:
+          type: string
+          description: Report Name
+          example: Apple Inc.
+        bookID:
+          type: string
+          description: Book ID
+          example: 20200317133713790
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

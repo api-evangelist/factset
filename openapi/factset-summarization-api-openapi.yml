@@ -1,0 +1,275 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Summarization API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Summarization
+paths:
+  /summarization/headline:
+    post:
+      parameters: []
+      operationId: summarizationHeadline
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SummarizationRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummarizationResultID'
+          description: Unique Result ID
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummarizationHTTPError'
+          description: Access Denied
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummarizationHTTPError'
+          description: Internal Server Error
+      summary: Factset Endpoint to generate a headline from text
+      description: Generate a headline-length summary of plain text
+      tags:
+      - Summarization
+  /summarization/headline-and-summary:
+    post:
+      parameters: []
+      operationId: summarizationHeadlineAndSummary
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SummarizationRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummarizationResultID'
+          description: Unique Result ID
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummarizationHTTPError'
+          description: Access Denied
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummarizationHTTPError'
+          description: Internal Server Error
+      summary: Factset Endpoint to summarize and generate a headline from text
+      description: Generate both a paragraph-length, and headline-length summary of plain text
+      tags:
+      - Summarization
+  /summarization/summary:
+    post:
+      parameters: []
+      operationId: summarizationSummary
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SummarizationRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummarizationResultID'
+          description: Unique Result ID
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummarizationHTTPError'
+          description: Access Denied
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummarizationHTTPError'
+          description: Internal Server Error
+      summary: Factset Endpoint to summarize text
+      description: Generate a paragraph-length summary of plain text
+      tags:
+      - Summarization
+  /summarization/result/{resultId}:
+    get:
+      operationId: summarizationResult
+      parameters:
+      - in: path
+        name: resultId
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummarizationResult'
+          description: Successful response
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+          description: Access Denied
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+          description: Not found
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+          description: Internal Server Error
+      summary: Factset Endpoint to obtain result of a particular summarization job
+      description: Retrieve the summarization result from a job started with the other summarization endpoints
+      tags:
+      - Summarization
+components:
+  schemas:
+    SummarizationResult:
+      properties:
+        headline:
+          description: A short headline generated for the input text.
+          example: Advanced Energy unveils new lighting and power control system for indoor, vertical and greenhouse farming.
+          type: string
+        summary:
+          description: The generated summary for the input text.
+          example: Advanced Energy unveiled its newest lighting and power control system for indoor, vertical and greenhouse farming. The new system consists of the patented Artesyn iTS (intelligent Transfer Switch) and iHPS power supply. Alongside Artesyn's compact new 12 kW 300 VDC module, AE delivers a cost-effective platform for the most advanced indoor farming applications. The system is estimated to produce a 38 percent savings to lighting power and control installation cost, while eliminating substantial amounts of wasted energy.
+          type: string
+      type: object
+    SummarizationHTTPError:
+      properties:
+        detail:
+          type: object
+        message:
+          type: string
+      type: object
+    ErrorSource:
+      description: Schema that defines the source of the error.
+      properties:
+        parameter:
+          description: A string indicating which path or URI query parameter caused the error.
+          type: string
+        pointer:
+          description: More details pointing to the error.
+          type: string
+      required:
+      - parameter
+      - pointer
+      type: object
+    SummarizationRequest:
+      properties:
+        text:
+          description: The text that needs to be summarized
+          example: 'Advanced Energy Transforms Indoor Farming With Intelligent New Lighting Power and Control System Friday, December 11, 2020 01:00:00 PM (GMT)Innovative technology breaks down barriers to indoor, vertical and greenhouse farming by reducing power consumption, cutting costs and increasing crop yield Advanced Energy (Nasdaq: AEIS) – a global leader in highly engineered, precision power conversion, measurement, and control solutions – today unveiled its newest lighting and power control system for indoor, vertical and greenhouse farming. This press release features multimedia. Advanced Energy''s new Artesyn iTS provides the industry''s first solution for switching or sharing a single power source between two different rooms. This reduces installation costs by cutting the number of iHP power supplies needed in half and it substantially reduces ongoing utility costs. (Photo: Business Wire)AE''s new lighting and power system transforms the use of LED technology in horticultural lighting systems, which plays a fundamental role in cutting-edge farming practices that can address production challenges in food, pharmaceutical ingredients, plants and flowers. Utilizing AE''s system, customers reduce their power conversion costs by as much as 50 percent, significantly lower installation and operating costs, and increase the quality of crop yield. "Our groundbreaking lighting, power and control system delivers significant improvements over conventional lighting solutions and opens up new opportunities for the industry," said Joe Voyles, vice president, industrial marketing, at Advanced Energy. "We are transforming our customers'' operations by both reducing the amount of needed equipment and improving the efficiency of the lighting systems, thereby reducing cost and energy spend. Not only do these innovative new products increase the efficiency and quality of fruit and vegetable production, but they also open the door to establishing indoor farming facilities in harsh environments anywhere in the world." The new system consists of the patented Artesyn iTS (intelligent Transfer Switch) and iHPS configurable power supply. Alongside Artesyn''s compact new 12 kW 300 VDC module, AE delivers a cost-effective platform for the most advanced indoor farming applications. The system is estimated to produce a 38 percent savings to lighting power and control installation cost, while eliminating substantial amounts of wasted energy. The new iHPS is a "short" version of AE''s market-leading iHP power supply. The shorter design allows for more space within the lighting and power cabinet for other crucial components, reduces the weight and cost, and increases the life of the system. The new iTS provides the industry''s first solution for switching or sharing a single power source between two different rooms. This reduces installation costs by cutting the number of iHP power supplies needed in half and it substantially reduces ongoing utility costs.'
+          title: Text
+          type: string
+      required:
+      - text
+      type: object
+    SummarizationResultID:
+      properties:
+        result_id:
+          description: ID for retrieving the summary result
+          title: ID
+          type: string
+      type: object
+    ValidationError:
+      properties:
+        detail:
+          properties:
+            <location>:
+              properties:
+                <field_name>:
+                  items:
+                    type: string
+                  type: array
+              type: object
+          type: object
+        message:
+          type: string
+      type: object
+    HTTPError:
+      description: Schema that defines HTTP error(s).
+      properties:
+        code:
+          description: HTTP Status Code
+          type: string
+        detail:
+          description: Error detail (if any)
+          type: string
+        id:
+          description: The unique identifier detailing the error(s)
+          format: uuid
+          type: string
+        source:
+          $ref: '#/components/schemas/ErrorSource'
+        title:
+          description: Error title
+          type: string
+      required:
+      - code
+      - id
+      - title
+      type: object
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

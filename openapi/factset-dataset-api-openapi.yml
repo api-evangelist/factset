@@ -1,0 +1,188 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Dataset API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Dataset
+paths:
+  /category/dataset/list:
+    get:
+      tags:
+      - Dataset
+      operationId: get/category/dataset/list
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: Factset List of Entitled Category Datasets.
+      description: List of entitled category datasets.
+      responses:
+        '200':
+          $ref: '#/components/responses/GetCategoryDatasetList200Response'
+      parameters:
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      - name: _language
+        in: query
+        schema:
+          type: string
+          format: isoLanguage
+          description: ISO 639-1 code of the language.
+          maxLength: 2
+          minLength: 2
+          exclusiveMinimum: false
+          exclusiveMaximum: false
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  responses:
+    GetCategoryDatasetList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                description: List of category datasets.
+                nullable: false
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                  - id
+                  - name
+                  - depth
+                  - system
+                  - delivery
+                  properties:
+                    id:
+                      nullable: true
+                      type: number
+                      format: id32
+                      x-positive: true
+                      description: Identifier of the dataset.
+                    name:
+                      nullable: true
+                      type: string
+                      format: localizedString
+                      description: Name of the dataset.
+                    depth:
+                      nullable: true
+                      type: number
+                      format: int32
+                      description: Number of levels covered by this dataset for the category system.
+                    system:
+                      nullable: false
+                      type: object
+                      x-property-sort:
+                      - id
+                      - name
+                      - numberOfLevels
+                      - firstLevelWithLeafCategories
+                      description: Category system.
+                      properties:
+                        id:
+                          nullable: true
+                          type: number
+                          format: id32
+                          x-positive: true
+                          description: Identifier of the category system.
+                        name:
+                          nullable: true
+                          type: string
+                          format: localizedString
+                          description: Name of the category system.
+                        numberOfLevels:
+                          nullable: true
+                          type: number
+                          format: int32
+                          description: Number of levels of the category system.
+                        firstLevelWithLeafCategories:
+                          nullable: true
+                          type: number
+                          format: int32
+                          description: Number of the least detailed level of the category system that has leaf categories.
+                    delivery:
+                      nullable: false
+                      type: object
+                      x-property-sort:
+                      - id
+                      - name
+                      description: Delivery which provides this category dataset. For possible values, see endpoint `/basic/delivery/list`.
+                      properties:
+                        id:
+                          nullable: true
+                          type: number
+                          format: id32
+                          x-positive: true
+                          description: Identifier of the delivery.
+                        name:
+                          nullable: true
+                          type: string
+                          description: English name of the delivery.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
+  schemas:
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

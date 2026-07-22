@@ -1,0 +1,2824 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About History API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: History
+paths:
+  /factset-benchmarks/v1/index-history:
+    get:
+      summary: Factset Retrieves Index Level Prices and Returns Information for a List of Identifiers and Historical Date Range.
+      operationId: getIndexHistory
+      tags:
+      - History
+      description: 'Retrieves Index Level Prices and Returns information as of a date range requested. Simply submit a valid Benchmark ID (you can use the /id-list endpoint for a sample list of ids), and date range to retrieve Index Level Prices, Returns, and related information.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/indexIds'
+      - $ref: '#/components/parameters/startDate'
+      - $ref: '#/components/parameters/endDate'
+      - $ref: '#/components/parameters/frequency'
+      - $ref: '#/components/parameters/returnType'
+      - $ref: '#/components/parameters/hedgeType'
+      - $ref: '#/components/parameters/currency'
+      - $ref: '#/components/parameters/calendar'
+      - $ref: '#/components/parameters/impliedDate'
+      responses:
+        '200':
+          description: An array of Index Level Prices and Returns information for a requested date range.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/indexHistoryResponse'
+              examples:
+                Index Level Prices and Returns snapshot for S&P 500 and Russell 3000 from 2020-08-05 to 2020-08-06:
+                  $ref: '#/components/examples/resultofIndexHistoryMultiple'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '415':
+          $ref: '#/components/responses/415'
+        '500':
+          $ref: '#/components/responses/500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      summary: Factset Retrieves Index Level Prices and Returns Information for a List of Identifiers and Historical Date Range.
+      operationId: getIndexHistoryForList
+      tags:
+      - History
+      description: 'Retrieves Index Level Prices and Returns information as aligned with FactSet''s Benchmark Data Feed solution. Simply submit a valid Benchmark ID (you can use the /id-list endpoint for a sample list of ids), and date and retrieve Index Level Prices, Returns, and related information.
+
+        '
+      requestBody:
+        required: true
+        description: Requests Index Level History Prices and Returns for a list of identifiers and specified date range.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/indexHistoryRequest'
+      responses:
+        '200':
+          description: An array of Index Level Prices and Returns information for a requested date range.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/indexHistoryResponse'
+              examples:
+                Index Level Prices and Returns snapshot for S&P 500 and Russell 3000 from 2020-08-05 to 2020-08-06:
+                  $ref: '#/components/examples/resultofIndexHistoryMultiple'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '415':
+          $ref: '#/components/responses/415'
+        '500':
+          $ref: '#/components/responses/500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /docs-distributor/audio/v1/history-files:
+    get:
+      summary: Retrieve Historical Audio Recordings and Related Metadata Within Factset Coverage.
+      tags:
+      - History
+      responses:
+        '200':
+          description: Array of presigned downloadable URLs consisting of historical audio recordings with related metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Events-Audio-History'
+              examples:
+                Audio recordings and metadata of 2020:
+                  value:
+                    data:
+                    - year: 2021
+                      fileName: 2021_trimmed.tar.gz
+                      fileSize: 191173623046875
+                      trimmed: true
+                      url: https://fdss3-cts-data-delivery-prod-1-us-east-1.s3.amazonaws.com/audiofiles/A512D0F2-4549-EC11-8124-8CDCD4AF21E4.mp3?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIASXWF7GTDZZHNXO4D%2F20211119%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20211119T143756Z&X-Amz-Expires=600&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEB4aCXVzLWVhc3QtMSJHMEUCIAZPE65Cyr2GFwHLDFiDWEj3aUW66s6HuKk3vMz7hWR1AiEAiLS3ce5AC1hsDkZWdf9WklbnGoXCD6JMNsYKZLSZtKoqmAII1%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARACGgwxODgzMjAwMDMyNzEiDIEOfxabmh%2FtadnmnirsAToraA%2BQJ8Hmg2YS03b7IpkX6W6FJDjnDJ9M6sCLN7Q0mUT60Jc1OV%2BzuJ5IbCKhZhDV24mKPSPkyYs4Eh1%2Bp5E2YeclzHqSn44zB5g9UkVHP1bCkFCxv12pqhdIJ5NX4xBIPhWfXDQyIFQm%2BstD1FL3AqugJb19s0o79N032dOX1H3wvfqfkP4av9wKYRFhc2yO7qHMLUHmYnL2IAcnGRq5ukvO2%2FIrmGVYTFGr4wAWMDQFZRX6%2FiYvC7V3f3smsoy2jrJ8UDDn599%2BH32Nh%2FKfTO8yYSnt1ky%2FFJb%2FmheEF9PWnf%2FZxuG6o9ajMInX3owGOpoBFurBn4Hwi3d1xuSsXNVMEuSj7vWPV6dc8tSynf8yH7wRVtVyfz%2BnWH4EYPh0l2qeHuGhzAeQtLVfJNApnSVfEeyaGo1DOpieFST9bxhQIBG8ZloD%2FlojRhJT5AEwcRTryXAXWb%2FeuLKcH9izcUGx80wBcc6L8I6YFFFwwqyA4mhhYYMDAL3o3p0QE1Q4s99PDYPR0YCH7UzThg%3D%3D&X-Amz-Signature=4b8ae68420f7cc87da7c7a797f683e85528b6a96add83ce19ba3ffac0359a938
+                    meta:
+                      pagination:
+                        total: 1
+                        isEstimatedTotal: false
+                        limit: 25
+                        offset: 1
+                      partial:
+                        isPartial: false
+        '400':
+          description: Bad Request. This can occur for several reasons. Please review the "details" for more details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Events-Audio-History-400-Response'
+              examples:
+                example-1:
+                  value:
+                    id: 7af3d86ca5954503b9244f2620fcf5eb
+                    code: parameterError
+                    title: '[''yr''] is not a valid parameter(s)'
+                    details:
+                      validParameters:
+                        _paginationLimit:
+                        - integer from 0 to 500
+                        _paginationOffset:
+                        - positive integer
+                        year:
+                        - positive integer greater than 2010
+                        trimmed:
+                        - boolean value
+        '401':
+          description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the Report Issue in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                example-1:
+                  value:
+                    id: 7af3d86ca5954503b9244f2620fcf5eb
+                    code: notAuthenticated
+                    title: There were either no, invalid, or expired credentials present in the request.
+        '403':
+          description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                example-1:
+                  value:
+                    id: 7af3d86ca5954503b9244f2620fcf5eb
+                    code: notAuthorized
+                    title: ' {USERNAME}-{SERIAL} does not have permission to use this endpoint.'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                example-1:
+                  value:
+                    id: 7af3d86ca5954503b9244f2620fcf5eb
+                    code: genericServerError
+                    title: An unexpected error happened.
+      operationId: get-docs-distributor-audio-v1-history-files
+      description: '
+
+        * Returns the **untrimmed** historical audio recordings and related metadata dating back from May 10, 2011 to Sep 30, 2022.
+
+
+        * Returns the **trimmed** historical audio recordings and related metadata dating back from May 10, 2011 to Dec 31, 2022.
+
+
+
+
+        Query parameters can be used to filter and narrow down the results.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/eventspaginationLimit'
+      - $ref: '#/components/parameters/paginationOffset'
+      - $ref: '#/components/parameters/year'
+      - $ref: '#/components/parameters/trimmed'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /TickHistory/history:
+    get:
+      tags:
+      - History
+      summary: Factset Tick History Service Returns Trade Data and Associated Quotes for a Client Specified Interval and Time Period
+      description: When using an HTTP GET request, the seach criteria is sent via the query string in the URL. Please make sure that all requests contain a date within the past trailing year. Fields are added using ampersands, with enumerations seperated by commas. <p>**Try it Out** - references a sandbox environment to simulate live reponses. Available `id` is limited to BABA-USA,WALMEX-MX,7203-TKS,VOD-LON,NPN-JSE,MABAX,NZF,SPY-USA,AGG-USA,GLD-USA,AOR-USA,MNA-USA,UUP-USA,SP50-SPX,ESX-STX,XAO-ASX,WD-MSX,NG00-USA,GC00-USA,CC00-USA,C00-USA,FC00-USA,ER00-USA,EURUSD-FX1,USDMXN-FX1,AUDJPY-FX1,EURCZK-FX1,USDILS-FX1,USDZAR-FX1,US10YY-TU1,FDS#190621C00145000-USA,FDS#190621P00145000-USA. Current day data is not available.</p>
+      operationId: get_TickHistory
+      parameters:
+      - name: id
+        in: query
+        description: 'Requested symbol or security. The symbol can be a FactSet exchange symbol, CUSIP, or SEDOL. **NOTE**: Only one identifier can be requested per request.<P>**TRY IT OUT** - Choose One from - BABA-USA,WALMEX-MX,7203-TKS,VOD-LON,NPN-JSE,MABAX,NZF,SPY-USA,AGG-USA,GLD-USA,AOR-USA,MNA-USA,UUP-USA,SP50-SPX,ESX-STX,XAO-ASX,WD-MSX,NG00-USA,GC00-USA,CC00-USA,C00-USA,FC00-USA,ER00-USA,EURUSD-FX1,USDMXN-FX1,AUDJPY-FX1,EURCZK-FX1,USDILS-FX1,USDZAR-FX1,US10YY-TU1,FDS#190621C00145000-USA,FDS#190621P00145000-USA'
+        required: true
+        schema:
+          type: string
+      - name: req_id
+        in: query
+        description: Request Identification String. Can be used by the application to keep track of requests.  The id is not used by this service, however, it is included in the XML response.
+        schema:
+          type: string
+      - name: format
+        in: query
+        description: The format of the output file. **TRY IT OUT** Choose from JSON, CSV, CSV_NO_HEADER
+        schema:
+          type: string
+          default: XML
+          enum:
+          - XML
+          - JSON
+          - CSV
+          - CSV_NO_HEADER
+      - name: fields
+        in: query
+        description: All available fields. This is a comma-seperated list (no spaces). See definitions for details. Default is all fields when left blank.
+        schema:
+          type: string
+      - $ref: '#/components/parameters/sd'
+      - name: ed
+        in: query
+        description: This is the end date for teh Snapshot History. Requests should be made in the format **YYYYMMDD**. If the period requested is larger than Max. Days requested, results will be limited to the Max Days starting at sd/date. Defautl is sd or date. **TRY IT OUT** Cannot use current day.
+        schema:
+          type: string
+      - name: st
+        in: query
+        description: Requested start time. This is the start time for the snapshot history requested. Requests should be made in a **HHMMSSS** format. Range from 000000 - 235959. **TRY IT OUT** Cannot use current day.
+        schema:
+          type: string
+          default: '040000'
+      - name: et
+        in: query
+        description: Requested end time. This is the end time for the snapshot history requested. Requests should be made in a **HHMMSSS** format. Range from 000000 - 235959. **TRY IT OUT** Cannot use current day.
+        schema:
+          type: string
+          default: '200000'
+      - name: interval
+        in: query
+        description: Requested time interval. This is the interval the data is returned from the service. Possible values from 1 Second (1S) to 1 Hour (1H). A maximum of 10 Tick History Requests and a maximum of 100,000 rows of data may be made in any one-minute period. Additional subsctiption is available to access 20 requests/200,000 rows of data per minute. Contact your FactSet team for details.
+        schema:
+          type: string
+          default: 1M
+          enum:
+          - '0'
+          - 1S
+          - 5S
+          - 10S
+          - 15S
+          - 30S
+          - 1M
+          - 2M
+          - 5M
+          - 10M
+          - 15M
+          - 30M
+          - 1H
+      - name: include_request
+        in: query
+        description: Flag to include request id and key in the CSV output.
+        schema:
+          type: string
+          default: 'false'
+          enum:
+          - 'true'
+          - T
+          - 'false'
+          - F
+      - name: dataset
+        in: query
+        description: Decides what type of trades to return, default is all trades and quotes, alternatively charting can be selected which will filter out unofficial trades.
+        schema:
+          type: string
+          enum:
+          - ''
+          - charting
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tickhistory_response'
+              example:
+                Request ID: ''
+                Requested Symbol: IBM-USA
+                Requested Fields: LAST_1,LAST_TIME_1,LAST_VOL_1
+                Request Key: 5C8926159C36F315
+                Error Code: 0
+                Error Description: ''
+                Field Names:
+                - LAST_1
+                - LAST_TIME_1
+                - LAST_VOL_1
+                Field IDs:
+                - 300
+                - 302
+                - 304
+                Key: IBM-USA:D
+                Values:
+                - - 139.59
+                  - 105955785
+                  - 326658
+                - - 138.1872
+                  - 115957067
+                  - 444631
+                - - 137.4711
+                  - 125957913
+                  - 477766
+                - - 137.7599
+                  - 135956519
+                  - 252993
+                - - 137.81
+                  - 140059812
+                  - 4595
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/tickhistory_response'
+              example: <Response><Request id=""><RequestedSymbol>IBM-USA</RequestedSymbol><RequestedFields>LAST_1,LAST_TIME_1,LAST_VOL_1</RequestedFields><RequestKey>5C89235E1E3D65AE</RequestKey></Request><Error code="0" description=""/><Records req_sym="IBM-USA" key="IBM-USA:D" stale=""><Record><Fields><Field id="300" name="LAST_1" value="145.96"/><Field id="302" name="LAST_TIME_1" value="105959029"/><Field id="304" name="LAST_VOL_1" value="638559"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.95"/><Field id="302" name="LAST_TIME_1" value="115956985"/><Field id="304" name="LAST_VOL_1" value="359625"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.82"/><Field id="302" name="LAST_TIME_1" value="125955145"/><Field id="304" name="LAST_VOL_1" value="280630"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.74"/><Field id="302" name="LAST_TIME_1" value="135955094"/><Field id="304" name="LAST_VOL_1" value="256692"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.815"/><Field id="302" name="LAST_TIME_1" value="140055430"/><Field id="304" name="LAST_VOL_1" value="12274"/></Fields></Record></Records></Response>
+            text/csv:
+              schema:
+                $ref: '#/components/schemas/tickhistory_response'
+              example: 'LAST_1,LAST_TIME_1,LAST_VOL_1 139.59,105955785,326658 138.1872,115957067,444631 137.4711,125957913,477766 137.7599,135956519,252993 137.81,140059812,4595
+
+                '
+        '401':
+          description: Access Denied. The user is not authorized to view the data requested. Contact FactSet Consulting Services for assistance.
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: object
+            text/csv:
+              schema:
+                type: object
+        '403':
+          description: Invalid HTTP URL. Necessary query parameters are missing in the request. The description field will indicate the exact reason.
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: object
+            text/csv:
+              schema:
+                type: object
+        '405':
+          description: Invalid HTTP method. Either the method is not GET or exceeds the maximum request lenght (currently set at 5000 bytes. The description field will indicate the exact reason.
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: object
+            text/csv:
+              schema:
+                type: object
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /TickHistory/firsttrade:
+    get:
+      tags:
+      - History
+      summary: Factset Request Returns Data for the First Trade (official and Unofficial) After the Specified Time
+      description: ''
+      parameters:
+      - name: id
+        in: query
+        description: 'Requested symbol or security. The symbol can be a FactSet exchange symbol, CUSIP, or SEDOL. **NOTE**: Only one identifier can be requested per request.<P>**TRY IT OUT** - Choose One from - BABA-USA,WALMEX-MX,7203-TKS,VOD-LON,NPN-JSE,MABAX,NZF,SPY-USA,AGG-USA,GLD-USA,AOR-USA,MNA-USA,UUP-USA,SP50-SPX,ESX-STX,XAO-ASX,WD-MSX,NG00-USA,GC00-USA,CC00-USA,C00-USA,FC00-USA,ER00-USA,EURUSD-FX1,USDMXN-FX1,AUDJPY-FX1,EURCZK-FX1,USDILS-FX1,USDZAR-FX1,US10YY-TU1,FDS#190621C00145000-USA,FDS#190621P00145000-USA'
+        required: true
+        schema:
+          type: string
+      - name: req_id
+        in: query
+        description: Request Identification String. Can be used by the application to keep track of requests. The id is not used by this service, however, it is included in the XML response.
+        required: false
+        schema:
+          type: string
+      - name: start_date
+        in: query
+        description: This is the start date for the Snapshot History. Requests should be made in the format YYYYMMDD Default is current business day. Field can be sd or date. TRY IT OUT Cannot use current day.
+        schema:
+          type: string
+      - name: start_time
+        in: query
+        description: This is the start time for the snapshot history requested. Requests should be made in a **HHMMSSS** format.Range from 000000 - 235959. **TRY IT OUT** Cannot use current day
+        schema:
+          type: string
+          default: '040000'
+      - name: format
+        in: query
+        description: The format of the output file. TRY IT OUT Choose from JSON, CSV, CSV_NO_HEADER
+        schema:
+          type: string
+          default: XML
+          enum:
+          - XML
+          - JSON
+          - CSV
+          - CSV_NO_HEADER
+      - name: include_request
+        in: query
+        description: Flag to include request id and key in the CSV output.
+        schema:
+          type: string
+          default: 'false'
+          enum:
+          - 'true'
+          - T
+          - 'false'
+          - F
+      - name: dataset
+        in: query
+        description: Decides what type of trades to return, default is all trades and quotes, alternatively charting can be selected which will filter out unofficial trades.
+        schema:
+          type: string
+          enum:
+          - ''
+          - charting
+      responses:
+        '200':
+          description: OK  x
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tickhistory_response'
+              example:
+                Request ID: ''
+                Requested Symbol: IBM-USA
+                Requested Fields: LAST_1,LAST_TIME_1,LAST_VOL_1
+                Request Key: 5C8926159C36F315
+                Error Code: 0
+                Error Description: ''
+                Field Names:
+                - LAST_1
+                - LAST_TIME_1
+                - LAST_VOL_1
+                Field IDs:
+                - 300
+                - 302
+                - 304
+                Key: IBM-USA:D
+                Values:
+                - - 139.59
+                  - 105955785
+                  - 326658
+                - - 138.1872
+                  - 115957067
+                  - 444631
+                - - 137.4711
+                  - 125957913
+                  - 477766
+                - - 137.7599
+                  - 135956519
+                  - 252993
+                - - 137.81
+                  - 140059812
+                  - 4595
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/tickhistory_response'
+              example: <Response><Request id=""><RequestedSymbol>IBM-USA</RequestedSymbol><RequestedFields>LAST_1,LAST_TIME_1,LAST_VOL_1</RequestedFields><RequestKey>5C89235E1E3D65AE</RequestKey></Request><Error code="0" description=""/><Records req_sym="IBM-USA" key="IBM-USA:D" stale=""><Record><Fields><Field id="300" name="LAST_1" value="145.96"/><Field id="302" name="LAST_TIME_1" value="105959029"/><Field id="304" name="LAST_VOL_1" value="638559"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.95"/><Field id="302" name="LAST_TIME_1" value="115956985"/><Field id="304" name="LAST_VOL_1" value="359625"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.82"/><Field id="302" name="LAST_TIME_1" value="125955145"/><Field id="304" name="LAST_VOL_1" value="280630"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.74"/><Field id="302" name="LAST_TIME_1" value="135955094"/><Field id="304" name="LAST_VOL_1" value="256692"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.815"/><Field id="302" name="LAST_TIME_1" value="140055430"/><Field id="304" name="LAST_VOL_1" value="12274"/></Fields></Record></Records></Response>
+            text/csv:
+              schema:
+                $ref: '#/components/schemas/tickhistory_response'
+              example: 'LAST_1,LAST_TIME_1,LAST_VOL_1 139.59,105955785,326658 138.1872,115957067,444631 137.4711,125957913,477766 137.7599,135956519,252993 137.81,140059812,4595
+
+                '
+        '401':
+          description: Access Denied. The user is not authorized to view the data requested. Contact FactSet Consulting Services for assistance.
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: object
+            text/csv:
+              schema:
+                type: object
+        '403':
+          description: Invalid HTTP URL. Necessary query parameters are missing in the request. The description field will indicate the exact reason.
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: object
+            text/csv:
+              schema:
+                type: object
+        '405':
+          description: Invalid HTTP method. Either the method is not GET or exceeds the maximum request lenght (currently set at 5000 bytes. The description field will indicate the exact reason.
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: object
+            text/csv:
+              schema:
+                type: object
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /TickHistory/lasttrade:
+    get:
+      tags:
+      - History
+      summary: Factset Request Returns Data for the Last Trade and Associated Quotes Before the Specified Time
+      description: ''
+      parameters:
+      - name: id
+        in: query
+        description: 'Requested symbol or security. The symbol can be a FactSet exchange symbol, CUSIP, or SEDOL. **NOTE**: Only one identifier can be requested per request.<P>**TRY IT OUT** - Choose One from - BABA-USA,WALMEX-MX,7203-TKS,VOD-LON,NPN-JSE,MABAX,NZF,SPY-USA,AGG-USA,GLD-USA,AOR-USA,MNA-USA,UUP-USA,SP50-SPX,ESX-STX,XAO-ASX,WD-MSX,NG00-USA,GC00-USA,CC00-USA,C00-USA,FC00-USA,ER00-USA,EURUSD-FX1,USDMXN-FX1,AUDJPY-FX1,EURCZK-FX1,USDILS-FX1,USDZAR-FX1,US10YY-TU1,FDS#190621C00145000-USA,FDS#190621P00145000-USA'
+        required: true
+        schema:
+          type: string
+      - name: format
+        in: query
+        description: The format of the output file. TRY IT OUT Choose from JSON, CSV, CSV_NO_HEADER
+        schema:
+          type: string
+          default: XML
+          enum:
+          - XML
+          - JSON
+          - CSV
+          - CSV_NO_HEADER
+      - name: date
+        in: query
+        description: Request should be made in the format **YYYYMMDD**. The initial release only supports requests from completed trading days
+        schema:
+          type: string
+      - name: time
+        in: query
+        description: Request should be made in the format **HHMMSS**.HH- Hour, MM- Minutes, SSS- Seconds
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK  x
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tickhistory_response'
+              example:
+                Request ID: ''
+                Requested Symbol: IBM-USA
+                Requested Fields: LAST_1,LAST_TIME_1,LAST_VOL_1
+                Request Key: 5C8926159C36F315
+                Error Code: 0
+                Error Description: ''
+                Field Names:
+                - LAST_1
+                - LAST_TIME_1
+                - LAST_VOL_1
+                Field IDs:
+                - 300
+                - 302
+                - 304
+                Key: IBM-USA:D
+                Values:
+                - - 139.59
+                  - 105955785
+                  - 326658
+                - - 138.1872
+                  - 115957067
+                  - 444631
+                - - 137.4711
+                  - 125957913
+                  - 477766
+                - - 137.7599
+                  - 135956519
+                  - 252993
+                - - 137.81
+                  - 140059812
+                  - 4595
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/tickhistory_response'
+              example: <Response><Request id=""><RequestedSymbol>IBM-USA</RequestedSymbol><RequestedFields>LAST_1,LAST_TIME_1,LAST_VOL_1</RequestedFields><RequestKey>5C89235E1E3D65AE</RequestKey></Request><Error code="0" description=""/><Records req_sym="IBM-USA" key="IBM-USA:D" stale=""><Record><Fields><Field id="300" name="LAST_1" value="145.96"/><Field id="302" name="LAST_TIME_1" value="105959029"/><Field id="304" name="LAST_VOL_1" value="638559"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.95"/><Field id="302" name="LAST_TIME_1" value="115956985"/><Field id="304" name="LAST_VOL_1" value="359625"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.82"/><Field id="302" name="LAST_TIME_1" value="125955145"/><Field id="304" name="LAST_VOL_1" value="280630"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.74"/><Field id="302" name="LAST_TIME_1" value="135955094"/><Field id="304" name="LAST_VOL_1" value="256692"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.815"/><Field id="302" name="LAST_TIME_1" value="140055430"/><Field id="304" name="LAST_VOL_1" value="12274"/></Fields></Record></Records></Response>
+            text/csv:
+              schema:
+                $ref: '#/components/schemas/tickhistory_response'
+              example: 'LAST_1,LAST_TIME_1,LAST_VOL_1 139.59,105955785,326658 138.1872,115957067,444631 137.4711,125957913,477766 137.7599,135956519,252993 137.81,140059812,4595
+
+                '
+        '401':
+          description: Access Denied. The user is not authorized to view the data requested. Contact FactSet Consulting Services for assistance.
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: object
+            text/csv:
+              schema:
+                type: object
+        '403':
+          description: Invalid HTTP URL. Necessary query parameters are missing in the request. The description field will indicate the exact reason.
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: object
+            text/csv:
+              schema:
+                type: object
+        '405':
+          description: Invalid HTTP method. Either the method is not GET or exceeds the maximum request lenght (currently set at 5000 bytes. The description field will indicate the exact reason.
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: object
+            text/csv:
+              schema:
+                type: object
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /TickHistory/qat:
+    get:
+      tags:
+      - History
+      summary: Factset Request Returns a Quote at the Specified Time
+      description: ''
+      parameters:
+      - name: id
+        in: query
+        description: 'Requested symbol or security. The symbol can be a FactSet exchange symbol, CUSIP, or SEDOL. **NOTE**: Only one identifier can be requested per request.<P>**TRY IT OUT** - Choose One from - BABA-USA,WALMEX-MX,7203-TKS,VOD-LON,NPN-JSE,MABAX,NZF,SPY-USA,AGG-USA,GLD-USA,AOR-USA,MNA-USA,UUP-USA,SP50-SPX,ESX-STX,XAO-ASX,WD-MSX,NG00-USA,GC00-USA,CC00-USA,C00-USA,FC00-USA,ER00-USA,EURUSD-FX1,USDMXN-FX1,AUDJPY-FX1,EURCZK-FX1,USDILS-FX1,USDZAR-FX1,US10YY-TU1,FDS#190621C00145000-USA,FDS#190621P00145000-USA'
+        required: true
+        schema:
+          type: string
+      - name: date
+        in: query
+        description: Request should be made in the format **YYYYMMDD**. The initial release only supports requests from completed trading days
+        schema:
+          type: string
+      - name: time
+        in: query
+        description: Request should be made in the format **HHMMSSS**.HH- Hour, MM- Minutes, SS- Seconds
+        schema:
+          type: string
+      - name: format
+        in: query
+        description: The format of the output file. TRY IT OUT Choose from JSON, CSV, CSV_NO_HEADER
+        schema:
+          type: string
+          default: XML
+          enum:
+          - XML
+          - JSON
+          - CSV
+          - CSV_NO_HEADER
+      responses:
+        '200':
+          description: OK  x
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tickhistory_response'
+              example:
+                Request ID: ''
+                Requested Symbol: IBM-USA
+                Requested Fields: LAST_1,LAST_TIME_1,LAST_VOL_1
+                Request Key: 5C8926159C36F315
+                Error Code: 0
+                Error Description: ''
+                Field Names:
+                - LAST_1
+                - LAST_TIME_1
+                - LAST_VOL_1
+                Field IDs:
+                - 300
+                - 302
+                - 304
+                Key: IBM-USA:D
+                Values:
+                - - 139.59
+                  - 105955785
+                  - 326658
+                - - 138.1872
+                  - 115957067
+                  - 444631
+                - - 137.4711
+                  - 125957913
+                  - 477766
+                - - 137.7599
+                  - 135956519
+                  - 252993
+                - - 137.81
+                  - 140059812
+                  - 4595
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/tickhistory_response'
+              example: <Response><Request id=""><RequestedSymbol>IBM-USA</RequestedSymbol><RequestedFields>LAST_1,LAST_TIME_1,LAST_VOL_1</RequestedFields><RequestKey>5C89235E1E3D65AE</RequestKey></Request><Error code="0" description=""/><Records req_sym="IBM-USA" key="IBM-USA:D" stale=""><Record><Fields><Field id="300" name="LAST_1" value="145.96"/><Field id="302" name="LAST_TIME_1" value="105959029"/><Field id="304" name="LAST_VOL_1" value="638559"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.95"/><Field id="302" name="LAST_TIME_1" value="115956985"/><Field id="304" name="LAST_VOL_1" value="359625"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.82"/><Field id="302" name="LAST_TIME_1" value="125955145"/><Field id="304" name="LAST_VOL_1" value="280630"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.74"/><Field id="302" name="LAST_TIME_1" value="135955094"/><Field id="304" name="LAST_VOL_1" value="256692"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.815"/><Field id="302" name="LAST_TIME_1" value="140055430"/><Field id="304" name="LAST_VOL_1" value="12274"/></Fields></Record></Records></Response>
+            text/csv:
+              schema:
+                $ref: '#/components/schemas/tickhistory_response'
+              example: 'LAST_1,LAST_TIME_1,LAST_VOL_1 139.59,105955785,326658 138.1872,115957067,444631 137.4711,125957913,477766 137.7599,135956519,252993 137.81,140059812,4595
+
+                '
+        '401':
+          description: Access Denied. The user is not authorized to view the data requested. Contact FactSet Consulting Services for assistance.
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: object
+            text/csv:
+              schema:
+                type: object
+        '403':
+          description: Invalid HTTP URL. Necessary query parameters are missing in the request. The description field will indicate the exact reason.
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: object
+            text/csv:
+              schema:
+                type: object
+        '405':
+          description: Invalid HTTP method. Either the method is not GET or exceeds the maximum request lenght (currently set at 5000 bytes. The description field will indicate the exact reason.
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: object
+            text/csv:
+              schema:
+                type: object
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /TickHistory/tradesattime:
+    get:
+      tags:
+      - History
+      summary: Factset Request Returns the Before and After Trade Data Along With the Associated Quotes for the Specified Time
+      description: ''
+      parameters:
+      - name: id
+        in: query
+        description: 'Requested symbol or security. The symbol can be a FactSet exchange symbol, CUSIP, or SEDOL. **NOTE**: Only one identifier can be requested per request.<P>**TRY IT OUT** - Choose One from - BABA-USA,WALMEX-MX,7203-TKS,VOD-LON,NPN-JSE,MABAX,NZF,SPY-USA,AGG-USA,GLD-USA,AOR-USA,MNA-USA,UUP-USA,SP50-SPX,ESX-STX,XAO-ASX,WD-MSX,NG00-USA,GC00-USA,CC00-USA,C00-USA,FC00-USA,ER00-USA,EURUSD-FX1,USDMXN-FX1,AUDJPY-FX1,EURCZK-FX1,USDILS-FX1,USDZAR-FX1,US10YY-TU1,FDS#190621C00145000-USA,FDS#190621P00145000-USA'
+        required: true
+        schema:
+          type: string
+      - name: req_id
+        in: query
+        description: Request Identification String. Can be used by the application to keep track of requests. The id is not used by this service, however, it is included in the XML response.
+        required: false
+        schema:
+          type: string
+      - name: format
+        in: query
+        description: The format of the output file. TRY IT OUT Choose from JSON, CSV, CSV_NO_HEADER
+        schema:
+          type: string
+          default: XML
+          enum:
+          - XML
+          - JSON
+          - CSV
+          - CSV_NO_HEADER
+      - name: date
+        in: query
+        description: Request should be made in the format **YYYYMMDD**. The initial release only supports requests from completed trading days
+        schema:
+          type: string
+      - name: time
+        in: query
+        description: Request should be made in the format **HHMMSSS**.HH- Hour, MM- Minutes, SS- Seconds
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK  x
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tickhistory_response'
+              example:
+                Request ID: ''
+                Requested Symbol: IBM-USA
+                Requested Fields: LAST_1,LAST_TIME_1,LAST_VOL_1
+                Request Key: 5C8926159C36F315
+                Error Code: 0
+                Error Description: ''
+                Field Names:
+                - LAST_1
+                - LAST_TIME_1
+                - LAST_VOL_1
+                Field IDs:
+                - 300
+                - 302
+                - 304
+                Key: IBM-USA:D
+                Values:
+                - - 139.59
+                  - 105955785
+                  - 326658
+                - - 138.1872
+                  - 115957067
+                  - 444631
+                - - 137.4711
+                  - 125957913
+                  - 477766
+                - - 137.7599
+                  - 135956519
+                  - 252993
+                - - 137.81
+                  - 140059812
+                  - 4595
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/tickhistory_response'
+              example: <Response><Request id=""><RequestedSymbol>IBM-USA</RequestedSymbol><RequestedFields>LAST_1,LAST_TIME_1,LAST_VOL_1</RequestedFields><RequestKey>5C89235E1E3D65AE</RequestKey></Request><Error code="0" description=""/><Records req_sym="IBM-USA" key="IBM-USA:D" stale=""><Record><Fields><Field id="300" name="LAST_1" value="145.96"/><Field id="302" name="LAST_TIME_1" value="105959029"/><Field id="304" name="LAST_VOL_1" value="638559"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.95"/><Field id="302" name="LAST_TIME_1" value="115956985"/><Field id="304" name="LAST_VOL_1" value="359625"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.82"/><Field id="302" name="LAST_TIME_1" value="125955145"/><Field id="304" name="LAST_VOL_1" value="280630"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.74"/><Field id="302" name="LAST_TIME_1" value="135955094"/><Field id="304" name="LAST_VOL_1" value="256692"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.815"/><Field id="302" name="LAST_TIME_1" value="140055430"/><Field id="304" name="LAST_VOL_1" value="12274"/></Fields></Record></Records></Response>
+            text/csv:
+              schema:
+                $ref: '#/components/schemas/tickhistory_response'
+              example: 'LAST_1,LAST_TIME_1,LAST_VOL_1 139.59,105955785,326658 138.1872,115957067,444631 137.4711,125957913,477766 137.7599,135956519,252993 137.81,140059812,4595
+
+                '
+        '401':
+          description: Access Denied. The user is not authorized to view the data requested. Contact FactSet Consulting Services for assistance.
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: object
+            text/csv:
+              schema:
+                type: object
+        '403':
+          description: Invalid HTTP URL. Necessary query parameters are missing in the request. The description field will indicate the exact reason.
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: object
+            text/csv:
+              schema:
+                type: object
+        '405':
+          description: Invalid HTTP method. Either the method is not GET or exceeds the maximum request lenght (currently set at 5000 bytes. The description field will indicate the exact reason.
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: object
+            text/csv:
+              schema:
+                type: object
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /instrument/crossReference/history/getByISIN:
+    get:
+      tags:
+      - History
+      operationId: get/instrument/crossReference/history/getByISIN
+      x-supportsOffsetBasedPaging: true
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Retrieve the complete translation history of a given ISIN to the respective instrument association from the Cross Reference Service. The results are sorted in descending order, starting with the most recent.
+      summary: Factset Isin to Instrument Translation History.
+      parameters:
+      - name: isin
+        in: query
+        schema:
+          type: string
+          format: isin
+          description: Source ISIN to be translated.
+        required: true
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      - description: Non-negative number of entries to skip, or 0 (default).
+        name: _paginationOffset
+        in: query
+        schema:
+          type: number
+          format: int32
+          minimum: 0
+          exclusiveMinimum: false
+          default: 0
+      - description: Non-negative maximum number of entries to return.
+        name: _paginationLimit
+        in: query
+        schema:
+          type: number
+          format: int32
+          minimum: 0
+          exclusiveMinimum: false
+          maximum: 500
+          exclusiveMaximum: false
+          default: 10
+      responses:
+        '200':
+          $ref: '#/components/responses/GetInstrumentCrossReferenceHistoryGetByISIN200Response'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /instrument/crossReference/history/getByWKN:
+    get:
+      tags:
+      - History
+      operationId: get/instrument/crossReference/history/getByWKN
+      x-supportsOffsetBasedPaging: true
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Retrieve the complete translation history of a given WKN to the respective instrument association from the Cross Reference Service. The results are sorted in descending order, starting with the most recent.
+      summary: Factset Wkn to Instrument Translation History.
+      parameters:
+      - name: wkn
+        in: query
+        schema:
+          description: Source WKN to be translated.
+          type: string
+          pattern: ^[A-Z0-9]*$
+          minLength: 6
+          exclusiveMinimum: false
+          maxLength: 6
+          exclusiveMaximum: false
+        required: true
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      - description: Non-negative number of entries to skip, or 0 (default).
+        name: _paginationOffset
+        in: query
+        schema:
+          type: number
+          format: int32
+          minimum: 0
+          exclusiveMinimum: false
+          default: 0
+      - description: Non-negative maximum number of entries to return.
+        name: _paginationLimit
+        in: query
+        schema:
+          type: number
+          format: int32
+          minimum: 0
+          exclusiveMinimum: false
+          maximum: 500
+          exclusiveMaximum: false
+          default: 10
+      responses:
+        '200':
+          $ref: '#/components/responses/GetInstrumentCrossReferenceHistoryGetByWKN200Response'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /stock/recommendation/aggregate/history/list:
+    get:
+      tags:
+      - History
+      operationId: get/stock/recommendation/aggregate/history/list
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: Current and historical trade recommendations and target prices for a stock.
+      description: Current and historical trade recommendations and target prices for a stock.
+      parameters:
+      - name: identifier
+        in: query
+        schema:
+          type: string
+          pattern: ^([B-DF-HJ-NP-TV-Z0-9]{6}-[SLR])|([A-Z0-9.]{1,47}-[A-Z0-9]{2,4})|([0-9]{3,20})|([B-DF-HJ-NP-TV-Z0-9]{6}[0-9])|([A-Z]{2}[A-Z0-9]{9}[0-9])|([A-Z1-9][A-Z0-9]{5})|(0*[0-9]{1,9})|([A-Z0-9]{8}[0-9])$
+          maxLength: 50
+          exclusiveMaximum: false
+          minLength: 3
+          exclusiveMinimum: false
+          description: Identifier to resolve.
+        required: true
+      - name: identifierType
+        in: query
+        schema:
+          type: string
+          description: Type of the identifier.
+          x-enum-description:
+          - MDG identifier of an instrument.
+          - MDG identifier of a listing.
+          - FactSet Permanent Identifier on security level.
+          - FactSet Permanent Identifier on listing level.
+          - Regional FactSet Permanent Identifier.
+          - FactSet market symbol of a listing.
+          - Regional FactSet ticker symbol.
+          - SEDOL or IDII of a listing.
+          - ISIN of an instrument.
+          - WKN of an instrument.
+          - Valor number of an instrument.
+          - CUSIP or CINS identifier of an instrument
+          enum:
+          - idInstrument
+          - idNotation
+          - fdsPermanentIdentifierSecurity
+          - fdsPermanentIdentifierListing
+          - fdsPermanentIdentifierRegional
+          - tickerExchange
+          - tickerRegion
+          - sedol
+          - isin
+          - wkn
+          - valor
+          - cusip
+        required: true
+      - name: snapshots
+        in: query
+        schema:
+          type: array
+          nullable: false
+          items:
+            type: string
+            x-enum-description:
+            - latest
+            - one week ago
+            - one month ago
+            - three months ago
+            - six months ago
+            - one year ago
+            enum:
+            - latest
+            - 1w
+            - 1m
+            - 3m
+            - 6m
+            - 1y
+          description: Choice of historic snapshots for aggregated recommendations.
+          uniqueItems: true
+          maxItems: 6
+          minItems: 1
+        style: form
+        explode: false
+        required: true
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      responses:
+        '200':
+          $ref: '#/components/responses/GetStockRecommendationAggregateHistoryList200Response'
+  /factset-terms-and-conditions/v1/coupon-history:
+    get:
+      summary: Factset Return Historical Coupon Information for a Fixed Income Security.
+      description: 'Returns historical Coupon information for the Fixed Income security.
+
+        '
+      tags:
+      - History
+      operationId: getCouponHistory
+      parameters:
+      - $ref: '#/components/parameters/ids'
+      responses:
+        '200':
+          description: Coupon History Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/couponHistoryResponse'
+              examples:
+                Fixed Income Coupon History:
+                  $ref: '#/components/examples/fixedIncomeCouponHistoryResponse'
+        '400':
+          $ref: '#/components/responses/400_2'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403_2'
+        '415':
+          $ref: '#/components/responses/415_2'
+        '500':
+          $ref: '#/components/responses/500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      summary: Factset Return Historical Coupon Information for a List of Fixed Income Securities.
+      description: 'Returns historical Coupon information for a list of Fixed Income securities.
+
+        '
+      tags:
+      - History
+      operationId: getCouponHistoryForList
+      requestBody:
+        description: Request object for Fixed Income Coupon History.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/termsAndConditionsScalarRequest'
+        required: true
+      responses:
+        '200':
+          description: Coupon History Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/couponHistoryResponse'
+              examples:
+                Fixed Income Coupon History:
+                  $ref: '#/components/examples/fixedIncomeCouponHistoryResponse'
+        '400':
+          $ref: '#/components/responses/400_2'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403_2'
+        '415':
+          $ref: '#/components/responses/415_2'
+        '500':
+          $ref: '#/components/responses/500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /factset-terms-and-conditions/v1/convertible-history:
+    get:
+      summary: Factset Return Convertible History Data for a List of Fixed Income Securities.
+      description: 'Returns Convertible History data for the Fixed Income security, including - * Convertibles Price * Convertibles Effective Date
+
+        '
+      tags:
+      - History
+      operationId: getConvertibleHistory
+      parameters:
+      - $ref: '#/components/parameters/ids'
+      responses:
+        '200':
+          description: Convertible History Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/convertibleHistoryResponse'
+              examples:
+                Convertible History:
+                  $ref: '#/components/examples/fixedIncomeConvertibleHistoryResponse'
+        '400':
+          $ref: '#/components/responses/400_2'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403_2'
+        '415':
+          $ref: '#/components/responses/415_2'
+        '500':
+          $ref: '#/components/responses/500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      summary: Factset Return Convertible History Data for a Large List of Fixed Income Securities.
+      description: 'Returns Convertible History data for a list of Fixed Income securities.
+
+        '
+      tags:
+      - History
+      operationId: getConvertibleHistoryForList
+      requestBody:
+        description: Request object for Fixed Income Issue Size.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/termsAndConditionsScalarRequest'
+            examples:
+              Convertible Request:
+                $ref: '#/components/examples/FixedIncomeConvertibleRequest'
+        required: true
+      responses:
+        '200':
+          description: Convertible History Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/convertibleHistoryResponse'
+              examples:
+                Fixed Income Issue Size:
+                  $ref: '#/components/examples/fixedIncomeConvertibleHistoryResponse'
+        '400':
+          $ref: '#/components/responses/400_2'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403_2'
+        '415':
+          $ref: '#/components/responses/415_2'
+        '500':
+          $ref: '#/components/responses/500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    tickhistory_response:
+      type: object
+      properties:
+        Requested ID:
+          type: string
+          description: Request Identification String.
+          example: ''
+        Requested Symbol:
+          type: string
+          description: Single Requested Symbol or Security.
+          example: IBM-USA
+        Requested Fields:
+          type: array
+          description: 'Array of requested fields '
+          example: LAST_1,LAST_TIME_1,LAST_VOL_1
+          items:
+            $ref: '#/components/schemas/fields'
+        Request Key:
+          type: string
+          example: 5C8926159C36F315
+        Error Code:
+          type: string
+          example: '0'
+        Error Description:
+          type: string
+          description: Brief description of error response. Blank if successful.
+          example: ''
+        Field Names:
+          type: string
+          description: Requested Field Names
+          example: ''
+        Field IDs:
+          type: number
+          description: Requested Field ID numbers 'FID'. Found in Data Service Manual.
+          example: 42.5
+        Key:
+          type: string
+          description: Requested Symbol Key, where :D represented delayed data.
+          example: IBM-USA:D
+        Values:
+          type: number
+          description: Array of field values. Each value is returned for requested interval query.
+          example: 42.5
+      description: response for tick history
+    indexIds:
+      title: Index Ids
+      type: array
+      items:
+        type: string
+      minItems: 1
+      maxItems: 500
+      description: Benchmark Identifiers. Reference the helper endpoint **/id-list** to get a sample list of  valid identifiers.
+      example:
+      - SP50
+    couponHistory:
+      title: Coupon History
+      type: object
+      description: Coupon History for a Fixed Income security.
+      properties:
+        requestId:
+          description: Security identifier used in the request.
+          type: string
+          example: '500123'
+        fsymId:
+          description: FactSet Permanent Security Identifier.
+          type: string
+          example: '500123'
+        date:
+          description: Coupon Accrual Date
+          type: string
+          format: date
+          example: '2026-01-15'
+        couponBasketFlag:
+          description: Coupon Basket Flag
+          type: boolean
+          example: true
+        couponEffPmtDate:
+          description: Effective Payment Date
+          type: string
+          format: date
+          example: '2026-01-15'
+        couponFormula:
+          description: Coupon Formula
+          type: string
+          example: example_value
+        couponInitResetDate:
+          description: First Coupon Reset Date
+          type: string
+          format: date
+          example: '2026-01-15'
+        couponResetFreq:
+          description: Coupon Reset Frequency
+          type: string
+          example: example_value
+        couponLink:
+          description: Coupon Link
+          type: string
+          example: example_value
+        couponMargin:
+          description: Margin
+          type: number
+          format: double
+          example: 42.5
+        couponMinFloatRate:
+          description: Coupon Minimum-Floating Rate
+          type: number
+          format: double
+          example: 42.5
+        couponStructSubCode:
+          description: Coupon Structure Sub Code
+          type: string
+          example: example_value
+        couponTypeStruct:
+          description: Coupon Type
+          type: string
+          example: example_value
+        couponVarPmtFlag:
+          description: Variable Coupon Payments
+          type: boolean
+          example: true
+        underlyingIndex:
+          description: Underlying Index
+          type: string
+          example: example_value
+    calendar:
+      title: Calendar
+      type: string
+      enum:
+      - FIVEDAY
+      - SEVENDAY
+      default: FIVEDAY
+      description: Calendar of data returned. SEVENDAY includes weekends.
+      example: FIVEDAY
+    StatusObject_2:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+      description: The status member contains the status code of the response.
+      required:
+      - code
+    Events-Audio-History:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              year:
+                type: integer
+                description: The year corresponding to the file containing historical audio recordings that can be downloaded via presigned url.
+              trimmed:
+                type: boolean
+                description: 'True  indicates that the pre-signed downloadable URL contains trimmed historical audio recordings and related metadata of a specific year.
+
+
+                  False  indicates that the pre-signed downloadable URL contains untrimmed historical audio recordings and related metadata of a specific year.'
+              fileName:
+                type: string
+                description: The name of the file.
+              fileSize:
+                type: integer
+                description: The size of the file, in bytes.
+              url:
+                type: string
+                description: Pre-signed downloadable URL containing the historical audio recordings and related metadata of a specific year. The pre-signed URL in the response will expire after 3 hours.
+          example: []
+        meta:
+          type: object
+          properties:
+            pagination:
+              type: object
+              description: "\t\nList of pagination objects"
+              properties:
+                total:
+                  type: integer
+                  description: Total number of files the API returns for a particular query.
+                isEstimatedTotal:
+                  type: boolean
+                  description: Boolean value that represents whether the total count of files returned is exact or an estimate. This is defaulted to False as the API should always return the exact count.
+                limit:
+                  type: integer
+                  description: Number of results returned per page
+                offset:
+                  type: integer
+                  description: The flag indicating the position in the results array if additional results are available beyond the default value or the value in paginationLimit parameter (if used). This value is passed in the _paginationOffset parameter to retrieve subsequent results.
+            partial:
+              type: object
+              description: ''
+              properties:
+                isPartial:
+                  type: boolean
+                  description: If the value is True, it indicates additional results are available. False represents that this is the last set of results for this request.
+          example: example_value
+    endDate:
+      title: End Date
+      type: string
+      description: Requested end date for Range expressed in YYYY-MM-DD format.
+      example: '2019-12-31'
+    impliedDate:
+      title: Implied Date
+      type: string
+      enum:
+      - Y
+      - N
+      default: N
+      description: This parameter controls the **date** returned in the date field. The default value is **N**. By default, the date field returns the actual date of the observation. This means it will repeat values for weekends and holidays. If  set to **Y**, the date field will return the implied date of the observation, making all the dates unique.
+    convertibleHistoryResponse:
+      title: Convertible History Response
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/convertibleHistory'
+          example: []
+    couponHistoryResponse:
+      title: Coupon History Response
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/couponHistory'
+          example: []
+    Events-Audio-History-400-Response:
+      description: ''
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        code:
+          type: string
+          example: example_value
+        title:
+          type: string
+          example: Example Title
+        details:
+          type: object
+          properties:
+            validParameters:
+              type: object
+              properties:
+                _paginationLimit:
+                  type: array
+                  items:
+                    type: string
+                _paginationOffset:
+                  type: array
+                  items:
+                    type: string
+                year:
+                  type: array
+                  items:
+                    type: string
+                trimmed:
+                  type: array
+                  items:
+                    type: string
+          example: example_value
+    Error:
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        code:
+          type: string
+          example: example_value
+        title:
+          type: string
+          example: Example Title
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
+    errorResponse:
+      type: object
+      title: Error Response
+      properties:
+        status:
+          description: status
+          type: string
+          example: Bad Request
+        timestamp:
+          description: timestamp in YYYY-MM-DD HH:MM:SS.SSS
+          type: string
+          example: '2019-11-01 11:09:41.918'
+          format: date-time
+        path:
+          description: The Endpoint path {package}/version/{endpoint}
+          type: string
+          example: /factset-benchmarks/v1/{endpoint}
+        message:
+          description: The plain text error message
+          type: string
+          example: Validation Error
+        subErrors:
+          description: subErrors related to the error message. Null if not applicable.
+          type: object
+          properties:
+            object:
+              description: the operation ID
+              type: string
+            field:
+              description: Parameter Field Name
+              type: string
+            message:
+              description: Error message
+              type: string
+            rejectedValue:
+              description: Rejected Values in an Array
+              type: array
+              items:
+                type: string
+          example: example_value
+    hedgeType:
+      title: Hedge Type
+      type: string
+      enum:
+      - UNHEDGED
+      - HEDGED
+      default: UNHEDGED
+      description: The hedge type adjustment used in returns response items. Adjustment can be made for HEDGED and UNHEDGED values that will be included in the return calculation. The service weill default to UNHEDGED.
+      example: UNHEDGED
+    indexHistoryRequest:
+      type: object
+      title: Index History Request
+      properties:
+        ids:
+          $ref: '#/components/schemas/indexIds'
+        startDate:
+          $ref: '#/components/schemas/startDate'
+        endDate:
+          $ref: '#/components/schemas/endDate'
+        frequency:
+          $ref: '#/components/schemas/frequency'
+        returnType:
+          $ref: '#/components/schemas/returnType'
+        hedgeType:
+          $ref: '#/components/schemas/hedgeType'
+        currency:
+          $ref: '#/components/schemas/currency'
+        calendar:
+          $ref: '#/components/schemas/calendar'
+        impliedDate:
+          $ref: '#/components/schemas/impliedDate'
+      required:
+      - ids
+    indexHistoryResponse:
+      title: Index History Response
+      type: object
+      properties:
+        data:
+          description: 'Array of Index History response objects.
+
+            '
+          type: array
+          items:
+            $ref: '#/components/schemas/indexHistory'
+          example: []
+    startDate:
+      title: Start Date
+      type: string
+      description: Requested start date expressed in YYYY-MM-DD format.
+      example: '2018-12-31'
+    currency:
+      title: Currency
+      type: string
+      description: Currency for response.
+      example: USD
+    errorResponse_2:
+      type: object
+      title: Error Response
+      properties:
+        status:
+          description: status
+          type: string
+          example: Bad Request
+        timestamp:
+          description: timestamp in YYYY-MM-DD HH:MM:SS.SSS
+          type: string
+          example: '2019-11-01 11:09:41.918'
+          format: date-time
+        path:
+          description: The Endpoint path {package}/version/{endpoint}
+          type: string
+          example: /factset-georev/v1/superRegion
+        message:
+          description: The plain text error message
+          type: string
+          example: Validation Error
+        subErrors:
+          description: subErrors related to the error message. Null if not applicable.
+          type: object
+          properties:
+            object:
+              description: the operation ID
+              type: string
+            field:
+              description: Parameter Field Name
+              type: string
+            message:
+              description: Error message
+              type: string
+            rejectedValue:
+              description: Rejected Values in an Array
+              type: array
+              items:
+                type: string
+          example: example_value
+    fields:
+      type: object
+      properties:
+        BID_1:
+          type: number
+          description: 'The last bid price or last bid price in an interval. FID # 100'
+          format: float
+          example: 42.5
+        BID_VOL_1:
+          type: integer
+          description: 'The volume of the last bid in an interval. FID # 104'
+          example: 10
+        BID_EXCH_1:
+          type: string
+          description: 'The volume of the last bid or last bid in an interval. FID # 107. Enumeration Table 7'
+          example: example_value
+        ASK_1:
+          type: number
+          description: 'The last ask price or last ask price in an interval. FID # 200'
+          format: float
+          example: 42.5
+        ASK_VOL_1:
+          type: integer
+          description: 'The volume of the last ask or last ask in an interval. FID # 204'
+          example: 10
+        ASK_EXCH_1:
+          type: string
+          description: 'The exchange of the last ask or last ask in an interval. FID # 207. Enumeration Table 7.'
+          example: example_value
+        LAST_1:
+          type: number
+          description: 'The last trade price or last trade price in an interval. FID # 300'
+          format: float
+          example: 42.5
+        LAST_DATE_1:
+          type: string
+          description: 'The date of the last trade or last trade in an interval. FID # 301'
+          example: example_value
+        LAST_TIME_1:
+          type: string
+          description: 'The time of the last trade or last trade in an interval. FID # 302'
+          example: example_value
+        LAST_VOL_1:
+          type: integer
+          description: 'The trade volume, or the sum of all trade volumes inside a bin. FID # 304'
+          example: 10
+        LAST_EXCH_1:
+          type: string
+          description: 'The exchange of the last trade or last trade in an interval. FID # 307. Enumeration Table 7'
+          example: example_value
+        CUM_VOL:
+          type: integer
+          description: 'The symbol''s daily cumulative volume, or the last cumulative volume in an interval. FID # 601'
+          example: 10
+        VWAP:
+          type: number
+          description: 'The daily volume weighted average price, or the last VWAP in an interval. FID # 603'
+          format: float
+          example: 42.5
+        OPEN_1:
+          type: number
+          description: 'The first trade of an interval. FID # 710'
+          format: float
+          example: 42.5
+        HIGH_1:
+          type: number
+          description: 'The highest trade price in an interval. FID # 720'
+          format: float
+          example: 42.5
+        LOW_1:
+          type: number
+          description: 'The lowest trade price in an interval. FID # 723'
+          format: float
+          example: 42.5
+        TRADE_CONDITION:
+          type: string
+          description: 'Trade Condition. FID # 2709'
+          example: example_value
+        GMT_OFFSET:
+          type: integer
+          description: 'GMT Offset in Minutes. FID # 2037'
+          example: 10
+        PRICE_CURRENCY:
+          type: string
+          description: 'Price Currency Code. FID # 2032'
+          example: example_value
+      description: All available fields in service. FID = Field ID Number.
+    convertibleHistory:
+      title: Convertible History
+      type: object
+      description: Convertible Details for a Fixed Income security.
+      properties:
+        requestId:
+          description: Security identifier used in the request.
+          type: string
+          example: '500123'
+        fsymId:
+          description: FactSet Permanent Security Identifier.
+          type: string
+          example: '500123'
+        convEffDate:
+          description: Convertible Effective Date
+          type: string
+          format: date
+          example: '2026-01-15'
+        convPrice:
+          description: Convertibles Price
+          type: number
+          format: double
+          example: 42.5
+        convRatio:
+          description: Convertibles Ratio
+          type: number
+          format: double
+          example: 42.5
+        convUlyFsymId:
+          description: Convertibles Underlying FactSet Permanent Identifier
+          type: string
+          example: '500123'
+    returnType:
+      title: Return Type
+      type: string
+      enum:
+      - GROSS
+      - NET
+      default: GROSS
+      description: The return type adjustment used in returns response items. Adjustment can be made for GROSS and NET dividends that will be included in the return calculation. The service will default to GROSS.
+      example: GROSS
+    indexHistory:
+      title: Index History Object
+      type: object
+      properties:
+        fsymId:
+          type: string
+          description: Requested Identifier. Must be a valid Benchmark Identifier recognized by FactSet.
+          example: SP50
+          nullable: true
+        date:
+          description: The respective date for values as of the date requested in YYYY-MM-DD format.
+          type: string
+          format: date
+          example: '2020-07-01'
+          nullable: true
+        name:
+          description: Proper Name of Index.
+          type: string
+          example: S&P 500
+          nullable: true
+        constituentNumber:
+          description: The total number of constituents as of the date requested.
+          type: integer
+          example: 502
+          nullable: true
+        currency:
+          description: Currency Code used in adjustments. If no Currency was requested, the service will default to LOCAL ('LOC').
+          type: string
+          example: USD
+          nullable: true
+        marketValue:
+          description: Index Level Market Capitalization as of the date requested expressed in millions.
+          type: number
+          format: double
+          example: 27696158.012077
+          nullable: true
+        price:
+          description: Index Level Price
+          type: number
+          format: double
+          example: 3349.15600690205
+          nullable: true
+        priceReturnPercent:
+          description: Index Level Price Percent Change
+          type: number
+          format: double
+          example: 0.642620385795123
+          nullable: true
+        totalReturnLevel:
+          description: Index Level Total Return Amount
+          type: number
+          format: double
+          example: 6870.86168040129
+          nullable: true
+        totalReturnPercent:
+          description: Index Level Total Return Percent Change
+          type: number
+          format: double
+          example: 0.653957589855003
+          nullable: true
+        returnType:
+          description: The requested Return Type - GROSS or NET
+          type: string
+          example: GROSS
+          nullable: true
+        hedgeType:
+          description: The requested Hedge Type - HEDGED or UNHEDGED
+          type: string
+          example: UNHEDGED
+          nullable: true
+        requestId:
+          type: string
+          description: Benchmark Identifier specified in the request
+          example: SP50
+        observationDate:
+          description: This field will always return the date of the data that was actually returned.
+          type: string
+          example: '2020-07-21'
+          nullable: true
+    frequency:
+      title: Frequency
+      type: string
+      enum:
+      - D
+      - W
+      - M
+      - AM
+      - CQ
+      - AY
+      - CY
+      default: CY
+      description: "Controls the display frequency of the data returned.\n  * **D** = Daily\n  * **W** = Weekly, based on the last day of the week of the start date.\n  * **M** = Monthly, based on the last trading day of the month.\n  * **AM** = Monthly, based on the start date (e.g., if the start date is June 16, data is displayed for June 16, May 16, April 16 etc.). \n  * **CQ** = Quarterly based on the last trading day of the calendar quarter (March, June, September, or December).\n  * **AY** = Actual Annual, based on the start date.\n  * **CY** = Calendar Annual, based on the last trading day of the calendar year.\n"
+      example: CY
+    OffsetBasedPaginationOutputObject:
+      type: object
+      description: Pagination attributes for the offset-based pagination strategy.
+      properties:
+        total:
+          type: number
+          format: int32
+          description: Total number of entries in the result set.
+          example: 42.5
+        isEstimatedTotal:
+          type: boolean
+          description: Flag indicating that the value of "total" is estimated.
+          example: true
+      required:
+      - total
+      - isEstimatedTotal
+      x-property-sort:
+      - total
+      - isEstimatedTotal
+    termsAndConditionsScalarRequest:
+      title: General Ids Request
+      type: object
+      properties:
+        ids:
+          description: 'List of Fixed Income Security identifiers. Supported symbol types include CUSIP, SEDOL, ISIN, and FactSet Security Permanent Identifier (-S).
+
+
+            **ID LIMIT = 250** *per request*.
+
+            '
+          type: array
+          items:
+            type: string
+          minItems: 1
+          maxItems: 250
+          example:
+          - 30231GBJ
+          - 88579EAA
+      required:
+      - ids
+  responses:
+    '400_2':
+      description: Bad Request. This can occur for several reasons. Please review the "message" for more details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse_2'
+          examples:
+            Bad Request - Missing Required Parameter:
+              $ref: '#/components/examples/badRequestRequiredParameter_2'
+            Bad Request - Invalid Parameter:
+              $ref: '#/components/examples/badRequestInvalidParameters_2'
+            Bad Request - Malformed JSON:
+              $ref: '#/components/examples/badRequestMalformedJSON_2'
+            Bad Request - Read Timeout:
+              $ref: '#/components/examples/badRequestReadTimeout_2'
+    '401':
+      description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the **Report Issue** in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/unauthenticated'
+    '415':
+      description: Unsupported Media Type. This error may be returned when the caller sends a resource in a format that is not accepted by the server. This can be fixed by ensuring that Content-Type header is set to the correct value. In this instance, "application/json" would be the appropriate value.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Unsupported Media Type:
+              $ref: '#/components/examples/unsupportedMediaType'
+    '415_2':
+      description: Unsupported Media Type. This error may be returned when the caller sends a resource in a format that is not accepted by the server. This can be fixed by ensuring that Content-Type header is set to the correct value. In this instance, "application/json" would be the appropriate value.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse_2'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/unsupportedMediaType_2'
+    '403':
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - forbidden:
+              $ref: '#/components/examples/forbidden'
+    '403_2':
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse_2'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/forbidden_2'
+    GetStockRecommendationAggregateHistoryList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: List of trade recommendations and target prices for a stock, in unspecified order.
+                nullable: false
+                type: object
+                x-property-sort:
+                - idInstrument
+                - sourceIdentifier
+                - aggregatedRecommendations
+                properties:
+                  idInstrument:
+                    nullable: true
+                    type: string
+                    format: id64
+                    x-positive: true
+                    description: MDG identifier of the instrument.
+                  sourceIdentifier:
+                    nullable: true
+                    type: string
+                    description: Identifier used in the request.
+                  aggregatedRecommendations:
+                    nullable: false
+                    description: List of trade recommendations.
+                    type: array
+                    items:
+                      type: object
+                      nullable: false
+                      x-property-sort:
+                      - snapshot
+                      - targetPrice
+                      - recommendation
+                      properties:
+                        snapshot:
+                          nullable: true
+                          description: Identification of the historic snapshot for aggregated recommendations.
+                          type: string
+                          x-enum-description:
+                          - latest
+                          - one week ago
+                          - one month ago
+                          - three months ago
+                          - six months ago
+                          - one year ago
+                          enum:
+                          - latest
+                          - 1w
+                          - 1m
+                          - 3m
+                          - 6m
+                          - 1y
+                        targetPrice:
+                          nullable: false
+                          description: Details of the target price.
+                          type: object
+                          x-property-sort:
+                          - latestUpdate
+                          - mean
+                          - currency
+                          properties:
+                            latestUpdate:
+                              nullable: true
+                              type: string
+                              format: date
+                              description: Date of the latest update.
+                            mean:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Mean value.
+                            currency:
+                              nullable: false
+                              description: Main currency of the target price. See endpoint `/basic/valueUnit/currency/main/list` for possible values.
+                              type: object
+                              x-property-sort:
+                              - id
+                              - code
+                              properties:
+                                id:
+                                  nullable: true
+                                  type: number
+                                  format: id32
+                                  x-positive: true
+                                  description: Identifier of the currency.
+                                code:
+                                  nullable: true
+                                  type: string
+                                  description: Code of the currency; if assigned, a code according to ISO 4217, otherwise a local code.
+                        recommendation:
+                          nullable: false
+                          description: Details of the recommendations.
+                          type: object
+                          x-property-sort:
+                          - latestUpdate
+                          - counts
+                          - consensus
+                          - change
+                          properties:
+                            latestUpdate:
+                              nullable: true
+                              type: string
+                              format: date
+                              description: Date of the latest update.
+                            counts:
+                              nullable: false
+                              description: Number of recommendations.
+                              type: object
+                              x-property-sort:
+                              - total
+                              - buy
+                              - overweight
+                              - hold
+                              - underweight
+                              - sell
+                              properties:
+                                total:
+                                  nullable: true
+                                  type: number
+                                  format: int32
+                                  description: Total number.
+                                buy:
+                                  nullable: true
+                                  type: number
+                                  format: int32
+                                  description: Number of buy recommendations. A buy recommendation contributes with the numeric value 1 when calculating the consensus.
+                                overweight:
+                                  nullable: true
+                                  type: number
+                                  format: int32
+                                  description: Number of overweight recommendations. A overweight recommendation contributes with the numeric value 2 when calculating the consensus.
+                                hold:
+                                  nullable: true
+                                  type: number
+                                  format: int32
+                                  description: Number of hold recommendations. A hold recommendation contributes with the numeric value 3 when calculating the consensus.
+                                underweight:
+                                  nullable: true
+                                  type: number
+                                  format: int32
+                                  description: Number of underweight recommendations. A underweight recommendation contributes with the numeric value 4 when calculating the consensus.
+                                sell:
+                                  nullable: true
+                                  type: number
+                                  format: int32
+                                  description: Number of sell recommendations. A sell recommendation contributes with the numeric value 5 when calculating the consensus.
+                            consensus:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: 'Recommendation consensus, that is the average value of all provided recommendations. Values are in the range from 1.0 to 5.0, whereby 1 represents the strongest buy recommendation, 3 a hold (neutral) recommendation and 5 the strongest sell recommendation. '
+                            change:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Recommendation change as the difference of the latest (`snapshot=latest`) minus the historic value of the recommendation consensus (attribute `consensus`). Values are in the range from -4 to 4, whereby -4 represents a recommendation change from 5 to 1 and 4 represents a recommendation change from 1 to 5.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject_2'
+                x-property-sort:
+                - status
+    GetInstrumentCrossReferenceHistoryGetByWKN200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                description: List of instruments.
+                nullable: false
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                  - id
+                  - validity
+                  properties:
+                    id:
+                      nullable: true
+                      type: string
+                      format: id64
+                      x-positive: true
+                      description: Identifier of the instrument.
+                    validity:
+                      nullable: true
+                      type: object
+                      format: timeRange
+                      properties:
+                        start:
+                          nullable: true
+                          type: string
+                          format: datetime
+                          description: The starting point of the time range (inclusive).
+                        end:
+                          nullable: true
+                          type: string
+                          format: datetime
+                          description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
+                      x-property-sort:
+                      - start
+                      - end
+                      required:
+                      - start
+                      - end
+                      description: Time range that this translation is valid for.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                  pagination:
+                    $ref: '#/components/schemas/OffsetBasedPaginationOutputObject'
+                x-property-sort:
+                - status
+                - pagination
+            x-property-sort:
+            - data
+            - meta
+    '500':
+      description: Internal Server Error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Internal Server Error - Not Writable:
+              $ref: '#/components/examples/notWritable'
+            Internal Server Error - General Exception:
+              $ref: '#/components/examples/generalException'
+    GetInstrumentCrossReferenceHistoryGetByISIN200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                description: List of instruments.
+                nullable: false
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                  - id
+                  - validity
+                  properties:
+                    id:
+                      nullable: true
+                      type: string
+                      format: id64
+                      x-positive: true
+                      description: Identifier of the instrument.
+                    validity:
+                      nullable: true
+                      type: object
+                      format: timeRange
+                      properties:
+                        start:
+                          nullable: true
+                          type: string
+                          format: datetime
+                          description: The starting point of the time range (inclusive).
+                        end:
+                          nullable: true
+                          type: string
+                          format: datetime
+                          description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
+                      x-property-sort:
+                      - start
+                      - end
+                      required:
+                      - start
+                      - end
+                      description: Time range that this translation is valid for.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                  pagination:
+                    $ref: '#/components/schemas/OffsetBasedPaginationOutputObject'
+                x-property-sort:
+                - status
+                - pagination
+            x-property-sort:
+            - data
+            - meta
+    '400':
+      description: Bad Request. This can occur for several reasons. Please review the "message" for more details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/badRequestDateFormat'
+            Bad Request - Missing Required Parameter:
+              $ref: '#/components/examples/badRequestRequiredParameter'
+            Bad Request - Future Date:
+              $ref: '#/components/examples/badRequestFutureDate'
+            Bad Request - Invalid Parameter:
+              $ref: '#/components/examples/badRequestInvalidParameters'
+            Bad Request - More Than One Benchmark Identifier:
+              $ref: '#/components/examples/badRequestMoreThanOneBenchmarkIdentifier'
+            Bad Request - Malformed JSON:
+              $ref: '#/components/examples/badRequestMalformedJSON'
+            Bad Request - Read Timeout:
+              $ref: '#/components/examples/badRequestReadTimeout'
+  examples:
+    forbidden_2:
+      summary: Forbidden
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      value:
+        status: Forbidden
+        timestamp: '2020-06-12 16:08:51.731'
+        path: /factset-terms-and-conditions/v1/{endpoint}
+        message: USERNAME-SERIAL does not have permission to use /factset-terms-and-conditions/v1/{endpoint}
+        subErrors: null
+    badRequestInvalidParameters:
+      summary: Bad Request - Passing invalid Benchmark Identifier
+      description: This error message occurs when user is passing Invalid Identifier. Please use the helper endpoint */id-list* for sample Benchmark Identifiers.
+      value:
+        status: Forbidden
+        timestamp: '2020-07-10 15:01:43.634'
+        path: /factset-benchmarks/v1/constituents
+        message: User is not authorized for the id requested, please reach out to FactSet for support
+        subErrors: null
+    badRequestInvalidParameters_2:
+      summary: Bad Request - Invalid Parameters
+      description: This error message occurs when a request parameter is used in which is not recognized by the service. Please revise your request to include only the parameters listed in the specification. Typical causes are spelling mistakes and use of improper casing.
+      value:
+        status: Bad Request
+        timestamp: '2020-06-12 15:58:54.068'
+        path: /factset-terms-and-conditions/v1/{endpoint}
+        message: 'Invalid Parameter (s): fakeParameterName1 fakeParameterName2. Please modify your request to use parameters outlined in the specification for this endpoint.'
+        subErrors: null
+    badRequestMoreThanOneBenchmarkIdentifier:
+      summary: Bad Request - More Than One Benchmark Identifier
+      description: This error message occurs when user is passing more than one identifier as an input.
+      value:
+        status: Bad Request
+        timestamp: '2020-07-02 12:37:52.731'
+        path: /factset-benchmarks/v1/constituents
+        message: You submitted 2 ids. The max number of ids you may submit is 1. Please try again with fewer ids.
+        subErrors: null
+    badRequestDateFormat:
+      summary: Bad Request - Date Format
+      description: This bad request occurs when a request doesn't use the YYYY-MM-DD in the date parameters. To resolve, convert your date to YYYY-MM-DD.
+      value:
+        status: Bad Request
+        timestamp: '2020-07-02 11:52:36.464'
+        path: /factset-benchmarks/v1/{endpoint}
+        message: 'The date parameter must be in the following date format: YYYY-MM-DD'
+        subErrors: null
+    notWritable:
+      summary: Internal Server Error - Not Writable
+      description: This error may be returned when the server encounters an error writing the JSON response.
+      value:
+        status: Internal Server Error
+        timestamp: '2019-11-05 09:48:29.18'
+        path: /factset-benchmarks/v1/{endpoint}
+        message: Error writing JSON output
+        subErrors: null
+    badRequestReadTimeout_2:
+      summary: Bad Request - Read Timeout
+      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
+      value:
+        status: Bad Request
+        timestamp: '2019-11-04 16:18:38.949'
+        path: /factset-terms-and-conditions/v1/{endpoint}
+        message: The request took too long. Try again with a smaller request.
+        subErrors: null
+    unsupportedMediaType:
+      summary: Unsupported Media Type
+      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
+      value:
+        status: Unsupported Media Type
+        timestamp: '2020-07-02 09:42:27.237'
+        path: /factset-benchmarks/v1/{endpoint}
+        message: text/html media type is not supported. Supported media types are application/json
+        subErrors: null
+    badRequestRequiredParameter_2:
+      summary: Bad Request - Required Parameter Missing
+      description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisks symbol in the specification file.
+      value:
+        status: Bad Request
+        timestamp: '2020-06-12 15:48:42.016'
+        path: /factset-terms-and-conditions/v1/{endpoint}
+        message: The parameter 'ids' is required and may not be empty.
+        subErrors: null
+    fixedIncomeConvertibleHistoryResponse:
+      description: Fixed Income Convertible History Response
+      value:
+        data:
+        - convEffDate: '2025-08-01'
+          convPrice: 54.47
+          fsymId: SMH439-S
+          requestId: 90138VAA
+        - convEffDate: '2021-01-26'
+          convPrice: 54.47
+          fsymId: SMH439-S
+          requestId: 90138VAA
+        - convEffDate: '2021-01-26'
+          convPrice: 54.47
+          fsymId: SMH439-S
+          requestId: 90138VAA
+        - convEffDate: '2021-07-01'
+          convPrice: 54.47
+          fsymId: SMH439-S
+          requestId: 90138VAA
+    generalException:
+      summary: Internal Server Error - General Exception
+      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
+      value:
+        status: Internal Server Error
+        timestamp: '2019-11-01 10:36:01.944'
+        path: /factset-benchmarks/v1/{endpoint}
+        message: Unexpected error
+        subErrors: null
+    FixedIncomeConvertibleRequest:
+      description: Fixed Income Convertible Request
+      value:
+        ids:
+        - 90138VAA
+        - E0002VAA
+    resultofIndexHistoryMultiple:
+      summary: Index History Prices and Returns for Two Companies over two days
+      description: The Price and Returns history for the S&P 500 and Russell 3000 from 2020-08-05 to 2020-08-06
+      value:
+        data:
+        - currency: LOCAL
+          date: '2020-08-05'
+          fsymId: SP50
+          marketValue: 27519313.2948137
+          name: S&P 500
+          price: 3327.77107160334
+          priceReturnPercent: 0.643080929116979
+          requestId: SP50
+          returnType: GROSS
+          hedgeType: UNHEDGED
+          totalReturnLevel: 6826.22108948631
+          totalReturnPercent: 0.643080929117001
+          observationDate: '2020-08-05'
+        - currency: LOCAL
+          date: '2020-08-06'
+          fsymId: SP50
+          marketValue: 27696158.012077
+          name: S&P 500
+          price: 3349.15600690205
+          priceReturnPercent: 0.642620385795123
+          requestId: SP50
+          returnType: GROSS
+          hedgeType: UNHEDGED
+          totalReturnLevel: 6870.86168040129
+          totalReturnPercent: 0.653957589855003
+          observationDate: '2020-08-06'
+        - currency: LOCAL
+          date: '2020-08-05'
+          fsymId: R.3000
+          marketValue: 32788760.7030179
+          name: Russell 3000
+          price: 3579.008715
+          priceReturnPercent: 0.751585489130235
+          requestId: R.3000
+          returnType: GROSS
+          hedgeType: UNHEDGED
+          totalReturnLevel: 10542.973182
+          totalReturnPercent: 0.751900743100942
+          observationDate: '2020-08-05'
+        - currency: LOCAL
+          date: '2020-08-06'
+          fsymId: R.3000
+          marketValue: 32954409.7735481
+          name: Russell 3000
+          price: 3596.989378
+          priceReturnPercent: 0.502392266457519
+          requestId: R.3000
+          returnType: GROSS
+          hedgeType: UNHEDGED
+          totalReturnLevel: 10597.086657
+          totalReturnPercent: 0.513265793869122
+          observationDate: '2020-08-06'
+    badRequestReadTimeout:
+      summary: Bad Request - Read Timeout
+      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
+      value:
+        status: Bad Request
+        timestamp: '2020-07-02 16:18:38.949'
+        path: /factset-benchmarks/v1/{endpoint}
+        message: The request took too long. Try again with a smaller request.
+        subErrors: null
+    badRequestFutureDate:
+      summary: Bad Request - Future Date
+      description: This error message occurs when a future date is requested in the date parameters. Please revise your request to include dates as of today's current date or any prior historical date.
+      value:
+        status: Bad Request
+        timestamp: '2020-06-30 13:38:36.528'
+        path: /factset-benchmarks/v1/{endpoint}
+        message: The use of future dates is not applicable in this endpoint. Please revise your request to include dates up to today's current date.
+        subErrors: null
+    forbidden:
+      summary: Forbidden
+      description: The USERNAME-SERIAL attempted to request the endpoint/ID which is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      value:
+        status: Forbidden
+        timestamp: '2020-07-02 17:21:52.197'
+        path: /factset-benchmarks/v1/{endpoint}
+        message: User is not authorized for the id requested, please reach out to FactSet for support
+        subErrors: null
+    unauthenticated:
+      summary: User Authentication Failed
+      description: This occurs when a user is not properly authenticated or recognized by the service. Please double check the USERNAME-SERIAL and API-Key used to request and ensure you are within the IP range specified for the Key. Report Issue under 401 error for help with troubleshooting.
+      value:
+        status: User Authentication Failed
+        timestamp: '2020-07-02 16:08:07.945'
+        path: /factset-benchmarks/v1/{endpoint}
+        message: User Authentication Failed.
+        subErrors: null
+    unsupportedMediaType_2:
+      summary: Unsupported Media Type
+      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
+      value:
+        status: Unsupported Media Type
+        timestamp: '2019-11-05 09:42:27.237'
+        path: /factset-terms-and-conditions/v1/{endpoint}
+        message: text/html media type is not supported. Supported media types are application/json
+        subErrors: null
+    badRequestMalformedJSON:
+      summary: Bad Request - Malformed JSON Request
+      description: This error may be returned when the request body is specified as JSON. But is not in proper JSON format.
+      value:
+        status: Bad Request
+        timestamp: '2020-07-02 11:59:09.649'
+        path: /factset-benchmarks/v1/{endpoint}
+        message: Malformed JSON Request
+        subErrors: null
+    fixedIncomeCouponHistoryResponse:
+      description: Fixed Income Coupon Details Response
+      value:
+        data:
+        - requestId: ES0265936007
+          fsymId: Q2KW45-S
+          date: '2019-01-18'
+          couponBasketFlag: null
+          couponEffPmtDate: '2020-01-18'
+          couponFormula: null
+          couponInitResetDate: null
+          couponLink: null
+          couponMargin: null
+          couponMinFloatRate: null
+          couponStructSubCode: null
+          couponTypeStruct: Fixed Rate
+          couponVarPmtFlag: false
+          underlyingIndex: null
+        - requestId: ES0265936007
+          fsymId: Q2KW45-S
+          date: '2024-01-18'
+          couponBasketFlag: false
+          couponEffPmtDate: '2025-01-18'
+          couponFormula: '{EUR Swap - 5Y} + 5.927%'
+          couponInitResetDate: '2025-01-18'
+          couponLink: Interest Rate Linked
+          couponMargin: 592.7
+          couponMinFloatRate: null
+          couponStructSubCode: null
+          couponTypeStruct: Floating
+          couponVarPmtFlag: false
+          underlyingIndex: EUR Swap - 5Y
+    badRequestRequiredParameter:
+      summary: Bad Request - Required Parameter Missing
+      description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisks symbol in the specification file.
+      value:
+        status: Bad Request
+        timestamp: '2020-06-30 13:22:09.053'
+        path: /factset-benchmarks/v1/{endpoint}
+        message: The parameter 'ids' is required and may not be empty.
+        subErrors: null
+    badRequestMalformedJSON_2:
+      summary: Bad Request - Malformed JSON Request
+      description: This error may be returned when the request body is specified as JSON, but is not in proper JSON format.
+      value:
+        status: Bad Request
+        timestamp: '2019-11-05 09:48:29.18'
+        path: /factset-terms-and-conditions/v1/{endpoint}
+        message: Malformed JSON Request
+        subErrors: null
+  parameters:
+    ids:
+      name: ids
+      description: 'List of Fixed Income Security identifiers. Supported symbol types include CUSIP, SEDOL, ISIN, and FactSet Security Permanent Identifier (-S).
+
+
+        **ID LIMIT = 250** *per request*.
+
+        '
+      in: query
+      schema:
+        type: array
+        items:
+          type: string
+        minItems: 1
+        maxItems: 250
+      required: true
+      explode: false
+      example:
+      - 30231GBJ
+      - 88579EAA
+    returnType:
+      name: returnType
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - GROSS
+        - NET
+        default: GROSS
+      description: The return type adjustment used in returns response items. Adjustment can be made for GROSS and NET dividends that will be included in the return calculation. The service will default to GROSS.
+    frequency:
+      name: frequency
+      in: query
+      schema:
+        type: string
+        enum:
+        - D
+        - W
+        - M
+        - AM
+        - CQ
+        - AY
+        - CY
+        default: D
+      description: "Controls the display frequency of the data returned.\n  * **D** = Daily\n  * **W** = Weekly, based on the last day of the week of the start date.\n  * **M** = Monthly, based on the last trading day of the month.\n  * **AM** = Monthly, based on the start date (e.g., if the start date is June 16, data is displayed for June 16, May 16, April 16 etc.).\n  * **CQ** = Quarterly based on the last trading day of the calendar quarter (March, June, September, or December).\n  * **AY** = Actual Annual, based on the start date.\n  * **CY** = Calendar Annual, based on the last trading day of the calendar year.\n"
+      examples:
+        Daily:
+          summary: D - Daily frequency display based on trading calendar
+          value: D
+        Weekly:
+          summary: W - Weekly - based on the last day of the week of the start date
+          value: W
+        Monthly:
+          summary: M - Monthly - based on the last trading day of the month.
+          value: M
+        Actual Month:
+          summary: AM - Actual Month - based on the startDate (e.g., if the start date is June 16, data is displayed for June 16, May 16, April 16 etc.).
+          value: AM
+        Calendar Quarterly:
+          summary: CQ - Calendar Quarterly - based on the last day of the week of the startDate
+          value: CQ
+        Actual Annual:
+          summary: AY - Actual Annual - based on the startDate
+          value: AY
+        Calendar Annual:
+          summary: CY - Calendar Annual - based on the last trading day of the calendar year.
+          value: CY
+    hedgeType:
+      name: hedgeType
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - UNHEDGED
+        - HEDGED
+        default: UNHEDGED
+      description: The hedge type adjustment used in returns response items. Adjustment can be made for HEDGED and UNHEDGED values that will be included in the return calculation. The service will default to UNHEDGED.
+    sd:
+      name: sd
+      in: query
+      description: This is the start date for the Snapshot History. Requests should be made in the format **YYYYMMDD**. Default is current business day. Field can be sd or date. **TRY IT OUT** Cannot use current day.
+      schema:
+        type: string
+    startDate:
+      name: startDate
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Requested start date expressed in YYYY-MM-DD format.
+    paginationOffset:
+      schema:
+        type: integer
+        format: int32
+        default: 0
+      in: query
+      name: _paginationOffset
+      description: Specifies the starting point for pagination. This parameter is used to identify the beginning of next set of results.
+    endDate:
+      name: endDate
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Requested End Date for Range expressed in YYYY-MM-DD format.
+    currency:
+      name: currency
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Currency for response.
+    eventspaginationLimit:
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 500
+        default: 25
+      in: query
+      name: _paginationLimit
+      description: Specifies the number of results to return per page. [ Min=0 ; Max=500 ]
+    calendar:
+      name: calendar
+      in: query
+      schema:
+        type: string
+        enum:
+        - FIVEDAY
+        - SEVENDAY
+        default: FIVEDAY
+      description: Calendar of data returned. SEVENDAY includes weekends.
+      example: FIVEDAY
+    year:
+      schema:
+        type: integer
+        format: int32
+      in: query
+      name: year
+      example: 2021
+      description: Specifies the year for which the historical audio recordings and related metadata are to be retrieved.
+    trimmed:
+      schema:
+        type: boolean
+        default: false
+      in: query
+      name: trimmed
+      example: true
+      description: Specifies if trimmed/untrimmed historical audio recordings should be returned.
+    indexIds:
+      name: ids
+      in: query
+      required: true
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+        minItems: 1
+        maxItems: 500
+      description: Benchmark Identifiers. Reference the helper endpoint **/id-list** to get a sample list of  valid identifiers. <p>***ids limit** =  500 per request*</p> *<p>Make note, GET Method URL request lines are also limited to a total length of 8192 bytes (8KB). In cases where the service allows for thousands of ids, which may lead to exceeding this request line limit of 8KB, its advised for any requests with large request lines to be requested through the respective "POST" method.</p>*
+    impliedDate:
+      name: impliedDate
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - Y
+        - N
+        default: N
+      description: This parameter controls the **date** returned in the date field. The default value is **N**. By default, the date field returns the actual date of the observation. This means it will repeat values for weekends and holidays. If  set to **Y**, the date field will return the implied date of the observation, making all the dates unique.
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

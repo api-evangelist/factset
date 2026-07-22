@@ -1,0 +1,623 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Surprise API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Surprise
+  description: The Surprise Events reflecting the company's reported financials against the broker's estimates.
+paths:
+  /factset-estimates/v2/surprise:
+    get:
+      tags:
+      - Surprise
+      summary: Factset Surprise Estimates for Rolling Fiscal Periods
+      operationId: getSurprise
+      description: 'Returns FactSet Estimates surprise data using rolling fiscal dates.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/ids'
+      - $ref: '#/components/parameters/metrics'
+      - $ref: '#/components/parameters/startDate'
+      - $ref: '#/components/parameters/endDate'
+      - $ref: '#/components/parameters/frequency'
+      - $ref: '#/components/parameters/periodicitySurprise'
+      - $ref: '#/components/parameters/statistic'
+      - $ref: '#/components/parameters/currency'
+      responses:
+        '200':
+          description: Estimate data items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/surpriseResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '415':
+          $ref: '#/components/responses/415'
+        '500':
+          $ref: '#/components/responses/500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      tags:
+      - Surprise
+      summary: Factset Surprise Estimates for Rolling Fiscal Periods
+      description: 'Returns FactSet Estimates surprise data using rolling fiscal dates.
+
+        '
+      operationId: getSurpriseForList
+      requestBody:
+        required: true
+        description: Request object for `Security` prices.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/surpriseRequest'
+      responses:
+        '200':
+          description: Estimate data items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/surpriseResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '415':
+          $ref: '#/components/responses/415'
+        '500':
+          $ref: '#/components/responses/500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    surpriseRequest:
+      title: Surprise Request Body
+      description: Request object for requesting surprise estimates.
+      type: object
+      properties:
+        ids:
+          $ref: '#/components/schemas/ids'
+        metrics:
+          $ref: '#/components/schemas/metrics'
+        startDate:
+          $ref: '#/components/schemas/startDate'
+        endDate:
+          $ref: '#/components/schemas/endDate'
+        frequency:
+          $ref: '#/components/schemas/frequency'
+        periodicity:
+          $ref: '#/components/schemas/periodicitySurprise'
+        currency:
+          $ref: '#/components/schemas/currency'
+        statistic:
+          $ref: '#/components/schemas/statistic'
+      required:
+      - ids
+      - metrics
+    surprise:
+      title: Surprise
+      type: object
+      properties:
+        fsymId:
+          type: string
+          example: SJY281-R
+          nullable: true
+        date:
+          description: Date for data expressed in YYYY-MM-DD format.
+          type: string
+          format: date
+          example: '2017-12-31'
+          nullable: true
+        currency:
+          description: 'Currency code for adjusting the data. Use ''ESTIMATE'' as input value for the values in Estimate Currency. For a list of currency ISO codes, visit [Online Assistant Page #1470](https://oa.apps.factset.com/pages/1470).'
+          type: string
+          example: USD
+          nullable: true
+        estimateCurrency:
+          description: Estimate currency of the requested Security
+          type: string
+          example: USD
+          nullable: true
+        metric:
+          description: 'Company''s Financial statement ''metric'' that is estimated. Use the factset-estimates/v#/metrics endpoint for a complete list. For more details, visit [Online Assistant Page #15034](https://oa.apps.factset.com/pages/15034).'
+          type: string
+          example: SALES
+          nullable: true
+        statistic:
+          description: 'Method of calculation for the consensus ''statistic''. For more details, visit [Online Assistant Page #16598](https://oa.apps.factset.com/pages/16114).'
+          type: string
+          example: MEAN
+          nullable: true
+        periodicity:
+          description: Company's 'periodicity' for the estimate record, reflecting Annual, Quarterly, or Semi-Annual report periods. Next-twelve-months (NTMA) and Last-twelve-months (LTMA) also supported.
+          type: string
+          example: ANN
+          nullable: true
+        fiscalEndDate:
+          description: Company's 'fiscal end date' for the estimate record expressed in YYYY-MM-DD format
+          type: string
+          format: date
+          example: '2017-12-31'
+          nullable: true
+        fiscalYear:
+          description: Company's 'fiscal year' for the estimate record
+          type: integer
+          example: 2018
+          nullable: true
+        fiscalPeriod:
+          description: Company's 'fiscal period' for the estimate record.  'Periodicity' defines context for period.
+          type: integer
+          example: 4
+          nullable: true
+        surpriseDate:
+          description: 'Date of the reported event expressed in YYYY-MM-DD format. For more details, visit [Online Assistant Page #16601](https://oa.apps.factset.com/pages/16601).'
+          type: string
+          format: date
+          example: '2017-02-24'
+          nullable: true
+        surpriseAmount:
+          description: 'Amount of difference between last consensus and actual. For more details, visit [Online Assistant Page #16145](https://oa.apps.factset.com/pages/16145).'
+          type: number
+          format: double
+          example: 0.07951
+          nullable: true
+        surprisePercent:
+          description: 'Percent difference between last consensus and actual. For more details, visit [Online Assistant Page #16145](https://oa.apps.factset.com/pages/16145).'
+          type: number
+          format: double
+          example: 6.16
+          nullable: true
+        surpriseBefore:
+          description: 'Last consensus before event. For more details, visit [Online Assistant Page #16145](https://oa.apps.factset.com/pages/16145).'
+          type: number
+          format: double
+          example: 1.2905
+          nullable: true
+        surpriseAfter:
+          description: 'Actual value after event. For more details, visit [Online Assistant Page #16145](https://oa.apps.factset.com/pages/16145).'
+          type: number
+          format: double
+          example: 1.3653
+          nullable: true
+        eventDescription:
+          description: 'Description of event. For more details, visit [Online Assistant Page #16601](https://oa.apps.factset.com/pages/16601).'
+          type: string
+          example: Results for 2016
+          nullable: true
+        eventFlag:
+          description: 'Flag for event. Code of Event Flag, where 0 = results and 1 = profit warning. For more details, visit [Online Assistant Page #16601](https://oa.apps.factset.com/pages/16601).'
+          type: integer
+          example: 0
+          nullable: true
+        requestId:
+          type: string
+          example: IBM-US
+    ids:
+      type: array
+      items:
+        type: string
+      minItems: 1
+      maxItems: 3000
+      description: 'The requested list of security identifiers. Accepted ID types include Market Tickers, SEDOL, ISINs, CUSIPs, or FactSet Permanent Ids. * Make Note - id limit of 3000 for defaults, otherwise the service is limited to a 30 second duration. This can be reached when increasing total number of metrics requested and depth of history. *
+
+        '
+      example:
+      - FDS-US
+    endDate:
+      type: string
+      description: 'The end date requested for a given date range in **YYYY-MM-DD** format. If left blank, the API will default to previous close. Future dates (T+1) are not accepted in this endpoint.
+
+        '
+      example: '2019-12-31'
+    metrics:
+      type: array
+      items:
+        type: string
+      description: 'Requested metrics. Use the metrics endpoint for a list of estimate items. Note, the number of metrics you are allowed to supply is limited to 1 for now. For more details, visit [Online Assistant Page #15034](https://oa.apps.factset.com/pages/15034).'
+      example:
+      - SALES
+      minItems: 1
+    errorResponse:
+      type: object
+      title: Error Response
+      properties:
+        status:
+          description: status
+          type: string
+          example: Bad Request
+        timestamp:
+          description: timestamp in YYYY-MM-DD HH:MM:SS.SSS
+          type: string
+          example: '2019-11-01 11:09:41.918'
+          format: date-time
+        path:
+          description: The Endpoint path {package}/version/{endpoint}
+          type: string
+          example: /factset-estimates/v2/prices
+        message:
+          description: The plain text error message
+          type: string
+          example: Validation Error
+        subErrors:
+          description: subErrors related to the error message. Null if not applicable.
+          type: object
+          properties:
+            object:
+              description: the operation ID
+              type: string
+            field:
+              description: Parameter Field Name
+              type: string
+            message:
+              description: Error message
+              type: string
+            rejectedValue:
+              description: Rejected Values in an Array
+              type: array
+              items:
+                type: string
+          example: example_value
+    statistic:
+      type: string
+      enum:
+      - MEAN
+      - MEDIAN
+      - HIGH
+      - LOW
+      - COUNT
+      - STDDEV
+      default: MEAN
+      description: Statistic for consensus calculation.
+      example: MEDIAN
+    currency:
+      description: 'Currency code for adjusting the data. Use input as ''ESTIMATE'' for values in Estimate currency. For a list of currency ISO codes, visit [Online Assistant Page #1470](https://oa.apps.factset.com/pages/1470).'
+      type: string
+      example: USD
+    startDate:
+      type: string
+      description: 'The start date requested for a given date range in **YYYY-MM-DD** format. If left blank, the API will default to previous close. Future dates (T+1) are not accepted in this #endpoint.
+
+        '
+      example: '2019-01-01'
+    surpriseResponse:
+      title: Surprise Response
+      type: object
+      properties:
+        data:
+          description: Array of surprises
+          type: array
+          items:
+            $ref: '#/components/schemas/surprise'
+          example: []
+    frequency:
+      type: string
+      enum:
+      - D
+      - W
+      - AM
+      - AQ
+      - AY
+      default: D
+      description: "Controls the display frequency of the data returned.\n  * **D** = Daily\n  * **W** = Weekly, based on the last day of the week of the start date.\n  * **AM** = Monthly, based on the start date (e.g., if the start date is June 16, data is displayed for June 16, May 16, April 16 etc.). \n  * **AQ** = Quarterly, based on the start date.\n  * **AY** = Actual Annual, based on the start date.\n"
+      example: AM
+    periodicitySurprise:
+      type: string
+      enum:
+      - ANN
+      - QTR
+      - SEMI
+      default: ANN
+      description: The periodicity for the estimates, reflecting Annual, Semi-Annual and Quarterly Estimates.
+  examples:
+    badRequestInvalidParameters:
+      summary: Bad Request - Invalid Parameters
+      description: This error message occurs when a request parameter is used in which is not recognized by the service. Please revise your request to include only the parameters listed in the specification. Typical causes are spelling mistakes and use of improper casing.
+      value:
+        status: Bad Request
+        timestamp: '2020-06-12 15:58:54.068'
+        path: /factset-estimates/v2/{endpoint}
+        message: 'Invalid Parameter (s): fakeParameterName1 fakeParameterName2. Please modify your request to use parameters outlined in the specification for this endpoint.'
+        subErrors: null
+    badRequestDateFormat:
+      summary: Bad Request - Date Format
+      description: This bad request occurs when a request doesn't use the YYYY-MM-DD in the date parameters. To resolve, convert your date to YYYY-MM-DD.
+      value:
+        status: Bad Request
+        timestamp: '2019-10-31 16:08:07.945'
+        path: /factset-estimates/v2/{endpoint}
+        message: 'The date parameter ''startDate'' must be in the following date format: YYYY-MM-DD'
+        subErrors: null
+    notWritable:
+      summary: Internal Server Error - Not Writable
+      description: This error may be returned when the server encounters an error writing the JSON response.
+      value:
+        status: Internal Server Error
+        timestamp: '2019-11-05 09:48:29.18'
+        path: /factset-estimates/v2/{endpoint}
+        message: Error writing JSON output
+        subErrors: null
+    unsupportedMediaType:
+      summary: Unsupported Media Type
+      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
+      value:
+        status: Unsupported Media Type
+        timestamp: '2019-11-05 09:42:27.237'
+        path: /factset-estimates/v2/{endpoint}
+        message: text/html media type is not supported. Supported media types are application/json
+        subErrors: null
+    generalException:
+      summary: Internal Server Error - General Exception
+      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
+      value:
+        status: Internal Server Error
+        timestamp: '2019-11-01 10:36:01.944'
+        path: /factset-estimates/v2/{endpoint}
+        message: Unexpected error
+        subErrors: null
+    badRequestReadTimeout:
+      summary: Bad Request - Read Timeout
+      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
+      value:
+        status: Bad Request
+        timestamp: '2019-11-04 16:18:38.949'
+        path: /factset-estimates/v2/{endpoint}
+        message: The request took too long. Try again with a smaller request.
+        subErrors: null
+    badRequestFutureDate:
+      summary: Bad Request - Future Date
+      description: This error message occurs when a future date is requested in the startDate and endDate parameters. Please revise your request to include dates as of today's current date or any prior historical date.
+      value:
+        status: Bad Request
+        timestamp: '2020-06-12 15:52:48.091'
+        path: /factset-estimates/v2/{endpoint}
+        message: The use of future dates is not applicable in this endpoint. Please revise your request to include dates up to today's current date.
+        subErrors: null
+    forbidden:
+      summary: Forbidden
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      value:
+        status: Forbidden
+        timestamp: '2020-06-12 16:08:51.731'
+        path: /factset-estimates/v2/{endpoint}
+        message: USERNAME-SERIAL does not have permission to use /factset-estimates/v2/{endpoint}
+        subErrors: null
+    unauthenticated:
+      summary: User Authentication Failed
+      description: This occurs when a user is not properly authenticated or recognized by the service. Please double check the USERNAME-SERIAL and API-Key used to request and ensure you are within the IP range specified for the Key. Report Issue under 401 error for help with troubleshooting.
+      value:
+        status: User Authentication Failed
+        timestamp: '2019-10-31 16:08:07.945'
+        path: /factset-estimates/v2/{endpoint}
+        message: User Authentication Failed.
+        subErrors: null
+    badRequestMalformedJSON:
+      summary: Bad Request - Malformed JSON Request
+      description: This error may be returned when the request body is specified as JSON, but is not in proper JSON format.
+      value:
+        status: Bad Request
+        timestamp: '2019-11-05 09:48:29.18'
+        path: /factset-estimates/v2/{endpoint}
+        message: Malformed JSON Request
+        subErrors: null
+    badRequestRequiredParameter:
+      summary: Bad Request - Required Parameter Missing
+      description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisks symbol in the specification file.
+      value:
+        status: Bad Request
+        timestamp: '2020-06-12 15:48:42.016'
+        path: /factset-estimates/v2/{endpoint}
+        message: The parameter 'ids' is required and may not be empty.
+        subErrors: null
+  parameters:
+    ids:
+      name: ids
+      in: query
+      schema:
+        type: array
+        items:
+          type: string
+        minItems: 1
+        maxItems: 3000
+      required: true
+      explode: false
+      description: 'Security or Entity identifiers. FactSet Identifiers, tickers, CUSIP and SEDOL are accepted input. <p>***ids limit** =  3000 per request*</p> * Make Note - id limit of 3000 for defaults, otherwise the service is limited to a 30 second duration. This can be reached when increasing total number of metrics requested and depth of history. *
+
+        '
+      examples:
+        oneId:
+          summary: One Market Identifier
+          value:
+          - AAPL-USA
+        multipleIds:
+          summary: Multiple Market Identifiers
+          value:
+          - FDS-US
+          - AAPL-US
+          - MSFT-US
+    periodicitySurprise:
+      name: periodicity
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - ANN
+        - QTR
+        - SEMI
+        default: ANN
+      description: "The periodicity for the estimates requested, allowing you to fetch Quarterly, Semi-Annual and Annual Estimates.\n  * **ANN** - Annual\n  * **QTR** - Quarterly\n  * **SEMI** - Semi-Annual \n"
+    frequency:
+      name: frequency
+      in: query
+      schema:
+        type: string
+        enum:
+        - D
+        - W
+        - AM
+        - AQ
+        - AY
+        default: D
+      description: "Controls the frequency of the data returned.\n  * **D** = Daily\n  * **W** = Weekly, based on the last day of the week of the start date.\n  * **AM** = Monthly, based on the start date (e.g., if the start date is June 16, data is displayed for June 16, May 16, April 16 etc.).      \n  * **AQ** = Quarterly, based on the start date.\n  * **AY** = Actual Annual, based on the start date. \n"
+      examples:
+        Daily:
+          summary: D - Daily frequency display based on trading calendar
+          value: D
+        Weekly:
+          summary: W - Weekly - based on the last day of the week of the start date
+          value: W
+        Actual Month:
+          summary: AM - Actual Month - based on the startDate (e.g., if the start date is June 16, data is displayed for June 16, May 16, April 16 etc.).
+          value: AM
+        Actual Annual:
+          summary: AY - Actual Annual - based on the startDate
+          value: AY
+    metrics:
+      name: metrics
+      in: query
+      required: true
+      schema:
+        type: array
+        items:
+          type: string
+          example: SALES
+        minItems: 1
+      explode: false
+      description: 'Requested metrics. Use the /metrics endpoint to return a list of available estimate items. Note, the number of metrics you are allowed to supply is limited to 1 for now. **Top 10** most used metrics are **EPS, SALES, DPS, EBITDA,EBIT, PRICE_TGT, CFPS, BPS, NET_INC, and ASSETS**.  For more details, visit [Online Assistant Page #15034](https://oa.apps.factset.com/pages/15034).
+
+        '
+      examples:
+        Metric:
+          summary: Metrics
+          value:
+          - SALES
+    startDate:
+      name: startDate
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Start date for point in time of estimates expressed in YYYY-MM-DD format.
+      example: '2019-07-30'
+    endDate:
+      name: endDate
+      in: query
+      required: false
+      schema:
+        type: string
+      description: End date for point in time of estimates expressed in YYYY-MM-DD format.
+      example: '2020-07-30'
+    currency:
+      name: currency
+      in: query
+      required: false
+      schema:
+        type: string
+      description: 'Currency code for adjusting the data. Use ''ESTIMATE'' as input value for the values in Estimate Currency. For a list of currency ISO codes, visit [Online Assistant Page #1470](https://oa.apps.factset.com/pages/1470).'
+      example: USD
+    statistic:
+      name: statistic
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - MEAN
+        - MEDIAN
+        - HIGH
+        - LOW
+        - COUNT
+        - STDDEV
+        default: MEAN
+      description: Statistic for consensus calculation.
+  responses:
+    '401':
+      description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the **Report Issue** in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/unauthenticated'
+    '415':
+      description: Unsupported Media Type. This error may be returned when the caller sends a resource in a format that is not accepted by the server. This can be fixed by ensuring that Content-Type header is set to the correct value. In this instance, "application/json" would be the appropriate value.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/unsupportedMediaType'
+    '403':
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/forbidden'
+    '500':
+      description: Internal Server Error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Internal Server Error - Not Writable:
+              $ref: '#/components/examples/notWritable'
+            Internal Server Error - General Exception:
+              $ref: '#/components/examples/generalException'
+    '400':
+      description: Bad Request. This can occur for several reasons. Please review the "message" for more details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/badRequestDateFormat'
+            Bad Request - Missing Required Parameter:
+              $ref: '#/components/examples/badRequestRequiredParameter'
+            Bad Request - Future Date:
+              $ref: '#/components/examples/badRequestFutureDate'
+            Bad Request - Invalid Parameter:
+              $ref: '#/components/examples/badRequestInvalidParameters'
+            Bad Request - Malformed JSON:
+              $ref: '#/components/examples/badRequestMalformedJSON'
+            Bad Request - Read Timeout:
+              $ref: '#/components/examples/badRequestReadTimeout'
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

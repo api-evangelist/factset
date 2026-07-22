@@ -1,0 +1,381 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Symbol API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Symbol
+paths:
+  /v1/symbol-relationships/{symbolId}/relationships:
+    get:
+      tags:
+      - Symbol
+      summary: Factset Returns a List of a Symbols Relationships
+      operationId: GetSymbolRelationships
+      parameters:
+      - name: symbolId
+        in: path
+        description: symbolId to get associated records
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SymbolRelationshipDto'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /v1/symbol-relationships/{symbolRelationshipId}:
+    get:
+      tags:
+      - Symbol
+      summary: Factset Get Details on a Specific Symbol Relationship
+      operationId: GetSymbolRelationship
+      parameters:
+      - name: symbolRelationshipId
+        in: path
+        description: symbolRelationshipId to get associated record
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SymbolRelationshipDto'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    delete:
+      tags:
+      - Symbol
+      summary: Factset Delete a Symbol Relationship
+      operationId: DeleteSymbolRelationship
+      parameters:
+      - name: symbolRelationshipId
+        in: path
+        description: symbolRelationshipId to delete associated record
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /v1/symbol-relationships:
+    post:
+      tags:
+      - Symbol
+      summary: Factset Create a Symbol Relationship
+      operationId: CreateSymbolRelationship
+      requestBody:
+        description: symbolRelationship object to save
+        content:
+          application/json-patch+json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SymbolRelationshipSaveDto'
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SymbolRelationshipSaveDto'
+          text/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SymbolRelationshipSaveDto'
+          application/*+json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SymbolRelationshipSaveDto'
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /v1/symbol-relationships/{symbol}:
+    put:
+      tags:
+      - Symbol
+      summary: Factset Edit a Symbol Relationship
+      operationId: EditAndAddSymbolRelationship
+      parameters:
+      - name: symbol
+        in: path
+        description: ''
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: symbolRelationship object to save
+        content:
+          application/json-patch+json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SymbolRelationshipUpdateDto'
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SymbolRelationshipUpdateDto'
+          text/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SymbolRelationshipUpdateDto'
+          application/*+json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SymbolRelationshipUpdateDto'
+      responses:
+        '200':
+          description: Success
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    SymbolIdNameDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          nullable: true
+          example: abc123
+        name:
+          type: string
+          nullable: true
+          example: Example Title
+        code:
+          type: string
+          nullable: true
+          example: example_value
+      additionalProperties: false
+    SymbolRelationshipDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: abc123
+        symbolsRelationship:
+          $ref: '#/components/schemas/SymbolsRelationshipIdNameDto'
+        parentSymbol:
+          $ref: '#/components/schemas/SymbolIdNameDto'
+        childSymbol:
+          $ref: '#/components/schemas/SymbolIdNameDto'
+        startDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-01-15T10:30:00Z'
+        endDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-01-15T10:30:00Z'
+        comment:
+          type: string
+          nullable: true
+          example: example_value
+      additionalProperties: false
+    SymbolRelationshipUpdateDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: abc123
+        symbolsRelationshipId:
+          type: string
+          format: uuid
+          example: '500123'
+        parentSymbol:
+          type: string
+          nullable: true
+          example: example_value
+        childSymbol:
+          type: string
+          nullable: true
+          example: example_value
+        startDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-01-15T10:30:00Z'
+        endDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-01-15T10:30:00Z'
+        comment:
+          type: string
+          nullable: true
+          example: example_value
+      additionalProperties: false
+    SymbolsRelationshipIdNameDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: abc123
+        name:
+          type: string
+          nullable: true
+          example: Example Title
+        type:
+          type: string
+          nullable: true
+          example: example_value
+      additionalProperties: false
+    SymbolRelationshipSaveDto:
+      type: object
+      properties:
+        symbolsRelationshipId:
+          type: string
+          format: uuid
+          example: '500123'
+        parentSymbol:
+          type: string
+          nullable: true
+          example: example_value
+        childSymbol:
+          type: string
+          nullable: true
+          example: example_value
+        startDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-01-15T10:30:00Z'
+        endDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-01-15T10:30:00Z'
+        comment:
+          type: string
+          nullable: true
+          example: example_value
+      additionalProperties: false
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+          nullable: true
+          example: example_value
+        title:
+          type: string
+          nullable: true
+          example: Example Title
+        status:
+          type: integer
+          format: int32
+          nullable: true
+          example: 10
+        detail:
+          type: string
+          nullable: true
+          example: example_value
+        instance:
+          type: string
+          nullable: true
+          example: example_value
+      additionalProperties: {}
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

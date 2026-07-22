@@ -1,0 +1,265 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Helper API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Helper
+paths:
+  /helper:
+    get:
+      tags:
+      - Helper
+      operationId: getHelper
+      summary: Factset Returns the Static Values for Various Parameters
+      description: Returns the static values for sources,formTypes,timeZones,categories based on the specified parameter
+      parameters:
+      - $ref: '#/components/parameters/report1'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/responseHelper'
+              examples:
+                sources:
+                  summary: Sample 200 Response for Sources Parameter
+                  value:
+                    data:
+                    - source: EDG
+                      description: EDGAR
+                    - source: EDJ
+                      description: EDINET
+                    - source: FBLK
+                      description: Factset Blackline Report
+                    - source: FFR
+                      description: Factset Annuals & Interims
+                    - source: HNX
+                      description: Hanoi Stock Exchange - HNX News
+                    - source: SDR
+                      description: SEDAR
+                    - source: SENS
+                      description: Stock Exchange News Service
+                    - source: TDT
+                      description: TDnet
+                    - source: TWSE
+                      description: Taiwan Stock Exchange
+                    - source: ASXD
+                      description: ASX Company Announcements Delayed
+                formTypes:
+                  summary: Sample 200 Response for FormTypes Parameter
+                  value:
+                    data:
+                    - source: EDG
+                      description: Edgar
+                      formType: 10-K
+                    - source: EDG
+                      description: Edgar
+                      formType: 8-K
+                timeZones:
+                  summary: Sample 200 Response for TimeZones Parameter
+                  value:
+                    data:
+                    - timezone: Africa/Malabo
+                categories:
+                  summary: Sample 200 Response for Categories Parameter
+                  value:
+                    data:
+                    - subject: SB
+                      category: SB:ANLCH
+                      description: Analysts Revisions
+        '400':
+          description: Bad request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                default400ResponseExample:
+                  $ref: '#/components/examples/ErrorDetails'
+        '401':
+          description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the Report Issue in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                default401ResponseExample:
+                  $ref: '#/components/examples/AuthErrorDetails'
+        '403':
+          description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                default403ResponseExample:
+                  $ref: '#/components/examples/AuthorizationErrorDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                default500ResponseExample:
+                  $ref: '#/components/examples/ServerErrorDetails'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    responseHelperObject:
+      type: object
+      properties:
+        sourcesObject:
+          type: object
+          properties:
+            source:
+              type: string
+              description: source value
+              example: EDG
+            description:
+              type: string
+              description: source description
+              example: EDGAR
+          example: example_value
+        formtypesObject:
+          type: object
+          properties:
+            source:
+              type: string
+              description: source
+              example: EDG
+            formType:
+              type: string
+              description: formType
+              example: 8-K
+            description:
+              type: string
+              description: source description
+              example: Edgar
+          example: example_value
+        timeZonesObject:
+          type: object
+          properties:
+            timezone:
+              type: string
+              description: timezone
+              example: Africa/Malabo
+          example: example_value
+        categoriesObject:
+          type: object
+          properties:
+            subject:
+              type: string
+              description: subject code
+              example: SB
+            category:
+              type: string
+              description: category
+              example: SB:ANLCH
+            description:
+              type: string
+              description: description
+              example: Analysts Revisions
+          example: example_value
+    ErrorResponse:
+      type: object
+      description: Error Response Object
+      properties:
+        errors:
+          type: array
+          description: Errors Array Object
+          items:
+            $ref: '#/components/schemas/ErrorExample'
+          example: []
+    ErrorExample:
+      type: object
+      description: Error Example Object
+      properties:
+        code:
+          description: Specifies the error code.
+          type: string
+          example: example_value
+        title:
+          description: ' Specifies the error message.'
+          type: string
+          example: Example Title
+        id:
+          description: Specifies the id.
+          type: string
+          example: abc123
+    responseHelper:
+      description: Filings Response Object
+      type: object
+      properties:
+        data:
+          type: array
+          description: Data Array Object
+          items:
+            $ref: '#/components/schemas/responseHelperObject'
+          example: []
+  examples:
+    ErrorDetails:
+      summary: Sample Error Response
+      value:
+        errors:
+        - code: Bad Request
+          title: parameterError:['_paginationLimit'] is not a valid parameter(s).
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    ServerErrorDetails:
+      summary: Sample Error Response
+      value:
+        errors:
+        - code: Internal Server Error
+          title: An unexpected error happened.
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    AuthorizationErrorDetails:
+      summary: Sample Error Response
+      value:
+        errors:
+        - code: Forbidden
+          title: USERNAME-SERIAL does not have permission.
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    AuthErrorDetails:
+      summary: Sample Error Response
+      value:
+        errors:
+        - code: Not Authenticated
+          title: Unauthenticated USERNAME-SERIAL.
+          id: fd5a51ff-02cf-48ec-b9b1-913d64863b0
+  parameters:
+    report1:
+      schema:
+        type: string
+        enum:
+        - sources
+        - formTypes
+        - timeZones
+        - categories
+      in: query
+      name: fields
+      description: Request data for given field.
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

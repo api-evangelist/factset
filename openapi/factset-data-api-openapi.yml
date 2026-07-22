@@ -1,0 +1,2100 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Data API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Data
+paths:
+  /navigator/sources/{DataItem_id}:
+    get:
+      tags:
+      - Data
+      summary: Factset Get a List of Sources Where the Specified Data Item Can Be Found, for Each Delivery Method, Filtered to the Appearances of the Given Data Item Within the Specified Product.
+      parameters:
+      - in: path
+        required: true
+        name: DataItem_id
+        description: The id for the DataItem to fetch the sources for.
+        schema:
+          type: string
+      - in: query
+        required: true
+        name: Product_id
+        description: The id for the Product to filter down the sources returned on.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NavigatorSourcesResponse'
+        '401':
+          description: You are not authorized to view this page.
+        '404':
+          description: The specified DataItem_id was not found.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /trade-data/{id}:
+    get:
+      operationId: readTradeData
+      description: Read a trade data
+      tags:
+      - Data
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          example: 270c2fa8-9110-444b-9101-17e10132fe0a
+        description: Unique identifier of the trade data to be read
+        example: 270c2fa8-9110-444b-9101-17e10132fe0a
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/readTradeDataResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        '406':
+          $ref: '#/components/responses/NotAcceptableErrorResponse'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        '501':
+          $ref: '#/components/responses/NotImplementedErrorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /instrument/coupon/keyData/get:
+    get:
+      tags:
+      - Data
+      operationId: get/instrument/coupon/keyData/get
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: Factset Interest Rate Details for Selected Periods of an Interest-bearing Instrument.
+      description: Interest rate details for selected periods of an interest-bearing instrument; any other instrument yields empty values.
+      parameters:
+      - name: identifier
+        in: query
+        schema:
+          type: string
+          pattern: ^[B-DF-HJ-NP-TV-Z0-9]{6}-[SLR]$|^[A-Z0-9.#&*+]{1,47}-[A-Z0-9]{2,4}$|^[0-9]{3,20}$|^[B-DF-HJ-NP-TV-Z0-9]{6}[0-9]$|^[A-Z]{2}[A-Z0-9]{9}[0-9]$|^[A-Z1-9][A-Z0-9]{5}$|^[0-9]{1,9}$|^[A-Z0-9]{8}[0-9]$
+          maxLength: 50
+          exclusiveMaximum: false
+          minLength: 3
+          exclusiveMinimum: false
+          description: Identifier to resolve.
+        required: true
+      - name: identifierType
+        in: query
+        schema:
+          type: string
+          description: Type of the identifier.
+          x-enum-description:
+          - MDG identifier of an instrument.
+          - MDG identifier of a listing.
+          - FactSet Permanent Identifier on security level.
+          - FactSet Permanent Identifier on listing level.
+          - Regional FactSet Permanent Identifier.
+          - FactSet market symbol of a listing.
+          - Regional FactSet ticker symbol.
+          - SEDOL or IDII of a listing.
+          - ISIN of an instrument.
+          - WKN of an instrument.
+          - Valor number of an instrument.
+          - CUSIP or CINS identifier of an instrument
+          enum:
+          - idInstrument
+          - idNotation
+          - fdsPermanentIdentifierSecurity
+          - fdsPermanentIdentifierListing
+          - fdsPermanentIdentifierRegional
+          - tickerExchange
+          - tickerRegion
+          - sedol
+          - isin
+          - wkn
+          - valor
+          - cusip
+        required: true
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      - name: _language
+        in: query
+        schema:
+          type: string
+          format: isoLanguage
+          description: ISO 639-1 code of the language.
+          maxLength: 2
+          minLength: 2
+          exclusiveMinimum: false
+          exclusiveMaximum: false
+      responses:
+        '200':
+          $ref: '#/components/responses/GetInstrumentCouponKeyDataGet200Response'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /search/answers/v1/data:
+    get:
+      summary: Fetch Factset Answer in Data Format
+      tags:
+      - Data
+      description: Returns an answer to the specified query (if a valid answer exists). Returns the answer data only (as JSON), without any markup information.
+      operationId: searchForDataAnswer
+      parameters:
+      - $ref: '#/components/parameters/Query'
+      - $ref: '#/components/parameters/ConsumingApplication'
+      responses:
+        '200':
+          description: Request was successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataAnswerSuccessResponse'
+        '400':
+          description: Missing or empty query.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnswerFailureResponse'
+        '401':
+          description: Missing or invalid authentication.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnswerFailureResponse'
+        '500':
+          description: Unhandled error occurred while processing the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnswerFailureResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /data-dictionary:
+    get:
+      tags:
+      - Data
+      operationId: getDataDictionary
+      description: Fetch a list of all active signals
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/signalMetaData'
+        '429':
+          description: API Rate Limit Exceeded
+          headers:
+            Api-Version:
+              $ref: '#/components/headers/Api-Version'
+            Api-Supported-Versions:
+              $ref: '#/components/headers/Api-Supported-Versions'
+            RateLimit-Limit:
+              $ref: '#/components/headers/RateLimit-Limit'
+            RateLimit-Remaining:
+              $ref: '#/components/headers/RateLimit-Remaining'
+            RateLimit-Reset:
+              $ref: '#/components/headers/RateLimit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rateLimitResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /data-dictionary/{signalId}:
+    get:
+      tags:
+      - Data
+      operationId: getDataDictionaryById
+      description: Fetch the metadata and contract for the requested signal
+      parameters:
+      - $ref: '#/components/parameters/signalIdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/signalDefinition'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse'
+        '429':
+          description: API Rate Limit Exceeded
+          headers:
+            Api-Version:
+              $ref: '#/components/headers/Api-Version'
+            Api-Supported-Versions:
+              $ref: '#/components/headers/Api-Supported-Versions'
+            RateLimit-Limit:
+              $ref: '#/components/headers/RateLimit-Limit'
+            RateLimit-Remaining:
+              $ref: '#/components/headers/RateLimit-Remaining'
+            RateLimit-Reset:
+              $ref: '#/components/headers/RateLimit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rateLimitResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /v1/{tenant}/data-sources:
+    get:
+      operationId: getAllDataSources
+      tags:
+      - Data
+      summary: Factset Lists All Datasources
+      description: List all datasources the user has permission to see
+      parameters:
+      - in: path
+        name: tenant
+        description: The code of the tenancy
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: _sort
+        description: The column to sort on. Append - to sort in descending order. If parameter is not given, no sorting will be done
+        required: false
+        style: form
+        explode: false
+        schema:
+          type: array
+          maxItems: 1
+          items:
+            type: string
+        examples:
+          name:
+            value:
+            - name
+            description: The name of the datasource to sort
+          type:
+            value:
+            - type
+            description: The type of the datasource to sort
+          outputRecordSet:
+            value:
+            - outputRecordSet
+            description: The output recordset of the datasource to sort
+          code:
+            value:
+            - code
+            description: The code of the datasource to sort
+          releaseTag:
+            value:
+            - releaseTag
+            description: The release tag of the datasource to sort
+          lastUpdatedBy:
+            value:
+            - lastUpdatedBy
+            description: The last updated by user of the datasource to sort
+          lastUpdated:
+            value:
+            - lastUpdated
+            description: The last updated by date of the datasource to sort
+      - in: query
+        name: _paginationLimit
+        description: Non-negative maximum number of entries to return. Default is 25
+        schema:
+          type: integer
+        examples:
+          pageSize:
+            value: 25
+            description: Non-negative maximum number of entries to return
+      - in: query
+        name: _paginationOffset
+        description: Non-negative number of entries to skip. Default is 0
+        schema:
+          type: integer
+        examples:
+          startIndex:
+            value: 0
+            description: Non-negative number of entries to skip
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSourceList'
+        '401':
+          description: Unauthorised
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAuthenticated
+                  title: User is not authenticated
+        '403':
+          description: No permissions to view datasources in VRS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAuthorized
+                  title: No permissions to view this item
+        '406':
+          description: Unsupported Accept header. Header needs to be set to application/json.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAcceptable
+                  title: Unsupported Accept header. Header needs to be set to application/json
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /v1/{tenant}/data-sources/{dataSourceCode}:
+    get:
+      operationId: getDataSourceByCode
+      tags:
+      - Data
+      summary: Factset Gets a Datasource
+      description: Gets a datasource based on the code passed
+      parameters:
+      - in: path
+        name: tenant
+        description: The code of the tenancy
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: dataSourceCode
+        description: The code of the datasource
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSourceData'
+        '401':
+          description: Unauthorised
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAuthenticated
+                  title: User is not authenticated
+        '403':
+          description: No permissions to view datasources in VRS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAuthorized
+                  title: No permissions to view this item
+        '404':
+          description: The supplied datasource code was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notFound
+                  title: The datasource code passed was not found
+        '406':
+          description: Unsupported Accept header. Header needs to be set to application/json.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAcceptable
+                  title: Unsupported Accept header. Header needs to be set to application/json
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /v1/{tenant}/data-sources/{dataSourceCode}/data:
+    get:
+      operationId: getDataSourceData
+      tags:
+      - Data
+      summary: Factset Gets the Data for the Datasource
+      description: Gets the data for the datasource. There are optional query parameters to filter the data
+      parameters:
+      - in: path
+        name: tenant
+        description: The code of the tenancy
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: dataSourceCode
+        description: The code of the datasource
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: entityCodes
+        description: 'A series of query parameter used to filter the data for a datasource. This represents the entities for the datasource. E.g.: entityCodes=ACCOUNT&entityCodes=FUNDS'
+        schema:
+          type: string
+      - in: query
+        name: entityKeys
+        description: 'A series of query parameter used to filter the data for a datasource. This is the entity key value for an entity selection. E.g.: entityKeys=1&entityKeys=Test2'
+        schema:
+          type: string
+      - in: query
+        name: _paginationLimit
+        description: Non-negative maximum number of entries to return. Default is 25
+        schema:
+          type: integer
+        examples:
+          pageSize:
+            value: 25
+            description: Non-negative maximum number of entries to return
+      - in: query
+        name: _paginationOffset
+        description: Non-negative number of entries to skip. Default is 0
+        schema:
+          type: integer
+        examples:
+          startIndex:
+            value: 0
+            description: Non-negative number of entries to skip
+      responses:
+        '200':
+          description: Successful operation - returns data for the datasource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSourceDataInstance'
+        '400':
+          description: The supplied datasource code was either missing or invalid, or the query parameters are invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: parameterError
+                  title: The datasource code passed was invalid
+        '401':
+          description: Unauthorised
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAuthenticated
+                  title: User is not authenticated
+        '403':
+          description: No permissions to view datasources in VRS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAuthorized
+                  title: No permissions to view this item
+        '404':
+          description: The supplied datasource code was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notFound
+                  title: The datasource code passed was not found
+        '406':
+          description: Unsupported Accept header. Header needs to be set to application/json.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAcceptable
+                  title: Unsupported Accept header. Header needs to be set to application/json
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    errorItem:
+      type: object
+      required:
+      - id
+      - code
+      - title
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: abc123
+        code:
+          type: string
+          example: parameterError
+        title:
+          type: string
+          example: Invalid type/value
+        detail:
+          type: string
+          example: Value must be a valid UTC date/time that conforms to ISO 8601 format
+        source:
+          type: object
+          properties:
+            parameter:
+              type: string
+          example: example_value
+    CountryID:
+      type: object
+      properties:
+        ISOALPHA2:
+          type: string
+          example: example_value
+    PercentChange:
+      type: object
+      properties:
+        change:
+          type: string
+          example: example_value
+        color:
+          $ref: '#/components/schemas/ChangeColor'
+    RankedTable:
+      type: object
+      required:
+      - rows
+      properties:
+        headers:
+          type: array
+          items:
+            type: string
+          example: []
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/RankedTableRow'
+          example: []
+    ValueChangeDateLabelAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
+      - type: object
+        required:
+        - templateData
+        properties:
+          templateData:
+            $ref: '#/components/schemas/ValueChangeDateLabelTemplateData'
+    ColoredValueLabelDateTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          value:
+            $ref: '#/components/schemas/ColoredValue'
+          label:
+            type: string
+          date:
+            type: string
+    rateLimitResponse:
+      title: Rate Limit Error Object
+      description: Error returned if any of the user's rate limit have been reached.
+      properties:
+        message:
+          type: string
+          example: API rate limit exceeded
+    DataSourceList:
+      type: object
+      properties:
+        meta:
+          type: object
+          properties:
+            pagination:
+              type: object
+              properties:
+                total:
+                  type: integer
+                isEstimatedTotal:
+                  type: boolean
+            sort:
+              type: array
+              items:
+                type: string
+          example: example_value
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataSourceDTO'
+          example: []
+    AnswerWithTitle:
+      allOf:
+      - $ref: '#/components/schemas/DataAnswer'
+      - type: object
+        required:
+        - title
+        properties:
+          title:
+            type: string
+    DataSourceDTO:
+      type: object
+      properties:
+        dataSourceId:
+          type: integer
+          format: int32
+          example: '500123'
+        name:
+          type: string
+          example: Example Title
+        code:
+          type: string
+          example: example_value
+        dsType:
+          type: string
+          enum:
+          - AUTOMATIC
+          - MANUAL
+          - FILTER
+          example: AUTOMATIC
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityDTO'
+          example: []
+        outputRecordSet:
+          type: string
+          example: example_value
+        releaseTag:
+          type: string
+          example: example_value
+        defaultDataSourceName:
+          type: string
+          example: example_value
+        dataPreview:
+          type: string
+          example: example_value
+        lastUpdatedBy:
+          type: string
+          example: example_value
+        lastUpdated:
+          type: number
+          example: 42.5
+    TableAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
+      - type: object
+        required:
+        - templateData
+        properties:
+          templateData:
+            $ref: '#/components/schemas/TableTemplateData'
+    ValueLabelAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
+      - type: object
+        required:
+        - templateData
+        properties:
+          templateData:
+            $ref: '#/components/schemas/ValueLabelTemplateData'
+    PercentChangeLabelAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
+      - type: object
+        required:
+        - templateData
+        properties:
+          templateData:
+            $ref: '#/components/schemas/PercentChangeLabelTemplateData'
+    ErrorLink:
+      type: object
+      required:
+      - about
+      properties:
+        about:
+          type: string
+          example: example_value
+    contractFields:
+      type: object
+      required:
+      - summary
+      - eventDate
+      properties:
+        summary:
+          type: object
+          properties:
+            description:
+              type: string
+            type:
+              type: string
+          example: example_value
+        eventDate:
+          type: object
+          properties:
+            description:
+              type: string
+            type:
+              type: string
+          example: example_value
+        additionalProperties:
+          $ref: '#/components/schemas/contractProperty'
+    DataSourceData:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DataSourceDTO'
+    ChangeColor:
+      type: string
+      enum:
+      - colorNeutral
+      - colorPositive
+      - colorNegative
+    ValueLabelTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          value:
+            type: string
+          label:
+            type: string
+    DataPair:
+      type: object
+      required:
+      - value
+      - label
+      properties:
+        value:
+          type: string
+          example: example_value
+        label:
+          type: string
+          example: Example Title
+    NoAnswersFound:
+      allOf:
+      - $ref: '#/components/schemas/NoAnswersBase'
+      - type: object
+        required:
+        - querySuggestions
+        properties:
+          querySuggestions:
+            type: array
+            items:
+              type: string
+    ValueLabelDateTextBlockAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
+      - type: object
+        required:
+        - templateData
+        properties:
+          templateData:
+            $ref: '#/components/schemas/ValueLabelDateTextBlockTemplateData'
+    DataSourceInstance:
+      type: object
+      properties:
+        dstInstanceId:
+          type: integer
+          example: '500123'
+        dstInstanceType:
+          type: integer
+          example: 10
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataSourceInstanceRows'
+          example: []
+    LinkTextBlockTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          link:
+            type: string
+          text:
+            type: string
+    TitledTextBlock:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Example Title
+        content:
+          type: string
+          example: example_value
+    Error_2:
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        code:
+          type: string
+          example: example_value
+        title:
+          type: string
+          example: Example Title
+    Fdc3Instrument:
+      type: object
+      required:
+      - type
+      - name
+      properties:
+        type:
+          type: string
+          example: example_value
+        name:
+          type: string
+          example: Example Title
+        exchangeMic:
+          type: string
+          example: example_value
+        exchangeMicFds:
+          type: string
+          example: example_value
+        id:
+          $ref: '#/components/schemas/InstrumentID'
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
+    signalMetaData:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            required:
+            - id
+            - name
+            - description
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              description:
+                type: string
+          example: []
+    InstrumentID:
+      type: object
+      properties:
+        BBG:
+          type: string
+          example: example_value
+        CUSIP:
+          type: string
+          example: example_value
+        FDS_ID:
+          type: string
+          example: '500123'
+        FDS_TICKER_REGION:
+          type: string
+          example: example_value
+        FDS_TICKER_EXCHANGE:
+          type: string
+          example: example_value
+        FIGI:
+          type: string
+          example: example_value
+        ISIN:
+          type: string
+          example: example_value
+        PERMID:
+          type: string
+          example: '500123'
+        RIC:
+          type: string
+          example: example_value
+        SEDOL:
+          type: string
+          example: example_value
+        ticker:
+          type: string
+          example: example_value
+    AnswerWithoutData:
+      allOf:
+      - $ref: '#/components/schemas/NoAnswersBase'
+      - type: object
+        required:
+        - title
+        - templateData
+        properties:
+          title:
+            type: string
+          templateData:
+            type: object
+            properties:
+              fdc3Context:
+                $ref: '#/components/schemas/Fdc3Context'
+    ApiEndpoint:
+      properties:
+        id:
+          type: string
+          example: 180443
+          description: Unique identifier for the api endpoint
+        name:
+          type: string
+          example: /symbology/v1/bloomberg
+          description: API endpoint path
+        description:
+          type: string
+          example: Translate FactSet symbols into Bloomberg Identifiers.
+          description: A description of the endpoint
+        developerPortalLink:
+          type: string
+          example: https://developer.factset.com/api-catalog/symbology-api
+          description: Developer Portal URL of the endpoint
+        entitled:
+          type: string
+          example: true
+          description: Flag indicating if the user is entitled to access the data in their subscriptions
+    TableTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          table:
+            $ref: '#/components/schemas/Table_2'
+    TextBlockFootingAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
+      - type: object
+        required:
+        - templateData
+        properties:
+          templateData:
+            $ref: '#/components/schemas/TextBlockFootingTemplateData'
+    ErrorList:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error_2'
+          example: []
+    Fdc3Context:
+      oneOf:
+      - $ref: '#/components/schemas/Fdc3Instrument'
+      - $ref: '#/components/schemas/Fdc3Country'
+      discriminator:
+        propertyName: type
+        mapping:
+          fdc3.instrument: '#/components/schemas/Fdc3Instrument'
+          fdc3.country: '#/components/schemas/Fdc3Country'
+    LinkTextBlockAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
+      - type: object
+        required:
+        - templateData
+        properties:
+          templateData:
+            $ref: '#/components/schemas/LinkTextBlockTemplateData'
+    NavigatorSourcesResponse:
+      type: object
+      properties:
+        sdf:
+          type: array
+          items:
+            $ref: '#/components/schemas/Table'
+          example: []
+        contentApi:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiEndpoint'
+          example: []
+        reference:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReferenceGroup'
+          example: []
+      required:
+      - sdf
+    ValueColor:
+      type: string
+      enum:
+      - colorNone
+      - colorBuy
+      - colorHold
+      - colorSell
+      - colorOverweight
+      - colorUnderweight
+    ValueLabelDateAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
+      - type: object
+        required:
+        - templateData
+        properties:
+          templateData:
+            $ref: '#/components/schemas/ValueLabelDateTemplateData'
+    LabelValueChangeLabelValueChangeTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          value:
+            type: string
+          label:
+            type: string
+          valueChange:
+            $ref: '#/components/schemas/ValueChange'
+          value2:
+            type: string
+          label2:
+            type: string
+    ColoredValue:
+      type: object
+      properties:
+        text:
+          type: string
+          example: example_value
+        color:
+          $ref: '#/components/schemas/ValueColor'
+    RankedTableTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/Template'
+      - type: object
+        properties:
+          table:
+            $ref: '#/components/schemas/RankedTable'
+    Table_2:
+      type: object
+      required:
+      - tableRows
+      properties:
+        tableHeaders:
+          type: array
+          items:
+            type: string
+          example: []
+        tableRows:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+          example: []
+        tableFooters:
+          type: array
+          items:
+            type: string
+          example: []
+    RankedTableAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
+      - type: object
+        required:
+        - templateData
+        properties:
+          templateData:
+            $ref: '#/components/schemas/RankedTableTemplateData'
+    EntityDTO:
+      type: object
+      properties:
+        entityId:
+          type: integer
+          format: int32
+          example: '500123'
+        name:
+          type: string
+          example: Example Title
+        code:
+          type: string
+          example: example_value
+    contract:
+      type: object
+      required:
+      - fields
+      - version
+      properties:
+        fields:
+          $ref: '#/components/schemas/contractFields'
+        version:
+          type: string
+          example: example_value
+    DataSourceAllData:
+      type: object
+      properties:
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecordSetFields'
+          example: []
+        dstInstance:
+          $ref: '#/components/schemas/DataSourceInstance'
+    ColoredValueLabelDateAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
+      - type: object
+        required:
+        - templateData
+        properties:
+          templateData:
+            $ref: '#/components/schemas/ColoredValueLabelDateTemplateData'
+    TableTableTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          table1:
+            $ref: '#/components/schemas/Table_2'
+          table2:
+            $ref: '#/components/schemas/Table_2'
+    ValueLabelDateTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          value:
+            type: string
+          label:
+            type: string
+          date:
+            type: string
+    Error:
+      type: object
+      required:
+      - id
+      - code
+      - title
+      properties:
+        id:
+          type: string
+          example: abc123
+        code:
+          type: string
+          example: example_value
+        title:
+          type: string
+          example: Example Title
+        links:
+          $ref: '#/components/schemas/ErrorLink'
+        detail:
+          type: string
+          example: example_value
+        source:
+          $ref: '#/components/schemas/ErrorSource'
+    ErrorSource:
+      type: object
+      properties:
+        pointer:
+          type: string
+          example: example_value
+        parameter:
+          type: string
+          example: example_value
+    TemplateWithLinks:
+      allOf:
+      - $ref: '#/components/schemas/Template'
+      - type: object
+        required:
+        - headline
+        properties:
+          applicationLinks:
+            type: array
+            items:
+              $ref: '#/components/schemas/ApplicationLink'
+    Fdc3Country:
+      type: object
+      required:
+      - type
+      - name
+      properties:
+        type:
+          type: string
+          example: example_value
+        name:
+          type: string
+          example: Example Title
+        id:
+          $ref: '#/components/schemas/CountryID'
+    ReferenceGroup:
+      properties:
+        id:
+          type: string
+          example: 180443
+          description: Unique identifier for the api endpoint
+        name:
+          type: string
+          example: /symbology/v1/bloomberg
+          description: API endpoint path
+        description:
+          type: string
+          example: Translate FactSet symbols into Bloomberg Identifiers.
+          description: A description of the endpoint
+        entitled:
+          type: string
+          example: true
+          description: Flag indicating if the user is entitled to access the data in their subscriptions
+    LabelValueChangeLabelValueChangeAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
+      - type: object
+        required:
+        - templateData
+        properties:
+          templateData:
+            $ref: '#/components/schemas/LabelValueChangeLabelValueChangeTemplateData'
+    ValueChange:
+      type: object
+      properties:
+        absoluteChange:
+          type: string
+          example: example_value
+        percentageChange:
+          type: string
+          example: example_value
+        color:
+          $ref: '#/components/schemas/ChangeColor'
+    NoAnswersBase:
+      allOf:
+      - $ref: '#/components/schemas/DataAnswer'
+      - type: object
+        required:
+        - message
+        properties:
+          message:
+            type: string
+    readTradeDataResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            type:
+              type: string
+              enum:
+              - Account
+              - AccountComposite
+              - ExchangeRate
+              - GlobalAccountProperties
+              - Holdings
+              - HoldingsComposite
+              - PortfolioGroup
+              - Returns
+              - ReturnsComposite
+              - SecurityMaster
+              - TradeData
+              - VendorReturnSeries
+              nullable: false
+              description: Metadata file type formatted for consistency with the REST api
+            id:
+              type: string
+              nullable: false
+              description: Unique identifier for this metadata file.
+              example: f132625b-1506-4cc3-b2e8-2c75de39c79c
+            display:
+              type: string
+              nullable: false
+              description: The GUI path of this file, including the name and extension.
+              example: SP50
+            path:
+              type: string
+              nullable: false
+              description: The GUI path to this object.
+              example: 'Client:'
+            name:
+              type: string
+              nullable: false
+              description: Name of this file object including the extension.
+              example: SP50
+            description:
+              type: string
+              nullable: true
+              description: User provided description of this file.
+              example: Meaningful description of vendor returns
+          nullable: true
+          description: Read a metadata file by its id.
+          example: example_value
+      nullable: true
+    RecordSetFields:
+      type: object
+      properties:
+        fieldType:
+          type: string
+          enum:
+          - BOOLEAN
+          - DATETIME
+          - DECIMAL
+          - HTML
+          - INTEGER
+          - TEXT
+          example: BOOLEAN
+        format:
+          type: string
+          example: example_value
+        id:
+          type: integer
+          example: abc123
+        hide:
+          type: string
+          example: example_value
+        name:
+          type: string
+          example: Example Title
+    ValueLabelDateDataPairListTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          value:
+            type: string
+          label:
+            type: string
+          date:
+            type: string
+          list:
+            type: array
+            items:
+              $ref: '#/components/schemas/DataPair'
+    DataSourceDataInstance:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DataSourceAllData'
+    DataAnswer:
+      type: object
+      required:
+      - template
+      properties:
+        template:
+          type: string
+          example: example_value
+    PercentChangeLabelTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          percentChange:
+            $ref: '#/components/schemas/PercentChange'
+          label:
+            type: string
+    TableTableAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
+      - type: object
+        required:
+        - templateData
+        properties:
+          templateData:
+            $ref: '#/components/schemas/TableTableTemplateData'
+    Template:
+      type: object
+      required:
+      - headline
+      properties:
+        headline:
+          type: string
+          example: example_value
+        footer:
+          type: string
+          example: example_value
+        fdc3Context:
+          $ref: '#/components/schemas/Fdc3Context'
+    DataAnswerSuccessResponse:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/DataAnswerData'
+    TextBlockFootingTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          body:
+            type: string
+          footing:
+            $ref: '#/components/schemas/TitledTextBlock'
+    Table:
+      properties:
+        id:
+          type: string
+          example: '123'
+          description: Unique identifier for the table
+        dbSchema:
+          type: string
+          example: gr_v2
+          description: Schema prefix for Standard DataFeeds
+        name:
+          type: string
+          example: gr_coverage
+          description: Name of the table
+        description:
+          type: string
+          example: This table contains coverage information for each entity that has a report in the Geographic Revenue Exposure package.
+          description: A description of the table
+        entitled:
+          type: boolean
+          example: true
+          description: Flag indicating if the user is entitled to access the data in their subscriptions
+    ValueChangeDateLabelTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          value:
+            type: string
+          valueChange:
+            $ref: '#/components/schemas/ValueChange'
+          date:
+            type: string
+          label:
+            type: string
+    errorResponse:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+          description: A short description of the error.
+          example: There was an error processing your request. Please try again later.
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errorItem'
+          description: Optional list of errors. e.g. Validation errors for multiple parameters
+          example: []
+    DataSourceInstanceRows:
+      type: object
+      properties:
+        rowId:
+          type: integer
+          example: '500123'
+        order:
+          type: integer
+          example: 10
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecordSetFieldValues'
+          example: []
+    Errors:
+      type: object
+      description: Information about one or more errors
+      properties:
+        errors:
+          type: array
+          description: List of errors
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Unique identifier for this error instance.  Used to reference this error in logging.
+                example: 270c2fa8-9110-444b-9101-17e10132fe0a
+              code:
+                type: string
+                description: Error code for this error
+                enum:
+                - BadRequestError
+                - UnauthorizedError
+                - ForbiddenError
+                - NotFoundError
+                - NotAcceptableError
+                - ConflictError
+                - UnsupportedMediaTypeError
+                - InternalServerError
+                - NotImplementedError
+              title:
+                type: string
+                description: HTTP reason phrase associcated with this error
+                enum:
+                - Bad Request
+                - Unauthorized
+                - Forbidden
+                - Not Found
+                - Not Acceptable
+                - Conflict
+                - Unsupported Media Type
+                - Internal Server Error
+                - Not Implemented
+              detail:
+                type: string
+                description: Detailed description of the error that occurred
+          example: []
+      required:
+      - errors
+    signalDefinition:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          type: object
+          required:
+          - signalId
+          - theme
+          - categories
+          - contract
+          properties:
+            signalId:
+              type: string
+            theme:
+              type: string
+            categories:
+              type: array
+              items:
+                type: string
+            contract:
+              $ref: '#/components/schemas/contract'
+          example: example_value
+    contractProperty:
+      type: object
+      required:
+      - description
+      - type
+      properties:
+        description:
+          type: string
+          example: A sample description.
+        type:
+          type: string
+          example: example_value
+        optional:
+          type: boolean
+          example: true
+        items:
+          type: object
+          required:
+          - type
+          properties:
+            type:
+              type: string
+          example: example_value
+    ApplicationLink:
+      type: object
+      required:
+      - name
+      - webLink
+      properties:
+        name:
+          type: string
+          example: Example Title
+        workstationLink:
+          type: string
+          example: example_value
+        webLink:
+          type: string
+          example: example_value
+    DataAnswerData:
+      oneOf:
+      - $ref: '#/components/schemas/LinkTextBlockAnswer'
+      - $ref: '#/components/schemas/TextBlockFootingAnswer'
+      - $ref: '#/components/schemas/PercentChangeLabelAnswer'
+      - $ref: '#/components/schemas/ValueChangeDateLabelAnswer'
+      - $ref: '#/components/schemas/RankedTableAnswer'
+      - $ref: '#/components/schemas/TableAnswer'
+      - $ref: '#/components/schemas/TableTableAnswer'
+      - $ref: '#/components/schemas/ValueLabelAnswer'
+      - $ref: '#/components/schemas/ValueLabelDateAnswer'
+      - $ref: '#/components/schemas/ColoredValueLabelDateAnswer'
+      - $ref: '#/components/schemas/ValueLabelDateTextBlockAnswer'
+      - $ref: '#/components/schemas/ValueLabelDateDataPairListAnswer'
+      - $ref: '#/components/schemas/LabelValueChangeLabelValueChangeAnswer'
+      - $ref: '#/components/schemas/AnswerWithoutData'
+      - $ref: '#/components/schemas/NoAnswersFound'
+      discriminator:
+        propertyName: template
+        mapping:
+          LinkTextBlockTemplate: '#/components/schemas/LinkTextBlockAnswer'
+          TextBlockFootingTemplate: '#/components/schemas/TextBlockFootingAnswer'
+          PercentChangeLabelTemplate: '#/components/schemas/PercentChangeLabelAnswer'
+          ValueChangeDateLabelTemplate: '#/components/schemas/ValueChangeDateLabelAnswer'
+          RankedTableTemplate: '#/components/schemas/RankedTableAnswer'
+          TableTemplate: '#/components/schemas/TableAnswer'
+          TableTableTemplate: '#/components/schemas/TableTableAnswer'
+          ValueLabelTemplate: '#/components/schemas/ValueLabelAnswer'
+          ValueLabelDateTemplate: '#/components/schemas/ValueLabelDateAnswer'
+          ColoredValueLabelDateTemplate: '#/components/schemas/ColoredValueLabelDateAnswer'
+          ValueLabelDateTextBlockTemplate: '#/components/schemas/ValueLabelDateTextBlockAnswer'
+          ValueLabelDateDataPairListTemplate: '#/components/schemas/ValueLabelDateDataPairListAnswer'
+          LabelValueChangeLabelValueChangeTemplate: '#/components/schemas/LabelValueChangeLabelValueChangeAnswer'
+          AnswerWithoutDataTemplate: '#/components/schemas/AnswerWithoutData'
+          NoAnswerTemplate: '#/components/schemas/NoAnswersFound'
+    RankedTableEntity:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Example Title
+        identifier:
+          type: string
+          example: example_value
+    ValueLabelDateDataPairListAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
+      - type: object
+        required:
+        - templateData
+        properties:
+          templateData:
+            $ref: '#/components/schemas/ValueLabelDateDataPairListTemplateData'
+    ValueLabelDateTextBlockTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          value:
+            type: string
+          label:
+            type: string
+          date:
+            type: string
+          text:
+            type: string
+    RecordSetFieldValues:
+      type: object
+      properties:
+        fieldId:
+          type: integer
+          example: '500123'
+        fieldType:
+          type: string
+          enum:
+          - BOOLEAN
+          - DATETIME
+          - DECIMAL
+          - HTML
+          - INTEGER
+          - TEXT
+          example: BOOLEAN
+        fieldValue:
+          type: string
+          example: example_value
+    RankedTableRow:
+      type: object
+      required:
+      - rank
+      properties:
+        rank:
+          type: number
+          example: 42.5
+        entity:
+          $ref: '#/components/schemas/RankedTableEntity'
+        applicationLink:
+          $ref: '#/components/schemas/ApplicationLink'
+        additionalData:
+          type: array
+          items:
+            type: string
+          example: []
+    AnswerFailureResponse:
+      type: object
+      required:
+      - errors
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+          example: []
+  headers:
+    RateLimit-Limit:
+      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
+      schema:
+        type: integer
+        example: 5
+    Api-Version:
+      description: Full semantic version of the API.
+      schema:
+        type: string
+        example: 1.0.0
+    RateLimit-Remaining:
+      description: Remaining number of requests in the current time window.
+      schema:
+        type: integer
+        example: 4
+    RateLimit-Reset:
+      description: Time remaining (in seconds) until the quota is reset.
+      schema:
+        type: integer
+        example: 1000
+    Api-Supported-Versions:
+      description: Comma-separated list of supported major versions.
+      schema:
+        type: string
+        example: '1'
+  responses:
+    UnauthorizedErrorResponse:
+      description: Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    UnsupportedMediaTypeErrorResponse:
+      description: The request entity has a media type which the server or resource does not support.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    NotAcceptableErrorResponse:
+      description: The requested resource is capable of generating only content not acceptable according to the Accept headers sent in the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    ForbiddenErrorResponse:
+      description: The request contained valid data and was understood by the server, but the server is refusing action. This may be due to the user not having the necessary permissions for a resource or needing an account of some sort, or attempting a prohibited action.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    InternalServerErrorResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    BadRequestErrorResponse:
+      description: The server cannot or will not process the request due to an apparent client error (e.g., malformed request syntax, size too large, invalid request message framing, or deceptive request routing).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    GetInstrumentCouponKeyDataGet200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  idInstrument:
+                    nullable: true
+                    type: string
+                    format: id64
+                    x-positive: true
+                    description: MDG identifier of the instrument.
+                  sourceIdentifier:
+                    nullable: true
+                    type: string
+                    description: Identifier used in the request.
+                  occurrence:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - type
+                    - frequency
+                    description: Occurrence and frequency of the coupon payments.
+                    properties:
+                      type:
+                        nullable: true
+                        type: string
+                        description: Occurrence type of the coupon payments.
+                        x-enum-description:
+                        - The instrument does not pay out a coupon.
+                        - The instrument pays out a coupon only once.
+                        - The instrument pays out a coupon on a repeated basis.
+                        enum:
+                        - never
+                        - once
+                        - repeated
+                      frequency:
+                        nullable: false
+                        type: object
+                        x-property-sort:
+                        - id
+                        - name
+                        description: Frequency of the coupon payments. Information about the frequency is available only if the attribute occurrence.type is set to "repeated". See endpoint `/basic/frequency/type/list` for possible values of the frequency.
+                        properties:
+                          id:
+                            nullable: true
+                            type: number
+                            format: id32
+                            x-positive: true
+                            description: Identifier of the frequency.
+                          name:
+                            nullable: true
+                            type: string
+                            format: localizedString
+                            description: Name of the frequency.
+                  interestRate:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - initial
+                    - current
+                    - final
+                    description: Interest rate details for selected coupon periods.
+                    properties:
+                      initial:
+                        nullable: false
+                        type: object
+                        x-property-sort:
+                        - value
+                        - startAccrual
+                        - periodEnd
+                        description: Details of the first coupon period.
+                        properties:
+                          value:
+                            nullable: true
+                            type: number
+                            format: relativeValue
+                            description: Value of the interest rate.
+                          startAccrual:
+                            nullable: true
+                            type: string
+                            format: date
+                            description: Date as of which interest starts accruing.
+                          periodEnd:
+                            nullable: true
+                            type: string
+                            format: date
+                            description: Ending date (inclusive).
+                      current:
+                        nullable: false
+                        type: object
+                        x-property-sort:
+                        - value
+                        - type
+                        - accruedInterest
+                        - periodEnd
+                        description: Details of the current coupon period.
+                        properties:
+                          value:
+                            nullable: true
+                            type: number
+                            format: relativeValue
+                            description: Value of the interest rate.
+                          type:
+                            nullable: false
+                            type: object
+                            x-property-sort:
+                            - id
+                            - name
+                            description: Type of the interest rate, see endpoint `/instrument/coupon/interestRate/type/list` for possible values.
+                            properties:
+                              id:
+                                nullable: true
+                                type: number
+                                format: id32
+                                x-positive: true
+                                description: Identifier of the interest rate type.
+                              name:
+                                nullable: true
+                                type: string
+                                format: localizedString
+                                description: Name of the interest rate type.
+                          accruedInterest:
+                            nullable: false
+                            type: object
+                            x-property-sort:
+                            - absolute
+                            - relative
+                            description: Accrued interest, i.e. interest earned but not yet received (realized). The interest starts accruing at the beginning of a coupon period and reaches the declared value (see attribute `interestRate.current.value`) for that period at its end. For the start and end date of a coupon period see endpoint `/instrument/coupon/list`, attribute `coupons.period`.
+                            properties:
+                              absolute:
+                                nullable: true
+                                type: number
+                                format: real
+                                description: Monetary value of the accrued interest. The attribute is available only for instruments with a declared nominal value, e.g. securitized derivatives.
+                              relative:
+                                nullable: true
+                                type: number
+                                format: relativeValue
+                                description: Accrued interest.
+                          periodEnd:
+                            nullable: true
+                            type: string
+                            format: date
+                            description: Ending date (inclusive).
+                      final:
+                        nullable: false
+                        type: object
+                        x-property-sort:
+                        - periodEnd
+                        description: Details of the final coupon period.
+                        properties:
+                          periodEnd:
+                            nullable: true
+                            type: string
+                            format: date
+                            description: Ending date (inclusive).
+                  dayCountConvention:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - id
+                    - name
+                    description: Day count convention type. See endpoint `/instrument/coupon/dayCountConvention/type/list` for possible values.
+                    properties:
+                      id:
+                        nullable: true
+                        type: number
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the day count convention type.
+                      name:
+                        nullable: true
+                        type: string
+                        format: localizedString
+                        description: Name of the day count convention type.
+                description: Key dates and details.
+                nullable: false
+                x-property-sort:
+                - idInstrument
+                - sourceIdentifier
+                - occurrence
+                - interestRate
+                - dayCountConvention
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
+    NotFoundErrorResponse:
+      description: The requested resource could not be found but may be available in the future. Subsequent requests by the client are permissible.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    NotImplementedErrorResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+  parameters:
+    Query:
+      name: query
+      in: query
+      description: Query for desired answer (e.g., "fds price")
+      required: true
+      schema:
+        type: string
+    ConsumingApplication:
+      name: consumingApplication
+      in: query
+      description: Name of application consuming the API (used for analytics purposes)
+      required: false
+      schema:
+        type: string
+        default: Developer Portal
+    signalIdParam:
+      name: signalId
+      in: path
+      required: true
+      schema:
+        type: string
+        description: A single signalId.
+      example: dilutionTrigger
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

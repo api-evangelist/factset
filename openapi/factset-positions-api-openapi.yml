@@ -1,0 +1,1661 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Positions API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Positions
+paths:
+  /factset-people/v1/company-positions:
+    get:
+      summary: Factset Returns the List of People for the Specified Company Identifiers and Position
+      description: "Returns the list of people, name, and title for a list of company ids and requested position. Positions include-\n  * Chairman\n  * Chief Executive Officer\n  * President\n  * Chief Operating Officer\n  * Chief Financial Officer\n  * Chief Technology Officer\n  * Chief Investment Officer\n  * Founder(s)\n  * Compliance Officer\n  * Admin\n  * Independent Director\n  * Directors/Board Members\n  * Investor Relations\n  * Legal Counsel\n  * Treasurer\n  * Sales and Marketing Managers\n  * Human Resources\n"
+      tags:
+      - Positions
+      operationId: getCompanyPositions
+      parameters:
+      - $ref: '#/components/parameters/companyId'
+      - $ref: '#/components/parameters/position'
+      responses:
+        '200':
+          description: Array of Company Positions objects.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/companyPositionsResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '415':
+          $ref: '#/components/responses/415'
+        '500':
+          $ref: '#/components/responses/500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      summary: Factset Returns the List of People Associated for a Large List of Company Identitifers and Position
+      description: "Returns the list of people, name, and title for a list of company ids and requested position. Positions include-\n  * Chairman\n  * Chief Executive Officer\n  * President\n  * Chief Operating Officer\n  * Chief Financial Officer\n  * Chief Technology Officer\n  * Chief Investment Officer\n  * Founder(s)\n  * Compliance Officer\n  * Admin\n  * Independent Director\n  * Directors/Board Members\n  * Investor Relations\n  * Legal Counsel\n  * Treasurer\n  * Sales and Marketing Managers\n  * Human Resources\n"
+      tags:
+      - Positions
+      operationId: getCompanyPositionsForList
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/companyPositionsRequest'
+      responses:
+        '200':
+          description: Array of Company Positions objects.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/companyPositionsResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '415':
+          $ref: '#/components/responses/415'
+        '500':
+          $ref: '#/components/responses/500'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /portfolio/position/list:
+    get:
+      tags:
+      - Positions
+      operationId: get/portfolio/position/list
+      x-supportsOffsetBasedPaging: true
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: List all open positions of a portfolio.
+      summary: List all open positions of a portfolio.
+      parameters:
+      - name: id
+        in: query
+        schema:
+          description: Identifier of the portfolio.
+          type: string
+          format: id64
+          x-positive: true
+        required: true
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      - name: _language
+        in: query
+        schema:
+          type: string
+          format: isoLanguage
+          description: ISO 639-1 code of the language.
+          maxLength: 2
+          minLength: 2
+          exclusiveMinimum: false
+          exclusiveMaximum: false
+      - description: Sortable attributes. The sort order is ascending unless it is prefixed with a minus sign, in which case it is descending. A list of at most 10 (possibly prefixed) attribute name(s) is allowed.
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - positions.instrument.name
+            - -positions.instrument.name
+            - positions.instrument.shortName
+            - -positions.instrument.shortName
+            - positions.instrument.assetClass.code
+            - -positions.instrument.assetClass.code
+            - positions.instrument.type.name
+            - -positions.instrument.type.name
+            - positions.shares.open
+            - -positions.shares.open
+            - positions.purchase.value
+            - -positions.purchase.value
+            - positions.value
+            - -positions.value
+            - positions.weight
+            - -positions.weight
+            - positions.profitLoss.intraday.absolute
+            - -positions.profitLoss.intraday.absolute
+            - positions.profitLoss.intraday.relative
+            - -positions.profitLoss.intraday.relative
+            - positions.profitLoss.potential.absolute
+            - -positions.profitLoss.potential.absolute
+            - positions.profitLoss.potential.relative
+            - -positions.profitLoss.potential.relative
+          maxItems: 10
+          uniqueItems: true
+          default:
+          - positions.instrument.name
+        style: form
+        explode: false
+        name: _sort
+        in: query
+      - description: Non-negative number of entries to skip, or 0 (default).
+        name: _paginationOffset
+        in: query
+        schema:
+          type: number
+          format: int32
+          minimum: 0
+          exclusiveMinimum: false
+          default: 0
+      - description: Non-negative maximum number of entries to return.
+        name: _paginationLimit
+        in: query
+        schema:
+          type: number
+          format: int32
+          minimum: 1
+          exclusiveMinimum: false
+          maximum: 100
+          exclusiveMaximum: false
+          default: 20
+      responses:
+        '200':
+          $ref: '#/components/responses/GetPortfolioPositionList200Response'
+  /portfolio/position/closed/list:
+    post:
+      tags:
+      - Positions
+      operationId: post/portfolio/position/closed/list
+      x-supportsOffsetBasedPaging: true
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 8
+      x-supportsPermissionDeniedResponse: false
+      description: List all closed positions of a portfolio.
+      summary: List all closed positions of a portfolio.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPortfolioPositionClosedListRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostPortfolioPositionClosedList200Response'
+      parameters: []
+  /watchlist/position/create:
+    post:
+      tags:
+      - Positions
+      operationId: post/watchlist/position/create
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: "Add a position to a watchlist.\n\nCertain error conditions yield errors as follows: \n\n|Error Condition|HTTP Error|\n|-------|--------|\n|Maximum number of watchlist positions would exceed 100.|400 Bad Request|\n|The watchlist does not exist.|400 Bad Request|\n|The notation already exists in the watchlist.|400 Bad Request|"
+      summary: Add a position to a watchlist.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostWatchlistPositionCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/PostWatchlistPositionCreate201Response'
+      parameters: []
+  /watchlist/position/delete:
+    post:
+      tags:
+      - Positions
+      operationId: post/watchlist/position/delete
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Delete a position of a watchlist.
+      summary: Delete a position of a watchlist.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostWatchlistPositionDeleteRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostWatchlistPositionDelete200Response'
+      parameters: []
+  /watchlist/position/get:
+    post:
+      tags:
+      - Positions
+      operationId: post/watchlist/position/get
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Details of the position of a watchlist.
+      summary: Details of the position of a watchlist.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostWatchlistPositionGetRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostWatchlistPositionGet200Response'
+      parameters: []
+  /watchlist/position/list:
+    get:
+      tags:
+      - Positions
+      operationId: get/watchlist/position/list
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 2
+      x-supportsPermissionDeniedResponse: false
+      description: List of positions of a watchlist.
+      summary: List of positions of a watchlist.
+      parameters:
+      - name: id
+        in: query
+        schema:
+          description: Identifier of the watchlist.
+          type: string
+          format: id64
+          x-positive: true
+        required: true
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      - description: Sortable attributes. The sort order is ascending unless it is prefixed with a minus sign, in which case it is descending. A list of at most 2 (possibly prefixed) attribute name(s) is allowed.
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - id
+            - -id
+            - notation.id
+            - -notation.id
+          maxItems: 2
+          uniqueItems: true
+          default:
+          - id
+        style: form
+        explode: false
+        name: _sort
+        in: query
+      responses:
+        '200':
+          $ref: '#/components/responses/GetWatchlistPositionList200Response'
+  /watchlist/position/modify:
+    post:
+      tags:
+      - Positions
+      operationId: post/watchlist/position/modify
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: true
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: "Modify a position in a watchlist.\n\nCertain error conditions yield errors as follows: \n\n|Error Condition|HTTP Error|\n|-------|--------|\n|At least one of the parameters `notation` or `comment` must be set.|400 Bad Request|\n|The notation already exists in the watchlist.|400 Bad Request|"
+      summary: Modify a position in a watchlist.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostWatchlistPositionModifyRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostWatchlistPositionModify200Response'
+      parameters: []
+components:
+  responses:
+    PostWatchlistPositionGet200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: Position of the watchlist.
+                nullable: false
+                type: object
+                x-property-sort:
+                - notation
+                - comment
+                properties:
+                  notation:
+                    nullable: false
+                    description: Notation of the position.
+                    type: object
+                    x-property-sort:
+                    - id
+                    properties:
+                      id:
+                        nullable: true
+                        description: Identifier of the notation.
+                        type: string
+                        format: id64
+                        x-positive: true
+                  comment:
+                    nullable: true
+                    description: Personal note for the watchlist position.
+                    type: string
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+    PostWatchlistPositionDelete200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: This member is always emtpy.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+    GetPortfolioPositionList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: List of open positions.
+                nullable: false
+                type: object
+                x-property-sort:
+                - positions
+                properties:
+                  positions:
+                    nullable: false
+                    type: array
+                    items:
+                      type: object
+                      nullable: false
+                      x-property-sort:
+                      - instrument
+                      - currency
+                      - notation
+                      - shares
+                      - purchase
+                      - value
+                      - weight
+                      - profitLoss
+                      properties:
+                        instrument:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - id
+                          - name
+                          - shortName
+                          - isin
+                          - assetClass
+                          - type
+                          description: Details of the instrument
+                          properties:
+                            id:
+                              nullable: true
+                              description: Identifier of the instrument.
+                              type: string
+                              format: id64
+                              x-positive: true
+                            name:
+                              nullable: true
+                              x-sortable: true
+                              x-default-sort-attribute: true
+                              x-default-sort-direction: 1
+                              type: string
+                              format: localizedString
+                              description: Name of the instrument.
+                            shortName:
+                              nullable: true
+                              x-sortable: true
+                              type: string
+                              format: localizedString
+                              description: Short name of the instrument.
+                            isin:
+                              nullable: true
+                              description: International Securities Identification Number
+                              type: string
+                              format: isin
+                            assetClass:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - id
+                              - code
+                              description: 'Asset class of the instrument. For possible values see endpoint
+
+                                `/basic/assetClass/list`.'
+                              properties:
+                                id:
+                                  nullable: true
+                                  description: Identifier of the asset class.
+                                  type: number
+                                  format: id32
+                                  x-positive: true
+                                code:
+                                  nullable: true
+                                  x-sortable: true
+                                  type: string
+                                  description: Code of the asset class.
+                            type:
+                              nullable: false
+                              description: Instrument type as defined by FactSet Digital Solutions. Instrument categories are arranged in a hierarchy, with level 1 representing the most coarse granularity and further levels successively refining the granularity (see MDG category system 18).
+                              type: array
+                              items:
+                                type: object
+                                nullable: false
+                                x-property-sort:
+                                - id
+                                - name
+                                properties:
+                                  id:
+                                    nullable: true
+                                    description: Identifier of the instrument type.
+                                    type: number
+                                    format: id32
+                                    x-positive: true
+                                  name:
+                                    nullable: true
+                                    x-sortable: true
+                                    type: string
+                                    format: localizedString
+                                    description: Name of the instrument type.
+                        currency:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - id
+                          - isoCode
+                          description: Main currency of the position. See endpoint `/basic/valueUnit/currency/main/list` for possible values.
+                          properties:
+                            id:
+                              nullable: true
+                              type: number
+                              format: id32
+                              x-positive: true
+                              description: Identifier of the currency.
+                            isoCode:
+                              nullable: true
+                              type: string
+                              description: ISO 4217 code of the currency.
+                        notation:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - id
+                          - price
+                          description: Notation of the transaction establishing the position, i.e. its first transaction.
+                          properties:
+                            id:
+                              nullable: true
+                              description: Identifier of the notation.
+                              type: string
+                              format: id64
+                              x-positive: true
+                            price:
+                              nullable: false
+                              description: Price of the notation.
+                              type: object
+                              x-property-sort:
+                              - time
+                              - value
+                              properties:
+                                time:
+                                  nullable: true
+                                  description: Date and time of the trade price
+                                  type: string
+                                  format: datetime
+                                value:
+                                  nullable: true
+                                  description: Trade price.
+                                  type: number
+                                  format: real
+                        shares:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - bought
+                          - sold
+                          - open
+                          description: Number of shares in the position.
+                          properties:
+                            bought:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Number of shares bought.
+                            sold:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Number of shares sold.
+                            open:
+                              nullable: true
+                              x-sortable: true
+                              type: number
+                              format: real
+                              description: Open number of shares.
+                        purchase:
+                          nullable: false
+                          description: Purchase details of the position.
+                          type: object
+                          x-property-sort:
+                          - price
+                          - exchangeRate
+                          - charges
+                          - value
+                          properties:
+                            price:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Weighted average purchase price of the position.
+                            exchangeRate:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Weighted average exchange rate of the position between the position and portfolio currency.
+                            charges:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Sum of additional purchase fees for the position in the portfolio's base currency.
+                            value:
+                              nullable: true
+                              x-sortable: true
+                              type: number
+                              format: real
+                              description: Aggregated purchase value of all buy transactions of the position.
+                        value:
+                          nullable: true
+                          x-sortable: true
+                          type: number
+                          format: real
+                          description: Current value of the position.
+                        weight:
+                          nullable: true
+                          x-sortable: true
+                          description: Weight of the position.
+                          type: number
+                          format: percentage
+                          x-convertToRelative: false
+                        profitLoss:
+                          nullable: false
+                          description: Profit and loss of the position. Positive values indicate profit; negative values indicate loss. All calculations are performed in the currency of the portfolio.
+                          type: object
+                          x-property-sort:
+                          - intraday
+                          - potential
+                          properties:
+                            intraday:
+                              nullable: false
+                              description: Summary of today's profit or loss, calculated using the most recent price and the last price of the prior trading day.
+                              type: object
+                              x-property-sort:
+                              - absolute
+                              - relative
+                              properties:
+                                absolute:
+                                  nullable: true
+                                  description: Absolute value of profit or loss.
+                                  x-sortable: true
+                                  type: number
+                                  format: real
+                                relative:
+                                  nullable: true
+                                  description: Relative value of profit or loss.
+                                  x-sortable: true
+                                  type: number
+                                  format: percentage
+                                  x-convertToRelative: false
+                            potential:
+                              nullable: false
+                              description: Summary of potential profit or loss resulting from open positions, i.e. instrument positions that have not been sold.
+                              type: object
+                              x-property-sort:
+                              - absolute
+                              - relative
+                              properties:
+                                absolute:
+                                  nullable: true
+                                  description: Absolute value of profit or loss.
+                                  x-sortable: true
+                                  type: number
+                                  format: real
+                                relative:
+                                  nullable: true
+                                  description: Relative value of profit or loss.
+                                  x-sortable: true
+                                  type: number
+                                  format: percentage
+                                  x-convertToRelative: false
+                    maxItems: 1000
+                    description: Positions of the portfolio.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                  pagination:
+                    $ref: '#/components/schemas/OffsetBasedPaginationOutputObject'
+                x-property-sort:
+                - status
+                - pagination
+    PostWatchlistPositionModify200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: This member is always emtpy.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+    PostWatchlistPositionCreate201Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                nullable: false
+                type: object
+                x-property-sort:
+                - id
+                properties:
+                  id:
+                    nullable: true
+                    type: number
+                    format: id32
+                    x-positive: true
+                    description: Identifier of the position.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+    GetWatchlistPositionList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                nullable: false
+                type: array
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                  - id
+                  - notation
+                  - comment
+                  properties:
+                    id:
+                      nullable: true
+                      description: Identifier of the position.
+                      x-sortable: true
+                      x-default-sort-attribute: true
+                      x-default-sort-direction: 1
+                      type: number
+                      format: id32
+                      x-positive: true
+                    notation:
+                      nullable: false
+                      description: Notation of the position.
+                      type: object
+                      x-property-sort:
+                      - id
+                      properties:
+                        id:
+                          nullable: true
+                          description: Identifier of the notation.
+                          x-sortable: true
+                          type: string
+                          format: id64
+                          x-positive: true
+                    comment:
+                      nullable: true
+                      description: Personal note for the watchlist position.
+                      type: string
+                description: Positions of the watchlist.
+                maxItems: 100
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+    PostPortfolioPositionClosedList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: List of closed positions.
+                nullable: false
+                type: object
+                x-property-sort:
+                - positions
+                properties:
+                  positions:
+                    nullable: false
+                    type: array
+                    items:
+                      type: object
+                      nullable: false
+                      x-property-sort:
+                      - instrument
+                      - transaction
+                      - shares
+                      - payout
+                      - profitLoss
+                      properties:
+                        instrument:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - id
+                          - name
+                          - shortName
+                          - isin
+                          - assetClass
+                          - type
+                          description: Details of the instrument.
+                          properties:
+                            id:
+                              nullable: true
+                              description: Identifier of the instrument.
+                              type: string
+                              format: id64
+                              x-positive: true
+                            name:
+                              nullable: true
+                              x-sortable: true
+                              x-default-sort-attribute: true
+                              x-default-sort-direction: 1
+                              type: string
+                              format: localizedString
+                              description: Name of the instrument.
+                            shortName:
+                              nullable: true
+                              x-sortable: true
+                              type: string
+                              format: localizedString
+                              description: Short name of the instrument.
+                            isin:
+                              nullable: true
+                              description: International Securities Identification Number
+                              type: string
+                              format: isin
+                            assetClass:
+                              nullable: false
+                              type: object
+                              x-property-sort:
+                              - id
+                              - code
+                              description: 'Asset class of the instrument. For possible values see endpoint
+
+                                `/basic/assetClass/list`.'
+                              properties:
+                                id:
+                                  nullable: true
+                                  description: Identifier of the asset class.
+                                  type: number
+                                  format: id32
+                                  x-positive: true
+                                code:
+                                  nullable: true
+                                  x-sortable: true
+                                  type: string
+                                  description: Code of the asset class.
+                            type:
+                              nullable: false
+                              description: Instrument type as defined by FactSet Digital Solutions. Instrument categories are arranged in a hierarchy, with level 1 representing the most coarse granularity and further levels successively refining the granularity (see MDG category system 18).
+                              type: array
+                              items:
+                                type: object
+                                nullable: false
+                                x-property-sort:
+                                - id
+                                - name
+                                properties:
+                                  id:
+                                    nullable: true
+                                    description: Identifier of the instrument type.
+                                    type: number
+                                    format: id32
+                                    x-positive: true
+                                  name:
+                                    nullable: true
+                                    x-sortable: true
+                                    type: string
+                                    format: localizedString
+                                    description: Name of the instrument type.
+                        transaction:
+                          nullable: false
+                          description: Opening and closing transaction of the closed position.
+                          type: object
+                          x-property-sort:
+                          - buy
+                          - sell
+                          properties:
+                            buy:
+                              nullable: false
+                              description: Opening transaction of the closed position.
+                              type: object
+                              x-property-sort:
+                              - id
+                              - time
+                              - notation
+                              - currency
+                              - price
+                              - charges
+                              - value
+                              - exchangeRate
+                              properties:
+                                id:
+                                  nullable: true
+                                  description: Identifier of the opening transaction.
+                                  type: string
+                                  format: id64
+                                  x-positive: true
+                                time:
+                                  nullable: true
+                                  description: Date and time of the opening transaction.
+                                  type: string
+                                  format: datetime
+                                notation:
+                                  nullable: false
+                                  type: object
+                                  x-property-sort:
+                                  - id
+                                  description: Notation of the opening transaction.
+                                  properties:
+                                    id:
+                                      nullable: true
+                                      description: Identifier of the notation.
+                                      type: string
+                                      format: id64
+                                      x-positive: true
+                                currency:
+                                  nullable: false
+                                  type: object
+                                  x-property-sort:
+                                  - id
+                                  - isoCode
+                                  description: Currency of the opening transaction. See endpoint `/basic/valueUnit/currency/main/list` for possible values.
+                                  properties:
+                                    id:
+                                      nullable: true
+                                      type: number
+                                      format: id32
+                                      x-positive: true
+                                      description: Identifier of the currency.
+                                    isoCode:
+                                      nullable: true
+                                      type: string
+                                      description: ISO 4217 code of the currency.
+                                price:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Purchase price of the position in the portfolio's base currency.
+                                charges:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Charges accrued in the portfolio's base currency.
+                                value:
+                                  nullable: true
+                                  x-sortable: true
+                                  type: number
+                                  format: real
+                                  description: Purchase value of the position in the portfolio's base currency.
+                                exchangeRate:
+                                  nullable: true
+                                  description: The exchange rate between the notation's currency and the portfolio currency at the time of the opening trade.
+                                  type: number
+                                  format: real
+                            sell:
+                              nullable: false
+                              description: Closing transaction of the position.
+                              type: object
+                              x-property-sort:
+                              - id
+                              - time
+                              - notation
+                              - currency
+                              - price
+                              - charges
+                              - value
+                              - exchangeRate
+                              properties:
+                                id:
+                                  nullable: true
+                                  description: Identifier of the closing transaction.
+                                  type: string
+                                  format: id64
+                                  x-positive: true
+                                time:
+                                  nullable: true
+                                  description: Date and time of the closing transaction.
+                                  type: string
+                                  format: datetime
+                                notation:
+                                  nullable: false
+                                  type: object
+                                  x-property-sort:
+                                  - id
+                                  description: Notation of the closing transaction.
+                                  properties:
+                                    id:
+                                      nullable: true
+                                      description: Identifier of the notation.
+                                      type: string
+                                      format: id64
+                                      x-positive: true
+                                currency:
+                                  nullable: false
+                                  type: object
+                                  x-property-sort:
+                                  - id
+                                  - isoCode
+                                  description: Currency of the closing transaction. See endpoint `/basic/valueUnit/currency/main/list` for possible values.
+                                  properties:
+                                    id:
+                                      nullable: true
+                                      type: number
+                                      format: id32
+                                      x-positive: true
+                                      description: Identifier of the currency.
+                                    isoCode:
+                                      nullable: true
+                                      type: string
+                                      description: ISO 4217 code of the currency.
+                                price:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Selling price of the position in the portfolio's base currency.
+                                charges:
+                                  nullable: true
+                                  type: number
+                                  format: real
+                                  description: Charges accrued in the portfolio's base currency.
+                                value:
+                                  nullable: true
+                                  x-sortable: true
+                                  type: number
+                                  format: real
+                                  description: Sales value of the position in the portfolio's base currency.
+                                exchangeRate:
+                                  nullable: true
+                                  description: The exchange rate between the notation's currency and the portfolio currency at the time of the closing trade.
+                                  type: number
+                                  format: real
+                        shares:
+                          nullable: true
+                          x-sortable: true
+                          type: number
+                          format: real
+                          description: Number of shares in the closed position.
+                        payout:
+                          nullable: false
+                          type: object
+                          x-property-sort:
+                          - amount
+                          description: Amount of money received from payouts in the portfolio's base currency.
+                          properties:
+                            amount:
+                              nullable: true
+                              x-sortable: true
+                              type: number
+                              format: real
+                              description: Amount of the payout.
+                        profitLoss:
+                          nullable: false
+                          description: Profit and loss of the position. Positive values indicate profit; negative values indicate loss. All calculations are performed in the currency of the portfolio.
+                          type: object
+                          x-property-sort:
+                          - absolute
+                          - relative
+                          properties:
+                            absolute:
+                              nullable: true
+                              description: Absolute value of profit or loss.
+                              type: number
+                              format: real
+                            relative:
+                              nullable: true
+                              description: Relative value of profit or loss.
+                              type: number
+                              format: percentage
+                              x-convertToRelative: false
+                    description: Closed positions of the portfolio.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                  pagination:
+                    $ref: '#/components/schemas/OffsetBasedPaginationOutputObject'
+                x-property-sort:
+                - status
+                - pagination
+  schemas:
+    LanguageMember:
+      type: string
+      format: isoLanguage
+      description: ISO 639-1 code of the language.
+      maxLength: 2
+      minLength: 2
+      exclusiveMinimum: false
+      exclusiveMaximum: false
+    PostWatchlistPositionCreateRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - id
+          - notation
+          - comment
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the watchlist.
+              type: string
+              format: id64
+              x-positive: true
+            notation:
+              description: Notation of the position.
+              type: object
+              x-property-sort:
+              - id
+              properties:
+                id:
+                  description: Identifier of the notation.
+                  type: string
+                  format: id64
+                  x-positive: true
+              required:
+              - id
+            comment:
+              description: Personal note for the watchlist position.
+              type: string
+              pattern: ^[\u0020-\u005d\u005f\u0061-\u007e\u00c0-\u00ff\u20ac]*$
+              x-allowNullValue: true
+              x-trim: false
+              maxLength: 200
+              exclusiveMaximum: false
+          required:
+          - id
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+          - attributes
+    PostWatchlistPositionDeleteRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - id
+          - position
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the watchlist.
+              type: string
+              format: id64
+              x-positive: true
+            position:
+              description: Position of the watchlist.
+              type: object
+              x-property-sort:
+              - id
+              properties:
+                id:
+                  description: Identifier of a position.
+                  type: number
+                  format: id32
+                  x-positive: true
+              required:
+              - id
+          required:
+          - id
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+          - attributes
+    companyPositions:
+      title: Company Positions
+      type: object
+      description: List of executives for the specified company identifier.
+      properties:
+        fsymId:
+          description: FactSet Identifier for the company.
+          type: string
+          example: 006XY7-E
+          nullable: true
+        personId:
+          description: Factset Entity Identifier for the Person
+          type: string
+          example: 05H8B8-E
+          nullable: true
+        name:
+          description: FactSet Name of the person
+          type: string
+          example: Elon Reeve Musk
+          nullable: true
+        title:
+          description: The requested Position Title
+          type: string
+          example: Technoking of Tesla
+          x-fds-fql-formula: FPD_CO_PEOPLE_BY_POSITION(TITLE)
+          nullable: true
+        yearsAtFirm:
+          description: The number of years individual is at firm. For founders, this is since inception.
+          type: number
+          format: double
+          example: 17.78
+          x-fds-fql-formula: FPD_CO_PEOPLE_BY_POSITION(YRS_FIRM))
+          nullable: true
+        age:
+          description: The age of the person requested.
+          type: number
+          format: integer
+          example: 48
+          x-fds-fql-formula: FPD_CO_PEOPLE_BY_POSITION(AGE))
+          nullable: true
+        gender:
+          description: The Gender of the person requested.
+          type: string
+          example: Male
+          x-fds-fql-formula: FPD_CO_PEOPLE_BY_POSITION(GENDER))
+          nullable: true
+        requestPosition:
+          description: The requested position code.
+          type: string
+          example: CEO
+          nullable: true
+        requestId:
+          description: Original identifier used for the request.
+          type: string
+          example: TSLA-US
+    companyPositionsResponse:
+      title: Company Positions Response
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/companyPositions'
+          example: []
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+        exclusiveMaximum: false
+      maxItems: 50
+      uniqueItems: true
+    PostPortfolioPositionClosedListRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - id
+          - range
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the portfolio.
+              type: string
+              format: id64
+              x-positive: true
+            range:
+              type: object
+              format: dateRange
+              x-isClosedInterval: true
+              properties:
+                start:
+                  type: string
+                  format: date
+                  description: The starting point of the date range (inclusive).
+                end:
+                  type: string
+                  format: date
+                  description: The ending point of the date range (inclusive).
+              x-property-sort:
+              - start
+              - end
+              required:
+              - start
+              - end
+              description: Date range for the closed positions. A valid date range is between 1900-01-01 and the day after the current day. A date before the date of the first transaction is implicitly adjusted to the date of the portfolio's first transaction.
+          required:
+          - id
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+            language:
+              $ref: '#/components/schemas/LanguageMember'
+            sort:
+              description: Sortable attributes. The sort order is ascending unless it is prefixed with a minus sign, in which case it is descending. A list of at most 8 (possibly prefixed) attribute name(s) is allowed.
+              type: array
+              items:
+                type: string
+                enum:
+                - positions.instrument.name
+                - -positions.instrument.name
+                - positions.instrument.shortName
+                - -positions.instrument.shortName
+                - positions.instrument.assetClass.code
+                - -positions.instrument.assetClass.code
+                - positions.instrument.type.name
+                - -positions.instrument.type.name
+                - positions.transaction.buy.value
+                - -positions.transaction.buy.value
+                - positions.transaction.sell.value
+                - -positions.transaction.sell.value
+                - positions.shares
+                - -positions.shares
+                - positions.payout.amount
+                - -positions.payout.amount
+              maxItems: 8
+              uniqueItems: true
+              default:
+              - positions.instrument.name
+            pagination:
+              type: object
+              description: Pagination attributes for the offset-based pagination strategy.
+              properties:
+                offset:
+                  type: number
+                  format: int32
+                  minimum: 0
+                  exclusiveMinimum: false
+                  default: 0
+                  description: Non-negative number of entries to skip, or 0 (default).
+                limit:
+                  type: number
+                  format: int32
+                  minimum: 1
+                  exclusiveMinimum: false
+                  maximum: 100
+                  exclusiveMaximum: false
+                  default: 20
+                  description: Non-negative maximum number of entries to return.
+              x-property-sort:
+              - offset
+              - limit
+          x-property-sort:
+          - attributes
+          - language
+          - sort
+          - pagination
+    companyPositionsRequest:
+      title: Company Positions Request
+      type: object
+      properties:
+        ids:
+          $ref: '#/components/schemas/companyIds'
+        position:
+          $ref: '#/components/schemas/position'
+      required:
+      - ids
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+      description: The status member contains the status code of the response.
+      required:
+      - code
+    companyIds:
+      type: array
+      items:
+        type: string
+      minItems: 1
+      maxItems: 1000
+      description: 'The requested company identifier. FactSet Identifiers, tickers, CUSIP, SEDOL, and ISIN are accepted inputs. <p>***ids limit** =  1000 per request*</p> *<p>Make note, GET Method URL request lines are also limited to a total length of 8192 bytes (8KB). In cases where the service allows for thousands of ids, which may lead to exceeding this request line limit of 8KB, its advised for any requests with large request lines to be requested through the respective "POST" method.</p>*
+
+        '
+      example:
+      - AAPL-US
+    PostWatchlistPositionGetRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - id
+          - position
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the watchlist.
+              type: string
+              format: id64
+              x-positive: true
+            position:
+              description: Position of the watchlist.
+              type: object
+              x-property-sort:
+              - id
+              properties:
+                id:
+                  description: Identifier of the position
+                  type: number
+                  format: id32
+                  x-positive: true
+              required:
+              - id
+          required:
+          - id
+          - position
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+          - attributes
+    PostWatchlistPositionModifyRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - id
+          - position
+          - notation
+          - comment
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the watchlist.
+              type: string
+              format: id64
+              x-positive: true
+            position:
+              description: Position of the watchlist.
+              type: object
+              x-property-sort:
+              - id
+              properties:
+                id:
+                  description: Identifier of the position.
+                  type: number
+                  format: id32
+                  x-positive: true
+              required:
+              - id
+            notation:
+              description: Notation of the position.
+              type: object
+              x-property-sort:
+              - id
+              properties:
+                id:
+                  description: Identifier of the notation.
+                  type: string
+                  format: id64
+                  x-positive: true
+              required:
+              - id
+            comment:
+              description: Personal note for the watchlist position.
+              type: string
+              pattern: ^[\u0020-\u005d\u005f\u0061-\u007e\u00c0-\u00ff\u20ac]*$
+              x-allowNullValue: true
+              x-trim: false
+              maxLength: 200
+              exclusiveMaximum: false
+          required:
+          - id
+          - position
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+          - attributes
+    OffsetBasedPaginationOutputObject:
+      type: object
+      description: Pagination attributes for the offset-based pagination strategy.
+      properties:
+        total:
+          type: number
+          format: int32
+          description: Total number of entries in the result set.
+        isEstimatedTotal:
+          type: boolean
+          description: Flag indicating that the value of "total" is estimated.
+      required:
+      - total
+      - isEstimatedTotal
+      x-property-sort:
+      - total
+      - isEstimatedTotal
+    position:
+      description: "Controls the position details returned for the requested company. By default, the service returns the CEO name, title, and ID for the requested company ids.\n  |position|description|\n  |||\n  |CHAIR|Chairman|\n  |CEO|Chief Executive Officer|\n  |PRES|President|\n  |COO|Chief Operating Officer|\n  |CFO|Chief Financial Officer|\n  |CTO|Chief Technology Officer|\n  |CIO|Chief Investment Officer|\n  |FOU|Founder(s)|\n  |CMP|Compliance Officer|\n  |ADM|Admin|\n  |IND|Independent Director|\n  |BRD|Directors/Board Members|\n  |IR|Investor Relations|\n  |LEG|Legal Counsel|\n  |TREAS|Treasurer|\n  |MKT|Sales and Marketing Managers|\n  |HR|Human Resources|\n"
+      enum:
+      - CHAIR
+      - CEO
+      - PRES
+      - COO
+      - CFO
+      - CTO
+      - CIO
+      - FOU
+      - CMP
+      - ADM
+      - IND
+      - BRD
+      - IR
+      - LEG
+      - TREAS
+      - MKT
+      - HR
+      default: CEO
+      example: FOU
+  parameters:
+    position:
+      name: position
+      description: "Controls the position details returned for the requested company. By default, the service returns the CEO name, title, and ID for the requested company ids.\n  |position|description|\n  |||\n  |CHAIR|Chairman|\n  |CEO|Chief Executive Officer|\n  |PRES|President|\n  |COO|Chief Operating Officer|\n  |CFO|Chief Financial Officer|\n  |CTO|Chief Technology Officer|\n  |CIO|Chief Investment Officer|\n  |FOU|Founder(s)|\n  |CMP|Compliance Officer|\n  |ADM|Admin|\n  |IND|Independent Director|\n  |BRD|Directors/Board Members|\n  |IR|Investor Relations|\n  |LEG|Legal Counsel|\n  |TREAS|Treasurer|\n  |MKT|Sales and Marketing Managers|\n  |HR|Human Resources|\n"
+      in: query
+      schema:
+        type: string
+        enum:
+        - CHAIR
+        - CEO
+        - PRES
+        - COO
+        - CFO
+        - CTO
+        - CIO
+        - FOU
+        - CMP
+        - ADM
+        - IND
+        - BRD
+        - IR
+        - LEG
+        - TREAS
+        - MKT
+        - HR
+        example: FOU
+        default: CEO
+      required: false
+    companyId:
+      name: ids
+      description: 'The requested company identifier. FactSet Identifiers, tickers, CUSIP, SEDOL, and ISIN are accepted inputs. <p>***ids limit** =  1000 per request*</p>
+
+        *<p>Make note, GET Method URL request lines are also limited to a total
+
+        length of 8192 bytes (8KB). In cases where the service allows for thousands
+
+        of ids, which may lead to exceeding this request line limit of 8KB, its
+
+        advised for any requests with large request lines to be requested through
+
+        the respective "POST" method.</p>*
+
+        '
+      in: query
+      schema:
+        type: array
+        items:
+          type: string
+        minItems: 1
+        maxItems: 1000
+      required: true
+      explode: false
+      example:
+      - AAPL-US
+      - IBM-US
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

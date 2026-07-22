@@ -1,0 +1,967 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Sources API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Sources
+paths:
+  /navigator/sources/{DataItem_id}:
+    get:
+      tags:
+      - Sources
+      summary: Factset Get a List of Sources Where the Specified Data Item Can Be Found, for Each Delivery Method, Filtered to the Appearances of the Given Data Item Within the Specified Product.
+      parameters:
+      - in: path
+        required: true
+        name: DataItem_id
+        description: The id for the DataItem to fetch the sources for.
+        schema:
+          type: string
+      - in: query
+        required: true
+        name: Product_id
+        description: The id for the Product to filter down the sources returned on.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NavigatorSourcesResponse'
+        '401':
+          description: You are not authorized to view this page.
+        '404':
+          description: The specified DataItem_id was not found.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /navigator/sources:
+    get:
+      tags:
+      - Sources
+      summary: Factset Get a List of Sources by Delivery Method for the Given Product_id
+      parameters:
+      - in: query
+        required: true
+        name: Product_id
+        description: The id for the Product to filter down the sources returned on.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NavigatorSourcesResponse'
+        '401':
+          description: You are not authorized to view this page.
+        '404':
+          description: The specified DataItem_id was not found.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /analytics/engines/pa/v3/pricing-sources:
+    get:
+      tags:
+      - Sources
+      summary: Factset Get Pa Pricing Sources
+      description: This endpoint lists all the PA pricing sources that can be applied to a PA calculation.
+      operationId: getPAPricingSources
+      parameters:
+      - name: name
+        in: query
+        description: PA pricing sources name
+        schema:
+          type: string
+          description: PA pricing sources name
+          default: ''
+      - name: category
+        in: query
+        description: PA pricing sources category
+        schema:
+          type: string
+          description: PA pricing sources category
+          default: ''
+      - name: directory
+        in: query
+        description: The directory to get the PA pricing sources in
+        schema:
+          type: string
+          description: The directory to get the PA pricing sources in
+          default: ''
+      responses:
+        '200':
+          description: Expected response, returns a list of PA pricing sources
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            Age:
+              description: Standard HTTP header. Header will specify the age of pricing sources list cached response.
+              schema:
+                type: integer
+                description: Standard HTTP header. Header will specify the age of pricing sources list cached response.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PAPricingSourceRoot'
+        '400':
+          description: Invalid data provided. Please check the request parameters before attempting again.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse'
+        '401':
+          description: Missing or invalid authentication.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '403':
+          description: User is forbidden with current credentials
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+        '404':
+          description: Pricing sources not found.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse'
+        '406':
+          description: Unsupported Accept header. Header needs to be set to application/json.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            X-FactSet-Api-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+        '429':
+          description: Rate limit reached. Wait till the time specified in Retry-After header value to make further requests.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+            Retry-After:
+              description: Time to wait in seconds before making a new request as the rate limit has reached.
+              schema:
+                type: string
+        '500':
+          description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '503':
+          description: Request timed out. Retry the request in sometime.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /v1/{tenant}/data-sources:
+    get:
+      operationId: getAllDataSources
+      tags:
+      - Sources
+      summary: Factset Lists All Datasources
+      description: List all datasources the user has permission to see
+      parameters:
+      - in: path
+        name: tenant
+        description: The code of the tenancy
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: _sort
+        description: The column to sort on. Append - to sort in descending order. If parameter is not given, no sorting will be done
+        required: false
+        style: form
+        explode: false
+        schema:
+          type: array
+          maxItems: 1
+          items:
+            type: string
+        examples:
+          name:
+            value:
+            - name
+            description: The name of the datasource to sort
+          type:
+            value:
+            - type
+            description: The type of the datasource to sort
+          outputRecordSet:
+            value:
+            - outputRecordSet
+            description: The output recordset of the datasource to sort
+          code:
+            value:
+            - code
+            description: The code of the datasource to sort
+          releaseTag:
+            value:
+            - releaseTag
+            description: The release tag of the datasource to sort
+          lastUpdatedBy:
+            value:
+            - lastUpdatedBy
+            description: The last updated by user of the datasource to sort
+          lastUpdated:
+            value:
+            - lastUpdated
+            description: The last updated by date of the datasource to sort
+      - in: query
+        name: _paginationLimit
+        description: Non-negative maximum number of entries to return. Default is 25
+        schema:
+          type: integer
+        examples:
+          pageSize:
+            value: 25
+            description: Non-negative maximum number of entries to return
+      - in: query
+        name: _paginationOffset
+        description: Non-negative number of entries to skip. Default is 0
+        schema:
+          type: integer
+        examples:
+          startIndex:
+            value: 0
+            description: Non-negative number of entries to skip
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSourceList'
+        '401':
+          description: Unauthorised
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAuthenticated
+                  title: User is not authenticated
+        '403':
+          description: No permissions to view datasources in VRS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAuthorized
+                  title: No permissions to view this item
+        '406':
+          description: Unsupported Accept header. Header needs to be set to application/json.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAcceptable
+                  title: Unsupported Accept header. Header needs to be set to application/json
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /v1/{tenant}/data-sources/{dataSourceCode}:
+    get:
+      operationId: getDataSourceByCode
+      tags:
+      - Sources
+      summary: Factset Gets a Datasource
+      description: Gets a datasource based on the code passed
+      parameters:
+      - in: path
+        name: tenant
+        description: The code of the tenancy
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: dataSourceCode
+        description: The code of the datasource
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSourceData'
+        '401':
+          description: Unauthorised
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAuthenticated
+                  title: User is not authenticated
+        '403':
+          description: No permissions to view datasources in VRS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAuthorized
+                  title: No permissions to view this item
+        '404':
+          description: The supplied datasource code was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notFound
+                  title: The datasource code passed was not found
+        '406':
+          description: Unsupported Accept header. Header needs to be set to application/json.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAcceptable
+                  title: Unsupported Accept header. Header needs to be set to application/json
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /v1/{tenant}/data-sources/{dataSourceCode}/data:
+    get:
+      operationId: getDataSourceData
+      tags:
+      - Sources
+      summary: Factset Gets the Data for the Datasource
+      description: Gets the data for the datasource. There are optional query parameters to filter the data
+      parameters:
+      - in: path
+        name: tenant
+        description: The code of the tenancy
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: dataSourceCode
+        description: The code of the datasource
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: entityCodes
+        description: 'A series of query parameter used to filter the data for a datasource. This represents the entities for the datasource. E.g.: entityCodes=ACCOUNT&entityCodes=FUNDS'
+        schema:
+          type: string
+      - in: query
+        name: entityKeys
+        description: 'A series of query parameter used to filter the data for a datasource. This is the entity key value for an entity selection. E.g.: entityKeys=1&entityKeys=Test2'
+        schema:
+          type: string
+      - in: query
+        name: _paginationLimit
+        description: Non-negative maximum number of entries to return. Default is 25
+        schema:
+          type: integer
+        examples:
+          pageSize:
+            value: 25
+            description: Non-negative maximum number of entries to return
+      - in: query
+        name: _paginationOffset
+        description: Non-negative number of entries to skip. Default is 0
+        schema:
+          type: integer
+        examples:
+          startIndex:
+            value: 0
+            description: Non-negative number of entries to skip
+      responses:
+        '200':
+          description: Successful operation - returns data for the datasource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSourceDataInstance'
+        '400':
+          description: The supplied datasource code was either missing or invalid, or the query parameters are invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: parameterError
+                  title: The datasource code passed was invalid
+        '401':
+          description: Unauthorised
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAuthenticated
+                  title: User is not authenticated
+        '403':
+          description: No permissions to view datasources in VRS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAuthorized
+                  title: No permissions to view this item
+        '404':
+          description: The supplied datasource code was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notFound
+                  title: The datasource code passed was not found
+        '406':
+          description: Unsupported Accept header. Header needs to be set to application/json.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorList'
+              example:
+                errors:
+                - id: ID of the error
+                  code: notAcceptable
+                  title: Unsupported Accept header. Header needs to be set to application/json
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    DataSourceDataInstance:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DataSourceAllData'
+    DataSourceInstance:
+      type: object
+      properties:
+        dstInstanceId:
+          type: integer
+          example: '500123'
+        dstInstanceType:
+          type: integer
+          example: 10
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataSourceInstanceRows'
+          example: []
+    PAPricingSourceRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/PAPricingSource'
+          example: example_value
+        meta:
+          nullable: true
+          example: example_value
+    Table:
+      properties:
+        id:
+          type: string
+          example: '123'
+          description: Unique identifier for the table
+        dbSchema:
+          type: string
+          example: gr_v2
+          description: Schema prefix for Standard DataFeeds
+        name:
+          type: string
+          example: gr_coverage
+          description: Name of the table
+        description:
+          type: string
+          example: This table contains coverage information for each entity that has a report in the Geographic Revenue Exposure package.
+          description: A description of the table
+        entitled:
+          type: boolean
+          example: true
+          description: Flag indicating if the user is entitled to access the data in their subscriptions
+    EntityDTO:
+      type: object
+      properties:
+        entityId:
+          type: integer
+          format: int32
+          example: '500123'
+        name:
+          type: string
+          example: Example Title
+        code:
+          type: string
+          example: example_value
+    Error_2:
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        code:
+          type: string
+          example: example_value
+        title:
+          type: string
+          example: Example Title
+    DataSourceAllData:
+      type: object
+      properties:
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecordSetFields'
+          example: []
+        dstInstance:
+          $ref: '#/components/schemas/DataSourceInstance'
+    Error:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+          example: abc123
+        code:
+          type: string
+          nullable: true
+          example: example_value
+        title:
+          type: string
+          nullable: true
+          example: Example Title
+        detail:
+          type: string
+          nullable: true
+          example: example_value
+        source:
+          $ref: '#/components/schemas/ErrorSource'
+    DataSourceList:
+      type: object
+      properties:
+        meta:
+          type: object
+          properties:
+            pagination:
+              type: object
+              properties:
+                total:
+                  type: integer
+                isEstimatedTotal:
+                  type: boolean
+            sort:
+              type: array
+              items:
+                type: string
+          example: example_value
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataSourceDTO'
+          example: []
+    DataSourceInstanceRows:
+      type: object
+      properties:
+        rowId:
+          type: integer
+          example: '500123'
+        order:
+          type: integer
+          example: 10
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecordSetFieldValues'
+          example: []
+    ClientErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+          nullable: true
+          example: []
+    DataSourceDTO:
+      type: object
+      properties:
+        dataSourceId:
+          type: integer
+          format: int32
+          example: '500123'
+        name:
+          type: string
+          example: Example Title
+        code:
+          type: string
+          example: example_value
+        dsType:
+          type: string
+          enum:
+          - AUTOMATIC
+          - MANUAL
+          - FILTER
+          example: AUTOMATIC
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityDTO'
+          example: []
+        outputRecordSet:
+          type: string
+          example: example_value
+        releaseTag:
+          type: string
+          example: example_value
+        defaultDataSourceName:
+          type: string
+          example: example_value
+        dataPreview:
+          type: string
+          example: example_value
+        lastUpdatedBy:
+          type: string
+          example: example_value
+        lastUpdated:
+          type: number
+          example: 42.5
+    ErrorSource:
+      type: object
+      properties:
+        pointer:
+          type: string
+          nullable: true
+          example: example_value
+        parameter:
+          type: string
+          nullable: true
+          example: example_value
+    PAPricingSource:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Pricing source Name
+          nullable: true
+          example: Example Title
+        directory:
+          type: string
+          description: Pricing source directory
+          nullable: true
+          example: example_value
+        category:
+          type: string
+          description: Pricing source category
+          nullable: true
+          example: example_value
+    ApiEndpoint:
+      properties:
+        id:
+          type: string
+          example: 180443
+          description: Unique identifier for the api endpoint
+        name:
+          type: string
+          example: /symbology/v1/bloomberg
+          description: API endpoint path
+        description:
+          type: string
+          example: Translate FactSet symbols into Bloomberg Identifiers.
+          description: A description of the endpoint
+        developerPortalLink:
+          type: string
+          example: https://developer.factset.com/api-catalog/symbology-api
+          description: Developer Portal URL of the endpoint
+        entitled:
+          type: string
+          example: true
+          description: Flag indicating if the user is entitled to access the data in their subscriptions
+    RecordSetFieldValues:
+      type: object
+      properties:
+        fieldId:
+          type: integer
+          example: '500123'
+        fieldType:
+          type: string
+          enum:
+          - BOOLEAN
+          - DATETIME
+          - DECIMAL
+          - HTML
+          - INTEGER
+          - TEXT
+          example: BOOLEAN
+        fieldValue:
+          type: string
+          example: example_value
+    ReferenceGroup:
+      properties:
+        id:
+          type: string
+          example: 180443
+          description: Unique identifier for the api endpoint
+        name:
+          type: string
+          example: /symbology/v1/bloomberg
+          description: API endpoint path
+        description:
+          type: string
+          example: Translate FactSet symbols into Bloomberg Identifiers.
+          description: A description of the endpoint
+        entitled:
+          type: string
+          example: true
+          description: Flag indicating if the user is entitled to access the data in their subscriptions
+    ErrorList:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error_2'
+          example: []
+    NavigatorSourcesResponse:
+      type: object
+      properties:
+        sdf:
+          type: array
+          items:
+            $ref: '#/components/schemas/Table'
+          example: []
+        contentApi:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiEndpoint'
+          example: []
+        reference:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReferenceGroup'
+          example: []
+      required:
+      - sdf
+    DataSourceData:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DataSourceDTO'
+    RecordSetFields:
+      type: object
+      properties:
+        fieldType:
+          type: string
+          enum:
+          - BOOLEAN
+          - DATETIME
+          - DECIMAL
+          - HTML
+          - INTEGER
+          - TEXT
+          example: BOOLEAN
+        format:
+          type: string
+          example: example_value
+        id:
+          type: integer
+          example: abc123
+        hide:
+          type: string
+          example: example_value
+        name:
+          type: string
+          example: Example Title
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

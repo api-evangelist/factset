@@ -1,0 +1,636 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Batch Result API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Batch Result
+paths:
+  /v1/batch-result:
+    get:
+      summary: Factset Returns the response for a Batch Request
+      description: "Returns the response data for the underlying batch request that is specified by the id.\n\n  The Formula API supports Long Running asynchronous requests up to **20 minutes** via the `batch` parameter in the `/time-series` endpoint and up to **10 minutes** in the `/cross-sectional` endpoint.\n\n  *This feature is available to Individual Users subscribed to the Performance Package and Performance Package Plus Performance Tiers and all Production Users. If you are unsure which Performance Tier you are subscribed to or you would like to gain access to the batch capabilities, please contact your FactSet Account Team or \"Report Issue\" above and our support teams can assist.*\n"
+      tags:
+      - Batch Result
+      operationId: getBatchData
+      parameters:
+      - $ref: '#/components/parameters/batchId'
+      responses:
+        '200':
+          description: Request Response Object when batch request has completed and response is created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchDataResponse'
+              examples:
+                Time-Series Single Id and Single Data Item:
+                  $ref: '#/components/examples/time-series-singleId-singleItem'
+                Cross-Sectional Single Id and Single Data Item:
+                  $ref: '#/components/examples/cross-sectional-singleId-singleItem'
+        '202':
+          description: Batch Request has not finished and the result has NOT been created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchStatusResponse'
+              examples:
+                Batch Request Queued:
+                  $ref: '#/components/examples/BatchResultQueuedResponse'
+                Batch Request Executing:
+                  $ref: '#/components/examples/BatchResultExecutingResponse'
+        '404':
+          description: Not Found
+          headers:
+            api-version:
+              $ref: '#/components/headers/api-version'
+            api-supported-versions:
+              $ref: '#/components/headers/api-supported-versions'
+            api-deprecated-versions:
+              $ref: '#/components/headers/api-deprecated-versions'
+            chain-id:
+              $ref: '#/components/headers/chain-id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_detail'
+              example:
+                id: 5EFCCA8940CAEB6E
+                code: batchRequestNotFound
+                title: The Batch Request was not found. It has probably expired.
+                timeStamp: '2019-11-01 11:09:41.918'
+      deprecated: false
+    post:
+      summary: Factset Returns the status for a Batch Request
+      description: "Returns the response data for the underlying batch request that is specified by the id.\n\n  The Formula API supports Long Running asynchronous requests up to **20 minutes** via the `batch` parameter in the `/time-series` endpoint and up to **10 minutes** in the `/cross-sectional` endpoint.\n\n  *This feature is available to Individual Users subscribed to the Performance Package and Performance Package Plus Performance Tiers and all Production Users. If you are unsure which Performance Tier you are subscribed to or you would like to gain access to the batch capabilities, please contact your FactSet Account Team or \"Report Issue\" above and our support teams can assist.*\n"
+      tags:
+      - Batch Result
+      operationId: getBatchDataWithPost
+      responses:
+        '200':
+          description: Request Response Object when batch request has completed and response is created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchDataResponse'
+              examples:
+                Time-Series Single Id and Single Data Item:
+                  $ref: '#/components/examples/time-series-singleId-singleItem'
+                Cross-Sectional Single Id and Single Data Item:
+                  $ref: '#/components/examples/cross-sectional-singleId-singleItem'
+        '202':
+          description: Batch Request has not finished and the result has NOT been created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchStatusResponse'
+              examples:
+                Batch Request Queued:
+                  $ref: '#/components/examples/BatchResultQueuedResponse'
+                Batch Request Executing:
+                  $ref: '#/components/examples/BatchResultExecutingResponse'
+        '404':
+          description: Not Found
+          headers:
+            api-version:
+              $ref: '#/components/headers/api-version'
+            api-supported-versions:
+              $ref: '#/components/headers/api-supported-versions'
+            api-deprecated-versions:
+              $ref: '#/components/headers/api-deprecated-versions'
+            chain-id:
+              $ref: '#/components/headers/chain-id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_detail'
+              example:
+                id: 5EFCCA8940CAEB6E
+                code: batchRequestNotFound
+                title: The Batch Request was not found. It has probably expired.
+                timeStamp: '2019-11-01 11:09:41.918'
+      deprecated: false
+      requestBody:
+        $ref: '#/components/requestBodies/batch-result-postBody'
+  /batch-result:
+    get:
+      tags:
+      - Batch Result
+      summary: Factset Returns the response for a Batch Request
+      description: 'Returns the response data for the underlying batch request that is specified by the id.
+
+
+        By default, this endpoint will return data as JSON. If you wish to receive your data in CSV format, you can edit the header to have the "accept" parameter as "text/csv" instead of "application/json".
+
+        '
+      operationId: getBatchData
+      parameters:
+      - $ref: '#/components/parameters/batchId'
+      responses:
+        '200':
+          description: Request Response Object when the batch request has been completed and the response is created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/batchResultResponse'
+              examples:
+                Fundamentals endpoint response of Single Company (FDS-US), and Multiple Metrics (FF_SALES, FF_PE):
+                  $ref: '#/components/examples/resultOfSingleIdwithMultipleMetricItem'
+                Segments endpoint response of Single Company (AAPL-US), sales(SALES) details for the given period:
+                  $ref: '#/components/examples/resultOfSingleIdwithSingleMetricItemSegment'
+        '202':
+          description: The batch Request has not finished and the result has NOT been created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchStatusResponse'
+              examples:
+                Batch Request Queued:
+                  $ref: '#/components/examples/BatchStatusQueuedResponse'
+                Batch Request Executing:
+                  $ref: '#/components/examples/BatchStatusExecutingResponse'
+        '404':
+          $ref: '#/components/responses/404'
+      deprecated: false
+components:
+  examples:
+    resultOfSingleIdwithMultipleMetricItem:
+      summary: Result of Single Company and Multiple Metrics [FF_SALES, FF_PE]
+      description: 'Results of the FDS-US Quarterly Sales and Price to Earnings data as of 2020-05-31
+
+        '
+      value:
+        data:
+        - requestId: FDS
+          fsymId: SQFMK3-R
+          metric: FF_SALES
+          periodicity: QTR
+          fiscalPeriod: 3
+          fiscalYear: 2020
+          fiscalPeriodLength: 92
+          fiscalEndDate: '2020-05-31'
+          reportDate: '2020-05-31'
+          epsReportDate: '2020-06-25'
+          updateType: Final
+          currency: USD
+          value: 374.083
+        - requestId: FDS
+          fsymId: SQFMK3-R
+          metric: FF_PE
+          periodicity: QTR
+          fiscalPeriod: 3
+          fiscalYear: 2020
+          fiscalPeriodLength: 92
+          fiscalEndDate: '2020-05-31'
+          reportDate: '2020-05-31'
+          epsReportDate: '2020-06-25'
+          updateType: Final
+          currency: USD
+          value: 31.6769162623484
+    notFound:
+      summary: Not Found
+      description: The requested item was not found.
+      value:
+        status: Not Found
+        timestamp: '2020-06-12T16:08:51.731Z'
+        path: /factset-fundamentals/v2/{endpoint}
+        message: The Batch Request was not found. It has probably expired.
+        subErrors: null
+    resultOfSingleIdwithSingleMetricItemSegment:
+      summary: Result of Single Company single metric item [SALES] details.
+      description: 'Results of the AAPL-US sales data for the period 2012-01-01 to 2014-01-01 on an annual basis with the preliminary data Values.
+
+        '
+      value:
+        data:
+        - requestId: AAPL-US
+          fsymId: MH33D6-R
+          metric: SALES
+          date: 2012-09-28 00:00:00+00:00
+          label: iPhone
+          value: 141319
+        - requestId: AAPL-US
+          fsymId: MH33D6-R
+          metric: SALES
+          date: 2012-09-28 00:00:00+00:00
+          label: iPad
+          value: 19222
+    time-series-singleId-singleItem:
+      summary: Single Id and Single Data Item
+      description: '`time-series` Request for Single Price Record for IBM
+
+        '
+      value:
+        data:
+        - error: 0
+          formula: P_PRICE(0)
+          requestId: IBM
+          result:
+            values:
+            - 120.77
+            dates:
+            - '2020-07-09'
+          dataType: DOUBLE
+          objectType: TIMESERIES
+    BatchResultQueuedResponse:
+      description: Batch Result Queued Response
+      value:
+        errors:
+          id: 618AC9B50DE76980
+          code: Accepted
+          title: Please check the status endpoint until the batch request has a status of DONE and then retrieve the results from the results endpoint.
+          timestamp: '2022-01-18 18:29:59.189'
+    BatchResultExecutingResponse:
+      description: Batch Result Executing Response
+      value:
+        errors:
+          id: 618AC9B50DE76980
+          code: Accepted
+          title: Please check the status endpoint until the batch request has a status of DONE and then retrieve the results from the results endpoint.
+          timestamp: '2022-01-18 18:29:59.189'
+    BatchStatusQueuedResponse:
+      description: Batch Status Queued Response
+      value:
+        data:
+          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+          status: queued
+          startTime: '2021-06-29T18:34:52.168Z'
+          endTime: null
+          error: null
+    BatchStatusExecutingResponse:
+      description: Batch Status Executing Response
+      value:
+        data:
+          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+          status: executing
+          startTime: '2021-06-29T18:34:52.168Z'
+          endTime: null
+          error: null
+    cross-sectional-singleId-singleItem:
+      summary: Single Equity Id and Single Equity Data Item
+      description: '`cross-sectional` Request for Single Price Record for IBM
+
+        '
+      value:
+        data:
+        - dataItemName: requestId
+          result:
+          - IBM
+          dataType: STRING
+          error: 0
+        - dataItemName: P_PRICE(0)
+          result:
+          - 120.77
+          dataType: DOUBLE
+          error: 0
+  schemas:
+    fundamentalValue:
+      description: 'Value of the data metric requested. Note that the type of value is ''object'', and depending on the data metric requested, the value could be an object representation of a string or double. '
+      oneOf:
+      - type: string
+        nullable: true
+      - type: number
+        format: double
+        nullable: true
+    batchResultResponse:
+      title: Batch Data Response
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/batchResult'
+    fundamental:
+      title: Fundamental Object
+      type: object
+      required:
+      - fiscalPeriod
+      description: FactSet Fundamentals Response item
+      properties:
+        requestId:
+          description: Identifier that was used for the request.
+          type: string
+          example: IBM-US
+        fsymId:
+          description: FactSet Regional Security Identifier. Six alpha-numeric characters, excluding vowels, with an -R suffix (XXXXXX-R). Identifies the security's best regional security data series per currency. For equities, all primary listings per region and currency are allocated a regional-level permanent identifier. The regional-level permanent identifier will be available once a SEDOL representing the region/currency has been allocated and the identifiers are on FactSet.
+          type: string
+          example: SJY281-R
+          nullable: true
+        metric:
+          description: The requested `metric` input, representing the Fundamental Data Item. For a definition of the item please use the /fundamentals/v#/metrics endpoint.
+          type: string
+          example: FF_SALES
+          nullable: true
+        periodicity:
+          description: Periodicity or frequency of the fiscal periods, where ANN = Annual Original, ANN_R = Annual Latest, QTR = Quarterly Original, QTR_R = Quarterly Latest, SEMI = Semi-Annual Original, SEMI_R = Semi-Annual Latest, LTM = Last Twelve Months Original, LTM_R = Last Twelve Months Latest, LTMSG = Last Twelve Months Global, [OA17959](https://my.apps.factset.com/oa/pages/17959), LTM_SEMI = Last Twelve Months - Semi-Annual Data and YTD = Year-to-date. Please note that the coverage for SEMI_R and LTM_R may be limited as fewer companies report with these periodicities.
+          type: string
+          example: QTR
+          enum:
+          - ANN
+          - ANN_R
+          - QTR
+          - QTR_R
+          - SEMI
+          - SEMI_R
+          - CAL
+          - LTM
+          - LTM_R
+          - LTMSG
+          - LTM_SEMI
+          - YTD
+          nullable: true
+        fiscalPeriod:
+          description: 'Fiscal Period indicator. Returns an integer representing the fiscal period for the requested item and periodicity. QUARTERLY CODE: 1-Fist Quarter; 2-Second Quarter; 3-Third Quarter; 4-Fourth Quarter. SEMI-CODE: 1-First Semi-annual Period; 2-Second Semi-annual Period.'
+          type: integer
+          example: 4
+          nullable: true
+        fiscalYear:
+          description: Fiscal year of the reported period in YYYY format.
+          type: integer
+          example: 2018
+          nullable: true
+        fiscalPeriodLength:
+          description: Length of the fiscal period in days.
+          type: integer
+          example: 91
+          nullable: true
+        fiscalEndDate:
+          description: The normalized data the fiscal period ended.
+          type: string
+          format: date
+          example: '2017-12-31'
+          nullable: true
+        reportDate:
+          description: The date the reported fiscal period ended.
+          type: string
+          format: date
+          example: '2017-12-30'
+          nullable: true
+        epsReportDate:
+          description: The date the EPS was reported for the requested periodicity. In YYYY-MM-DD format. Unavailable data returned as 0001-01-01.
+          type: string
+          format: date
+          example: '2018-02-24'
+          nullable: true
+        updateType:
+          description: 'Update Type: Preliminary - The period is updated from a report that usually contains limited or only key information., Final - The period is updated from a report where detailed information is available in financial statements including the notes to the line items.'
+          type: string
+          example: Preliminary
+          nullable: true
+          enum:
+          - Preliminary
+          - Final
+        currency:
+          description: 'Currency code for the data. For a list of currency ISO codes, visit [Online Assistant Page #1470](https://oa.apps.factset.com/pages/1470).'
+          type: string
+          example: USD
+          nullable: true
+        value:
+          $ref: '#/components/schemas/fundamentalValue'
+    BatchStatus:
+      title: Batch Status
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: the id of batch request.
+        startTime:
+          type: string
+          nullable: true
+          format: date-time
+          description: Time when the batch request is started. This is in Eastern Time Zone. The date-time format is expressed as [YYYY-MM-DD]T[HH:MM:SSS], following ISO 8601.
+        endTime:
+          type: string
+          nullable: true
+          format: date-time
+          description: Time when the batch request is ended. This is in Eastern Time Zone. The date-time format is expressed as [YYYY-MM-DD]T[HH:MM:SSS], following ISO 8601.
+        status:
+          type: string
+          enum:
+          - QUEUED
+          - EXECUTING
+          - DONE
+          - FAILED
+        error:
+          type: string
+          nullable: true
+          example: The parameter 'formulas' is required and may not be empty.
+          description: Error message.
+    BatchData:
+      title: Batch Data
+      description: 'The schema for the batched result is determined by the endpoint you used with the _batch_ parameter.
+
+        Please see the schema for that endpoint for the definition.
+
+        '
+      type: object
+    errorResponse:
+      type: object
+      title: Error Response
+      description: Error Default Response
+      properties:
+        errors:
+          type: array
+          description: An array containing errors
+          items:
+            $ref: '#/components/schemas/errorObject'
+    batchResult:
+      title: Batch Data
+      oneOf:
+      - $ref: '#/components/schemas/fundamental'
+      - $ref: '#/components/schemas/segment'
+    errorObject:
+      type: object
+      properties:
+        id:
+          description: A UUID for this particular occurrence of the problem.
+          type: string
+          example: adb01824-252f-4420-b0c6-35a1e3507ef5
+        code:
+          description: status
+          type: string
+          example: Bad Request
+        links:
+          description: The Endpoint path {package}/version/{endpoint}
+          type: object
+          properties:
+            about:
+              description: details.
+              type: string
+              example: /factset-fundamentals/v1/{endpoint}
+        title:
+          description: The plain text error message
+          type: string
+          example: Validation Error
+    BatchDataRequest:
+      title: Batch Data Request
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              example: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+              description: Batch Request identifier.
+    error_detail:
+      title: Error Object
+      description: '`Error Object` is the response returned for an unsuccessful request.
+
+        '
+      type: object
+      properties:
+        id:
+          description: Unique identifier for the request. Also known as the chain id.
+          type: string
+          example: 5EFCCA8940CAEA6B
+          nullable: true
+        code:
+          description: Textual error code
+          type: string
+          example: notAuthenticated
+          nullable: true
+        title:
+          description: A short, human-readable summary of the problem
+          type: string
+          example: There were either no, invalid, or expired credentials present in the request.
+          nullable: true
+        timestamp:
+          description: timestamp in YYYY-MM-DD HH:MM:SS.SSS
+          type: string
+          format: date-time
+          example: '2020-08-01 11:09:41.918'
+          nullable: true
+    segment:
+      title: Segment Object
+      type: object
+      required:
+      - label
+      properties:
+        requestId:
+          description: Identifier that was used for the request.
+          type: string
+          example: AAPL-US
+        fsymId:
+          description: FactSet Regional Security Identifier. Six alpha-numeric characters, excluding vowels, with an -R suffix (XXXXXX-R). Identifies the security's best regional security data series per currency. For equities, all primary listings per region and currency are allocated a regional-level permanent identifier. The regional-level permanent identifier will be available once a SEDOL representing the region/currency has been allocated and the identifiers are on FactSet.
+          type: string
+          example: MH33D6-R
+          nullable: true
+        metric:
+          description: The requested `metric` input, representing the Fundamental Data Item. For a definition of the item please use the /fundamentals/v#/metrics endpoint.
+          type: string
+          example: SALES
+          nullable: true
+        label:
+          description: Report labels of the segment type requested.
+          type: string
+          example: iPhone
+          nullable: true
+        date:
+          description: Date for the period requested expressed in YYYY-MM-DD format
+          type: string
+          format: date
+          example: '2022-09-30'
+          nullable: true
+        value:
+          $ref: '#/components/schemas/segmentValue'
+    BatchStatusResponse:
+      title: Batch Status Response
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/BatchStatus'
+    BatchDataResponse:
+      title: Batch Data Response
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/BatchData'
+    segmentValue:
+      description: 'Value of the data metric requested. Note that the type of value is ''object'', and depending on the data metric requested, the value could be an object representation of a string or double. '
+      oneOf:
+      - type: string
+        nullable: true
+      - type: number
+        format: double
+        nullable: true
+  parameters:
+    batchId:
+      name: id
+      in: query
+      description: Batch Request identifier.
+      schema:
+        type: string
+        format: uuid
+      required: true
+      allowEmptyValue: false
+  requestBodies:
+    batch-result-postBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BatchDataRequest'
+          examples:
+            BatchDataRequest:
+              summary: Batch Result Request
+              value:
+                data:
+                  id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+  headers:
+    chain-id:
+      description: Unique identifier for the request. Also known as the chain id.
+      schema:
+        type: string
+        example: 5EFCCA8940CAEA6B
+    api-version:
+      description: the full semantic version of the API.
+      schema:
+        type: string
+        example: 1.0.0
+    api-supported-versions:
+      description: the comma-separated list of supported major versions.
+      schema:
+        type: string
+        example: '1'
+    api-deprecated-versions:
+      description: the comma-separated list of deprecated major versions.
+      schema:
+        type: string
+        example: 1,2
+  responses:
+    '404':
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Batch Request Not Found:
+              $ref: '#/components/examples/notFound'
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

@@ -1,0 +1,187 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Ner API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Ner
+paths:
+  /ner/entities:
+    post:
+      parameters: []
+      operationId: nerEntities
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NERInputSchema'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NERResponseSchema'
+          description: Successful response
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NERResponseSchema'
+          description: Validation error
+      summary: Factset Endpoint to detect entities from text
+      description: Detect entities (People, Places, Organizations, etc.) in plain text
+      tags:
+      - Ner
+components:
+  schemas:
+    NERInputDataSchema:
+      properties:
+        enableIdLookup:
+          description: Retrieve Entity IDs using FactSet concordance systems.
+          title: Enable Entity ID Lookup
+          type: boolean
+        filterEntities:
+          description: Drop potentially spurious entities based on filtering rules
+          title: Filter Entities
+          type: boolean
+        text:
+          description: English plain-text from which entities should be retrieved
+          example: Phil Snow is the CEO of FactSet Research Systems Inc. (NYSE:FDS), with its headquarter at NORWALK, Conn., Sept. 22, 2015 (GLOBE NEWSWIRE).
+          title: Text
+          type: string
+      required:
+      - text
+      type: object
+    NEREntityList:
+      properties:
+        entities:
+          items:
+            $ref: '#/components/schemas/NEREntity'
+          type: array
+      type: object
+    Error:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+        code:
+          type: string
+      additionalProperties: false
+    NERResponseSchema:
+      properties:
+        data:
+          $ref: '#/components/schemas/NEREntityList'
+        errors:
+          items:
+            $ref: '#/components/schemas/Error'
+          type: array
+        meta:
+          description: Any associated metadata
+          type: object
+      type: object
+    NEROrganization:
+      properties:
+        entityId:
+          description: The FactSet Entity ID that is linked to this organization.
+          example: 0016YD-E
+          title: Entity ID
+          type: string
+        lookupUrl:
+          description: A link to the information page for the given organization
+          example: https://....
+          title: Lookp URL
+          type: string
+        name:
+          description: The name this organization.
+          example: FactSet Research Systems
+          title: Name
+          type: string
+      type: object
+    NEREntity:
+      properties:
+        associatedOrgs:
+          description: Organizations that are associated with this entity
+          items:
+            $ref: '#/components/schemas/NEROrganization'
+          title: Associated Organizations
+          type: array
+        endChar:
+          description: The index of the last character of the entity text
+          example: 11
+          title: End Character
+          type: integer
+        entityId:
+          description: The FactSet Entity ID that is linked to this text.
+          example: 0016YD-E
+          title: Entity ID
+          type: string
+        lookupText:
+          description: Name of the FactSet entity that is linked to this text.
+          example: FactSet Research Systems
+          title: Lookup Text
+          type: string
+        lookupUrl:
+          description: A link to the information page for the given entity
+          example: https://....
+          title: Lookp URL
+          type: string
+        startChar:
+          description: The index of the starting character of the entity text
+          example: 5
+          title: Start Character
+          type: integer
+        text:
+          description: The substring of the source text that ws found as an entity
+          example: FactSet
+          title: Text
+          type: string
+        type:
+          description: The type of entity (organization, person, etc.) that was found
+          enum:
+          - NE_GPE
+          - NE_ORG
+          - NE_PERSON
+          - NE_NUMBER
+          - NE_MONEY
+          - NE_DATETIME
+          - NE_DRUG
+          - NE_HEALTH_INDICATION
+          example: NE_ORG
+          title: Type
+          type: string
+      required:
+      - endChar
+      - startChar
+      - text
+      - type
+      type: object
+    NERInputSchema:
+      properties:
+        data:
+          $ref: '#/components/schemas/NERInputDataSchema'
+      type: object
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

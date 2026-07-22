@@ -1,0 +1,554 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Trigger API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Trigger
+paths:
+  /alerting/prices/basic/trigger/get:
+    get:
+      tags:
+      - Trigger
+      operationId: get/alerting/prices/basic/trigger/get
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Details of a trigger.
+      summary: Factset Details of a Trigger.
+      parameters:
+      - name: id
+        in: query
+        schema:
+          type: string
+          format: id64
+          x-positive: true
+          description: Identifier of the trigger.
+        required: true
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      responses:
+        '200':
+          $ref: '#/components/responses/GetAlertingPricesBasicTriggerGet200Response'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /alerting/prices/basic/trigger/list:
+    post:
+      tags:
+      - Trigger
+      operationId: post/alerting/prices/basic/trigger/list
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: true
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Returns a list of triggers sorted in descending order of creation.
+      summary: Factset List of Triggers.
+      requestBody:
+        description: Request Body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostAlertingPricesBasicTriggerListRequest'
+        required: false
+      responses:
+        '200':
+          $ref: '#/components/responses/PostAlertingPricesBasicTriggerList200Response'
+      parameters: []
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    PostAlertingPricesBasicTriggerListRequest:
+      x-property-sort:
+      - data
+      - meta
+      description: Request Body
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - filter
+          description: The data member contains the request's primary data.
+          properties:
+            filter:
+              type: object
+              x-property-sort:
+              - status
+              description: Criteria that filter the items in the response list.
+              properties:
+                status:
+                  type: object
+                  x-property-sort:
+                  - code
+                  description: Status of the trigger.
+                  properties:
+                    code:
+                      type: string
+                      description: Code of the status.
+                      x-enum-description:
+                      - The trigger is active and trigger conditions are evaluated.
+                      - The trigger is inactive and conditions do not generate alerts.
+                      - The trigger is in an error state, error details are noted in `details`
+                      enum:
+                      - active
+                      - inactive
+                      - error
+          example: example_value
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+            pagination:
+              type: object
+              description: Pagination attributes for the cursor-based pagination strategy.
+              properties:
+                cursor:
+                  type: string
+                  maxLength: 50
+                  exclusiveMaximum: false
+                  description: Starting point as returned in the attributes `pagination.next` or `pagination.previous` by a prior invocation of this endpoint, or undefined (default).
+                limit:
+                  type: number
+                  format: int32
+                  minimum: 0
+                  exclusiveMinimum: false
+                  maximum: 500
+                  exclusiveMaximum: false
+                  default: 20
+                  description: Non-negative maximum number of entries to return.
+              x-property-sort:
+              - cursor
+              - limit
+          x-property-sort:
+          - attributes
+          - pagination
+          example: example_value
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+        exclusiveMaximum: false
+      maxItems: 50
+      uniqueItems: true
+    CursorBasedPaginationOutputObject:
+      type: object
+      description: Pagination attributes for the cursor-based pagination strategy.
+      properties:
+        total:
+          type: number
+          format: int32
+          description: Total number of entries in the result set.
+          example: 42.5
+        isEstimatedTotal:
+          type: boolean
+          description: Flag indicating that the value of `total` is estimated.
+          example: true
+        next:
+          type: string
+          description: The next cursor position to use in the parameter `pagination.cursor` for an endpoint that supports cursor-based pagination, otherwise `null`.
+          example: example_value
+        previous:
+          type: string
+          description: The previous cursor position to use in the parameter `pagination.cursor` for an endpoint that supports cursor-based pagination. If a previous cursor position is not supported or available, `previous` is `null`.
+          example: example_value
+      required:
+      - total
+      - isEstimatedTotal
+      - next
+      - previous
+      x-property-sort:
+      - total
+      - isEstimatedTotal
+      - next
+      - previous
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
+  responses:
+    PostAlertingPricesBasicTriggerList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                description: List of triggers.
+                nullable: false
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                  - id
+                  - creation
+                  - notation
+                  - price
+                  - range
+                  - comment
+                  - notification
+                  - status
+                  properties:
+                    id:
+                      nullable: true
+                      type: string
+                      format: id64
+                      x-positive: true
+                      description: Identifier of the trigger.
+                    creation:
+                      nullable: true
+                      type: string
+                      format: datetime
+                      description: Date and time when the trigger was created.
+                    notation:
+                      nullable: false
+                      type: object
+                      x-property-sort:
+                      - id
+                      description: Notation data of the trigger.
+                      properties:
+                        id:
+                          nullable: true
+                          type: string
+                          format: id64
+                          x-positive: true
+                          description: Identifier of the notation.
+                    price:
+                      nullable: false
+                      description: Price data of the trigger.
+                      type: object
+                      x-property-sort:
+                      - type
+                      - quality
+                      properties:
+                        type:
+                          nullable: true
+                          type: string
+                          description: Type of the price as configured for the customer.
+                          x-enum-description:
+                          - Trade price (ordinary, auction, pre or post-trading).
+                          - Bid price.
+                          - Ask price.
+                          enum:
+                          - trade
+                          - bid
+                          - ask
+                        quality:
+                          nullable: true
+                          type: string
+                          description: Quality of the price.
+                          x-enum-description:
+                          - 'Real-time: intraday prices with minimal technical processing delays.'
+                          - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
+                          - 'End-of-day: prices updated once per day after the close of trading, possibly with an exchange-imposed delay of several hours or days.'
+                          enum:
+                          - RLT
+                          - DLY
+                          - EOD
+                    range:
+                      nullable: false
+                      type: object
+                      x-property-sort:
+                      - upperLimit
+                      - lowerLimit
+                      description: Price range for the trigger to monitor.
+                      properties:
+                        upperLimit:
+                          nullable: true
+                          type: number
+                          format: real
+                          description: Upper limit.
+                        lowerLimit:
+                          nullable: true
+                          type: number
+                          format: real
+                          description: Lower limit.
+                    comment:
+                      nullable: true
+                      type: string
+                      description: Comment of the trigger.
+                    notification:
+                      nullable: false
+                      type: object
+                      x-property-sort:
+                      - channel
+                      description: Selection of notifications for triggered alerts.
+                      properties:
+                        channel:
+                          nullable: false
+                          description: Notification channel selection; see endpoint `/alerting/notification/channel/list` for possible channels.
+                          type: array
+                          items:
+                            type: object
+                            nullable: false
+                            x-property-sort:
+                            - id
+                            properties:
+                              id:
+                                nullable: true
+                                description: Identifier of the notification channel.
+                                type: number
+                                format: id32
+                                x-positive: true
+                    status:
+                      nullable: false
+                      type: object
+                      x-property-sort:
+                      - code
+                      - details
+                      description: Status of the trigger.
+                      properties:
+                        code:
+                          nullable: true
+                          type: string
+                          description: Code of the status.
+                          x-enum-description:
+                          - The trigger is active and trigger conditions are evaluated.
+                          - The trigger is inactive and conditions do not generate alerts
+                          - The trigger is in an error state, error details are noted in "details"
+                          enum:
+                          - active
+                          - inactive
+                          - error
+                        details:
+                          nullable: true
+                          type: string
+                          description: A human-readable, unstructured explanation specific to this error.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                  pagination:
+                    $ref: '#/components/schemas/CursorBasedPaginationOutputObject'
+                x-property-sort:
+                - status
+                - pagination
+            x-property-sort:
+            - data
+            - meta
+    GetAlertingPricesBasicTriggerGet200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  id:
+                    nullable: true
+                    type: string
+                    format: id64
+                    x-positive: true
+                    description: Identifier of the trigger.
+                  creation:
+                    nullable: true
+                    type: string
+                    format: datetime
+                    description: Date and time when the trigger was created.
+                  notation:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - id
+                    description: Notation data of the trigger.
+                    properties:
+                      id:
+                        nullable: true
+                        type: string
+                        format: id64
+                        x-positive: true
+                        description: Identifier of the notation.
+                  price:
+                    nullable: false
+                    description: Price data of the trigger.
+                    type: object
+                    x-property-sort:
+                    - type
+                    - quality
+                    properties:
+                      type:
+                        nullable: true
+                        type: string
+                        description: Type of the price as configured for the customer.
+                        x-enum-description:
+                        - Trade price (ordinary, auction, pre or post-trading).
+                        - Bid price.
+                        - Ask price.
+                        enum:
+                        - trade
+                        - bid
+                        - ask
+                      quality:
+                        nullable: true
+                        type: string
+                        description: Quality of the price.
+                        x-enum-description:
+                        - 'Real-time: intraday prices with minimal technical processing delays.'
+                        - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
+                        - 'End-of-day: prices updated once per day after the close of trading, possibly with an exchange-imposed delay of several hours or days.'
+                        enum:
+                        - RLT
+                        - DLY
+                        - EOD
+                  range:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - upperLimit
+                    - lowerLimit
+                    description: Price range for the trigger to monitor.
+                    properties:
+                      upperLimit:
+                        nullable: true
+                        type: number
+                        format: real
+                        description: Upper limit.
+                      lowerLimit:
+                        nullable: true
+                        type: number
+                        format: real
+                        description: Lower limit.
+                  comment:
+                    nullable: true
+                    type: string
+                    description: Comment of the trigger.
+                  notification:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - channel
+                    description: Selection of notifications for triggered alerts.
+                    properties:
+                      channel:
+                        nullable: false
+                        description: Notification channel selection; see endpoint `/alerting/notification/channel/list` for possible channels.
+                        type: array
+                        items:
+                          type: object
+                          nullable: false
+                          x-property-sort:
+                          - id
+                          properties:
+                            id:
+                              nullable: true
+                              description: Identifier of the notification channel.
+                              type: number
+                              format: id32
+                              x-positive: true
+                  status:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - code
+                    - details
+                    - encryptedDetails
+                    description: Status of the trigger.
+                    properties:
+                      code:
+                        nullable: true
+                        type: string
+                        description: Code of the status.
+                        x-enum-description:
+                        - The trigger is active and trigger conditions are evaluated.
+                        - The trigger is inactive and conditions do not generate alerts
+                        - The trigger is in an error state, error details are noted in "details"
+                        enum:
+                        - active
+                        - inactive
+                        - error
+                      details:
+                        nullable: true
+                        type: string
+                        description: A human-readable, unstructured explanation specific to this error.
+                      encryptedDetails:
+                        nullable: true
+                        type: string
+                        description: Base64-encoded, internal details about the error, in addition to "details". An issue submitted to Service Desk should contain this data to speed up investigation.
+                description: Details of the trigger.
+                nullable: false
+                x-property-sort:
+                - id
+                - creation
+                - notation
+                - price
+                - range
+                - comment
+                - notification
+                - status
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

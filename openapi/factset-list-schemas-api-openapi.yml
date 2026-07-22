@@ -1,0 +1,140 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About List Schemas API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: List Schemas
+paths:
+  /list-schemas:
+    get:
+      summary: Factset schemas
+      tags:
+      - List Schemas
+      operationId: get-v1-list-schemas
+      description: "<a href=https://api.factset.com/bulk-documents/sdf/v1/list-schemas>List-Schemas</a> helper end point provides the list of schemas subscribed by the client and their corresponding sequences if no query parameters are passed in the request.\n\n If schema & sequence number (version number of schema) are passed in the request, this endpoint provides a downloadable presigned url containing the schema information."
+      parameters:
+      - $ref: '#/components/parameters/schema'
+      - $ref: '#/components/parameters/sequence'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListSchemas'
+              examples:
+                list-schema200ResponseExample:
+                  $ref: '#/components/examples/list-schema_200ResponseExample'
+                list-schema200ResponseExample2:
+                  $ref: '#/components/examples/list-schema_200ResponseExample2'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/list-schema_400Response'
+              examples:
+                list_schema400ResponseExample:
+                  $ref: '#/components/examples/list-schema_400ResponseExample'
+components:
+  schemas:
+    list-schema_400Response:
+      properties:
+        id:
+          description: request id
+          type: string
+        error_message:
+          description: message describing the error
+          type: string
+    SchemaList:
+      title: SchemaList
+      description: Schema List Object
+      type: object
+      additionalProperties:
+        description: Name of schema with the sequence number (version number) in the value.
+        type: array
+        items:
+          type: string
+    ListSchemas:
+      title: ListSchemas
+      description: List Of Schemas
+      anyOf:
+      - $ref: '#/components/schemas/SchemaList'
+      - $ref: '#/components/schemas/SchemaDetails'
+    SchemaDetails:
+      type: object
+      properties:
+        schema:
+          description: schema name
+          type: string
+        sequence:
+          description: version number of the schema
+          type: integer
+        url:
+          description: pre-signed downloadable url containing the information of the schema
+          type: string
+        timestamp:
+          description: time stamp of when the schema sequence was last updated
+          type: string
+  examples:
+    list-schema_400ResponseExample:
+      summary: Sample Response
+      value:
+        id: xxxx-xxxx-xxxx-xxxx                     **Example**
+        error_message: 'parameterError:schema_name : Not a valid schema.'
+    list-schema_200ResponseExample:
+      summary: Sample Response
+      value:
+        schema: acta_v1
+        sequence: 8
+        url: https://fdss3-bulk-data-delivery-sdf.s3.amazonaws.com/schema/acta_v1/8/2020-05-28_14_18_33.txt?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA4NAFRGHDMSAGCE52%2F20210511%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20210511T170435Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjECIaCXVzLWVhc3QtMSJIMEYCIQD1He0st1G1qElczFiEEG0DVpLHRkTfIyCgA9pUbHmT4wIhAPyz46DpoaSZDfmk%2FZqbG7xUZjZjDyCbr5uBRw5jlz1JKtkBCKr%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQARoMODUyNTYyNjIwODcwIgzHhlGrM5TOWg50o9IqrQGOySsSusfChhxaGUj7dfJDMdnJBOJtm6O5pAnVMnzuHhyr%2FLg69QHy%2BmxSO6SdqykHRjuLMnUeNgQ34n75gaLQDe7B%2Bsw9jSZV3NI6O6B2G4Gjga4X7%2Fm1OlKbStb0CgTVjYTjSI4vIMMn1jKmGZvosl9ZSJgpEbeYk5kKG4Kmr%2FXDGbn4C0ZKXbdnWY4yZCaZitNAkJ74hQSxlk7DWBrTKY1QZUT7WBvd3hRXRTCY8uqEBjrfAdcXYNIJmuyJRel22QcGZ24xPyUXJyW9%2B3vbmDQx3QHLyyHZq%2BbKGKt0sphxhfna%2Bu9qdApKhkBbk1N1%2Bv%2FXLvItRG5Y38ZPpy4gj6hgs6h5%2Buay1Esb32f4083L8uBL26NuUDg09odjE6sBpuqkJoTiBMXaKdlHbU0GfrOli2dK46rhDmY6m1jbF2Najd1v5rbDW%2FPRzYnpM638paqbwUev%2FcLgGvRI%2FXuWoNH%2FfhXFCZf9G20BGWWyhuOoq0%2BSL0a4BQkZXHNjiCXQrysuQtonI4NF%2BD%2FfwZtPuD%2BEsJg%3D&X-Amz-Signature=58517963bbb5b77b481ce68df391c7e29166ac330c552c79f4df68cfdd0585ab
+        timestamp: '2020-05-28 14:18:33'
+    list-schema_200ResponseExample2:
+      summary: No Parameters Response
+      value:
+        acta_v1:
+        - '8'
+        actr_v1:
+        - '2'
+        qfl_v1:
+        - '2'
+  parameters:
+    sequence:
+      name: sequence
+      in: query
+      description: "Version number of a schema\n\nPlease enter the sequence number associated with the schema passed in the request\n**Example: \"8\" from acta_v1: [8],**\n\nQFL:- Enter the sequence number associated with the qfl schema \n\n**Note:** Please pass sequence parameter only while passing the schema parameter in the request"
+      required: false
+      schema:
+        type: integer
+    schema:
+      name: schema
+      in: query
+      description: 'schema name</p> </p> **Example: acta_v1, fgp_v1, yn_v1**
+
+
+        QFL:- To query QFL data, please use value:   **qfl_v1** '
+      required: false
+      schema:
+        type: string
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

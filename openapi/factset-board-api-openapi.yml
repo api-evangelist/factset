@@ -1,0 +1,383 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Board API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Board
+paths:
+  /company/board/listByInstrument:
+    get:
+      tags:
+      - Board
+      operationId: get/company/board/listByInstrument
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: List of boards for a company, with their officers.
+      description: List of boards for a company, with their officers. A given person may be a member ofdifferent boards of the same company but also a member of boards of different companies.
+      parameters:
+      - name: id
+        in: query
+        schema:
+          type: string
+          format: id64
+          x-positive: true
+          description: Identifier of the instrument representing company shares.Any other instrument yields empty values.
+        required: true
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      - name: _language
+        in: query
+        schema:
+          type: string
+          format: isoLanguage
+          description: ISO 639-1 code of the language.
+          maxLength: 2
+          minLength: 2
+          exclusiveMinimum: false
+          exclusiveMaximum: false
+      responses:
+        '200':
+          $ref: '#/components/responses/GetCompanyBoardListByInstrument200Response'
+  /company/board/officer/function/delivery/list:
+    get:
+      tags:
+      - Board
+      operationId: get/company/board/officer/function/delivery/list
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: List of officer functions as provided by a delivery.
+      description: List of officer functions as provided by a delivery.
+      responses:
+        '200':
+          $ref: '#/components/responses/GetCompanyBoardOfficerFunctionDeliveryList200Response'
+      parameters:
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      - name: _language
+        in: query
+        schema:
+          type: string
+          format: isoLanguage
+          description: ISO 639-1 code of the language.
+          maxLength: 2
+          minLength: 2
+          exclusiveMinimum: false
+          exclusiveMaximum: false
+  /company/board/type/list:
+    get:
+      tags:
+      - Board
+      operationId: get/company/board/type/list
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: List of company board types.
+      description: List of company board types.
+      responses:
+        '200':
+          $ref: '#/components/responses/GetCompanyBoardTypeList200Response'
+      parameters:
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      - name: _language
+        in: query
+        schema:
+          type: string
+          format: isoLanguage
+          description: ISO 639-1 code of the language.
+          maxLength: 2
+          minLength: 2
+          exclusiveMinimum: false
+          exclusiveMaximum: false
+components:
+  responses:
+    GetCompanyBoardListByInstrument200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: List of boards of the company, with their officers. The list of boards is sorted byidentifier of the type and the list of officers by name of the officer, both ascending.
+                nullable: false
+                type: array
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                  - type
+                  - officers
+                  properties:
+                    type:
+                      nullable: false
+                      description: Type of the board. See endpoint `/company/board/type/list` for possible values.
+                      type: object
+                      x-property-sort:
+                      - id
+                      - name
+                      properties:
+                        id:
+                          nullable: true
+                          type: number
+                          format: id32
+                          x-positive: true
+                          description: Identifier of a type.
+                        name:
+                          nullable: true
+                          type: string
+                          format: localizedString
+                          description: Name of the type.
+                    officers:
+                      nullable: false
+                      description: List of officers that are members of the board.
+                      type: array
+                      items:
+                        type: object
+                        nullable: false
+                        x-property-sort:
+                        - id
+                        - name
+                        - presentationName
+                        - titleOfficer
+                        - function
+                        properties:
+                          id:
+                            nullable: true
+                            type: number
+                            format: id32
+                            x-positive: true
+                            description: Identifier of an officer.  See endpoint `/legalEntity/list` for possible values.
+                          name:
+                            nullable: true
+                            type: string
+                            description: Full name of the officer.
+                          presentationName:
+                            nullable: true
+                            type: string
+                            description: Presentation name of the officer, potentially shortened and/or containing name supplementssuch as a title.
+                          titleOfficer:
+                            nullable: true
+                            type: string
+                            description: Job title of the officer.
+                          function:
+                            nullable: false
+                            description: Function of the officer. See endpoint `/company/board/officer/function/list`for possible values.
+                            type: object
+                            x-property-sort:
+                            - id
+                            - name
+                            properties:
+                              id:
+                                nullable: true
+                                type: number
+                                format: id32
+                                x-positive: true
+                                description: Identifier of the function.
+                              name:
+                                nullable: true
+                                type: string
+                                format: localizedString
+                                description: Name of the function.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+    GetCompanyBoardTypeList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: List of company board types sorted ascending by the identifier of the type.
+                nullable: false
+                type: array
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                  - id
+                  - name
+                  - description
+                  properties:
+                    id:
+                      nullable: true
+                      type: number
+                      format: id32
+                      x-positive: true
+                      description: Identifier of a type.
+                    name:
+                      nullable: true
+                      type: string
+                      format: localizedString
+                      description: Name of the type.
+                    description:
+                      nullable: true
+                      type: string
+                      format: localizedString
+                      description: Description of the type.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+    GetCompanyBoardOfficerFunctionDeliveryList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: List of deliveries, with their officer functions,sorted by name of the delivery and identifier of the function, both ascending.
+                nullable: false
+                type: array
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                  - id
+                  - name
+                  - functions
+                  properties:
+                    id:
+                      nullable: true
+                      type: number
+                      format: id32
+                      x-positive: true
+                      description: Identifier of a delivery.
+                    name:
+                      nullable: true
+                      type: string
+                      description: Name of the delivery.
+                    functions:
+                      nullable: false
+                      description: List of officer functions.
+                      type: array
+                      items:
+                        type: object
+                        nullable: false
+                        x-property-sort:
+                        - id
+                        - name
+                        properties:
+                          id:
+                            nullable: true
+                            type: number
+                            format: id32
+                            x-positive: true
+                            description: Identifier of a function.
+                          name:
+                            nullable: true
+                            type: string
+                            format: localizedString
+                            description: Name of the function.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+  schemas:
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+      description: The status member contains the status code of the response.
+      required:
+      - code
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

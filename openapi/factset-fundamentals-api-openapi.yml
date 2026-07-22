@@ -1,1457 +1,578 @@
-openapi: 3.1.0
+openapi: 3.0.3
 info:
-  title: FactSet Fundamentals API
-  version: 2.2.0
-  summary: >-
-    Access current, comprehensive, and comparative fundamental data on
-    securities in worldwide developed and emerging markets.
-  description: >-
-    Gain access to current, comprehensive, and comparative information on
-    securities in worldwide developed and emerging markets. Composed of annual
-    and interim/quarterly data, detailed historical financial statement content,
-    per-share data, and calculated ratios, FactSet Fundamentals provides you
-    with the information you need for a global investment perspective.
-
-
-    The API covers income statements, balance sheets, cash flow statements,
-    financial ratios, company segments, and consensus estimates across thousands
-    of publicly traded companies. Data is available in multiple periodicities
-    including annual, quarterly, semi-annual, last twelve months, and
-    year-to-date.
-
-
-    Key capabilities include:
-
-    - **Financial Statements** - Standardized income statement, balance sheet,
-    and cash flow data
-
-    - **Ratios** - Pre-calculated financial, profitability, liquidity, growth,
-    and valuation ratios
-
-    - **Segments** - Business and geographic segment breakdowns
-
-    - **Estimates** - Consensus analyst estimates for key financial metrics
-
-    - **Batch Processing** - Asynchronous batch requests for large data sets
+  title: Factset Analytics Datastore About Fundamentals API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
   contact:
     name: FactSet Research Systems
-    email: api@factset.com
     url: https://developer.factset.com/contact
+    email: api@factset.com
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  termsOfService: https://developer.factset.com/terms
-  x-factset-api-catalog: >-
-    https://developer.factset.com/api-catalog/factset-fundamentals-api
-externalDocs:
-  description: FactSet Fundamentals API Documentation
-  url: https://developer.factset.com/api-catalog/factset-fundamentals-api
+  version: 1.0.0
 servers:
-- url: https://api.factset.com/content/factset-fundamentals/v2
+- url: https://api.factset.com
   description: Production
-- url: https://api.factset.com/content/factset-fundamentals/v2
+- url: https://api-sandbox.factset.com
   description: Sandbox
 security:
-- FactSetApiKey: []
-- FactSetOAuth2: []
+- basicAuth: []
 tags:
-- name: Batch Processing
-  description: >-
-    Manage asynchronous batch requests for processing large data sets with
-    up to 30,000 identifiers per request.
-- name: Estimates
-  description: >-
-    Retrieve consensus analyst estimates for key financial metrics including
-    revenue, EPS, and other fundamental data items.
-- name: Financial Statements
-  description: >-
-    Retrieve standardized financial statement data including income
-    statements, balance sheets, and cash flow statements. Access annual,
-    quarterly, and interim data for companies worldwide.
-- name: Metrics
-  description: >-
-    Discover available FactSet Fundamental metrics and ratios that can be
-    used across the API endpoints.
-- name: Ratios
-  description: >-
-    Access pre-calculated financial ratios including profitability, liquidity,
-    growth rates, size, and valuation metrics.
-- name: Segments
-  description: >-
-    Access business and geographic segment data including revenue, operating
-    income, assets, depreciation, and capital expenditures by segment.
+- name: Fundamentals
 paths:
   /fundamentals:
     get:
       tags:
-      - Financial Statements
-      operationId: getFundamentals
+      - Fundamentals
       summary: Factset Returns Company Fundamental Data.
-      description: >-
-        Retrieves FactSet Fundamental standardized data for specified
-        securities. Use the `/metrics` endpoint to retrieve a full list of
-        valid metrics or data items.
-
-
-        The `/fundamentals` endpoint currently supports Long Running
-        asynchronous requests up to **20 minutes** via batch parameter. Id
-        limits are increased to 2000 ids per request when using batch
-        capability. This 2000 id limit has been derived based on single metric
-        for one day.
+      operationId: getFdsFundamentals
+      x-factset-sdk-ignore: true
+      description: "Retrieves FactSet Fundamental standardized data for specified securities. Use the ```/metrics``` endpoint to retrieve a full list of valid metrics or data items.\n\n\nThe ```/fundamentals``` endpoint currently supports Long Running asynchronous requests up to **20 minutes** via batch parameter. Id limits are increased to 2000 ids per request when using batch capability. This 2000 id limit has been derived based on single metric for one day. This feature is available for all users.       \n"
       parameters:
-      - $ref: '#/components/parameters/ids'
-      - $ref: '#/components/parameters/metrics'
+      - $ref: '#/components/parameters/idsBatchMax2000'
       - $ref: '#/components/parameters/periodicity'
       - $ref: '#/components/parameters/fiscalPeriodStart'
       - $ref: '#/components/parameters/fiscalPeriodEnd'
+      - $ref: '#/components/parameters/metrics'
       - $ref: '#/components/parameters/currency'
       - $ref: '#/components/parameters/updateType'
       - $ref: '#/components/parameters/batch'
       responses:
         '200':
-          description: >-
-            Fundamental data items returned successfully.
+          description: Fundamental data items
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FundamentalsResponse'
+                $ref: '#/components/schemas/fundamentalsResponse'
               examples:
-                singleCompanySingleMetric:
-                  summary: Single company (FDS-US) with FF_SALES metric
-                  value:
-                    data:
-                    - requestId: FDS-US
-                      fsymId: SQFMK3-R
-                      metric: FF_SALES
-                      periodicity: QTR
-                      fiscalPeriod: 1
-                      fiscalYear: 2024
-                      fiscalPeriodLength: 91
-                      fiscalEndDate: '2024-02-29'
-                      reportDate: '2024-02-28'
-                      epsReportDate: '2024-03-21'
-                      updateType: Final
-                      currency: USD
-                      value: 547200000
-                multipleCompaniesMultipleMetrics:
-                  summary: Multiple companies with multiple metrics
-                  value:
-                    data:
-                    - requestId: FDS-US
-                      fsymId: SQFMK3-R
-                      metric: FF_SALES
-                      periodicity: ANN
-                      fiscalPeriod: 0
-                      fiscalYear: 2023
-                      fiscalPeriodLength: 365
-                      fiscalEndDate: '2023-08-31'
-                      reportDate: '2023-08-31'
-                      epsReportDate: '2023-09-19'
-                      updateType: Final
-                      currency: USD
-                      value: 2072800000
-                    - requestId: AAPL-US
-                      fsymId: MH33D6-R
-                      metric: FF_SALES
-                      periodicity: ANN
-                      fiscalPeriod: 0
-                      fiscalYear: 2023
-                      fiscalPeriodLength: 365
-                      fiscalEndDate: '2023-09-30'
-                      reportDate: '2023-09-30'
-                      epsReportDate: '2023-11-02'
-                      updateType: Final
-                      currency: USD
-                      value: 383285000000
+                Result of Single Company (FDS-US), sales(FF_SALES) details for the given period:
+                  $ref: '#/components/examples/resultOfSingleIdwithSingleMetricItem'
+                Result of Multiple companies single metric item details:
+                  $ref: '#/components/examples/resultOfMultipleIdwithSingleMetricItem'
+                Result of Single Company (FDS-US), and Multiple Metrics (FF_SALES, FF_PE):
+                  $ref: '#/components/examples/resultOfSingleIdwithMultipleMetricItem'
         '202':
-          $ref: '#/components/responses/BatchAccepted'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-    post:
-      tags:
-      - Financial Statements
-      operationId: postFundamentals
-      summary: Factset Returns Company Fundamental Data for a List of Identifiers.
-      description: >-
-        Retrieves FactSet Fundamental standardized data for specified
-        securities using a POST request body. Use the `/metrics` endpoint to
-        retrieve a full list of valid metrics or data items.
-
-
-        The `/fundamentals` endpoint currently supports Long Running
-        asynchronous requests up to **20 minutes** via batch parameter. Id
-        limits are increased to 30,000 ids per request when using batch
-        capability. This 30,000 id limit has been derived based on single
-        metric for one day.
-      requestBody:
-        required: true
-        description: Request object for fundamentals data
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/FundamentalsRequest'
-            examples:
-              singleCompanySingleMetric:
-                summary: Single company with single metric
-                value:
-                  data:
-                    ids:
-                    - FDS-US
-                    metrics:
-                    - FF_SALES
-                    periodicity: QTR
-                    fiscalPeriod:
-                      start: '2023-01-01'
-                      end: '2024-01-01'
-              multipleCompaniesMultipleMetrics:
-                summary: Multiple companies with multiple metrics
-                value:
-                  data:
-                    ids:
-                    - FDS-US
-                    - AAPL-US
-                    - MSFT-US
-                    metrics:
-                    - FF_SALES
-                    - FF_EPS
-                    - FF_PE
-                    periodicity: ANN
-                    fiscalPeriod:
-                      start: '2020-01-01'
-                      end: '2024-01-01'
-                    currency: USD
-              batchRequest:
-                summary: Batch request for large ID set
-                value:
-                  data:
-                    ids:
-                    - FDS-US
-                    - AAPL-US
-                    metrics:
-                    - FF_SALES
-                    - FF_PE
-                    periodicity: ANN
-                    batch: 'Y'
-      responses:
-        '200':
-          description: Fundamental data items returned successfully.
+          description: Batch request has been accepted.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FundamentalsResponse'
-        '202':
-          $ref: '#/components/responses/BatchAccepted'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-  /financial-statements:
-    get:
-      tags:
-      - Financial Statements
-      operationId: getFinancialStatements
-      summary: Factset Returns Financial Statement Line Items.
-      description: >-
-        Retrieves detailed financial statement data organized by statement type
-        (income statement, balance sheet, cash flow). Use the `category`
-        parameter to filter by statement type, and the `metrics` parameter
-        to request specific line items.
-
-
-        Available statement categories include INCOME_STATEMENT, BALANCE_SHEET,
-        CASH_FLOW, and FINANCIAL_SERVICES for financial institutions.
-      parameters:
-      - $ref: '#/components/parameters/ids'
-      - $ref: '#/components/parameters/metrics'
-      - $ref: '#/components/parameters/statementCategory'
-      - $ref: '#/components/parameters/periodicity'
-      - $ref: '#/components/parameters/fiscalPeriodStart'
-      - $ref: '#/components/parameters/fiscalPeriodEnd'
-      - $ref: '#/components/parameters/currency'
-      - $ref: '#/components/parameters/updateType'
-      responses:
-        '200':
-          description: Financial statement data returned successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FundamentalsResponse'
+                $ref: '#/components/schemas/BatchStatusResponse'
               examples:
-                incomeStatement:
-                  summary: Income statement data for AAPL-US
-                  value:
-                    data:
-                    - requestId: AAPL-US
-                      fsymId: MH33D6-R
-                      metric: FF_SALES
-                      periodicity: ANN
-                      fiscalPeriod: 0
-                      fiscalYear: 2023
-                      fiscalPeriodLength: 365
-                      fiscalEndDate: '2023-09-30'
-                      reportDate: '2023-09-30'
-                      epsReportDate: '2023-11-02'
-                      updateType: Final
-                      currency: USD
-                      value: 383285000000
-                    - requestId: AAPL-US
-                      fsymId: MH33D6-R
-                      metric: FF_GROSS_INC
-                      periodicity: ANN
-                      fiscalPeriod: 0
-                      fiscalYear: 2023
-                      fiscalPeriodLength: 365
-                      fiscalEndDate: '2023-09-30'
-                      reportDate: '2023-09-30'
-                      epsReportDate: '2023-11-02'
-                      updateType: Final
-                      currency: USD
-                      value: 169148000000
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-    post:
-      tags:
-      - Financial Statements
-      operationId: postFinancialStatements
-      summary: Factset Returns Financial Statement Line Items for a List of Identifiers.
-      description: >-
-        Retrieves detailed financial statement data via POST for large
-        identifier sets. Supports up to 30,000 ids per batch request.
-      requestBody:
-        required: true
-        description: Request object for financial statement data
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/FinancialStatementsRequest'
-      responses:
-        '200':
-          description: Financial statement data returned successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FundamentalsResponse'
-        '202':
-          $ref: '#/components/responses/BatchAccepted'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-  /ratios:
-    get:
-      tags:
-      - Ratios
-      operationId: getRatios
-      summary: Factset Returns Pre-calculated Financial Ratios.
-      description: >-
-        Retrieves pre-calculated financial ratios for specified securities.
-        Available ratio subcategories include FINANCIAL, GROWTH_RATE,
-        LIQUIDITY, PROFITABILITY, SIZE, and VALUATION.
-
-
-        Common ratios include price-to-earnings (FF_PE), return on equity
-        (FF_ROE), debt-to-equity (FF_DEBT_EQUITY), current ratio
-        (FF_CURR_RATIO), and many others.
-      parameters:
-      - $ref: '#/components/parameters/ids'
-      - $ref: '#/components/parameters/ratioMetrics'
-      - $ref: '#/components/parameters/ratioSubcategory'
-      - $ref: '#/components/parameters/periodicity'
-      - $ref: '#/components/parameters/fiscalPeriodStart'
-      - $ref: '#/components/parameters/fiscalPeriodEnd'
-      - $ref: '#/components/parameters/currency'
-      responses:
-        '200':
-          description: Ratio data returned successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RatiosResponse'
-              examples:
-                valuationRatios:
-                  summary: Valuation ratios for AAPL-US
-                  value:
-                    data:
-                    - requestId: AAPL-US
-                      fsymId: MH33D6-R
-                      metric: FF_PE
-                      periodicity: ANN
-                      fiscalPeriod: 0
-                      fiscalYear: 2023
-                      fiscalEndDate: '2023-09-30'
-                      currency: USD
-                      value: 29.84
-                    - requestId: AAPL-US
-                      fsymId: MH33D6-R
-                      metric: FF_PBK
-                      periodicity: ANN
-                      fiscalPeriod: 0
-                      fiscalYear: 2023
-                      fiscalEndDate: '2023-09-30'
-                      currency: USD
-                      value: 48.72
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-    post:
-      tags:
-      - Ratios
-      operationId: postRatios
-      summary: Factset Returns Pre-calculated Financial Ratios for a List of Identifiers.
-      description: >-
-        Retrieves pre-calculated financial ratios via POST for large
-        identifier sets.
-      requestBody:
-        required: true
-        description: Request object for ratio data
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RatiosRequest'
-      responses:
-        '200':
-          description: Ratio data returned successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RatiosResponse'
-        '202':
-          $ref: '#/components/responses/BatchAccepted'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-  /estimates:
-    get:
-      tags:
-      - Estimates
-      operationId: getEstimates
-      summary: Factset Returns Consensus Analyst Estimates.
-      description: >-
-        Retrieves consensus analyst estimates for specified securities and
-        metrics. Consensus estimates are aggregated from a wide base of over
-        800+ contributors and cover over 19,000 active companies across 90+
-        countries.
-
-
-        Common estimate metrics include FF_EST_SALES (estimated sales),
-        FF_EST_EPS (estimated earnings per share), and FF_EST_EBITDA
-        (estimated EBITDA).
-      parameters:
-      - $ref: '#/components/parameters/ids'
-      - $ref: '#/components/parameters/estimateMetrics'
-      - $ref: '#/components/parameters/periodicity'
-      - $ref: '#/components/parameters/fiscalPeriodStart'
-      - $ref: '#/components/parameters/fiscalPeriodEnd'
-      - $ref: '#/components/parameters/currency'
-      responses:
-        '200':
-          description: Estimate data returned successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EstimatesResponse'
-              examples:
-                consensusEstimates:
-                  summary: Consensus EPS estimates for AAPL-US
-                  value:
-                    data:
-                    - requestId: AAPL-US
-                      fsymId: MH33D6-R
-                      metric: FF_EST_EPS
-                      periodicity: ANN
-                      fiscalPeriod: 0
-                      fiscalYear: 2025
-                      fiscalEndDate: '2025-09-30'
-                      currency: USD
-                      estimateCount: 38
-                      mean: 7.42
-                      median: 7.45
-                      high: 7.95
-                      low: 6.85
-                      standardDeviation: 0.22
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-    post:
-      tags:
-      - Estimates
-      operationId: postEstimates
-      summary: >-
-        Factset Returns Consensus Analyst Estimates for a List of Identifiers.
-      description: >-
-        Retrieves consensus analyst estimates via POST for large identifier
-        sets. Supports up to 30,000 ids per batch request.
-      requestBody:
-        required: true
-        description: Request object for estimates data
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/EstimatesRequest'
-      responses:
-        '200':
-          description: Estimate data returned successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EstimatesResponse'
-        '202':
-          $ref: '#/components/responses/BatchAccepted'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-  /segments:
-    get:
-      tags:
-      - Segments
-      operationId: getSegments
-      summary: Factset Returns Company Segment Data.
-      description: >-
-        Retrieves business and geographic segment data for individual
-        companies. Segment metrics include SALES, OPINC (operating income),
-        ASSETS, DEP (depreciation), and CAPEX (capital expenditures).
-
-
-        The `/segments` endpoint supports Long Running asynchronous requests
-        up to **20 minutes** via batch parameter. Id limits are increased to
-        2,000 ids per request when using batch capability.
-      parameters:
-      - $ref: '#/components/parameters/ids'
-      - $ref: '#/components/parameters/segmentMetrics'
-      - $ref: '#/components/parameters/segmentType'
-      - $ref: '#/components/parameters/segmentPeriodicity'
-      - $ref: '#/components/parameters/fiscalPeriodStart'
-      - $ref: '#/components/parameters/fiscalPeriodEnd'
-      - $ref: '#/components/parameters/batch'
-      responses:
-        '200':
-          description: Segment data returned successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SegmentsResponse'
-              examples:
-                businessSegments:
-                  summary: Business segments for AAPL-US
-                  value:
-                    data:
-                    - requestId: AAPL-US
-                      fsymId: MH33D6-R
-                      metric: SALES
-                      label: iPhone
-                      date: '2023-09-30'
-                      value: 200583000000
-                    - requestId: AAPL-US
-                      fsymId: MH33D6-R
-                      metric: SALES
-                      label: Mac
-                      date: '2023-09-30'
-                      value: 29357000000
-                    - requestId: AAPL-US
-                      fsymId: MH33D6-R
-                      metric: SALES
-                      label: Services
-                      date: '2023-09-30'
-                      value: 85200000000
-        '202':
-          $ref: '#/components/responses/BatchAccepted'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-    post:
-      tags:
-      - Segments
-      operationId: postSegments
-      summary: Factset Returns Company Segment Data for a List of Identifiers.
-      description: >-
-        Retrieves segment data via POST for large identifier sets. Supports
-        up to 30,000 ids per batch request.
-      requestBody:
-        required: true
-        description: Request object for segment data
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SegmentsRequest'
-      responses:
-        '200':
-          description: Segment data returned successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SegmentsResponse'
-        '202':
-          $ref: '#/components/responses/BatchAccepted'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-  /metrics:
-    get:
-      tags:
-      - Metrics
-      operationId: getMetrics
-      summary: Returns Available Factset Fundamental Metrics and Ratios.
-      description: >-
-        Returns list of available FF_* metrics that can be used in the
-        `metrics` parameter of related endpoints. These are related to FactSet
-        Fundamentals standardized data. Leave Category and Subcategory blank
-        to request all available items.
-
-
-        For methodology definitions, reference the `oaPageId` or `oaUrl`
-        response items to launch the available methodology page.
-      parameters:
-      - $ref: '#/components/parameters/category'
-      - $ref: '#/components/parameters/subcategory'
-      - $ref: '#/components/parameters/metricDataType'
-      responses:
-        '200':
-          description: Metrics catalog returned successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MetricsResponse'
-              examples:
-                incomeStatementMetrics:
-                  summary: Income statement metrics
-                  value:
-                    data:
-                    - metric: FF_SALES
-                      name: Sales/Revenue - Total
-                      category: INCOME_STATEMENT
-                      subcategory: INCOME_STATEMENT
-                      oaPageId: D10585
-                      oaUrl: https://my.apps.factset.com/oa/pages/D10585
-                      factor: 1000000
-                      sdfPackage: BASIC
-                      dataType: doubleArray
-                    - metric: FF_GROSS_INC
-                      name: Gross Income
-                      category: INCOME_STATEMENT
-                      subcategory: INCOME_STATEMENT
-                      oaPageId: D10586
-                      oaUrl: https://my.apps.factset.com/oa/pages/D10586
-                      factor: 1000000
-                      sdfPackage: BASIC
-                      dataType: doubleArray
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-  /batch-status:
-    get:
-      tags:
-      - Batch Processing
-      operationId: getBatchStatus
-      summary: Factset Returns the Status for a Batch Request.
-      description: >-
-        Return the status for the underlying batch request that is specified
-        by the id.
-      parameters:
-      - $ref: '#/components/parameters/batchId'
-      responses:
-        '201':
-          description: >-
-            The batch request has been completed and the response has been
-            created.
+                Batch Request Accepted:
+                  $ref: '#/components/examples/BatchStatusAcceptedResponse'
           headers:
             Location:
-              description: Path to Batch Request result.
+              description: Path to Batch Request status.
               schema:
                 type: string
-              example: batch-result?id=2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BatchStatusResponse'
-        '202':
-          description: >-
-            The batch request has not finished and the result has NOT been
-            created.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BatchStatusResponse'
-        '404':
-          $ref: '#/components/responses/NotFound'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-  /batch-result:
-    get:
+              example: batch-status?id=2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '415':
+          $ref: '#/components/responses/415'
+        '500':
+          $ref: '#/components/responses/500'
+    post:
       tags:
-      - Batch Processing
-      operationId: getBatchResult
-      summary: Factset Returns the Response for a Batch Request.
-      description: >-
-        Returns the response data for the underlying batch request that is
-        specified by the id.
-
-
-        By default, this endpoint will return data as JSON. If you wish to
-        receive your data in CSV format, you can edit the header to have the
-        "accept" parameter as "text/csv" instead of "application/json".
-      parameters:
-      - $ref: '#/components/parameters/batchId'
+      - Fundamentals
+      summary: Factset Returns Company Fundamental Data.
+      description: "Retrieves FactSet Fundamental standardized data for specified securities. Use the ```/metrics``` endpoint to retrieve a full list of valid metrics or data items.\n\n\nThe ```/fundamentals``` endpoint currently supports Long Running asynchronous requests up to **20 minutes** via batch parameter. Id limits are increased to 30000 ids per request when using batch capability. This 30000 id limit has been derived based on single metric for one day. This feature is available for all users. \n"
+      operationId: getFdsFundamentalsForList
+      requestBody:
+        required: true
+        description: Request object for requesting fundamentals data
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/fundamentalsRequest'
+            examples:
+              Single Company (FDS-US), sales(FF_SALES) details for the given period:
+                $ref: '#/components/examples/postBodyOfSingleIdwithSingleMetricItem'
+              Multiple Companies single metric item details:
+                $ref: '#/components/examples/postBodyOfMultipleIdwithSingleMetricItem'
+              Single Company (FDS-US), and Multiple Metrics (FF_SALES, FF_PE):
+                $ref: '#/components/examples/postBodyOfSingleIdwithMultipleMetricItem'
+              Batch Request for (FDS-US), and Multiple Metrics (FF_SALES, FF_PE):
+                $ref: '#/components/examples/BatchFundamentalsRequestPost'
       responses:
         '200':
-          description: >-
-            Request response object when the batch request has been completed.
+          description: Fundamental data items
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BatchResultResponse'
-            text/csv:
-              schema:
-                type: string
+                $ref: '#/components/schemas/fundamentalsResponse'
+              examples:
+                Result of Single Company (FDS-US), sales(FF_SALES) details for the given period:
+                  $ref: '#/components/examples/resultOfSingleIdwithSingleMetricItem'
+                Result of Multiple Companies single metric item details:
+                  $ref: '#/components/examples/resultOfMultipleIdwithSingleMetricItem'
+                Result of Single Company (FDS-US), and Multiple Metrics (FF_SALES, FF_PE):
+                  $ref: '#/components/examples/resultOfSingleIdwithMultipleMetricItem'
         '202':
-          description: >-
-            The batch request has not finished and the result has NOT been
-            created.
+          description: Batch request has been accepted.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/BatchStatusResponse'
-        '404':
-          $ref: '#/components/responses/NotFound'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
+              examples:
+                Batch Request Accepted:
+                  $ref: '#/components/examples/BatchStatusAcceptedResponse'
+          headers:
+            Location:
+              description: Path to Batch Request status.
+              schema:
+                type: string
+              example: batch-status?id=2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '415':
+          $ref: '#/components/responses/415'
+        '500':
+          $ref: '#/components/responses/500'
 components:
-  securitySchemes:
-    FactSetOAuth2:
-      type: oauth2
-      description: >-
-        OAuth 2.0 Client Credentials flow. Obtain an access token from the
-        FactSet token endpoint using your client ID and client secret.
-      flows:
-        clientCredentials:
-          tokenUrl: https://auth.factset.com/as/token.oauth2
-          scopes: {}
-    FactSetApiKey:
-      type: http
-      scheme: basic
-      description: >-
-        HTTP Basic authentication using your FactSet username-serial and API
-        key.
-  parameters:
-    ids:
-      name: ids
-      in: query
-      required: true
-      explode: false
-      description: >-
-        The requested list of security identifiers. Accepted ID types include
-        Market Tickers, SEDOL, ISINs, CUSIPs, or FactSet Permanent Ids.
-        Limit of 1,000 per non-batch request / 2,000 per batch request (GET)
-        or 30,000 per batch request (POST).
-      schema:
-        type: array
-        items:
-          type: string
-        minItems: 1
-        maxItems: 2000
-      examples:
-        singleId:
-          summary: One equity identifier
-          value:
-          - AAPL-US
-        multipleIds:
-          summary: Multiple equity identifiers
-          value:
+  examples:
+    BatchFundamentalsRequestPost:
+      summary: Batch request for FF_SALES and FF_PE for FDS-US
+      description: Requests the FDS-US Sales and Price-to-Earnings data for the period 2017-09-01 to 2018-03-01 on a quarterly basis with the preliminary data Values.
+      value:
+        data:
+          ids:
           - FDS-US
+          periodicity: QTR
+          fiscalPeriod:
+            start: '2017-09-01'
+            end: '2018-03-01'
+          metrics:
+          - FF_SALES
+          - FF_PE
+          currency: USD
+          updateType: RP
+          batch: Y
+    badRequestInvalidParameters:
+      summary: Bad Request - Passing invalid Fundamental Metric Id
+      description: This error message occurs when the user is passing Invalid Metric Id. Please use the helper endpoint */metrics* for the sample Fundamental Metric Id.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Bad Request
+          links:
+            about: /factset-fundamentals/v2/{endpoint}
+          title: 'Given input is not a valid value for parameter: `metrics`'
+    resultOfSingleIdwithMultipleMetricItem:
+      summary: Result of Single Company and Multiple Metrics [FF_SALES, FF_PE]
+      description: 'Results of the FDS-US Quarterly Sales and Price to Earnings data as of 2020-05-31
+
+        '
+      value:
+        data:
+        - requestId: FDS
+          fsymId: SQFMK3-R
+          metric: FF_SALES
+          periodicity: QTR
+          fiscalPeriod: 3
+          fiscalYear: 2020
+          fiscalPeriodLength: 92
+          fiscalEndDate: '2020-05-31'
+          reportDate: '2020-05-31'
+          epsReportDate: '2020-06-25'
+          updateType: Final
+          currency: USD
+          value: 374.083
+        - requestId: FDS
+          fsymId: SQFMK3-R
+          metric: FF_PE
+          periodicity: QTR
+          fiscalPeriod: 3
+          fiscalYear: 2020
+          fiscalPeriodLength: 92
+          fiscalEndDate: '2020-05-31'
+          reportDate: '2020-05-31'
+          epsReportDate: '2020-06-25'
+          updateType: Final
+          currency: USD
+          value: 31.6769162623484
+    postBodyOfSingleIdwithSingleMetricItem:
+      summary: FDS-US company sales[FF_SALES] data for the given time period
+      description: Requests the FDS-US sales data for the period 2017-09-01 to 2018-03-01 on a quarterly basis with the preliminary data Values.
+      value:
+        data:
+          ids:
+          - FDS-US
+          periodicity: QTR
+          fiscalPeriod:
+            start: '2017-09-01'
+            end: '2018-03-01'
+          metrics:
+          - FF_SALES
+          currency: USD
+          updateType: RP
+    badRequestDateFormat:
+      summary: Bad Request - Date Format
+      description: This bad request occurs when a request doesn't use the YYYY-MM-DD in the date parameters. To resolve this, convert your date to YYYY-MM-DD.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Bad Request
+          links:
+            about: /factset-fundamentals/v2/{endpoint}
+          title: 'The date parameter must be in the following date format: YYYY-MM-DD'
+    postBodyOfMultipleIdwithSingleMetricItem:
+      summary: Multiple companies single metric item [FF_SALES] details.
+      description: Post body request example to fetch details of the FDS-US, IBM-US, AAPL-US sales data for the period 2017-09-01 to 2018-03-01 on a quarterly basis with the final data Values.
+      value:
+        data:
+          ids:
+          - FDS-US
+          - IBM-US
           - AAPL-US
-          - MSFT-US
-    metrics:
-      name: metrics
-      in: query
-      required: true
-      explode: false
-      description: >-
-        Requested list of Financial Statement Items or Ratios. Use the
-        `/metrics` endpoint for a complete list of available FF_* metric
-        items. When requesting multiple metrics, you cannot mix metric data
-        types (e.g. strings and floats). Limit of 1,600 per request.
-      schema:
-        type: array
-        items:
-          type: string
-        minItems: 1
-        maxItems: 1600
-        examples:
-        - - FF_SALES
-        - - FF_SALES
-          - FF_EPS
+          periodicity: QTR
+          fiscalPeriod:
+            start: '2017-09-01'
+            end: '2018-03-01'
+          metrics:
+          - FF_SALES
+          currency: USD
+          updateType: RP
+    notWritable:
+      summary: Internal Server Error - Not Writable
+      description: This error may be returned when the server encounters an error writing the JSON response.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Internal Server Error
+          links:
+            about: /factset-fundamentals/v2/{endpoint}
+          title: Error writing JSON output
+    BatchStatusAcceptedResponse:
+      description: Batch Status Accepted Response
+      value:
+        data:
+          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+          status: queued
+          startTime: '2021-06-29T18:34:52.168Z'
+          endTime: null
+          error:
+            id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+            code: GenericError
+            title: the date parameter must be in YYYY-MM-DD format
+    unsupportedMediaType:
+      summary: Unsupported Media Type
+      description: This bad request occurs when the media type passed in the request is not supported. Currently, the APIs only support 'application/json'.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Unsupported Media Type
+          links:
+            about: /factset-fundamentals/v2/{endpoint}
+          title: text/html media type is not supported. Supported media types are application/json.
+    generalException:
+      summary: Internal Server Error - General Exception
+      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Internal Server Error
+          links:
+            about: /factset-fundamentals/v2/{endpoint}
+          title: Unexpected error
+    resultOfSingleIdwithSingleMetricItem:
+      summary: Result of Single Company single metric item [FF_SALES] details.
+      description: 'Results of the FDS-US sales data for the period 2017-09-01 to 2018-03-01 on a quarterly basis with the preliminary data Values.
+
+        '
+      value:
+        data:
+        - requestId: FDS-US
+          fsymId: SQFMK3-R
+          metric: FF_SALES
+          periodicity: QTR
+          fiscalPeriod: 1
+          fiscalYear: 2018
+          fiscalPeriodLength: 91
+          fiscalEndDate: '2017-11-30'
+          reportDate: '2017-11-30'
+          epsReportDate: '2017-12-19'
+          updateType: Final
+          currency: USD
+          value: 20.345
+        - requestId: FDS-US
+          fsymId: SQFMK3-R
+          metric: FF_SALES
+          periodicity: QTR
+          fiscalPeriod: 2
+          fiscalYear: 2018
+          fiscalPeriodLength: 90
+          fiscalEndDate: '2018-02-28'
+          reportDate: '2018-02-28'
+          epsReportDate: '2018-03-27'
+          updateType: Final
+          currency: USD
+          value: 30.345
+    badRequestMoreThanOneFundamentalMetricId:
+      summary: Bad Request - More Than One Fundamental Metric Id
+      description: This error message occurs when the user is passing more than one metric as input.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Bad Request
+          links:
+            about: /factset-fundamentals/v2/fundamentals
+          title: 'getFdsFundamentals.metrics: size must be between 1 and 1'
+    badRequestReadTimeout:
+      summary: Bad Request - Read Timeout
+      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Bad Request
+          links:
+            about: /factset-fundamentals/v2/{endpoint}
+          title: The request took too long. Try again with a smaller request.
+    forbidden:
+      summary: Forbidden
+      description: The USERNAME-SERIAL attempted to request the endpoint/ID which is not authorized to access. The request was legal, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Forbidden
+          links:
+            about: /factset-fundamentals/v2/{endpoint}
+          title: User is not authorized for the id requested, please reach out to FactSet for support
+    unauthenticated:
+      summary: User Authentication Failed
+      description: This occurs when a user is not properly authenticated or recognized by the service. Please double-check the USERNAME-SERIAL and API-Key used to request and ensure you are within the IP range specified for the Key. Report the Issue under 401 error for help with troubleshooting.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: User Authentication Failed
+          links:
+            about: /factset-fundamentals/v2/{endpoint}
+          title: User Authentication Failed.
+    resultOfMultipleIdwithSingleMetricItem:
+      summary: Result of Multiple Companies single metric item [FF_SALES] details.
+      description: 'Results the FDS-US, IBM-US, AAPL-US sales data for the period 2017-09-01 to 2018-03-01 on a quarterly basis with the final data Values.
+
+        '
+      value:
+        data:
+        - requestId: FDS-US
+          fsymId: SQFMK3-R
+          metric: FF_SALES
+          periodicity: QTR
+          fiscalPeriod: 1
+          fiscalYear: 2018
+          fiscalPeriodLength: 91
+          fiscalEndDate: '2017-11-30'
+          reportDate: '2017-11-30'
+          epsReportDate: '2017-12-19'
+          updateType: Final
+          currency: USD
+          value: 329.141
+        - requestId: FDS-US
+          fsymId: SQFMK3-R
+          metric: FF_SALES
+          periodicity: QTR
+          fiscalPeriod: 2
+          fiscalYear: 2018
+          fiscalPeriodLength: 90
+          fiscalEndDate: '2018-02-28'
+          reportDate: '2018-02-28'
+          epsReportDate: '2018-03-27'
+          updateType: Final
+          currency: USD
+          value: 335.231
+        - requestId: IBM-US
+          fsymId: SJY281-R
+          metric: FF_SALES
+          periodicity: QTR
+          fiscalPeriod: 3
+          fiscalYear: 2017
+          fiscalPeriodLength: null
+          fiscalEndDate: '2017-09-30'
+          reportDate: '2017-09-30'
+          epsReportDate: '2017-10-17'
+          updateType: Final
+          currency: USD
+          value: 19153
+        - requestId: IBM-US
+          fsymId: SJY281-R
+          metric: FF_SALES
+          periodicity: QTR
+          fiscalPeriod: 4
+          fiscalYear: 2017
+          fiscalPeriodLength: null
+          fiscalEndDate: '2017-12-31'
+          reportDate: '2017-12-31'
+          epsReportDate: '2018-01-18'
+          updateType: Final
+          currency: USD
+          value: 22543
+        - requestId: AAPL-US
+          fsymId: MH33D6-R
+          metric: FF_SALES
+          periodicity: QTR
+          fiscalPeriod: 4
+          fiscalYear: 2017
+          fiscalPeriodLength: 91
+          fiscalEndDate: '2017-09-30'
+          reportDate: '2017-09-30'
+          epsReportDate: '2017-11-02'
+          updateType: Final
+          currency: USD
+          value: 52574
+        - requestId: AAPL-US
+          fsymId: MH33D6-R
+          metric: FF_SALES
+          periodicity: QTR
+          fiscalPeriod: 1
+          fiscalYear: 2018
+          fiscalPeriodLength: 91
+          fiscalEndDate: '2017-12-31'
+          reportDate: '2017-12-30'
+          epsReportDate: '2018-02-01'
+          updateType: Final
+          currency: USD
+          value: 88477
+    badRequestMalformedJSON:
+      summary: Bad Request - Malformed JSON Request
+      description: This error may be returned when the request body is specified as JSON. But is not in proper JSON format.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Bad Request
+          links:
+            about: /factset-fundamentals/v2/{endpoint}
+          title: Malformed JSON Request
+    badRequestRequiredParameter:
+      summary: Bad Request - Required Parameter Missing
+      description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisk symbol in the specification file.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Bad Request
+          links:
+            about: /factset-fundamentals/v2/{endpoint}
+          title: The parameter 'ids' is required and may not be empty.
+    postBodyOfSingleIdwithMultipleMetricItem:
+      summary: Requesting Quarterly FF_SALES and FF_PE for FDS-US
+      description: Requests the FDS-US Sales and Price-to-Earnings data for the period 2017-09-01 to 2018-03-01 on a quarterly basis with the preliminary data Values.
+      value:
+        data:
+          ids:
+          - FDS-US
+          periodicity: QTR
+          fiscalPeriod:
+            start: '2017-09-01'
+            end: '2018-03-01'
+          metrics:
+          - FF_SALES
           - FF_PE
-    ratioMetrics:
-      name: metrics
-      in: query
-      required: true
-      explode: false
-      description: >-
-        Requested list of ratio metrics. Common ratios include FF_PE
-        (price-to-earnings), FF_PBK (price-to-book), FF_ROE (return on
-        equity), FF_DEBT_EQUITY, FF_CURR_RATIO, and others. Use the
-        `/metrics` endpoint with category=RATIOS for a complete list.
-      schema:
-        type: array
-        items:
-          type: string
-        minItems: 1
-        maxItems: 1600
-      examples:
-        valuationRatios:
-          summary: Common valuation ratios
-          value:
-          - FF_PE
-          - FF_PBK
-          - FF_PS
-        profitabilityRatios:
-          summary: Profitability ratios
-          value:
-          - FF_ROE
-          - FF_ROA
-          - FF_OPER_MARGIN
-    estimateMetrics:
-      name: metrics
-      in: query
-      required: true
-      explode: false
-      description: >-
-        Requested list of estimate metrics. Common estimate items include
-        FF_EST_SALES, FF_EST_EPS, FF_EST_EBITDA, FF_EST_NET_INC. Use the
-        `/metrics` endpoint for a complete list of available estimate items.
-      schema:
-        type: array
-        items:
-          type: string
-        minItems: 1
-        maxItems: 1600
-      examples:
-        epsEstimates:
-          summary: EPS and sales estimates
-          value:
-          - FF_EST_EPS
-          - FF_EST_SALES
-    segmentMetrics:
-      name: metrics
-      in: query
-      required: true
-      explode: false
-      description: >-
-        Segment data metric. SALES = Sales/Revenue, OPINC = Operating
-        Income/Loss, ASSETS = Total Assets, DEP = Depreciation Expense,
-        CAPEX = Capital Expenditures.
-      schema:
-        type: string
-        enum:
-        - SALES
-        - OPINC
-        - ASSETS
-        - DEP
-        - CAPEX
-      examples:
-        sales:
-          summary: Segment sales revenue
-          value: SALES
-    periodicity:
-      name: periodicity
-      in: query
-      required: false
-      description: >-
-        Periodicity or frequency of the fiscal periods. ANN = Annual
-        Original, ANN_R = Annual Latest (includes restatements), QTR =
-        Quarterly Original, QTR_R = Quarterly Latest, SEMI = Semi-Annual,
-        SEMI_R = Semi-Annual Latest, LTM = Last Twelve Months, LTM_R = Last
-        Twelve Months Latest, LTMSG = Last Twelve Months Global, LTM_SEMI =
-        Last Twelve Months Semi-Annual, YTD = Year-to-date.
-      schema:
-        type: string
-        enum:
-        - ANN
-        - ANN_R
-        - QTR
-        - QTR_R
-        - SEMI
-        - SEMI_R
-        - LTM
-        - LTM_R
-        - LTMSG
-        - LTM_SEMI
-        - YTD
-        default: ANN
-    segmentPeriodicity:
-      name: periodicity
-      in: query
-      required: false
-      description: >-
-        Periodicity for segment data. ANN = Annual Original, ANN_R = Annual
-        Latest (includes restatements).
-      schema:
-        type: string
-        enum:
-        - ANN
-        - ANN_R
-        default: ANN
-    fiscalPeriodStart:
-      name: fiscalPeriodStart
-      in: query
-      required: false
-      description: >-
-        The fiscal period start expressed as YYYY-MM-DD. Calendar date that
-        will fall back to the most recent completed period during resolution.
-      schema:
-        type: string
-        format: date
-        examples:
-        - '2023-01-01'
-    fiscalPeriodEnd:
-      name: fiscalPeriodEnd
-      in: query
-      required: false
-      description: >-
-        The fiscal period end expressed as YYYY-MM-DD. Calendar date that
-        will fall back to the most recently completed period during
-        resolution.
-      schema:
-        type: string
-        format: date
-        examples:
-        - '2024-01-01'
-    currency:
-      name: currency
-      in: query
-      required: false
-      description: >-
-        Currency code for currency values. For a list of currency ISO codes,
-        visit Online Assistant Page 1470. Use "DOC" for reporting currency.
-        Defaults to LOCAL.
-      schema:
-        type: string
-        default: LOCAL
-        examples:
-        - USD
-        - EUR
-        - GBP
-    updateType:
-      name: updateType
-      in: query
-      required: false
-      description: >-
-        Update status flag. RP = Include preliminary data, RF = Only final
-        data.
-      schema:
-        type: string
-        enum:
-        - RP
-        - RF
-        default: RP
-    batch:
-      name: batch
-      in: query
-      required: false
-      description: >-
-        Enables asynchronous batch processing, supporting long-running
-        requests up to 20 minutes. Upon requesting batch=Y, the service will
-        respond with HTTP 202. Use batch-status to check completion and
-        batch-result to retrieve results.
-      schema:
-        type: string
-        enum:
-        - 'Y'
-        - 'N'
-        default: 'N'
-    batchId:
-      name: id
-      in: query
-      required: true
-      description: Batch request identifier (UUID).
-      schema:
-        type: string
-        format: uuid
-    category:
-      name: category
-      in: query
-      required: false
-      description: >-
-        Filters the list of FF_* metrics by major category. Categories
-        include INCOME_STATEMENT, BALANCE_SHEET, CASH_FLOW, RATIOS,
-        FINANCIAL_SERVICES, INDUSTRY_METRICS, PENSION_AND_POSTRETIREMENT,
-        MARKET_DATA, MISCELLANEOUS, and DATES.
-      schema:
-        type: string
-        enum:
-        - INCOME_STATEMENT
-        - BALANCE_SHEET
-        - CASH_FLOW
-        - RATIOS
-        - FINANCIAL_SERVICES
-        - INDUSTRY_METRICS
-        - PENSION_AND_POSTRETIREMENT
-        - MARKET_DATA
-        - MISCELLANEOUS
-        - DATES
-    statementCategory:
-      name: category
-      in: query
-      required: false
-      description: >-
-        Filter financial statements by type. INCOME_STATEMENT for revenue
-        and earnings data, BALANCE_SHEET for assets and liabilities,
-        CASH_FLOW for cash flow activities, FINANCIAL_SERVICES for financial
-        institution specific items.
-      schema:
-        type: string
-        enum:
-        - INCOME_STATEMENT
-        - BALANCE_SHEET
-        - CASH_FLOW
-        - FINANCIAL_SERVICES
-    subcategory:
-      name: subcategory
-      in: query
-      required: false
-      description: >-
-        Sub-category filter for the primary category requested. Choose a
-        related sub-category for the category requested. For example, RATIOS
-        supports FINANCIAL, GROWTH_RATE, LIQUIDITY, PROFITABILITY, SIZE,
-        and VALUATION.
-      schema:
-        type: string
-        enum:
-        - ASSETS
-        - BALANCE_SHEET
-        - HEALTHCARE
-        - LIABILITIES
-        - PER_SHARE
-        - SHAREHOLDERS_EQUITY
-        - SUPPLEMENTAL
-        - CASH_FLOW
-        - CHANGE_IN_CASH
-        - FINANCING
-        - INVESTING
-        - OPERATING
-        - DATES
-        - INCOME_STATEMENT
-        - NON-OPERATING
-        - NET_INCOME
-        - RETAIL
-        - AIRLINES
-        - BANK
-        - BANKING
-        - HOTELS_AND_GAMING
-        - METALS_AND_MINING
-        - OIL_AND_GAS
-        - PHARMACEUTICAL
-        - REIT
-        - TELECOM
-        - UTILITY
-        - INSURANCE
-        - HOMEBUILDING
-        - MARKET_DATA
-        - CLASSIFICATION
-        - CORPORATE_DATA
-        - FINANCIAL_RECORDS
-        - INDICATOR
-        - EMPLOYEES_AND_MANAGEMENT
-        - PENSION_AND_POSTRETIREMENT
-        - FINANCIAL
-        - GROWTH_RATE
-        - LIQUIDITY
-        - PROFITABILITY
-        - SIZE
-        - VALUATION
-        - OTHER
-    ratioSubcategory:
-      name: subcategory
-      in: query
-      required: false
-      description: >-
-        Filter ratios by subcategory. FINANCIAL for leverage and coverage
-        ratios, GROWTH_RATE for revenue and earnings growth, LIQUIDITY for
-        current and quick ratios, PROFITABILITY for margin and return
-        metrics, SIZE for market cap and enterprise value, VALUATION for PE,
-        PB, and dividend yield.
-      schema:
-        type: string
-        enum:
-        - FINANCIAL
-        - GROWTH_RATE
-        - LIQUIDITY
-        - PROFITABILITY
-        - SIZE
-        - VALUATION
-    metricDataType:
-      name: metricDataType
-      in: query
-      required: false
-      description: >-
-        Filter metrics by data type. Returns only metrics matching the
-        specified type (integer, float, or string).
-      schema:
-        type: string
-        enum:
-        - integer
-        - float
-        - string
-    segmentType:
-      name: segmentType
-      in: query
-      required: false
-      description: >-
-        Segment type for the metrics. BUS = Business segments, GEO =
-        Geographic segments.
-      schema:
-        type: string
-        enum:
-        - BUS
-        - GEO
-        default: BUS
+          currency: USD
+          updateType: RP
   schemas:
-    FundamentalsRequest:
+    fiscalPeriod:
       type: object
-      title: Fundamentals Request
-      description: Wrapper for fundamentals request body.
-      required:
-      - data
       properties:
-        data:
-          $ref: '#/components/schemas/FundamentalsRequestBody'
-    FundamentalsRequestBody:
-      type: object
+        start:
+          description: 'The fiscal period start expressed as YYYY-MM-DD.  Calendar date that will fall back to the most recently completed period during resolution.
+
+            '
+          type: string
+          example: '2012-01-01'
+        end:
+          type: string
+          description: 'The fiscal period end expressed YYYY-MM-DD.  Calendar date that will fall back to the most recent completed period during resolution.
+
+            '
+          example: '2014-01-01'
+    fundamentalRequestBody:
       title: Fundamentals Request Body
-      description: Core request parameters for fundamentals data.
-      required:
-      - ids
-      - metrics
+      description: Fundamentals request body elements
+      type: object
       properties:
         ids:
-          $ref: '#/components/schemas/SecurityIds'
-        metrics:
-          $ref: '#/components/schemas/MetricsList'
+          $ref: '#/components/schemas/idsBatchMax30000'
         periodicity:
-          $ref: '#/components/schemas/Periodicity'
+          $ref: '#/components/schemas/periodicity'
         fiscalPeriod:
-          $ref: '#/components/schemas/FiscalPeriod'
+          $ref: '#/components/schemas/fundamentalFiscalPeriod'
+        metrics:
+          $ref: '#/components/schemas/metrics'
         currency:
-          $ref: '#/components/schemas/Currency'
+          $ref: '#/components/schemas/currency'
         updateType:
-          $ref: '#/components/schemas/UpdateType'
+          $ref: '#/components/schemas/updateType'
         batch:
-          $ref: '#/components/schemas/BatchFlag'
-    FinancialStatementsRequest:
-      type: object
-      title: Financial Statements Request
-      description: Wrapper for financial statements request body.
-      required:
-      - data
-      properties:
-        data:
-          $ref: '#/components/schemas/FinancialStatementsRequestBody'
-    FinancialStatementsRequestBody:
-      type: object
-      title: Financial Statements Request Body
-      description: Request parameters for financial statement data.
+          $ref: '#/components/schemas/batch'
       required:
       - ids
       - metrics
+    batchErrorObject:
+      type: object
+      nullable: true
       properties:
-        ids:
-          $ref: '#/components/schemas/SecurityIds'
-        metrics:
-          $ref: '#/components/schemas/MetricsList'
-        category:
+        id:
+          description: A UUID for this particular occurrence of the problem.
           type: string
-          description: Financial statement type filter.
-          enum:
-          - INCOME_STATEMENT
-          - BALANCE_SHEET
-          - CASH_FLOW
-          - FINANCIAL_SERVICES
-          example: INCOME_STATEMENT
-        periodicity:
-          $ref: '#/components/schemas/Periodicity'
-        fiscalPeriod:
-          $ref: '#/components/schemas/FiscalPeriod'
-        currency:
-          $ref: '#/components/schemas/Currency'
-        updateType:
-          $ref: '#/components/schemas/UpdateType'
-        batch:
-          $ref: '#/components/schemas/BatchFlag'
-    RatiosRequest:
-      type: object
-      title: Ratios Request
-      description: Wrapper for ratios request body.
-      required:
-      - data
-      properties:
-        data:
-          $ref: '#/components/schemas/RatiosRequestBody'
-    RatiosRequestBody:
-      type: object
-      title: Ratios Request Body
-      description: Request parameters for financial ratio data.
-      required:
-      - ids
-      - metrics
-      properties:
-        ids:
-          $ref: '#/components/schemas/SecurityIds'
-        metrics:
-          $ref: '#/components/schemas/MetricsList'
-        subcategory:
+          example: adb01824-252f-4420-b0c6-35a1e3507ef5
+        code:
+          description: status
           type: string
-          description: Ratio subcategory filter.
-          enum:
-          - FINANCIAL
-          - GROWTH_RATE
-          - LIQUIDITY
-          - PROFITABILITY
-          - SIZE
-          - VALUATION
-          example: FINANCIAL
-        periodicity:
-          $ref: '#/components/schemas/Periodicity'
-        fiscalPeriod:
-          $ref: '#/components/schemas/FiscalPeriod'
-        currency:
-          $ref: '#/components/schemas/Currency'
-        batch:
-          $ref: '#/components/schemas/BatchFlag'
-    EstimatesRequest:
-      type: object
-      title: Estimates Request
-      description: Wrapper for consensus estimates request body.
-      required:
-      - data
-      properties:
-        data:
-          $ref: '#/components/schemas/EstimatesRequestBody'
-    EstimatesRequestBody:
-      type: object
-      title: Estimates Request Body
-      description: Request parameters for consensus estimates data.
-      required:
-      - ids
-      - metrics
-      properties:
-        ids:
-          $ref: '#/components/schemas/SecurityIds'
-        metrics:
-          $ref: '#/components/schemas/MetricsList'
-        periodicity:
-          $ref: '#/components/schemas/Periodicity'
-        fiscalPeriod:
-          $ref: '#/components/schemas/FiscalPeriod'
-        currency:
-          $ref: '#/components/schemas/Currency'
-        batch:
-          $ref: '#/components/schemas/BatchFlag'
-    SegmentsRequest:
-      type: object
-      title: Segments Request
-      description: Wrapper for segments request body.
-      required:
-      - data
-      properties:
-        data:
-          $ref: '#/components/schemas/SegmentsRequestBody'
-    SegmentsRequestBody:
-      type: object
-      title: Segments Request Body
-      description: Request parameters for segment data.
-      required:
-      - ids
-      - metrics
-      properties:
-        ids:
-          $ref: '#/components/schemas/SecurityIds'
-        metrics:
+          example: GenericError
+        title:
+          description: The plain text error message
           type: string
-          description: >-
-            Segment metric. SALES, OPINC, ASSETS, DEP, or CAPEX.
-          enum:
-          - SALES
-          - OPINC
-          - ASSETS
-          - DEP
-          - CAPEX
-          example: SALES
-        segmentType:
-          type: string
-          description: Segment type. BUS = Business, GEO = Geographic.
-          enum:
-          - BUS
-          - GEO
-          default: BUS
-          example: BUS
-        periodicity:
-          type: string
-          description: Segment periodicity. ANN or ANN_R only.
-          enum:
-          - ANN
-          - ANN_R
-          default: ANN
-          example: ANN
-        fiscalPeriod:
-          $ref: '#/components/schemas/FiscalPeriod'
-        batch:
-          $ref: '#/components/schemas/BatchFlag'
-    FundamentalsResponse:
+          example: Validation Error
+    batch:
+      description: 'Enables the ability to asynchronously "batch" the request, supporting a long-running request for up to 20 minutes. Upon requesting batch=Y, the service will respond back with an HTTP Status Code of 202. Once a batch request is submitted, use batch status to see if the job has been completed. Once completed, retrieve the results of the request via batch-result. When using Batch, ids limit is increased to 30000 ids per request, though limits on query string via GET method still apply. It''s advised to submit large lists of ids via POST method.
+
+        '
+      type: string
+      enum:
+      - Y
+      - N
+      default: N
+    fundamentalValue:
+      description: 'Value of the data metric requested. Note that the type of value is ''object'', and depending on the data metric requested, the value could be an object representation of a string or double. '
+      oneOf:
+      - type: string
+        nullable: true
+      - type: number
+        format: double
+        nullable: true
+    fundamental:
+      title: Fundamental Object
       type: object
-      title: Fundamentals Response
-      description: Response wrapper containing an array of fundamental data items.
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Fundamental'
-          example: []
-    Fundamental:
-      type: object
-      title: Fundamental
-      description: >-
-        A single fundamental data point representing a metric value for a
-        specific security, fiscal period, and periodicity.
+      required:
+      - fiscalPeriod
+      description: FactSet Fundamentals Response item
       properties:
         requestId:
-          type: string
           description: Identifier that was used for the request.
-          examples:
-          - FDS-US
+          type: string
+          example: IBM-US
         fsymId:
-          type:
-          - string
-          - 'null'
-          description: >-
-            FactSet Regional Security Identifier. Six alpha-numeric
-            characters, excluding vowels, with an -R suffix (XXXXXX-R).
-          examples:
-          - SQFMK3-R
+          description: FactSet Regional Security Identifier. Six alpha-numeric characters, excluding vowels, with an -R suffix (XXXXXX-R). Identifies the security's best regional security data series per currency. For equities, all primary listings per region and currency are allocated a regional-level permanent identifier. The regional-level permanent identifier will be available once a SEDOL representing the region/currency has been allocated and the identifiers are on FactSet.
+          type: string
+          example: SJY281-R
+          nullable: true
         metric:
-          type:
-          - string
-          - 'null'
-          description: >-
-            The requested metric input, representing the Fundamental Data
-            Item.
-          examples:
-          - FF_SALES
+          description: The requested `metric` input, representing the Fundamental Data Item. For a definition of the item please use the /fundamentals/v#/metrics endpoint.
+          type: string
+          example: FF_SALES
+          nullable: true
         periodicity:
-          type:
-          - string
-          - 'null'
-          description: Periodicity or frequency of the fiscal periods.
+          description: Periodicity or frequency of the fiscal periods, where ANN = Annual Original, ANN_R = Annual Latest, QTR = Quarterly Original, QTR_R = Quarterly Latest, SEMI = Semi-Annual Original, SEMI_R = Semi-Annual Latest, LTM = Last Twelve Months Original, LTM_R = Last Twelve Months Latest, LTMSG = Last Twelve Months Global, [OA17959](https://my.apps.factset.com/oa/pages/17959), LTM_SEMI = Last Twelve Months - Semi-Annual Data and YTD = Year-to-date. Please note that the coverage for SEMI_R and LTM_R may be limited as fewer companies report with these periodicities.
+          type: string
+          example: QTR
           enum:
           - ANN
           - ANN_R
@@ -1465,601 +586,106 @@ components:
           - LTMSG
           - LTM_SEMI
           - YTD
-          examples:
-          - QTR
+          nullable: true
         fiscalPeriod:
-          type:
-          - integer
-          - 'null'
-          description: >-
-            Fiscal period indicator. QUARTERLY: 1-4, SEMI-ANNUAL: 1-2,
-            ANNUAL: 0.
-          examples:
-          - 4
+          description: 'Fiscal Period indicator. Returns an integer representing the fiscal period for the requested item and periodicity. QUARTERLY CODE: 1-Fist Quarter; 2-Second Quarter; 3-Third Quarter; 4-Fourth Quarter. SEMI-CODE: 1-First Semi-annual Period; 2-Second Semi-annual Period.'
+          type: integer
+          example: 4
+          nullable: true
         fiscalYear:
-          type:
-          - integer
-          - 'null'
           description: Fiscal year of the reported period in YYYY format.
-          examples:
-          - 2023
+          type: integer
+          example: 2018
+          nullable: true
         fiscalPeriodLength:
-          type:
-          - integer
-          - 'null'
           description: Length of the fiscal period in days.
-          examples:
-          - 91
+          type: integer
+          example: 91
+          nullable: true
         fiscalEndDate:
-          type:
-          - string
-          - 'null'
+          description: The normalized data the fiscal period ended.
+          type: string
           format: date
-          description: >-
-            The normalized date the fiscal period ended in YYYY-MM-DD
-            format.
-          examples:
-          - '2023-12-31'
+          example: '2017-12-31'
+          nullable: true
         reportDate:
-          type:
-          - string
-          - 'null'
-          format: date
           description: The date the reported fiscal period ended.
-          examples:
-          - '2023-12-30'
-        epsReportDate:
-          type:
-          - string
-          - 'null'
+          type: string
           format: date
-          description: >-
-            The date the EPS was reported for the requested periodicity.
-          examples:
-          - '2024-02-24'
+          example: '2017-12-30'
+          nullable: true
+        epsReportDate:
+          description: The date the EPS was reported for the requested periodicity. In YYYY-MM-DD format. Unavailable data returned as 0001-01-01.
+          type: string
+          format: date
+          example: '2018-02-24'
+          nullable: true
         updateType:
-          type:
-          - string
-          - 'null'
-          description: >-
-            Update type. Preliminary indicates limited data; Final indicates
-            full financial statement data.
+          description: 'Update Type: Preliminary - The period is updated from a report that usually contains limited or only key information., Final - The period is updated from a report where detailed information is available in financial statements including the notes to the line items.'
+          type: string
+          example: Preliminary
+          nullable: true
           enum:
           - Preliminary
           - Final
-          examples:
-          - Final
         currency:
-          type:
-          - string
-          - 'null'
-          description: ISO 4217 currency code for the data values.
-          examples:
-          - USD
-        value:
-          description: >-
-            Value of the data metric requested. The type varies depending on
-            the metric - may be a number (double) or string.
-          oneOf:
-          - type: 'null'
-          - type: string
-          - type: number
-            format: double
-          example: example_value
-    RatiosResponse:
-      type: object
-      title: Ratios Response
-      description: Response wrapper containing an array of ratio data items.
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Ratio'
-          example: []
-    Ratio:
-      type: object
-      title: Ratio
-      description: >-
-        A single pre-calculated financial ratio for a security and fiscal
-        period.
-      properties:
-        requestId:
+          description: 'Currency code for the data. For a list of currency ISO codes, visit [Online Assistant Page #1470](https://oa.apps.factset.com/pages/1470).'
           type: string
-          description: Identifier that was used for the request.
-          examples:
-          - AAPL-US
-        fsymId:
-          type:
-          - string
-          - 'null'
-          description: FactSet Regional Security Identifier.
-          examples:
-          - MH33D6-R
-        metric:
-          type:
-          - string
-          - 'null'
-          description: The ratio metric identifier.
-          examples:
-          - FF_PE
-        periodicity:
-          type:
-          - string
-          - 'null'
-          description: Periodicity of the fiscal period.
-          examples:
-          - ANN
-        fiscalPeriod:
-          type:
-          - integer
-          - 'null'
-          description: Fiscal period indicator.
-          examples:
-          - 0
-        fiscalYear:
-          type:
-          - integer
-          - 'null'
-          description: Fiscal year in YYYY format.
-          examples:
-          - 2023
-        fiscalEndDate:
-          type:
-          - string
-          - 'null'
-          format: date
-          description: The normalized date the fiscal period ended.
-          examples:
-          - '2023-09-30'
-        currency:
-          type:
-          - string
-          - 'null'
-          description: ISO 4217 currency code.
-          examples:
-          - USD
+          example: USD
+          nullable: true
         value:
-          type:
-          - number
-          - 'null'
-          format: double
-          description: The calculated ratio value.
-          examples:
-          - 29.84
-    EstimatesResponse:
-      type: object
-      title: Estimates Response
-      description: >-
-        Response wrapper containing an array of consensus estimate data
-        items.
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Estimate'
-          example: []
-    Estimate:
-      type: object
-      title: Estimate
-      description: >-
-        A single consensus estimate data point aggregating analyst
-        projections for a security, metric, and fiscal period.
-      properties:
-        requestId:
-          type: string
-          description: Identifier that was used for the request.
-          examples:
-          - AAPL-US
-        fsymId:
-          type:
-          - string
-          - 'null'
-          description: FactSet Regional Security Identifier.
-          examples:
-          - MH33D6-R
-        metric:
-          type:
-          - string
-          - 'null'
-          description: The estimate metric identifier.
-          examples:
-          - FF_EST_EPS
-        periodicity:
-          type:
-          - string
-          - 'null'
-          description: Periodicity of the fiscal period.
-          examples:
-          - ANN
-        fiscalPeriod:
-          type:
-          - integer
-          - 'null'
-          description: Fiscal period indicator.
-          examples:
-          - 0
-        fiscalYear:
-          type:
-          - integer
-          - 'null'
-          description: Fiscal year in YYYY format.
-          examples:
-          - 2025
-        fiscalEndDate:
-          type:
-          - string
-          - 'null'
-          format: date
-          description: The date the fiscal period ends.
-          examples:
-          - '2025-09-30'
-        currency:
-          type:
-          - string
-          - 'null'
-          description: ISO 4217 currency code.
-          examples:
-          - USD
-        estimateCount:
-          type:
-          - integer
-          - 'null'
-          description: Number of analyst estimates included in the consensus.
-          examples:
-          - 38
-        mean:
-          type:
-          - number
-          - 'null'
-          format: double
-          description: Mean (average) of analyst estimates.
-          examples:
-          - 7.42
-        median:
-          type:
-          - number
-          - 'null'
-          format: double
-          description: Median of analyst estimates.
-          examples:
-          - 7.45
-        high:
-          type:
-          - number
-          - 'null'
-          format: double
-          description: Highest analyst estimate.
-          examples:
-          - 7.95
-        low:
-          type:
-          - number
-          - 'null'
-          format: double
-          description: Lowest analyst estimate.
-          examples:
-          - 6.85
-        standardDeviation:
-          type:
-          - number
-          - 'null'
-          format: double
-          description: Standard deviation of analyst estimates.
-          examples:
-          - 0.22
-    SegmentsResponse:
-      type: object
-      title: Segments Response
-      description: Response wrapper containing an array of segment data items.
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Segment'
-          example: []
-    Segment:
-      type: object
-      title: Segment
-      description: >-
-        A single business or geographic segment data point for a company.
-      properties:
-        requestId:
-          type: string
-          description: Identifier that was used for the request.
-          examples:
-          - AAPL-US
-        fsymId:
-          type:
-          - string
-          - 'null'
-          description: FactSet Regional Security Identifier.
-          examples:
-          - MH33D6-R
-        metric:
-          type:
-          - string
-          - 'null'
-          description: The segment metric (SALES, OPINC, ASSETS, DEP, CAPEX).
-          examples:
-          - SALES
-        label:
-          type:
-          - string
-          - 'null'
-          description: Report labels of the segment type requested.
-          examples:
-          - iPhone
-        date:
-          type:
-          - string
-          - 'null'
-          format: date
-          description: Date for the period requested in YYYY-MM-DD format.
-          examples:
-          - '2023-09-30'
-        value:
-          description: Segment metric value. May be a number or string.
-          oneOf:
-          - type: 'null'
-          - type: string
-          - type: number
-            format: double
-          example: example_value
-    MetricsResponse:
-      type: object
-      title: Metrics Response
-      description: >-
-        Response wrapper containing an array of available metrics and their
-        metadata.
-      properties:
-        data:
-          type: array
-          description: >-
-            Array of metric objects representing the metrics that can be
-            requested from the fundamentals APIs.
-          items:
-            $ref: '#/components/schemas/Metric'
-          example: []
-    Metric:
-      type: object
-      title: Metric
-      description: >-
-        Metadata for a single available fundamental metric including its
-        category, data type, and documentation reference.
-      properties:
-        metric:
-          type:
-          - string
-          - 'null'
-          description: >-
-            Metric identifier to be used as input in the metrics parameter.
-          examples:
-          - FF_ASSETS
-        name:
-          type:
-          - string
-          - 'null'
-          description: Plain text name of the metric.
-          examples:
-          - Total Assets
-        category:
-          type:
-          - string
-          - 'null'
-          description: >-
-            Primary category such as INCOME_STATEMENT, BALANCE_SHEET,
-            CASH_FLOW, or RATIOS.
-          examples:
-          - BALANCE_SHEET
-        subcategory:
-          type:
-          - string
-          - 'null'
-          description: >-
-            Sub-category such as ASSETS, SUPPLEMENTAL, SHAREHOLDERS_EQUITY,
-            VALUATION, PROFITABILITY, etc.
-          examples:
-          - ASSETS
-        oaPageId:
-          type:
-          - string
-          - 'null'
-          description: >-
-            Online Assistant Page ID in D***** format for methodology
-            lookup.
-          examples:
-          - D10585
-        oaUrl:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: >-
-            Online Assistant URL for methodology definitions.
-          examples:
-          - https://my.apps.factset.com/oa/pages/D10585
-        factor:
-          type:
-          - integer
-          - 'null'
-          description: The factor for the metric (e.g. 1000000 = millions).
-          examples:
-          - 1000000
-        sdfPackage:
-          type:
-          - string
-          - 'null'
-          description: >-
-            Standard Data Feed package availability. BASIC or ADVANCED.
-            Null indicates API-only availability.
-          enum:
-          - BASIC
-          - ADVANCED
-          examples:
-          - BASIC
-        dataType:
-          type:
-          - string
-          - 'null'
-          description: >-
-            The data type for the metric (date, doubleArray, float,
-            floatArray, intArray, string, stringArray).
-          examples:
-          - doubleArray
-    BatchStatusResponse:
-      type: object
-      title: Batch Status Response
-      description: Wrapper for batch request status.
-      properties:
-        data:
-          $ref: '#/components/schemas/BatchStatus'
+          $ref: '#/components/schemas/fundamentalValue'
     BatchStatus:
-      type: object
       title: Batch Status
-      description: Status information for an asynchronous batch request.
+      type: object
       properties:
         id:
           type: string
           format: uuid
-          description: The batch request identifier.
-          example: abc123
+          description: the id of batch request.
         startTime:
           type: string
           format: date-time
-          description: >-
-            Time when the batch request started (Eastern Time Zone).
-          example: '2026-01-15T10:30:00Z'
+          description: Time when the batch request is started. This is in Eastern Time Zone. The date-time format is expressed as [YYYY-MM-DD]T[HH:MM:SSS], following ISO 8601.
         endTime:
-          type:
-          - string
-          - 'null'
+          type: string
           format: date-time
-          description: >-
-            Time when the batch request ended. Null if still processing.
-          example: '2026-01-15T10:30:00Z'
+          description: Time when the batch request is ended. This is in Eastern Time Zone. The date-time format is expressed as [YYYY-MM-DD]T[HH:MM:SSS], following ISO 8601.
+          nullable: true
         status:
           type: string
-          description: Current batch processing status.
           enum:
           - queued
           - executing
           - created
           - failed
-          example: queued
         error:
-          $ref: '#/components/schemas/BatchError'
-    BatchResultResponse:
-      type: object
-      title: Batch Result Response
-      description: Wrapper for completed batch request results.
-      required:
-      - data
-      properties:
-        data:
-          type: array
-          items:
-            oneOf:
-            - $ref: '#/components/schemas/Fundamental'
-            - $ref: '#/components/schemas/Segment'
-          example: []
-    BatchError:
-      type:
-      - object
-      - 'null'
-      title: Batch Error
-      description: Error information for a failed batch request.
-      properties:
-        id:
-          type: string
-          description: A UUID for this particular occurrence of the problem.
-          example: abc123
-        code:
-          type: string
-          description: Error code.
-          example: example_value
-        title:
-          type: string
-          description: The plain text error message.
-          example: Example Title
-    ErrorResponse:
-      type: object
-      title: Error Response
-      description: Standard error response wrapper.
-      properties:
-        errors:
-          type: array
-          description: An array containing error details.
-          items:
-            $ref: '#/components/schemas/Error'
-          example: []
-    Error:
-      type: object
-      title: Error
-      description: A single error detail object.
-      properties:
-        id:
-          type: string
-          description: A UUID for this particular occurrence of the problem.
-          examples:
-          - adb01824-252f-4420-b0c6-35a1e3507ef5
-        code:
-          type: string
-          description: Error status code description.
-          examples:
-          - Bad Request
-        title:
-          type: string
-          description: The plain text error message.
-          examples:
-          - Validation Error
-        links:
-          type: object
-          description: The endpoint path for reference.
-          properties:
-            about:
-              type: string
-              description: API path that generated the error.
-              examples:
-              - /factset-fundamentals/v2/fundamentals
-          example: example_value
-    SecurityIds:
+          $ref: '#/components/schemas/batchErrorObject'
+    metrics:
+      title: Metrics
       type: array
-      title: Security Identifiers
-      description: >-
-        List of security identifiers. Accepted types include Market Tickers,
-        SEDOL, ISINs, CUSIPs, or FactSet Permanent Ids. Limit of 1,000 per
-        non-batch request / 30,000 per batch request.
-      items:
-        type: string
-      minItems: 1
-      maxItems: 30000
-      examples:
-      - - FDS-US
-      - - FDS-US
-        - AAPL-US
-        - MSFT-US
-    MetricsList:
-      type: array
-      title: Metrics List
-      description: >-
-        List of fundamental metric identifiers. Use the /metrics endpoint
-        for a complete catalog of available items.
+      description: 'Requested List of Financial Statement Items or Ratios. Use /metrics endpoint for a complete list of available FF_* metric items.
+
+        '
       items:
         type: string
       minItems: 1
       maxItems: 1600
-      examples:
-      - - FF_SALES
-      - - FF_SALES
-        - FF_EPS
-        - FF_PE
-    Periodicity:
+      example:
+      - FF_SALES
+    updateType:
+      title: Update Type
       type: string
+      enum:
+      - RP
+      - RF
+      default: RP
+      description: "Update Status flag:\n  * **RP** = Include preliminary data,\n  * **RF** = Only final data\n"
+      example: RP
+    periodicity:
       title: Periodicity
-      description: >-
-        Periodicity or frequency of the fiscal periods. ANN = Annual, QTR =
-        Quarterly, SEMI = Semi-Annual, LTM = Last Twelve Months, YTD =
-        Year-to-date. Suffix _R includes restatements.
+      type: string
+      description: "Periodicity or frequency of the fiscal periods, where\n  * **ANN** = Annual Original,\n  * **ANN_R** = Annual Latest - *Includes Restatements*,\n  * **QTR** = Quarterly,\n  * **QTR_R** = Quarterly Latest - *Includes Restatements*,\n  * **SEMI** = Semi-Annual,\n  * **SEMI_R** = Semi-Annual Latest - *Includes Restatements*,\n  * **LTM** = Last Twelve Months,\n  * **LTM_R** = Last Twelve Months Latest - *Includes Restatements*,\n  * **LTM_SEMI** = Last Twelve Months - Semi-Annually Reported Data,\n  * **LTMSG** = Last Twelve Months Global [OA17959](https://my.apps.factset.com/oa/pages/17959) and\n  * **YTD** = Year-to-date\n<br><br>\nPlease note that the coverage for SEMI_R and LTM_R may be limited as fewer companies report with these periodicities.\n"
       enum:
       - ANN
       - ANN_R
@@ -2073,113 +699,328 @@ components:
       - LTM_SEMI
       - YTD
       default: ANN
-    FiscalPeriod:
+      example: QTR
+    errorResponse:
       type: object
-      title: Fiscal Period
-      description: >-
-        Fiscal period date range specification. Calendar dates that will
-        fall back to the most recently completed period during resolution.
+      title: Error Response
+      description: Error Default Response
       properties:
-        start:
-          type: string
-          format: date
-          description: >-
-            The fiscal period start expressed as YYYY-MM-DD.
-          examples:
-          - '2023-01-01'
-        end:
-          type: string
-          format: date
-          description: >-
-            The fiscal period end expressed as YYYY-MM-DD.
-          examples:
-          - '2024-01-01'
-    Currency:
-      type: string
+        errors:
+          type: array
+          description: An array containing errors
+          items:
+            $ref: '#/components/schemas/errorObject'
+    fundamentalFiscalPeriod:
+      $ref: '#/components/schemas/fiscalPeriod'
+    currency:
       title: Currency
-      description: >-
-        ISO 4217 currency code. Use "DOC" for reporting currency. Defaults
-        to LOCAL.
+      description: 'Currency code for currency values. For a list of currency ISO codes, visit [Online Assistant Page #1470](https://oa.apps.factset.com/pages/1470).
+
+        '
+      type: string
       default: LOCAL
-      examples:
-      - USD
-      - EUR
-      - LOCAL
-    UpdateType:
-      type: string
-      title: Update Type
-      description: >-
-        Update status flag. RP = Include preliminary data, RF = Only final
-        data.
-      enum:
-      - RP
-      - RF
-      default: RP
-    BatchFlag:
-      type: string
-      title: Batch Flag
-      description: >-
-        Enable asynchronous batch processing. Y = Enable, N = Disable.
-      enum:
-      - 'Y'
-      - 'N'
-      default: 'N'
+      example: USD
+    errorObject:
+      type: object
+      properties:
+        id:
+          description: A UUID for this particular occurrence of the problem.
+          type: string
+          example: adb01824-252f-4420-b0c6-35a1e3507ef5
+        code:
+          description: status
+          type: string
+          example: Bad Request
+        links:
+          description: The Endpoint path {package}/version/{endpoint}
+          type: object
+          properties:
+            about:
+              description: details.
+              type: string
+              example: /factset-fundamentals/v1/{endpoint}
+        title:
+          description: The plain text error message
+          type: string
+          example: Validation Error
+    fundamentalsRequest:
+      title: Fundamentals Request Body
+      description: Fundamentals request body elements
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/fundamentalRequestBody'
+      required:
+      - data
+    BatchStatusResponse:
+      title: Batch Status Response
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/BatchStatus'
+    fundamentalsResponse:
+      type: object
+      title: Fundamentals Response
+      description: Array of Fundamentals Objects
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/fundamental'
+    idsBatchMax30000:
+      type: array
+      items:
+        type: string
+        minItems: 1
+        maxItems: 30000
+      description: "The requested list of security identifiers. Accepted ID types include Market Tickers, SEDOL, ISINs, CUSIPs, or FactSet Permanent Ids. \n<p>ids limit =  1000 per non-batch request / 30000 per batch request</p>\n"
+      example:
+      - FDS-US
   responses:
-    BatchAccepted:
-      description: Batch request has been accepted for processing.
-      headers:
-        Location:
-          description: Path to batch request status endpoint.
-          schema:
-            type: string
-          example: batch-status?id=2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+    '401':
+      description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the **Report Issue** in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/BatchStatusResponse'
-    BadRequest:
-      description: >-
-        Bad Request. This can occur for several reasons. Please review the
-        error message for details.
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/unauthenticated'
+    '415':
+      description: Unsupported Media Type. This error may be returned when the caller sends a resource in a format that is not accepted by the server. This can be fixed by ensuring that the Content-Type header is set to the correct value. In this instance, "application/json" would be the appropriate value.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    Unauthorized:
-      description: >-
-        Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have
-        successfully generated an API KEY for the IP range you are
-        connecting from.
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Unsupported Media Type:
+              $ref: '#/components/examples/unsupportedMediaType'
+    '403':
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was legal, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    Forbidden:
-      description: >-
-        The USERNAME-SERIAL attempted to request the endpoint is not
-        authorized to access. Please reach out to FactSet Account Team for
-        assistance with authorization.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    NotFound:
-      description: Resource not found.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    UnsupportedMediaType:
-      description: >-
-        Unsupported Media Type. Ensure that the Content-Type header is set
-        to "application/json".
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    InternalServerError:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - forbidden:
+              $ref: '#/components/examples/forbidden'
+    '500':
       description: Internal Server Error.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Internal Server Error - Not Writable:
+              $ref: '#/components/examples/notWritable'
+            Internal Server Error - General Exception:
+              $ref: '#/components/examples/generalException'
+    '400':
+      description: Bad Request. This can occur for several reasons. Please review the "message" for more details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/badRequestDateFormat'
+            Bad Request - Missing Required Parameter:
+              $ref: '#/components/examples/badRequestRequiredParameter'
+            Bad Request - Invalid Parameter:
+              $ref: '#/components/examples/badRequestInvalidParameters'
+            Bad Request - More Than One Fundamental Metric Id:
+              $ref: '#/components/examples/badRequestMoreThanOneFundamentalMetricId'
+            Bad Request - Malformed JSON:
+              $ref: '#/components/examples/badRequestMalformedJSON'
+            Bad Request - Read Timeout:
+              $ref: '#/components/examples/badRequestReadTimeout'
+  parameters:
+    periodicity:
+      name: periodicity
+      in: query
+      schema:
+        type: string
+        enum:
+        - ANN
+        - ANN_R
+        - QTR
+        - QTR_R
+        - SEMI
+        - SEMI_R
+        - LTM
+        - LTM_R
+        - LTM_SEMI
+        - LTMSG
+        - YTD
+        default: ANN
+      required: false
+      description: "Periodicity or frequency of the fiscal periods, where\n  * **ANN**  = Annual - Original,\n  * **ANN_R** = Annual - Latest - *Includes Restatements*,\n  * **QTR**  = Quarterly - Original,\n  * **QTR_R** = Quarterly - Latest - *Includes Restatements*,\n  * **SEMI** = Semi-Annual,\n  * **SEMI_R** = Semi-Annual - Latest - *Includes Restatements*,\n  * **LTM**  = Last Twelve Months,\n  * **LTM_R**  = Last Twelve Months - Latest - *Includes Restatements*,\n  * **LTMSG** = Last Twelve Months Global [OA17959](https://my.apps.factset.com/oa/pages/17959),\n  * **LTM_SEMI**  = Last Twelve Months, Semi-Annually Reported Data,\n  * **YTD** = Year-to-date.\n  <br>\n\nPlease note that the coverage for SEMI_R and LTM_R may be limited as fewer companies report with these periodicities.<br>\n"
+      examples:
+        ANN:
+          summary: ANN - Annual Original.
+          value: ANN
+        ANN_R:
+          summary: ANN_R - Annual Latest.
+          value: ANN_R
+        QTR:
+          summary: QTR - Quarterly Original.
+          value: QTR
+        QTR_R:
+          summary: QTR_R - Quarterly Latest.
+          value: QTR_R
+        SEMI:
+          summary: SEMI - Semi-Annual Original.
+          value: SEMI
+        SEMI_R:
+          summary: SEMI_R - Semi-Annual Latest.
+          value: SEMI_R
+        LTM:
+          summary: LTM - Last Twelve Months Original.
+          value: LTM
+        LTM_R:
+          summary: LTM_R - Last Twelve Months Latest.
+          value: LTM_R
+        LTMSG:
+          summary: LTMSG - Last Twelve Months Global.
+          value: LTMSG
+        LTM_SEMI:
+          summary: LTM_SEMI - Last Twelve Months - Semi Annual
+          value: LTM_SEMI
+        YTD:
+          summary: YTD - Year-to-date.
+          value: YTD
+    fiscalPeriodStart:
+      name: fiscalPeriodStart
+      in: query
+      required: false
+      schema:
+        type: string
+        example: '2017-09-01'
+      description: 'The fiscal period start expressed as YYYY-MM-DD.  Calendar date that will fall back to the most recent completed period during resolution.
+
+        '
+    metrics:
+      name: metrics
+      in: query
+      required: true
+      explode: false
+      description: 'Requested List of Financial Statement Items or Ratios. Use /metrics endpoint for a complete list of available FF_* metric items. <p>*When requesting multiple metrics, you cannot mix metric data types (e.g. strings and floats). Please use /metrics endpoints for context on metric dataType to avoid null data.*</p> <p>***metrics limit** =  1600 per request*</p>
+
+        *<p>Make note, GET Method URL request lines are also limited to a total
+
+        length of 8192 bytes (8KB). In cases where the service allows for thousands
+
+        of metrics, which may lead to exceeding this request line limit of 8KB, its
+
+        advised for any requests with large request lines to be requested through
+
+        the respective "POST" method.</p>*
+
+        '
+      schema:
+        type: array
+        items:
+          type: string
+        example:
+        - FF_SALES
+        - FF_EPS
+        - FF_PE
+        minItems: 1
+        maxItems: 1600
+      examples:
+        Single Metric:
+          summary: FF_SALES
+          value:
+          - FF_SALES
+        Multiple Metrics:
+          summary: FF_SALES, FF_EPS, FF_PE
+          value:
+          - FF_SALES
+          - FF_EPS
+          - FF_PE
+    currency:
+      name: currency
+      in: query
+      description: 'Currency code for currency values. For a list of currency ISO codes, visit Online Assistant Page [OA1470](https://my.apps.factset.com/oa/pages/1470).
+
+
+        Giving input as "DOC" would give the values in reporting currency for the requested ids.
+
+        '
+      required: false
+      schema:
+        type: string
+        default: LOCAL
+        example: USD
+    fiscalPeriodEnd:
+      name: fiscalPeriodEnd
+      in: query
+      required: false
+      schema:
+        type: string
+        example: '2018-03-01'
+      description: 'The fiscal period end expressed YYYY-MM-DD.  Calendar date that will fall back to the most recently completed period during resolution.
+
+        '
+    updateType:
+      name: updateType
+      in: query
+      schema:
+        type: string
+        enum:
+        - RP
+        - RF
+        default: RP
+      required: false
+      description: "Update Status Flag:\n  * **RP** = Include preliminary data,\n  * **RF** = Only final data\n"
+      examples:
+        ANN:
+          summary: RP - Include preliminary data.
+          value: RP
+        QTR:
+          summary: RF - Only final data.
+          value: RF
+    batch:
+      name: batch
+      in: query
+      description: 'Enables the ability to asynchronously "batch" the request, supporting a long-running request for up to 20 minutes. Upon requesting batch=Y, the service will respond with an HTTP Status Code of 202.
+
+        Once a batch request is submitted, use batch status to see if the job has been completed. Once completed, retrieve the results of the request via batch-result. When using Batch, ids limit is increased to 30000 ids per request, though limits on query string via GET method still apply. It''s advised to submit large lists of ids via POST method.
+
+        '
+      schema:
+        type: string
+        enum:
+        - Y
+        - N
+        default: N
+    idsBatchMax2000:
+      name: ids
+      in: query
+      schema:
+        type: array
+        items:
+          type: string
+          minItems: 1
+          maxItems: 2000
+      required: true
+      explode: false
+      description: The requested list of security identifiers. Accepted ID types include Market Tickers, SEDOL, ISINs, CUSIPs, or FactSet Permanent Ids.<p>***ids limit** =  1000 per non-batch request / 2000 per batch request*</p> *<p>Make note, GET Method URL request lines are also limited to a total length of 8192 bytes (8KB). In cases where the service allows for thousands of ids, which may lead to exceeding this request line limit of 8KB, it's advised for any requests with large request lines to be requested through the respective "POST" method.</p>*
+      examples:
+        oneEquityId:
+          summary: One Equity Market Identifier
+          value:
+          - AAPL-USA
+        multipleEquityIds:
+          summary: Multiple Equity Market Identifiers
+          value:
+          - FDS-US
+          - AAPL-US
+          - MSFT-US
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

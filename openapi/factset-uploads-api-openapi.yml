@@ -1,0 +1,145 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Uploads API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Uploads
+paths:
+  /v1/custom-upload-list:
+    get:
+      tags:
+      - Uploads
+      summary: Factset Check Out the Documents Uploaded Before to Use Them in Creating Books
+      description: Retrieves the list of documents uploaded before using the endpoint "/upload-custom-document". The documents uploaded are available for 30 days from the date of uploading.
+      responses:
+        '200':
+          description: Successful response contains file name, fileURL and the date and time the book was uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Uploaded_Documents_List'
+        '401':
+          description: Missing or invalid authentication
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /analytics/quant/fpe/v1/files/uploads/{id}:
+    get:
+      tags:
+      - Uploads
+      summary: Factset Get Upload Status by Id
+      description: This is the endpoint to check on the progress of a previous upload request.
+      parameters:
+      - name: id
+        in: path
+        description: From url, provided by location header or response body in the upload start endpoint
+        required: true
+        schema:
+          type: string
+          description: From url, provided by location header or response body in the upload start endpoint
+      responses:
+        '200':
+          description: Expected response. Signals that the upload is finished.
+          headers:
+            Location:
+              description: Relative URL to check status of the request.
+              schema:
+                type: string
+                description: Relative URL to check status of the request.
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileUploadStatus'
+        '202':
+          description: Expected response. Signals that the upload is still in progress.
+          headers:
+            Location:
+              description: Relative URL to check status of the request.
+              schema:
+                type: string
+                description: Relative URL to check status of the request.
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileUploadStatus'
+        '500':
+          description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+        '503':
+          description: Request timeout. Retry the request later
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    Uploaded_Documents_List:
+      title: Template Request
+      description: Request to enable template list information for the client.
+      type: array
+      items:
+        properties:
+          name:
+            type: string
+            description: Template ID
+            example: Custom Upload
+          file_url:
+            type: string
+            description: FIle url
+            example: b33f6b758f2b12562251e5396e21f68ad46648bf19a8f3a9e55f74
+    FileUploadStatus:
+      properties:
+        id:
+          type: string
+          description: The unique ID for this upload
+          example: abc123
+        status:
+          type: string
+          enum:
+          - pending
+          - failed
+          - completed
+          - running
+          example: pending
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

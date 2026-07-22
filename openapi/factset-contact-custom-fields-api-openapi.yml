@@ -1,0 +1,380 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Contact Custom Fields API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Contact Custom Fields
+paths:
+  /v1/contact-custom-fields:
+    get:
+      tags:
+      - Contact Custom Fields
+      summary: Factset Get all the contact custom fields
+      operationId: GetContactCustomFields
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContactCustomFieldDto'
+    post:
+      tags:
+      - Contact Custom Fields
+      summary: Factset Create a contact custom field
+      operationId: CreateContactCustomField
+      requestBody:
+        description: ContactCustomFieldSaveDto object to save
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/ContactCustomFieldSaveDto'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactCustomFieldSaveDto'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/ContactCustomFieldSaveDto'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/ContactCustomFieldSaveDto'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewItemDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /v1/contact-custom-fields/{contactCustomFieldId}:
+    get:
+      tags:
+      - Contact Custom Fields
+      summary: Factset Get a specific Contact custom field's details
+      operationId: GetContactCustomField
+      parameters:
+      - name: contactCustomFieldId
+        in: path
+        description: contactCustomFieldId to get associated record
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactCustomFieldDto'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+    patch:
+      tags:
+      - Contact Custom Fields
+      summary: Factset Edit a contact custom field
+      operationId: PatchContactCustomField
+      parameters:
+      - name: contactCustomFieldId
+        in: path
+        description: contactCustomFieldId to update associated record
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        description: contactCustomFieldUpdateDto object to update
+        content:
+          application/json-patch+json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Operation'
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Operation'
+          text/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Operation'
+          application/*+json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Operation'
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+    delete:
+      tags:
+      - Contact Custom Fields
+      summary: Factset Delete a contact custom field
+      operationId: DeleteContactCustomField
+      parameters:
+      - name: contactCustomFieldId
+        in: path
+        description: contactCustomFieldId to delete associated record
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+components:
+  schemas:
+    FormulaConfigDto:
+      type: object
+      properties:
+        formula:
+          type: string
+          nullable: true
+        formulaType:
+          type: string
+          nullable: true
+      additionalProperties: false
+    NewItemDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+      additionalProperties: false
+    ContactCustomFieldSaveDto:
+      required:
+      - code
+      - isHidden
+      - isMandatory
+      - name
+      - type
+      type: object
+      properties:
+        code:
+          maxLength: 32
+          type: string
+        name:
+          maxLength: 100
+          type: string
+        type:
+          $ref: '#/components/schemas/ContactCustomFieldType'
+        isHidden:
+          type: boolean
+          default: false
+        isMandatory:
+          type: boolean
+          default: false
+        fieldFormula:
+          $ref: '#/components/schemas/ContactCustomFieldFormulaDto'
+        contactCustomFieldOptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContactCustomFieldOptionSaveDto'
+          nullable: true
+      additionalProperties: false
+    ContactCustomFieldOptionDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          nullable: true
+        order:
+          type: integer
+          format: int32
+      additionalProperties: false
+    OperationType:
+      enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      type: integer
+      format: int32
+    ContactCustomFieldDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        type:
+          type: string
+          nullable: true
+        isHidden:
+          type: boolean
+        isMandatory:
+          type: boolean
+        formulaConfig:
+          $ref: '#/components/schemas/FormulaConfigDto'
+        contactCustomFieldOptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContactCustomFieldOptionDto'
+          nullable: true
+      additionalProperties: false
+    ContactCustomFieldOptionSaveDto:
+      required:
+      - name
+      type: object
+      properties:
+        name:
+          maxLength: 255
+          type: string
+      additionalProperties: false
+    ContactCustomFieldFormulaDto:
+      type: object
+      properties:
+        formula:
+          maxLength: 2040
+          type: string
+          nullable: true
+        isScreening:
+          type: boolean
+          default: false
+        symbol:
+          type: string
+          nullable: true
+      additionalProperties: false
+    Operation:
+      type: object
+      properties:
+        operationType:
+          $ref: '#/components/schemas/OperationType'
+        path:
+          type: string
+          nullable: true
+        op:
+          type: string
+          nullable: true
+        from:
+          type: string
+          nullable: true
+        value:
+          nullable: true
+      additionalProperties: false
+    ContactCustomFieldType:
+      enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      - 7
+      type: integer
+      format: int32
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        status:
+          type: integer
+          format: int32
+          nullable: true
+        detail:
+          type: string
+          nullable: true
+        instance:
+          type: string
+          nullable: true
+      additionalProperties: {}
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

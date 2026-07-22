@@ -1,0 +1,232 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Operating API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Operating
+paths:
+  /basic/mic/operating/list:
+    post:
+      tags:
+      - Operating
+      operationId: post/basic/mic/operating/list
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: true
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 2
+      x-supportsPermissionDeniedResponse: false
+      summary: Factset List of Operating Market Identifier Codes (mic).
+      description: List of operating market identifier codes (MIC).
+      requestBody:
+        description: Request Body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostBasicMicOperatingListRequest'
+        required: false
+      responses:
+        '200':
+          $ref: '#/components/responses/PostBasicMicOperatingList200Response'
+      parameters: []
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  responses:
+    PostBasicMicOperatingList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                description: List of operating MICs.
+                nullable: false
+                items:
+                  type: object
+                  nullable: false
+                  x-property-sort:
+                  - id
+                  - isoCode
+                  - name
+                  - active
+                  properties:
+                    id:
+                      nullable: true
+                      type: number
+                      format: id32
+                      x-positive: true
+                      description: Identifier of the operating MIC.
+                    isoCode:
+                      nullable: true
+                      x-sortable: true
+                      type: string
+                      description: ISO 10383 code of the operating MIC.
+                    name:
+                      nullable: true
+                      x-sortable: true
+                      x-default-sort-attribute: true
+                      x-default-sort-direction: 1
+                      type: string
+                      description: English name of the operating MIC.
+                    active:
+                      nullable: true
+                      type: boolean
+                      description: Indicates whether the operating MIC is active.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                  pagination:
+                    $ref: '#/components/schemas/OffsetBasedPaginationOutputObjectWithoutTotal'
+                x-property-sort:
+                - status
+                - pagination
+            x-property-sort:
+            - data
+            - meta
+  schemas:
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+        exclusiveMaximum: false
+      maxItems: 50
+      uniqueItems: true
+    OffsetBasedPaginationOutputObjectWithoutTotal:
+      type: object
+      description: Pagination attributes for the offset-based pagination strategy; a total element count is not supported.
+      properties:
+        hasNext:
+          type: boolean
+          description: Flag indicating that a subsequent request with the same parameters, except that the parameter `pagination.offset` is incremented by `pagination.limit`, would yield additional results.
+          example: true
+      required:
+      - hasNext
+      x-property-sort:
+      - hasNext
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
+    PostBasicMicOperatingListRequest:
+      x-property-sort:
+      - data
+      - meta
+      description: Request Body
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - filter
+          description: The data member contains the request's primary data.
+          properties:
+            filter:
+              type: object
+              x-property-sort:
+              - status
+              description: Criteria that filter the items in the response list; only items that match all of the criteria are returned.
+              properties:
+                status:
+                  type: string
+                  description: Filter for the status.
+                  default: active
+                  x-enum-description:
+                  - Show all operating MICs.
+                  - Show only active operating MICs.
+                  - Show only inactive operating MICs.
+                  enum:
+                  - all
+                  - active
+                  - inactive
+          example: example_value
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+            sort:
+              description: Sortable attributes. The sort order is ascending unless it is prefixed with a minus sign, in which case it is descending. A list of at most 2 (possibly prefixed) attribute name(s) is allowed.
+              type: array
+              items:
+                type: string
+                enum:
+                - isoCode
+                - -isoCode
+                - name
+                - -name
+              maxItems: 2
+              uniqueItems: true
+              default:
+              - name
+            pagination:
+              type: object
+              description: Pagination attributes for the offset-based pagination strategy.
+              properties:
+                offset:
+                  type: number
+                  format: int32
+                  minimum: 0
+                  exclusiveMinimum: false
+                  default: 0
+                  description: Non-negative number of entries to skip, or 0 (default).
+                limit:
+                  type: number
+                  format: int32
+                  minimum: 0
+                  exclusiveMinimum: false
+                  maximum: 500
+                  exclusiveMaximum: false
+                  default: 20
+                  description: Non-negative maximum number of entries to return.
+              x-property-sort:
+              - offset
+              - limit
+          x-property-sort:
+          - attributes
+          - sort
+          - pagination
+          example: example_value
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

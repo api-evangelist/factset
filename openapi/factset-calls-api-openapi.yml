@@ -1,0 +1,394 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Calls API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Calls
+paths:
+  /bulk-documents/nrt/v1/calls:
+    get:
+      summary: Factset Returns the Active Calls Happening at the Moment.
+      tags:
+      - Calls
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NRT-Calls'
+              examples:
+                example-1:
+                  value:
+                    data:
+                    - callStatus: inProgress
+                      reportId: 2683372
+                      sourceCode: W
+                      audioSourceId: 471849
+                      recordingStartTime: '2022-07-11T14:46:59Z'
+                      ticker: AZZ-US
+                      entityId: 000CGP-E
+                      eventType: E
+                      eventTitle: Q1 2023 Earnings Call
+                      eventDatetimeUtc: '2022-07-11T15:00:00Z'
+                    meta:
+                      sort:
+                      - -startDate
+                      pagination:
+                        total: 1
+                        isEstimatedTotal: false
+                        limit: 5
+                        offset: 1
+                      partial:
+                        isPartial: false
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NRT-Calls-400-Response'
+              examples:
+                example-1:
+                  value:
+                    id: f815da1a-da7e-4b66-a4a4-59b5b7c9bea2
+                    code: parameterError
+                    title: '[''_paginatinLimit''] is not a valid parameter(s)'
+                    details:
+                      validParameters:
+                        _sort:
+                        - startDate
+                        - -startDate
+                        _paginationLimit:
+                        - integer from 0 to 500
+                        _paginationOffset:
+                        - positive integer
+                        audioSourceId:
+                        - positive integer
+                        reportId:
+                        - positive integer
+                        callStatus:
+                        - ended
+                        - inProgress
+                        - ewn
+                        - issueAtSource
+                        ticker:
+                        - string in form of 'ticker-region'
+                        entityId:
+                        - string
+        '401':
+          description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the Report Issue in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                example-1:
+                  value:
+                    id: 7af3d86ca5954503b9244f2620fcf5eb
+                    code: notAuthenticated
+                    title: There were either no, invalid, or expired credentials present in the request.
+        '403':
+          description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                example-1:
+                  value:
+                    id: 7af3d86ca5954503b9244f2620fcf5eb
+                    code: notAuthorized
+                    title: ' {USERNAME}-{SERIAL} does not have permission to use this endpoint.'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                example-1:
+                  value:
+                    id: 7af3d86ca5954503b9244f2620fcf5eb
+                    code: genericServerError
+                    title: An unexpected error happened.
+      operationId: get-bulk-documents-nrt-v1-calls
+      description: Returns the active calls happening at the moment
+      parameters:
+      - $ref: '#/components/parameters/paginationLimit'
+      - $ref: '#/components/parameters/paginationOffset'
+      - $ref: '#/components/parameters/audioSourceId1'
+      - $ref: '#/components/parameters/reportId'
+      - $ref: '#/components/parameters/callSort'
+      - $ref: '#/components/parameters/entityId'
+      - $ref: '#/components/parameters/ticker'
+      - $ref: '#/components/parameters/callStatus'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    NRT-Calls-400-Response:
+      description: ''
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        code:
+          type: string
+          example: example_value
+        title:
+          type: string
+          example: Example Title
+        details:
+          type: object
+          properties:
+            validParameters:
+              type: object
+              properties:
+                _sort:
+                  type: array
+                  items:
+                    type: string
+                _paginationLimit:
+                  type: array
+                  items:
+                    type: string
+                _paginationOffset:
+                  type: array
+                  items:
+                    type: string
+                audioSourceId:
+                  type: array
+                  items:
+                    type: string
+                reportId:
+                  type: array
+                  items:
+                    type: string
+                callStatus:
+                  type: array
+                  items:
+                    type: string
+                ticker:
+                  type: array
+                  items:
+                    type: string
+                entityId:
+                  type: array
+                  items:
+                    type: string
+          example: example_value
+    Error:
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        code:
+          type: string
+          example: example_value
+        title:
+          type: string
+          example: Example Title
+    NRT-Calls:
+      description: "\t\t\nMetadata of active calls happening at that moment are returned.\n"
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              callStatus:
+                type: string
+                nullable: true
+                description: 'Status of the call i.e. ended or inProgress or ewn or issueAtSource.
+
+
+                  * inProgress- the call is in progress.
+
+                  * ended- the call has ended.
+
+                  * ewn- the call has technically ended and can be considered as ended but is missing a notification from the upstream systems.
+
+                  * issueAtSource- the call has ended with no snippet data due to a possible issue at the source.'
+              reportId:
+                type: integer
+                nullable: true
+                description: The unique ID for an event.
+              sourceCode:
+                type: string
+                nullable: true
+                description: 'Identifier for the source of how the event is recorded.
+
+                  P:- Phone Replay
+
+                  W:- Webcast'
+              audioSourceId:
+                type: integer
+                nullable: true
+                description: Unique ID for an Internal recording specific to reportID. For example, ReportID X would have multiple recordings from different source (dial-in - P or webcast - W). One reportId can have multiple audiosourceIDs.
+              recordingStartTime:
+                type: string
+                nullable: true
+                description: The official UTC timestamp when FactSet starts the recording.
+              ticker:
+                type: string
+                nullable: true
+                description: Ticker-region identifier for the company hosting the event.
+              entityId:
+                type: string
+                nullable: true
+                description: Factset entity level identifier for the company hosting the event.
+              eventType:
+                type: string
+                nullable: true
+                description: 'Refers to the various event types covered by FactSet CallStreet -
+
+                  * Analyst, Investor & Shareholder Meeting => AS
+
+                  * Earnings Call => E
+
+                  * Earnings Release => ER
+
+                  * Guidance => G
+
+                  * Sales & Revenue Call => SA
+
+                  * Sales & Revenue Release => SR
+
+                  * Special & M&A (Special Situation) => SS'
+              eventTitle:
+                type: string
+                nullable: true
+                description: Title of the Event.
+              eventDatetimeUtc:
+                type: string
+                nullable: true
+                description: The official UTC timestamp of the start of the event.
+          example: []
+        meta:
+          type: object
+          properties:
+            sort:
+              type: array
+              description: The value in _sort parameter if used in the request.
+              items:
+                type: string
+            pagination:
+              type: object
+              properties:
+                total:
+                  type: integer
+                  description: Total number for results returned for a specific query.
+                isEstimatedTotal:
+                  type: boolean
+                  description: This field acts as a flag for the exact count of results and is defaulted to false as the API should always return the exact count of results.
+                limit:
+                  type: integer
+                  description: Number of results returned per page.
+                offset:
+                  type: integer
+                  description: The flag indicating the position in the results array if additional results are available beyond the default value or the value in _paginationLimit parameter (if used). This value is passed in the _paginationOffset parameter to retrieve subsequent results.
+            partial:
+              type: object
+              properties:
+                isPartial:
+                  type: boolean
+                  description: If the value is True, it indicates additional results are available. False represents that this is the last set of results for this request.
+          example: example_value
+  parameters:
+    entityId:
+      schema:
+        type: string
+      in: query
+      name: entityId
+      example: 000CGP-E
+      description: Factset entity level identifier for the company hosting the event.
+    reportId:
+      schema:
+        type: integer
+        format: int32
+      in: query
+      name: reportId
+      example: 2683372
+      description: Unique identifier for an event.
+    paginationLimit:
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 500
+        default: 200
+      in: query
+      name: _paginationLimit
+      example: 5
+      description: Specifies the  number of results to return per page. [ Min=0; Max=500]
+    audioSourceId1:
+      schema:
+        type: integer
+        format: int32
+      in: query
+      name: audioSourceId
+      example: 471849
+      required: false
+      description: Unique ID for an Internal recording specific to reportID. For example, ReportID X would have multiple recordings from different source (dial-in or webcast). One ReportID can have multiple AudioSourceIDs.
+    ticker:
+      schema:
+        type: string
+      in: query
+      name: ticker
+      example: AZZ-US
+      description: Ticker-region identifier for the company hosting the event.
+    callSort:
+      schema:
+        type: string
+        enum:
+        - startDate
+        - -startDate
+        default: -startDate
+      in: query
+      name: _sort
+      description: Enables to get the data in chronological or reverse chronological order based on startDate. Results are in reverse chronological order if this parameter is not used.
+    paginationOffset:
+      schema:
+        type: integer
+        format: int32
+        default: 0
+      in: query
+      name: _paginationOffset
+      description: Specifies the starting point for pagination. This parameter is used to identify the beginning of next set of results.
+    callStatus:
+      schema:
+        type: string
+        enum:
+        - inProgress
+        - ended
+        - ewn
+        - issueAtSource
+      in: query
+      name: callStatus
+      description: Status of the call i.e. ended or inProgress or ewn or issueAtSource.
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

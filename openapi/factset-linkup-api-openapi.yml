@@ -1,0 +1,273 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Linkup API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Linkup
+  description: "<a href=https://go.factset.com/marketplace/catalog/product/linkup-raw>LinkUp</a> API provides access to job listings data.  \n"
+paths:
+  /linkup/job-listings:
+    get:
+      tags:
+      - Linkup
+      summary: Returns the  daily files from Open:FactSet Partner - LinkUp. The LinkUp API provides access to job listings dataset that is sourced directly from employer webistes globally delivered daily.
+      operationId: getLinkUpJobListings
+      description: Returns the  daily files from Open:FactSet Partner - LinkUp. The LinkUp API provides access to job listings dataset that is sourced directly from employer webistes globally delivered daily. **This API is no longer being sold for new clients.**
+      parameters:
+      - $ref: '#/components/parameters/_sort'
+      - $ref: '#/components/parameters/_paginationLimit'
+      - $ref: '#/components/parameters/_paginationOffset'
+      - $ref: '#/components/parameters/startDate'
+      - $ref: '#/components/parameters/endDate'
+      - $ref: '#/components/parameters/type'
+      responses:
+        '200':
+          description: Download link & metadata for LinkUp data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkUpResponse'
+              examples:
+                default200ResponseExample:
+                  $ref: '#/components/examples/sampleLinkUpResponse'
+        '400':
+          description: Bad request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatus'
+              examples:
+                default400ResponseExample:
+                  $ref: '#/components/examples/ErrorDetails'
+        '401':
+          description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the Report Issue in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatus'
+              examples:
+                default401ResponseExample:
+                  $ref: '#/components/examples/AuthErrorDetails'
+        '403':
+          description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatus'
+              examples:
+                default403ResponseExample:
+                  $ref: '#/components/examples/AuthorizationErrorDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatus'
+              examples:
+                default500ResponseExample:
+                  $ref: '#/components/examples/serverErrorDetails'
+components:
+  schemas:
+    errorExample:
+      type: object
+      description: Specifies the fields in the error message
+      properties:
+        code:
+          description: It specifies the unique code
+          type: string
+        title:
+          description: ' Specifies the error message'
+          type: string
+        id:
+          description: Specifies the id
+          type: string
+    LinkupFiles:
+      type: object
+      title: LinkUp Object
+      description: ' Returns LinkUp Response.'
+      properties:
+        filename:
+          description: The filename of the daily LinkUp file.
+          type: string
+          example: raw_daily_v2_2022-10-16.xml
+        fileTimestamp:
+          description: The timestamp when LinkUp provided the file to FactSet.
+          type: string
+          format: date-time
+          example: '2022-10-16 22:00:00'
+        updateTimestamp:
+          description: The timestamp when the file is last updated.
+          type: string
+          format: date-time
+          example: '2022-10-16 22:00:55'
+        type:
+          description: Used to provide the full job descriptions when value - full is used for this parameter.
+          type: string
+          example: delta
+        url:
+          description: Download link for daily file from LinkUp on various job postings.
+          type: string
+          example: https://fdss3-unstructured-data-delivery-linkup-prod.s3.amazonaws.com/2022/10/raw_daily_v2_2022-10-16.xml?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA6B6XG7VE4KPAQD6S%2F20221017%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20221017T151252Z&X-Amz-Expires=1800&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjED8aCXVzLWVhc3QtMSJGMEQCIEYZImk3I5of13kAbNkbWW7Ib0NnLkesTPO5lWMHbh83AiBuQMuFxXGRP9vcTAyCukgNzakuGUl40YqIKLAUZQ4axyruAggYEAEaDDk2NjI4MjExNjQyNSIMvMcMv4%2F0uRNVeQFUKssCh7n9%2BG6jIll%2BYG76a6NmKEz5Re6eeoDDS9%2FyyoP%2FvyBzJ9WRkvOY%2BuGsRbavlXr8tCUW%2F4trNJiukntRN8xKd66JRioQC9kTXEeGYeEIk3g7kcHBrG1yvPx1iY96XXPn5%2BW%2Bw%2FSZJluWWM0glYRnsJ01HBmS6VW%2Fad7x3guxP6QZz%2BReASeNjpvI60lc4qkasb9sCGy6wggC2KmMfQuQfGcrTqMF71%2F0LRzD12Jw1Drgyr7HH12r3k5w16x7sTJqxmEy4ovuUIV7R0AyMhBAsbPWAnrMrZmMndQyP5ZfDuqaIkmx2VZzX0NdIzYOhSMrgUjJNLJT6VKbolXJpVe4bQN5ZDMa88mi6Xol6v8IbxVNBjKhi8cVN3bVFg2TFbXNVMdu%2FewIO6nVbYMb7qtKORM4aeELr5xlFkPdHwdw7G0KdKAGpXtP9MeDQDCv17WaBjqfAegRsmgqBZGqhRXL4Y3YXWjpzURSMl4EHsltSr6%2FdNNbwe%2Fm8DdnmKQI0%2BBkLCPpIYwT0tzW4FwW4GwcUtpcZ7V5fAoHsQ4Wu2jKX2x1plTd9G2WU5CAnPn7OCKCH9zyj8Ck38L0GMBpfP3ltc0BwrlvX0Swuw33PvgB4iPsE6yR9vrF55oKwkgRn4WczoiBf3MJmhmmTades7odetEUpQ%3D%3D&X-Amz-Signature=a9221535699761e4d574b950778cc4d2460a952e9e9a5d532fb921e67483a74c
+    LinkUpResponse:
+      type: object
+      title: Linkup Response.
+      description: ' Returns LinkUp Response.'
+      properties:
+        data:
+          type: array
+          description: ' Returns LinkUp Response.'
+          items:
+            $ref: '#/components/schemas/LinkupFiles'
+        meta:
+          $ref: '#/components/schemas/meta'
+    pagination:
+      title: PaginationItems
+      description: List of pagination objects
+      type: object
+      properties:
+        total:
+          description: Total number of files the API returns for a particular query.
+          type: integer
+        isEstimatedTotal:
+          description: Boolean value that represents whether the total count of files returned is exact or an estimate. This is defaulted to “False” as the API should always return the exact count.
+          type: boolean
+    AuthStatus:
+      type: object
+      description: specifies the error message fields in the response
+      properties:
+        errors:
+          type: array
+          description: An array containing errors
+          items:
+            $ref: '#/components/schemas/errorExample'
+    meta:
+      title: Meta
+      description: Array of metadata objects.
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/pagination'
+  examples:
+    sampleLinkUpResponse:
+      summary: Sample Response
+      value:
+        data:
+        - filename: raw_daily_2020-07-21_descriptions.xml
+          fileTimestamp: '2020-07-21T03:00:00Z'
+          updateTimestamp: '2020-07-22T10:56:10Z'
+          type: delta
+          url: https://fdss3-unstructured-data-delivery-linkup.s3.amazonaws.com/2020/07/raw_daily_2020-07-21_descriptions.xml?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA4NAFRGHDD5ED2XO5%2F20200722%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20200722T163634Z&X-Amz-Expires=600&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEKn%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJIMEYCIQDA05f8TjYKH8FYTAOXxj3YLuPdBmrS6KipP7bRlclTrAIhANFny6Yj93QXE10XOoj2u0YLAIWEB1mm%2BvQCngYDoe0yKskBCGIQABoMODUyNTYyNjIwODcwIgzMpg0Pr%2Bu7pRFp%2FJ4qpgFZVQK9WGmEMGKMW%2B1%2FXL05rHXMNSdgVlSmj7ulkTG62dnzFT4YpSe81L5GmKYLTT22N0sG7bHXK6l%2F2S5CVqH2JIIrrMwZwSaEM%2F%2F1D8QbL4OyF8XB1WHKiyU6PxG4rbz5cv0kcL%2BfQe3WD6g4E5ZwxMmKWSsiNbiqo3qF1ZB0Tr7ttARFnbQsqhbUCL3VIcctbPwTvKVoCfT2nyAgp3uKTEa%2BNKQpMITW4fgFOt8BZCJ%2FQCn1dmTphR7%2FQM3eQzYLxcS%2FTFgq8%2FVQ17lfVlU3veB1TOfWyAYFnKp%2F0Dq6QMvXBpDY6inrsF9AsmGjo%2FkhD5A796xPJPR8QeD73NyiRCcavhEfP2kfxh%2FTbn3WbZ2bQjEIVmZxscmFw2YA%2BSqDE7nnUiCpqI4Bdrnlq0iINWAHUiOimrt3T91o4QWytaG0coZlTErboirsI1htlWv1gCbhyF0tW%2BM9RCtiy3Er%2FMwzLAogcvWGR5eXpHPGWQExB2V%2FPXMmX7oiOCcw3QVPnf5uyjyUjS8V5NAlTQ%3D%3D&X-Amz-Signature=bd31322afc4fab5accbca83069256d354bf329177d6bc49b801a6b49bcb4d2fa
+        meta:
+          pagination:
+            total: 4730
+            isEstimatedTotal: false
+    ErrorDetails:
+      summary: sample error response
+      value:
+        errors:
+        - code: Bad Request
+          title: parameterError:['_paginationLimit'] is not a valid parameter(s)
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    AuthorizationErrorDetails:
+      summary: sample error response
+      value:
+        errors:
+        - code: Forbidden
+          title: USERNAME-SERIAL does not have permission
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    serverErrorDetails:
+      summary: sample error response
+      value:
+        errors:
+        - code: Internal server error
+          title: An unexpected error happened
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    AuthErrorDetails:
+      summary: sample error response
+      value:
+        errors:
+        - code: Not Authenticated
+          title: Unauthenticated USERNAME-SERIAL
+          id: fd5a51ff-02cf-48ec-b9b1-913d64863b0
+  parameters:
+    _sort:
+      name: _sort
+      in: query
+      description: Enables to get the data in ascending or descending order based on startTime. Results are in reverse chronological order if this parameter is not used.
+      required: false
+      schema:
+        type: string
+        enum:
+        - startDate
+        - -startDate
+        default: -startDate
+    type:
+      name: type
+      in: query
+      description: Used to provide the full job descriptions when value "full" is used for this parameter.
+      required: false
+      schema:
+        type: string
+        enum:
+        - full
+        - delta
+        default: delta
+    _paginationLimit:
+      name: _paginationLimit
+      in: query
+      description: Specifies the maximum number of results to return per result.
+      required: false
+      schema:
+        type: integer
+        maximum: 500
+        minimum: 1
+        default: 20
+    _paginationOffset:
+      name: _paginationOffset
+      in: query
+      description: Specifies the starting point for pagination. This parameter is used to identify the beginning of next set of results. Using this parameter can fetch maximum of first 10000 records.
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    startDate:
+      name: startDate
+      in: query
+      description: The earliest date of the LinkUp file the API should fetching for based on fileTimestamp.
+      required: false
+      schema:
+        type: string
+        format: date
+      example: '2020-01-01'
+    endDate:
+      name: endDate
+      in: query
+      description: The latest date of the LinkUp file the API should fetching for based on fileTimestamp.
+      required: false
+      schema:
+        type: string
+        format: date
+      example: '2021-08-01'
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

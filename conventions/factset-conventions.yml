@@ -1,0 +1,48 @@
+generated: '2026-07-22'
+method: derived
+source: openapi/ (446 parsed OpenAPI documents), authentication/factset-authentication.yml,
+  https://github.com/factset/oauth2-guidelines, auth.factset.com OIDC discovery
+authentication:
+  styles:
+  - http basic (FactSet username-serial + API key)
+  - oauth2 client credentials and authorization code via auth.factset.com (PingFederate)
+  artifact: authentication/factset-authentication.yml
+  scopes: scopes/factset-scopes.yml
+idempotency:
+  supported: false
+  note: No Idempotency-Key header or documented idempotency contract found in any
+    spec (0 grep hits across openapi/) or in the developer docs. Long-running
+    calculation APIs use explicit create-then-poll job semantics instead (POST
+    returns a calculation id; 409 signals a duplicate calculation with the same
+    parameters).
+pagination:
+  style: offset-limit
+  evidence: paginationLimit/paginationOffset parameters (125 spec files) and
+    _paginationLimit/_paginationOffset on formula-style endpoints; responses carry
+    a meta/pagination block on paginated content APIs.
+async_jobs:
+  style: create-then-poll
+  evidence: Analytics engines (PA/SPAR/Vault/Quant/Publisher) and batch endpoints
+    return 202 with a calculation/job id polled via status endpoints (Batch Status,
+    PollCalculate, getCalculationStatusById patterns); 410 Gone marks expired job
+    results.
+batching:
+  evidence: Batch Request/Batch Status endpoints on data APIs (Formula, Prices,
+    Estimates, Global Prices) for large id lists; POST *ForList variants mirror
+    GET endpoints to carry large identifier payloads.
+request_tracing:
+  note: No documented request-id response header convention found in the specs.
+versioning:
+  scheme: uri-path
+  artifact: lifecycle/factset-lifecycle.yml
+error_envelope:
+  shape: plain JSON per API (no RFC 9457 problem+json)
+  artifact: errors/factset-problem-types.yml
+rate_limit_signaling:
+  evidence: 429 responses documented with Retry-After header ("Rate limit reached.
+    Wait till the time specified in Retry-After header value"); 503 documented as
+    retryable timeout.
+  artifact: rate-limits/factset-rate-limits.yml
+content_negotiation:
+  evidence: 406 responses require Accept application/json (255 operations); 415
+    for unsupported request media types.

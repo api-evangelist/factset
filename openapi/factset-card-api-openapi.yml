@@ -1,0 +1,181 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Card API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Card
+paths:
+  /search/answers/v1/adaptive-card:
+    get:
+      summary: Fetch Factset Answer in Adaptive Card Format
+      tags:
+      - Card
+      description: Returns an answer to the specified query (if valid answer exists) in the Adaptive Card format (https://adaptivecards.io/).
+      operationId: searchForAdaptiveCardAnswer
+      parameters:
+      - $ref: '#/components/parameters/Query'
+      - $ref: '#/components/parameters/IncludeThumbnail'
+      - $ref: '#/components/parameters/DisableNoAnswerResponses'
+      - $ref: '#/components/parameters/Theme'
+      responses:
+        '200':
+          description: Request was successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdaptiveCardAnswerSuccessResponse'
+        '400':
+          description: Missing or empty query.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnswerFailureResponse'
+        '401':
+          description: Missing or invalid authentication.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnswerFailureResponse'
+        '500':
+          description: Unhandled error occurred while processing the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnswerFailureResponse'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  parameters:
+    IncludeThumbnail:
+      name: includeThumbnail
+      in: query
+      description: Includes thumbnail of Adaptive Card in response
+      required: false
+      schema:
+        type: boolean
+        default: false
+    Theme:
+      name: theme
+      in: query
+      description: Theme for desired answer (e.g., "Light", "Dark")
+      required: false
+      schema:
+        type: string
+        default: Light
+    Query:
+      name: query
+      in: query
+      description: Query for desired answer (e.g., "fds price")
+      required: true
+      schema:
+        type: string
+    DisableNoAnswerResponses:
+      name: disableNoAnswerResponses
+      in: query
+      description: Disables no-result answer responses (no-results and answer without data)
+      required: false
+      schema:
+        type: boolean
+        default: true
+  schemas:
+    AdaptiveCardWithThumbnail:
+      type: object
+      properties:
+        adaptiveCard:
+          $ref: '#/components/schemas/AdaptiveCard'
+        thumbnail:
+          $ref: '#/components/schemas/ThumbnailCard'
+    AdaptiveCardDataItem:
+      oneOf:
+      - $ref: '#/components/schemas/AdaptiveCard'
+      - $ref: '#/components/schemas/AdaptiveCardWithThumbnail'
+    ErrorSource:
+      type: object
+      properties:
+        pointer:
+          type: string
+          example: example_value
+        parameter:
+          type: string
+          example: example_value
+    AdaptiveCardAnswerSuccessResponse:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdaptiveCardDataItem'
+          example: []
+    Error:
+      type: object
+      required:
+      - id
+      - code
+      - title
+      properties:
+        id:
+          type: string
+          example: abc123
+        code:
+          type: string
+          example: example_value
+        title:
+          type: string
+          example: Example Title
+        links:
+          $ref: '#/components/schemas/ErrorLink'
+        detail:
+          type: string
+          example: example_value
+        source:
+          $ref: '#/components/schemas/ErrorSource'
+    ErrorLink:
+      type: object
+      required:
+      - about
+      properties:
+        about:
+          type: string
+          example: example_value
+    ThumbnailCard:
+      type: object
+      description: JSON that matches [Thumbnail Card](https://docs.microsoft.com/en-us/microsoftteams/platform/task-modules-and-cards/cards/cards-reference#thumbnail-card) format.
+      nullable: true
+    AnswerFailureResponse:
+      type: object
+      required:
+      - errors
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+          example: []
+    AdaptiveCard:
+      type: object
+      description: JSON that matches [Adaptive Card](https://adaptivecards.io/explorer/) format.
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

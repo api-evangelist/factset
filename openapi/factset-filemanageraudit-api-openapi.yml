@@ -1,0 +1,141 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About FileManagerAudit API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: FileManagerAudit
+paths:
+  /FileManagerAudit:
+    get:
+      tags:
+      - FileManagerAudit
+      summary: Factset Get File Manager audit data.
+      security:
+      - basicAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/fileManagerAuditSuccess'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+components:
+  responses:
+    fileManagerAuditSuccess:
+      description: Success.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FileManagerAudit'
+    internalServerError:
+      description: Internal server error.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    FileManagerAudit:
+      type: array
+      items:
+        type: object
+        properties:
+          username:
+            type: string
+            description: The FactSet username associated with the file paths.
+          paths:
+            type: object
+            description: Object containing all file paths and their associated attributes.
+            additionalProperties:
+              type: array
+              description: A file path and its associated attributes.
+              items:
+                type: object
+                description: Attributes of the file.
+                properties:
+                  entity:
+                    type: object
+                    description: The entity associated with the file's attributes.
+                    properties:
+                      name:
+                        type: string
+                        description: The name of the entity.
+                      type:
+                        type: string
+                        description: The type of the entity.
+                    required:
+                    - name
+                    - type
+                  permissions:
+                    type: object
+                    description: Object describing the permissions the associated entity has regarding the associated file.
+                    properties:
+                      read:
+                        type: boolean
+                        description: Whether the associated entity has permission to read the associated file.
+                      write:
+                        type: boolean
+                        description: Whether the associated entity has permission to write the associated file.
+                      maintain:
+                        type: boolean
+                        description: Whether the associated entity has permission to maintain the associated file.
+                    required:
+                    - read
+                    - write
+                    - maintain
+                  permission-override:
+                    type: object
+                    properties:
+                      read:
+                        type: boolean
+                      write:
+                        type: boolean
+                      maintain:
+                        type: boolean
+                    required:
+                    - read
+                    - write
+                    - maintain
+                  inheritance-distance:
+                    type: integer
+                required:
+                - entity
+                - permissions
+        required:
+        - username
+        - paths
+      example:
+      - username: fds_demo_va_sc
+        paths:
+          /sc/fds_demo_va_sc/:
+          - entity:
+              name: fds_demo_eur:245600
+              type: user
+            permissions:
+              read: true
+              write: true
+              maintain: true
+            permission-overrides:
+              read: true
+              write: true
+              maintain: true
+            inheritance-distance: 0
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

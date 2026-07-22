@@ -1,0 +1,275 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Evaluations API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Evaluations
+paths:
+  /portfolio/evaluation/list:
+    post:
+      tags:
+      - Evaluations
+      operationId: post/portfolio/evaluation/list
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: true
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      description: Performs an evaluation over a period of time and returns portfolio key figures for each day, week, or month.
+      summary: Evaluate a portfolio.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPortfolioEvaluationListRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostPortfolioEvaluationList200Response'
+      parameters: []
+components:
+  schemas:
+    PostPortfolioEvaluationListRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - id
+          - range
+          - resolution
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              description: Identifier of the portfolio.
+              type: string
+              format: id64
+              x-positive: true
+            range:
+              type: object
+              format: dateRange
+              x-isClosedInterval: true
+              properties:
+                start:
+                  type: string
+                  format: date
+                  description: The starting point of the date range (inclusive).
+                end:
+                  type: string
+                  format: date
+                  description: The ending point of the date range (inclusive).
+              x-property-sort:
+              - start
+              - end
+              required:
+              - start
+              - end
+              description: Date range for the time series. A valid date range is between 1900-01-01 and the day after the current day. A date before the date of the first transaction is implicitly adjusted to the date of the portfolio's first transaction.
+            resolution:
+              type: string
+              default: daily
+              x-enum-description:
+              - ''
+              - ''
+              - ''
+              enum:
+              - daily
+              - weekly
+              - monthly
+          required:
+          - id
+          - range
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+          - attributes
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+      description: The status member contains the status code of the response.
+      required:
+      - code
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+        exclusiveMaximum: false
+      maxItems: 50
+      uniqueItems: true
+  responses:
+    PostPortfolioEvaluationList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: List of dates with corresponding key figures.
+                nullable: false
+                type: object
+                x-property-sort:
+                - currency
+                - keyfigures
+                properties:
+                  currency:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - id
+                    - isoCode
+                    description: Main currency of the portfolio. See endpoint `/basic/valueUnit/currency/main/list` for possible values.
+                    properties:
+                      id:
+                        nullable: true
+                        type: number
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the currency.
+                      isoCode:
+                        nullable: true
+                        type: string
+                        description: ISO 4217 code of the currency.
+                  keyfigures:
+                    nullable: false
+                    description: Summary of portfolio key figures in the corresponding resolution.
+                    type: array
+                    items:
+                      type: object
+                      nullable: false
+                      x-property-sort:
+                      - date
+                      - cash
+                      - totalValue
+                      - marketValue
+                      - profitLoss
+                      - period
+                      properties:
+                        date:
+                          nullable: true
+                          description: Date the evaluation is performed for (end of week or end of month for weekly and monthly resolution respectively).
+                          type: string
+                          format: date
+                        cash:
+                          nullable: true
+                          description: The amount of cash since range start.
+                          type: number
+                          format: real
+                        totalValue:
+                          nullable: true
+                          description: The total portfolio value, i.e. the current market value of the portfolio plus cash.
+                          type: number
+                          format: real
+                        marketValue:
+                          nullable: true
+                          description: The current market value of the securities in the portfolio.
+                          type: number
+                          format: real
+                        profitLoss:
+                          nullable: false
+                          description: Summary of profit/loss.
+                          type: object
+                          x-property-sort:
+                          - absolute
+                          - performance
+                          - modifiedDietzPerformance
+                          properties:
+                            absolute:
+                              nullable: true
+                              description: Profit/loss since range start.
+                              type: number
+                              format: real
+                            performance:
+                              nullable: true
+                              description: The performance of the portfolio since range start.
+                              type: number
+                              format: percentage
+                              x-convertToRelative: false
+                            modifiedDietzPerformance:
+                              nullable: true
+                              description: The performance of the portfolio calculated using the "modified Dietz" method since range start.
+                              type: number
+                              format: percentage
+                              x-convertToRelative: false
+                        period:
+                          nullable: false
+                          description: Summary of the corresponding period.
+                          type: object
+                          x-property-sort:
+                          - profitLoss
+                          - transactions
+                          - payouts
+                          - purchaseValue
+                          properties:
+                            profitLoss:
+                              nullable: false
+                              description: Summary of profit/loss in the corresponding period.
+                              type: object
+                              x-property-sort:
+                              - absolute
+                              properties:
+                                absolute:
+                                  nullable: true
+                                  description: Profit/loss in the corresponding period.
+                                  type: number
+                                  format: real
+                            transactions:
+                              nullable: true
+                              description: The number of transactions in the corresponding period.
+                              type: number
+                              format: int32
+                            payouts:
+                              nullable: true
+                              description: The number of payouts in the corresponding period.
+                              type: number
+                              format: int32
+                            purchaseValue:
+                              nullable: true
+                              description: Value of money that has been invested in the corresponding period.
+                              type: number
+                              format: real
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

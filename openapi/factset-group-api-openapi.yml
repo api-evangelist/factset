@@ -1,0 +1,594 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Group API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Group
+paths:
+  /v1/group:
+    get:
+      tags:
+      - Group
+      summary: Factset Get Group Details
+      operationId: GetGroup
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupConfigDto'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /v1/group/client-sales-representative:
+    get:
+      tags:
+      - Group
+      operationId: GetClientsSalesRepresentative
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientSalesRepresentativeDto'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /Group/{id}:
+    get:
+      tags:
+      - Group
+      summary: Factset Get a group.
+      security:
+      - basicAuth: []
+      parameters:
+      - $ref: '#/components/parameters/resourceId'
+      responses:
+        '200':
+          $ref: '#/components/responses/groupSuccess'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '404':
+          $ref: '#/components/responses/groupNotFoundError'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+    put:
+      tags:
+      - Group
+      summary: Factset Replace a group.
+      security:
+      - basicAuth: []
+      parameters:
+      - $ref: '#/components/parameters/resourceId'
+      requestBody:
+        $ref: '#/components/requestBodies/groupResource'
+      responses:
+        '200':
+          $ref: '#/components/responses/groupSuccess'
+        '400':
+          $ref: '#/components/responses/invalidResourceProvidedError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '404':
+          $ref: '#/components/responses/groupNotFoundError'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+    patch:
+      tags:
+      - Group
+      summary: Factset Patch a group (add, replace, or remove attributes of a group.)
+      security:
+      - basicAuth: []
+      parameters:
+      - $ref: '#/components/parameters/resourceId'
+      requestBody:
+        $ref: '#/components/requestBodies/patchGroupResource'
+      responses:
+        '200':
+          $ref: '#/components/responses/groupSuccess'
+        '400':
+          $ref: '#/components/responses/invalidPatchRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+components:
+  responses:
+    invalidResourceProvidedError:
+      description: Provided resource contains invalid data.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            scimType: invalidValue
+            detail: Provided resource contains invalid data.
+            status: '400'
+    groupSuccess:
+      description: Success.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/GroupResource'
+    forbiddenError:
+      description: User is not authorized to use this API.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: FIN_WEALTH-999999 is not authorized to use the FactSet SCIM API.
+            status: '403'
+    groupNotFoundError:
+      description: Group not found.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: Group Domain btud - Pod 04 - CitrixApps - Cymba OMS was not found.
+            status: '404'
+    invalidPatchRequestError:
+      description: Patch request invalid.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            scimType: invalidValue
+            detail: Provided resource contains invalid data.
+            status: '400'
+    internalServerError:
+      description: Internal server error.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    unauthorizedError:
+      description: User has not been authenticated.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: FactSet.net credentials are missing or invalid.
+            status: '401'
+  schemas:
+    SentimentSettingsDto:
+      type: object
+      properties:
+        isHidden:
+          type: boolean
+          example: true
+        isMandatory:
+          type: boolean
+          example: true
+        usePrevious:
+          type: boolean
+          example: true
+        defaultId:
+          type: string
+          format: uuid
+          nullable: true
+          example: '500123'
+      additionalProperties: false
+    DateSettingsDto:
+      type: object
+      properties:
+        allowEdit:
+          type: boolean
+          example: true
+        isLocked:
+          type: boolean
+          example: true
+      additionalProperties: false
+    ClientSalesRepresentativeDto:
+      type: object
+      properties:
+        fullname:
+          type: string
+          nullable: true
+          example: example_value
+        emailAddress:
+          type: string
+          nullable: true
+          example: user@example.com
+      additionalProperties: false
+    GroupConfigDto:
+      type: object
+      properties:
+        Id:
+          type: string
+          format: uuid
+          example: abc123
+        Name:
+          type: string
+          nullable: true
+          example: Example Title
+        Fields:
+          $ref: '#/components/schemas/GroupFieldsDto'
+      additionalProperties: false
+    RelatedContactsSettingsDto:
+      type: object
+      properties:
+        isHidden:
+          type: boolean
+          example: true
+        isMandatory:
+          type: boolean
+          example: true
+        usePrevious:
+          type: boolean
+          example: true
+      additionalProperties: false
+    TeamSettingsDto:
+      type: object
+      properties:
+        defaultId:
+          type: string
+          format: uuid
+          nullable: true
+          example: '500123'
+      additionalProperties: false
+    GroupResource:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example:
+          - urn:ietf:params:scim:schemas:core:2.0:Group
+          - urn:scim:schemas:extension:FactSet:EnterpriseHosting:1.0:Group
+          - urn:scim:schemas:extension:FactSet:VRS:1.0:Group
+        id:
+          type: string
+          example: eh:btud:Pod 04 - CitrixApps - Cymba OMS
+          readOnly: true
+        externalId:
+          type: string
+          example: B8FE8BBD-0E04-40B2-9BB3-E5EE17C4C9C9
+        displayName:
+          type: string
+          description: A human-readable name for the Group.
+          example: Domain btud - Pod 04 - CitrixApps - Cymba OMS
+        description:
+          type: string
+          description: A description for the Group.
+          example: Group representing access to the Cymba OMS application.
+        members:
+          type: array
+          description: A list of members of the Group.
+          items:
+            type: object
+            properties:
+              value:
+                type: string
+                description: Identifier of the member of this Group.
+                example: FIN_WEALTH-123456
+              $ref:
+                type: string
+                description: The URI corresponding to a SCIM resource that is a member of this Group.
+                example: https://api.factset.com/scim/v2/Users/FIN_WEALTH-123456
+              type:
+                type: string
+                description: A label indicating the type of resource, e.g., 'User' or 'Group'.
+                example: User
+        urn:scim:schemas:extension:FactSet:EnterpriseHosting:1.0:Group:
+          type: object
+          properties:
+            domainCode:
+              type: string
+              description: Domain code of the Enterprise Hosting pod containing this group.
+              readOnly: true
+              example: btud
+          required:
+          - domainCode
+          readOnly: true
+        urn:scim:schemas:extension:FactSet:VRS:1.0:Group:
+          type: object
+          properties:
+            tenant:
+              type: string
+              description: The tenant this role is in
+              example: QA
+            domainCode:
+              type: string
+              description: Domain code of Enterprise Hosting pod in which user resides. REQUIRED.
+              example: btud
+          required:
+          - domainCode
+        meta:
+          type: object
+          properties:
+            resourceType:
+              type: string
+              example: Group
+            created:
+              type: string
+              example: '2019-02-11T15:33:31.077+00:00'
+            lastModified:
+              type: string
+              example: '2019-06-07T08:59:37+00:00'
+            location:
+              type: string
+              example: https://api.factset.com/scim/v2/Groups/eh%3Abtud%3APod%2004%20-%20CitrixApps%20-%20Cymba%20OMS
+          readOnly: true
+    NoteSettingsDto:
+      type: object
+      properties:
+        isHidden:
+          type: boolean
+          example: true
+        isMandatory:
+          type: boolean
+          example: true
+        usePrevious:
+          type: boolean
+          example: true
+        allowPersonal:
+          type: boolean
+          example: true
+        defaultStatus:
+          type: string
+          nullable: true
+          example: example_value
+        alternativeCustomFieldId:
+          type: string
+          format: uuid
+          nullable: true
+          example: '500123'
+      additionalProperties: false
+    SubjectSettingsDto:
+      type: object
+      properties:
+        defaultId:
+          type: string
+          format: uuid
+          nullable: true
+          example: '500123'
+      additionalProperties: false
+    IdentifierSettingsDto:
+      type: object
+      properties:
+        allowEdit:
+          type: boolean
+          example: true
+      additionalProperties: false
+    LinkSettingsDto:
+      type: object
+      properties:
+        isHidden:
+          type: boolean
+          example: true
+        isMandatory:
+          type: boolean
+          example: true
+        usePrevious:
+          type: boolean
+          example: true
+      additionalProperties: false
+    RelatedResearchSettingsDto:
+      type: object
+      properties:
+        isHidden:
+          type: boolean
+          example: true
+        isMandatory:
+          type: boolean
+          example: true
+        usePrevious:
+          type: boolean
+          example: true
+      additionalProperties: false
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+          nullable: true
+          example: example_value
+        title:
+          type: string
+          nullable: true
+          example: Example Title
+        status:
+          type: integer
+          format: int32
+          nullable: true
+          example: 10
+        detail:
+          type: string
+          nullable: true
+          example: example_value
+        instance:
+          type: string
+          nullable: true
+          example: example_value
+      additionalProperties: {}
+    TitleSettingsDto:
+      type: object
+      properties:
+        usePrevious:
+          type: boolean
+          example: true
+      additionalProperties: false
+    Patch:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+        Operations:
+          type: array
+          items:
+            type: object
+            properties:
+              op:
+                type: string
+              path:
+                type: string
+              value:
+                type: string
+    OrganizerSettingsDto:
+      type: object
+      properties:
+        isHidden:
+          type: boolean
+          example: true
+        isMandatory:
+          type: boolean
+          example: true
+      additionalProperties: false
+    GroupFieldsDto:
+      type: object
+      properties:
+        title:
+          $ref: '#/components/schemas/TitleSettingsDto'
+        date:
+          $ref: '#/components/schemas/DateSettingsDto'
+        identifier:
+          $ref: '#/components/schemas/IdentifierSettingsDto'
+        subject:
+          $ref: '#/components/schemas/SubjectSettingsDto'
+        recommendation:
+          $ref: '#/components/schemas/RecommendationSettingsDto'
+        sentiment:
+          $ref: '#/components/schemas/SentimentSettingsDto'
+        link:
+          $ref: '#/components/schemas/LinkSettingsDto'
+        note:
+          $ref: '#/components/schemas/NoteSettingsDto'
+        source:
+          $ref: '#/components/schemas/SourceSettingsDto'
+        relatedSymbols:
+          $ref: '#/components/schemas/RelatedSymbolsSettingsDto'
+        relatedResearch:
+          $ref: '#/components/schemas/RelatedResearchSettingsDto'
+        relatedContacts:
+          $ref: '#/components/schemas/RelatedContactsSettingsDto'
+        team:
+          $ref: '#/components/schemas/TeamSettingsDto'
+        organizer:
+          $ref: '#/components/schemas/OrganizerSettingsDto'
+      additionalProperties: false
+    RecommendationSettingsDto:
+      type: object
+      properties:
+        isHidden:
+          type: boolean
+          example: true
+        isMandatory:
+          type: boolean
+          example: true
+        usePrevious:
+          type: boolean
+          example: true
+        defaultId:
+          type: string
+          format: uuid
+          nullable: true
+          example: '500123'
+      additionalProperties: false
+    RelatedSymbolsSettingsDto:
+      type: object
+      properties:
+        isHidden:
+          type: boolean
+          example: true
+        isMandatory:
+          type: boolean
+          example: true
+        usePrevious:
+          type: boolean
+          example: true
+      additionalProperties: false
+    SourceSettingsDto:
+      type: object
+      properties:
+        isHidden:
+          type: boolean
+          example: true
+        isMandatory:
+          type: boolean
+          example: true
+        usePrevious:
+          type: boolean
+          example: true
+      additionalProperties: false
+  parameters:
+    resourceId:
+      name: id
+      description: ID of resource.
+      in: path
+      schema:
+        type: string
+      required: true
+  requestBodies:
+    groupResource:
+      description: Group resource.
+      required: true
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/GroupResource'
+    patchGroupResource:
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Patch'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:PatchOp
+            Operations:
+            - op: add
+              path: members
+              value:
+              - value: FIN_WEALTH-123456
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

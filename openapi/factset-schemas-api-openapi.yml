@@ -1,0 +1,366 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Schemas API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Schemas
+paths:
+  /Schemas:
+    get:
+      tags:
+      - Schemas
+      summary: Factset Get a List of Schemas.
+      security:
+      - basicAuth: []
+      parameters:
+      - $ref: '#/components/parameters/startIndex'
+      - $ref: '#/components/parameters/count'
+      responses:
+        '200':
+          $ref: '#/components/responses/schemasSuccess'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /Schemas/{id}:
+    get:
+      tags:
+      - Schemas
+      summary: Factset Get a Schema.
+      security:
+      - basicAuth: []
+      parameters:
+      - $ref: '#/components/parameters/resourceId'
+      responses:
+        '200':
+          $ref: '#/components/responses/schemaSuccess'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '404':
+          description: Schema not found.
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: Schema urn:scim:schemas:extension:FactSet:Core:1.0:User not found
+                status: '404'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  responses:
+    schemaSuccess:
+      description: Success.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Schema'
+    forbiddenError:
+      description: User is not authorized to use this API.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: FIN_WEALTH-999999 is not authorized to use the FactSet SCIM API.
+            status: '403'
+    schemasSuccess:
+      description: Success.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/SchemaList'
+    unauthorizedError:
+      description: User has not been authenticated.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: FactSet.net credentials are missing or invalid.
+            status: '401'
+    internalServerError:
+      description: Internal server error.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  parameters:
+    startIndex:
+      name: startIndex
+      description: Result start index. The one-based index of the first result to be returned in the list of resources. For example, to exclude the first two resources, use a *startIndex* value of 3. This parameter has a default value of 1. This index applies *after* any resource filtration has been applied as specified by the *filter* argument.
+      in: query
+      schema:
+        type: integer
+      required: false
+    resourceId:
+      name: id
+      description: ID of resource.
+      in: path
+      schema:
+        type: string
+      required: true
+    count:
+      name: count
+      description: Maximum resource count. The server will not return more resources than this value, although it may return fewer.
+      in: query
+      schema:
+        type: integer
+      required: false
+  schemas:
+    SchemaList:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example:
+          - urn:ietf:params:scim:api:messages:2.0:ListResponse
+        totalResults:
+          type: integer
+          example: 1
+        Resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/Schema'
+          example: []
+    Schema:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique URI of the schema. When applicable, service providers MUST specify the URI.
+          readOnly: true
+          example: urn:scim:schemas:extension:FactSet:Core:1.0:User
+        name:
+          type: string
+          description: The schema's human-readable name.  When applicable, service providers MUST specify the name, e.g., 'User'.
+          readOnly: true
+          example: FactSet Core User
+        description:
+          type: string
+          description: The schema's human-readable name.  When applicable, service providers MUST specify the name, e.g., 'User'.
+          readOnly: true
+          example: FactSet core user details
+        attributes:
+          type: array
+          description: A complex attribute that includes the attributes of a schema.
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: The attribute's name.
+                readOnly: true
+              type:
+                type: string
+                description: The attribute's data type. Valid values include 'string', 'complex', 'boolean', 'decimal', 'integer', 'dateTime', 'reference'.
+                readOnly: true
+              multiValued:
+                type: boolean
+                description: A Boolean value indicating an attribute's plurality.
+                readOnly: true
+              description:
+                type: string
+                description: A human-readable description of the attribute.
+                readOnly: true
+              required:
+                type: boolean
+                description: A boolean value indicating whether or not the attribute is required.
+                readOnly: true
+              canonicalValues:
+                type: array
+                description: A collection of canonical values.  When applicable, service providers MUST specify the canonical types, e.g.,  'work', 'home'.
+                items:
+                  type: string
+                readOnly: true
+              caseExact:
+                type: boolean
+                description: A Boolean value indicating whether or not a string attribute is case sensitive.
+                readOnly: true
+              mutability:
+                type: string
+                description: Indicates whether or not an attribute is modifiable.
+                readOnly: true
+              returned:
+                type: string
+                description: Indicates when an attribute is returned in a response (e.g., to a query).
+                readOnly: true
+              uniqueness:
+                type: string
+                description: Indicates how unique a value must be.
+                readOnly: true
+              referenceTypes:
+                type: array
+                description: Used only with an attribute of type 'reference'.  Specifies a SCIM resourceType that a reference attribute MAY refer to, e.g., 'User'.
+                items:
+                  type: string
+                readOnly: true
+              subAttributes:
+                type: array
+                description: Used to define the sub-attributes of a complex attribute.
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: The attribute's name.
+                      readOnly: true
+                    type:
+                      type: string
+                      description: The attribute's data type. Valid values include 'string', 'complex', 'boolean', 'decimal', 'integer', 'dateTime', 'reference'.
+                      readOnly: true
+                    multiValued:
+                      type: boolean
+                      description: A Boolean value indicating an attribute's plurality.
+                      readOnly: true
+                    description:
+                      type: string
+                      description: A human-readable description of the attribute.
+                      readOnly: true
+                    required:
+                      type: boolean
+                      description: A boolean value indicating whether or not the attribute is required.
+                      readOnly: true
+                    canonicalValues:
+                      type: array
+                      description: A collection of canonical values.  When applicable, service providers MUST specify the canonical types, e.g.,  'work', 'home'.
+                      items:
+                        type: string
+                      readOnly: true
+                    caseExact:
+                      type: boolean
+                      description: A Boolean value indicating whether or not a string attribute is case sensitive.
+                      readOnly: true
+                    mutability:
+                      type: string
+                      description: Indicates whether or not an attribute is modifiable.
+                      readOnly: true
+                    returned:
+                      type: string
+                      description: Indicates when an attribute is returned in a response (e.g., to a query).
+                      readOnly: true
+                    uniqueness:
+                      type: string
+                      description: Indicates how unique a value must be.
+                      readOnly: true
+                    referenceTypes:
+                      type: array
+                      description: Used only with an attribute of type 'reference'.  Specifies a SCIM resourceType that a reference attribute MAY refer to, e.g., 'User'.
+                      items:
+                        type: string
+                      readOnly: true
+                  required:
+                  - name
+                  - type
+                  - multiValued
+                readOnly: true
+            required:
+            - name
+            - type
+            - multiValued
+          readOnly: true
+          example:
+          - name: username
+            type: string
+            multiValued: false
+            description: A FactSet "username" is FactSet's logical structure for grouping serial numbers into like-groups based on roleName, geographical location or line of business.
+            required: true
+            caseExact: false
+            mutability: immutable
+            returned: default
+            uniqueness: none
+          - name: serialNumber
+            type: string
+            multiValued: false
+            description: A serial number represents an individual's unique FactSet account identifier and base-workstation access. Serial numbers are allocated to an individual when a valid RoleName is present.
+            required: false
+            caseExact: false
+            mutability: readOnly
+            returned: default
+            uniqueness: global
+          - name: factSetNetId
+            type: string
+            multiValued: false
+            description: FactSet.net ID.
+            required: false
+            caseExact: false
+            mutability: readOnly
+            returned: default
+            uniqueness: global
+          - name: locationId
+            type: string
+            multiValued: false
+            description: Your reference to a distinct physical location in your organization (such as an office)
+            required: true
+            caseExact: false
+            mutability: readWrite
+            returned: default
+            uniqueness: none
+          - name: roleName
+            type: string
+            multiValued: false
+            description: Predetermined role of specific individual. Issues individual a base FactSet workstation and serial number. If passed as NULL a base-FactSet workstation will be allocated to the individual granting the individual a FactSet SerialNumber
+            required: false
+            caseExact: false
+            mutability: readWrite
+            returned: default
+            uniqueness: none
+          - name: productIds
+            type: integer
+            multiValued: true
+            description: An array of FactSet products to allocate/remove from an individual. Individual must have a FactSet serial number associated with them.
+            required: false
+            mutability: readWrite
+            returned: default
+            uniqueness: none
+          - name: assertionValue
+            type: string
+            multiValued: false
+            description: Field containing the value, passed as nameID, used to assert the identity of an individual via SAML2.0 which maps service-provider-side to a FactSet serial number. Only applicable to individuals with a FactSet serial number with a Federation setup between your domain and FactSet's
+            required: false
+            caseExact: false
+            mutability: readWrite
+            returned: default
+            uniqueness: server
+      required:
+      - id
+      - name
+      - attributes
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

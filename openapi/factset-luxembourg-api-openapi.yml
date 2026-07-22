@@ -1,0 +1,285 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Luxembourg API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Luxembourg
+  description: "<a href=https://go.factset.com/marketplace/catalog/product/lgx-datahub>Luxembourg</a> API provides access to Green Bonds data. \n"
+paths:
+  /luxembourg/green-bonds/daily:
+    get:
+      tags:
+      - Luxembourg
+      summary: Returns daily files from Open:FactSet Partner - Luxembourg
+      operationId: getLuxembourgGreenbondsDaily
+      description: 'Returns XML files and relevant metadata provided by Open: FactSet Partner – Luxembourg.
+
+        '
+      parameters:
+      - $ref: '#/components/parameters/_sort'
+      - $ref: '#/components/parameters/_paginationLimit'
+      - $ref: '#/components/parameters/_paginationOffset'
+      - $ref: '#/components/parameters/isin'
+      - $ref: '#/components/parameters/preissuancePubDate'
+      - $ref: '#/components/parameters/typeOne'
+      responses:
+        '200':
+          description: Download link & metadata for luxembourg files.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LuxResponse'
+              examples:
+                default200LuxResponseExample:
+                  $ref: '#/components/examples/luxBondsResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatus'
+              examples:
+                default400ResponseExample:
+                  $ref: '#/components/examples/ErrorDetails'
+        '401':
+          description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the Report Issue in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatus'
+              examples:
+                default401ResponseExample:
+                  $ref: '#/components/examples/AuthErrorDetails'
+        '403':
+          description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatus'
+              examples:
+                default403ResponseExample:
+                  $ref: '#/components/examples/AuthorizationErrorDetails'
+        '500':
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatus'
+              examples:
+                default500ResponseExample:
+                  $ref: '#/components/examples/serverErrorDetails'
+components:
+  schemas:
+    errorExample:
+      type: object
+      description: Specifies the fields in the error message
+      properties:
+        code:
+          description: It specifies the unique code
+          type: string
+        title:
+          description: ' Specifies the error message'
+          type: string
+        id:
+          description: Specifies the id
+          type: string
+    LuxResponse:
+      type: object
+      title: Luxembourg Response
+      description: Returns Bonds Response
+      properties:
+        data:
+          description: Returns Bonds Response
+          type: array
+          items:
+            $ref: '#/components/schemas/bonds'
+        meta:
+          $ref: '#/components/schemas/meta'
+    pagination:
+      title: PaginationItems
+      description: List of pagination objects
+      type: object
+      properties:
+        total:
+          description: Total number of files the API returns for a particular query.
+          type: integer
+        isEstimatedTotal:
+          description: Boolean value that represents whether the total count of files returned is exact or an estimate. This is defaulted to “False” as the API should always return the exact count.
+          type: boolean
+    AuthStatus:
+      type: object
+      description: specifies the error message fields in the response
+      properties:
+        errors:
+          type: array
+          description: An array containing errors
+          items:
+            $ref: '#/components/schemas/errorExample'
+    bonds:
+      title: Luxembourg Object
+      type: object
+      description: Returns Bonds Response
+      properties:
+        isin:
+          description: 12-digit alphanumeric code that uniquely identifies a specific security.
+          type: string
+          example: XS2486610541
+        fileName:
+          description: The filename of the bonds data.
+          type: string
+          example: XS2486610541.xml
+        preissuancePubDate:
+          description: 'Specifies the Pre-issuance date of the record. '
+          type: string
+          format: date
+          example: '2022-08-26'
+        preissuanceExistence:
+          description: 'Specifies the Pre-issuance existence of the record. The Issuer has developed a Framework for its upcoming Green and/or Social and/or Sustainability bond issuances. File is publically available on the Issuer''s website. '
+          type: string
+          example: PUBLICLY_AVAILABLE
+        postissuancePubDate:
+          description: 'Specifies the Post-issuance date of the record. '
+          type: string
+          format: date
+          example: '2022-09-24'
+        postissuanceExistence:
+          description: 'Specifies the Post-issuance existence of the record.The Issuer has published a file presenting some information on the utilisation of the proceeds of the bond. File is publicly available. '
+          type: string
+          example: PUBLICLY_AVAILABLE
+        url:
+          description: Download link for the bonds data provided by the Luxembourg feed. This download link will expire after 30 mins.
+          type: string
+          example: https://fdss3-unstructured-data-delivery-luxembourg.s3.amazonaws.com/luxembourg_green_bonds/split/XS2486610541.xml?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA4NAFRGHDMNDXWUYH%2F20221017%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20221017T103314Z&X-Amz-Expires=1800&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEDsaCXVzLWVhc3QtMSJHMEUCIHYez7Q5O9E2TpbKcNvtYdtQbSK3bi6KI2hBTkpMTTI1AiEAzMcz3OhOznjS0Bksa1b9rVSRGcYkkhcQEFp03WGKLgAq7gIIFBACGgw4NTI1NjI2MjA4NzAiDOK94aV1LhKeVcZsairLAgzxbHvmsmtwWTV7REDFmw1ex6b1h7VWzWVNmxhZUlb3UMr3W%2BBSERk%2F3uRDS8U88nJsHpjqjumNal2sw1r6FKAqhHjNlcNP0%2BcCqbNHBVo74IYgEe6uqF%2Btt03vCYLZwkd9fSg7U8BZ3DD0QjB27iLCB1nWDtNN3VaTTSxe%2BYievqUI8kgg8kSDreHOocB5tmlvmE2LcCD5zeb0FxZEQSh6o4%2Bvduzg4giIxfnCEbLLWmEFT49E2VxGC8E6pWjNccC%2FK%2BibiNmkivhI4vtG6KWpQyPbgMAUE4WXBIFnsulZJz2lfn3MpU3xkLVEch1n2IZMVzBdT49hAIeG9KSjppf2faDIXB0N5WwsduWl29RAfwxTJu7V7IhdYLvZDEhQaf%2B7IQXS3zijzdWrf6uclgw6Me%2BDAS8WFzaj%2FIQuxurSjGZJZRaoxarydGsw5t60mgY6ngGA303sALk%2BrsSXtp%2B5cSEyW%2FkrZcits1gXatpTU%2BEOwJBatTbRcoQa8zEHuspFtZD6nKOXvX5ZBWzzvRNjHpX7sXyM0LNcMH409aAqJfU6IU5%2B7KaoaucLj3VhaMdQgSEMAqp%2BFi47UFOQ3FvnG0Ih%2FjxEcTO8iYBHg2MfAMpx%2BNW0WwrNEQUXFWNt70HPrM2RnDkkzaTTTz9NDEbHpg%3D%3D&X-Amz-Signature=9db775727619af7f31024d33f8c1cb391140460ed269cec869cd4cff8253611d
+    meta:
+      title: Meta
+      description: Array of metadata objects.
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/pagination'
+  parameters:
+    _sort:
+      name: _sort
+      in: query
+      description: Enables to get the data in ascending or descending order based on startTime. Results are in reverse chronological order if this parameter is not used.
+      required: false
+      schema:
+        type: string
+        enum:
+        - startDate
+        - -startDate
+        default: -startDate
+    preissuancePubDate:
+      name: preissuancePubDate
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+      description: 'The pre-issuance date of the record.
+
+        '
+      example: '2022-08-26'
+    isin:
+      name: isin
+      in: query
+      required: false
+      schema:
+        type: string
+      description: 'Specifies the ISIN of the record.
+
+        '
+      example: XS2486610541
+    _paginationLimit:
+      name: _paginationLimit
+      in: query
+      description: Specifies the maximum number of results to return per result.
+      required: false
+      schema:
+        type: integer
+        maximum: 500
+        minimum: 1
+        default: 20
+    _paginationOffset:
+      name: _paginationOffset
+      in: query
+      description: Specifies the starting point for pagination. This parameter is used to identify the beginning of next set of results. Using this parameter can fetch maximum of first 10000 records.
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    typeOne:
+      name: type
+      in: query
+      required: false
+      schema:
+        type: string
+      description: "Please input the value as **idMap** to get the symbology files   \n"
+  examples:
+    ErrorDetails:
+      summary: sample error response
+      value:
+        errors:
+        - code: Bad Request
+          title: parameterError:['_paginationLimit'] is not a valid parameter(s)
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    luxBondsResponse:
+      summary: Sample Response
+      description: Single bond Record for XS2486610541
+      value:
+        data:
+        - isin: XS2486610541
+          fileName: XS2486610541.xml
+          preissuancePubDate: 2022-08-26 00:00:00+00:00
+          preissuanceExistence: PUBLICLY_AVAILABLE
+          postissuancePubDate: 2022-09-24 00:00:00+00:00
+          postissuanceExistence: PUBLICLY_AVAILABLE
+          url: https://fdss3-unstructured-data-delivery-luxembourg.s3.amazonaws.com/luxembourg_green_bonds/split/XS2486610541.xml?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA4NAFRGHDMNDXWUYH%2F20221017%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20221017T103314Z&X-Amz-Expires=1800&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEDsaCXVzLWVhc3QtMSJHMEUCIHYez7Q5O9E2TpbKcNvtYdtQbSK3bi6KI2hBTkpMTTI1AiEAzMcz3OhOznjS0Bksa1b9rVSRGcYkkhcQEFp03WGKLgAq7gIIFBACGgw4NTI1NjI2MjA4NzAiDOK94aV1LhKeVcZsairLAgzxbHvmsmtwWTV7REDFmw1ex6b1h7VWzWVNmxhZUlb3UMr3W%2BBSERk%2F3uRDS8U88nJsHpjqjumNal2sw1r6FKAqhHjNlcNP0%2BcCqbNHBVo74IYgEe6uqF%2Btt03vCYLZwkd9fSg7U8BZ3DD0QjB27iLCB1nWDtNN3VaTTSxe%2BYievqUI8kgg8kSDreHOocB5tmlvmE2LcCD5zeb0FxZEQSh6o4%2Bvduzg4giIxfnCEbLLWmEFT49E2VxGC8E6pWjNccC%2FK%2BibiNmkivhI4vtG6KWpQyPbgMAUE4WXBIFnsulZJz2lfn3MpU3xkLVEch1n2IZMVzBdT49hAIeG9KSjppf2faDIXB0N5WwsduWl29RAfwxTJu7V7IhdYLvZDEhQaf%2B7IQXS3zijzdWrf6uclgw6Me%2BDAS8WFzaj%2FIQuxurSjGZJZRaoxarydGsw5t60mgY6ngGA303sALk%2BrsSXtp%2B5cSEyW%2FkrZcits1gXatpTU%2BEOwJBatTbRcoQa8zEHuspFtZD6nKOXvX5ZBWzzvRNjHpX7sXyM0LNcMH409aAqJfU6IU5%2B7KaoaucLj3VhaMdQgSEMAqp%2BFi47UFOQ3FvnG0Ih%2FjxEcTO8iYBHg2MfAMpx%2BNW0WwrNEQUXFWNt70HPrM2RnDkkzaTTTz9NDEbHpg%3D%3D&X-Amz-Signature=9db775727619af7f31024d33f8c1cb391140460ed269cec869cd4cff8253611d
+        meta:
+          pagination:
+            total: 52025
+            isEstimatedTotal: false
+    AuthorizationErrorDetails:
+      summary: sample error response
+      value:
+        errors:
+        - code: Forbidden
+          title: USERNAME-SERIAL does not have permission
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    serverErrorDetails:
+      summary: sample error response
+      value:
+        errors:
+        - code: Internal server error
+          title: An unexpected error happened
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    AuthErrorDetails:
+      summary: sample error response
+      value:
+        errors:
+        - code: Not Authenticated
+          title: Unauthenticated USERNAME-SERIAL
+          id: fd5a51ff-02cf-48ec-b9b1-913d64863b0
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

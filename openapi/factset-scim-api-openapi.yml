@@ -1,0 +1,904 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Scim API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Scim
+paths:
+  /scim/v2/Users:
+    get:
+      operationId: getAllUsers
+      tags:
+      - Scim
+      summary: Factset Retrieves a list of VRS users
+      description: Retrieves a list of VRS users
+      parameters:
+      - in: query
+        name: count
+        description: Non-negative maximum number of entries to return
+        schema:
+          type: integer
+        examples:
+          count:
+            value: 25
+            description: Non-negative maximum number of entries to return
+      - in: query
+        name: startIndex
+        description: The 1-based index of the first query result
+        schema:
+          type: integer
+        examples:
+          startIndex:
+            value: 1
+            description: The 1-based index of the first query result
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimUserListResponse'
+        '403':
+          description: Forbidden, user does not have permission to view users
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have view or update permission
+                status: '403'
+    post:
+      operationId: createUser
+      tags:
+      - Scim
+      summary: Factset Creates a user
+      description: Creates a VRS user
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/CreateScimUserJSONRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/CreatedScimUserJSONResponse'
+          headers:
+            Location:
+              schema:
+                type: string
+              description: A callback URL to the newly create user, for example https://example.com/VRSAPI/scim/v2/Users/1
+        '400':
+          description: Bad Request, required values not provided in JSON request body (e.g. tenant, name or userName (loginID)
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: No tenant code given
+                status: '400'
+        '403':
+          description: Forbidden, user does not have permission to create users or it does not have requested tenancy assigned to it
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have update permission for users
+                status: '403'
+        '409':
+          description: User already exists
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User already exists
+                status: '409'
+  /scim/v2/Users/{userId}:
+    get:
+      operationId: getUserById
+      tags:
+      - Scim
+      summary: Factset Retrieves a VRS User
+      description: Retrieves a VRS user based on their ID
+      parameters:
+      - in: path
+        name: userId
+        description: The ID of the user
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimUser'
+          headers:
+            Location:
+              schema:
+                type: string
+              description: A callback URL to the user, for example https://example.com/VRSAPI/scim/v2/Users/1
+        '403':
+          description: Forbidden, user does not have permission to view users
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have permission to view users
+                status: '403'
+        '404':
+          description: Not Found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: Resource 1 not found
+                status: '404'
+    delete:
+      operationId: deleteUserById
+      tags:
+      - Scim
+      summary: Factset Deletes a VRS user
+      description: Deletes a VRS user (this marks them as 'Deleted' in the database)
+      parameters:
+      - in: path
+        name: userId
+        description: The ID of the user
+        schema:
+          type: string
+        required: true
+      responses:
+        '204':
+          description: No Content
+        '403':
+          description: Forbidden, user does not have permission to delete users
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have permission to delete users
+                status: '403'
+        '404':
+          description: Not Found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: Resource 1 not found
+                status: '404'
+    patch:
+      operationId: patchUserById
+      tags:
+      - Scim
+      summary: Factset Add or remove VRS user attributes
+      description: Adds or removes VRS user attributes based on the JSON properties
+      parameters:
+      - in: path
+        name: userId
+        description: The ID of the user
+        schema:
+          type: string
+        required: true
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimUserPatchRequestBody'
+            example:
+              schemas:
+              - urn:ietf:params:scim:api:messages:2.0:PatchOp
+              Operations:
+              - op: replace
+                path: name.formatted
+                value: vrstestuser1
+      responses:
+        '200':
+          description: Successfully updated user
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimUser'
+          headers:
+            Location:
+              schema:
+                type: string
+              description: A callback URL to the updated user, for example https://example.com/VRSAPI/scim/v2/Users/1
+        '403':
+          description: Forbidden, user does not have permission to update users
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have permission to update users
+                status: '403'
+        '404':
+          description: Not Found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: Resource 1 not found
+                status: '404'
+    put:
+      operationId: updateUserById
+      tags:
+      - Scim
+      summary: Factset Updates a VRS user
+      description: Updates (replaces) a VRS user with the properties in the JSON
+      parameters:
+      - in: path
+        name: userId
+        description: The ID of the user
+        schema:
+          type: string
+        required: true
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimUser'
+      responses:
+        '200':
+          description: Successfully updated user
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimUser'
+          headers:
+            Location:
+              schema:
+                type: string
+              description: A callback URL to the updated user, for example https://example.com/VRSAPI/scim/v2/Users/1
+        '403':
+          description: Forbidden, user does not have permission to update users
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have permission to update users
+                status: '403'
+        '404':
+          description: Not Found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: Resource 1 not found
+                status: '404'
+  /scim/v2/Groups:
+    get:
+      operationId: getAllRoles
+      tags:
+      - Scim
+      summary: Factset Retrieves a list of VRS role
+      description: Retrieves a VRS roles
+      parameters:
+      - in: query
+        name: count
+        description: Non-negative maximum number of entries to return
+        schema:
+          type: integer
+        examples:
+          count:
+            value: 25
+            description: Non-negative maximum number of entries to return
+      - in: query
+        name: startIndex
+        description: The 1-based index of the first query result
+        schema:
+          type: integer
+        examples:
+          startIndex:
+            value: 1
+            description: The 1-based index of the first query result
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimGroupListResponse'
+        '403':
+          description: Forbidden, user does not have permission to view roles
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have permission to view roles
+                status: '403'
+    post:
+      operationId: createRole
+      tags:
+      - Scim
+      summary: Factset Creates a role
+      description: Creates a VRS role
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimGroup'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+          headers:
+            Location:
+              schema:
+                type: string
+              description: A callback URL to the newly create role, for example https://example.com/VRSAPI/scim/v2/Groups/1
+        '403':
+          description: Forbidden, user does not have permission to create roles
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have permission to create groups
+                status: '403'
+        '409':
+          description: Group already exists
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: Group already exists
+                status: '409'
+  /scim/v2/Groups/{groupId}:
+    get:
+      operationId: getRoleById
+      tags:
+      - Scim
+      summary: Factset Retrieves a VRS role
+      description: Retrieves a VRS role based on the ID
+      parameters:
+      - in: path
+        name: groupId
+        description: The ID of the role
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+          headers:
+            Location:
+              schema:
+                type: string
+              description: A callback URL to the newly create role, for example https://example.com/VRSAPI/scim/v2/Groups/1
+        '403':
+          description: Forbidden, user does not have permission to view roles
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have permission to view roles
+                status: '403'
+        '404':
+          description: Not Found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: Resource 1 not found
+                status: '404'
+    delete:
+      operationId: deleteRoleById
+      tags:
+      - Scim
+      summary: Factset Deletes a VRS role
+      description: Deletes a VRS role
+      parameters:
+      - in: path
+        name: groupId
+        description: The ID of the group
+        schema:
+          type: string
+        required: true
+      responses:
+        '204':
+          description: No Content
+        '403':
+          description: Forbidden, user does not have permission to delete roles
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have permission to delete roles
+                status: '403'
+        '404':
+          description: Not Found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: Resource 1 not found
+                status: '404'
+    patch:
+      operationId: patchRoleById
+      tags:
+      - Scim
+      summary: Factset Add or remove a user to/from a group
+      description: Adds or removes a VRS user to/from a VRS role
+      parameters:
+      - in: path
+        name: groupId
+        description: The ID of the role
+        schema:
+          type: string
+        required: true
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimRolePatchRequestBody'
+            example:
+              schemas:
+              - urn:ietf:params:scim:api:messages:2.0:PatchOp
+              Operations:
+              - op: add
+                path: members
+                value:
+                  display: Test user
+                  $ref: VRSAPI/scim/v2/Users/1
+                  value: '1'
+      responses:
+        '200':
+          description: Successfully added user to group
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+    put:
+      operationId: updateRoleById
+      tags:
+      - Scim
+      summary: Factset Updates a VRS Group
+      description: Updates (replaces) a VRS Group with the properties in the JSON
+      parameters:
+      - in: path
+        name: groupId
+        description: The ID of the group
+        schema:
+          type: string
+        required: true
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimGroup'
+      responses:
+        '200':
+          description: Successfully updated group
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+          headers:
+            Location:
+              schema:
+                type: string
+              description: A callback URL to the updated group, for example https://example.com/VRSAPI/scim/v2/Groups/1
+        '403':
+          description: Forbidden, user does not have permission to update groups
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have permission to update groups
+                status: '403'
+        '404':
+          description: Not Found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: Resource 1 not found
+                status: '404'
+components:
+  schemas:
+    ScimGroupMember:
+      type: object
+      properties:
+        value:
+          type: string
+        $ref:
+          type: string
+          description: A callback link which can be used to get the information of the group
+        type:
+          type: string
+    CreateScimUserJSONRequest:
+      type: object
+      properties:
+        userName:
+          type: string
+        password:
+          type: string
+        name:
+          type: object
+          properties:
+            formatted:
+              type: string
+        preferredLanguage:
+          type: string
+        active:
+          type: boolean
+        authenticatedUserName:
+          type: string
+        tenant:
+          type: string
+        phoneNumbers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimPhone'
+        emails:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimEmail'
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimPhoto'
+        tenancies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tenancy'
+    ScimError:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+        detail:
+          type: string
+        status:
+          type: string
+    ScimRolePatchRequestBody:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+        Operations:
+          type: array
+          items:
+            properties:
+              op:
+                type: string
+              path:
+                type: string
+              value:
+                type: object
+                properties:
+                  display:
+                    type: string
+                  $ref:
+                    type: string
+                  value:
+                    type: string
+    ScimUserListResponse:
+      type: object
+      properties:
+        totalResults:
+          type: integer
+        itemsPerPage:
+          type: integer
+        startIndex:
+          type: integer
+        Resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimUser'
+    CreatedScimUserJSONResponse:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+        id:
+          type: integer
+        userName:
+          type: string
+        name:
+          type: object
+          properties:
+            formatted:
+              type: string
+        userType:
+          type: string
+        preferredLanguage:
+          type: string
+        active:
+          type: boolean
+        authenticatedUserName:
+          type: string
+        tenant:
+          type: string
+        phoneNumbers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimPhone'
+        emails:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimEmail'
+        tenancies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tenancy'
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimPhoto'
+        domainCode:
+          type: string
+        isAdministrator:
+          type: boolean
+        meta:
+          type: object
+          properties:
+            resourceType:
+              type: string
+            created:
+              type: string
+            lastModified:
+              type: string
+            location:
+              type: string
+    ScimGroupListResponse:
+      type: object
+      properties:
+        totalResults:
+          type: integer
+        itemsPerPage:
+          type: integer
+        startIndex:
+          type: integer
+        Resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimGroup'
+    ScimEmail:
+      type: object
+      properties:
+        value:
+          type: string
+        type:
+          type: string
+        primary:
+          type: boolean
+    ScimMeta:
+      type: object
+      properties:
+        resourceType:
+          type: string
+        created:
+          type: string
+        lastModified:
+          type: string
+        location:
+          type: string
+    ScimGroup:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+        id:
+          type: string
+        displayName:
+          type: string
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimGroupMember'
+        tenant:
+          type: string
+        domainCode:
+          type: string
+        meta:
+          $ref: '#/components/schemas/ScimMeta'
+    ScimPhone:
+      type: object
+      properties:
+        value:
+          type: string
+        type:
+          type: string
+        primary:
+          type: boolean
+    ScimUserPatchRequestBody:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+        Operations:
+          type: array
+          items:
+            properties:
+              op:
+                type: string
+              path:
+                type: string
+              value:
+                type: string
+    ScimPhoto:
+      type: object
+      properties:
+        value:
+          type: string
+        type:
+          type: string
+        primary:
+          type: boolean
+    ScimUser:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+        id:
+          type: integer
+        userName:
+          type: string
+        name:
+          type: object
+          properties:
+            formatted:
+              type: string
+        userType:
+          type: string
+        active:
+          type: boolean
+        authenticatedUserName:
+          type: string
+        tenant:
+          type: string
+        phoneNumbers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimPhone'
+        emails:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimEmail'
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimPhoto'
+        tenancies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tenancy'
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimUserGroup'
+        domainCode:
+          type: string
+        isAdministrator:
+          type: boolean
+        meta:
+          $ref: '#/components/schemas/ScimMeta'
+    Tenancy:
+      type: object
+      properties:
+        value:
+          type: string
+    ScimUserGroup:
+      type: object
+      properties:
+        value:
+          type: string
+        $ref:
+          type: string
+          description: A callback link which can be used to get the information of the user
+        type:
+          type: string
+        display:
+          type: string
+          description: Name of the group
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

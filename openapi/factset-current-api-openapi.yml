@@ -1,0 +1,641 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Current API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Current
+paths:
+  /company/keyItems/current/getByInstrument:
+    post:
+      tags:
+      - Current
+      operationId: post/company/keyItems/current/getByInstrument
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: Fundamentals for a stock with potentially daily updates.
+      description: Fundamentals for a stock with potentially daily updates; any other instrument yields empty values for stock-specific attributes. The price used to calculate the various price-dependent figures is unspecified and the exchange for that price is not identified. Dates are interpreted in the timezone of the data provider. For reported company fundamentals of the previous fiscal years (only closed fiscal years) see endpoint `/company/keyItems/fiscalYear/listByInstrument.`
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostCompanyKeyItemsCurrentGetByInstrumentRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostCompanyKeyItemsCurrentGetByInstrument200Response'
+      parameters: []
+components:
+  schemas:
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+        exclusiveMaximum: false
+      maxItems: 50
+      uniqueItems: true
+    PostCompanyKeyItemsCurrentGetByInstrumentRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - id
+          - currency
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              type: string
+              format: id64
+              x-positive: true
+              description: Identifier of an instrument.
+            currency:
+              type: object
+              x-property-sort:
+              - isoCode
+              description: Main currency of the currency-dependent attributes.
+              properties:
+                isoCode:
+                  type: string
+                  description: ISO code of the currency.
+                  x-enum-description:
+                  - Euro
+                  - US Dollar
+                  - British Pound Sterling
+                  - Swiss Franc
+                  enum:
+                  - EUR
+                  - USD
+                  - GBP
+                  - CHF
+              required:
+              - isoCode
+          required:
+          - id
+          - currency
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+            language:
+              $ref: '#/components/schemas/LanguageMember'
+          x-property-sort:
+          - attributes
+          - language
+    LanguageMember:
+      type: string
+      format: isoLanguage
+      description: ISO 639-1 code of the language.
+      maxLength: 2
+      minLength: 2
+      exclusiveMinimum: false
+      exclusiveMaximum: false
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+      description: The status member contains the status code of the response.
+      required:
+      - code
+  responses:
+    PostCompanyKeyItemsCurrentGetByInstrument200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: Fundamentals of a share instrument and of the company it belongs to.
+                nullable: false
+                type: object
+                x-property-sort:
+                - name
+                - shortName
+                - isin
+                - nsin
+                - fsym
+                - stockType
+                - company
+                - companyKeyFigures
+                - shareInstrumentKeyFigures
+                properties:
+                  name:
+                    nullable: true
+                    type: string
+                    format: localizedString
+                    description: Name of the instrument.
+                  shortName:
+                    nullable: true
+                    type: string
+                    format: localizedString
+                    description: Short name of the instrument.
+                  isin:
+                    nullable: true
+                    type: string
+                    description: The International Securities Identification Number (ISIN) of the instrument. The ISIN is a 12-character code of digits and upper-case letters that uniquely identifies an instrument.
+                  nsin:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - wkn
+                    - valor
+                    - cusip
+                    description: National Securities Identifying Number.
+                    properties:
+                      wkn:
+                        nullable: true
+                        type: string
+                        description: The WKN (Wertpapierkennnummer, German for Securities Identification Number) of the instrument. The WKN is a 6-character code of digits and upper-case letters that uniquely identifies an instrument.
+                      valor:
+                        nullable: true
+                        type: string
+                        description: 'The Valor number (German: Valorennummer) of the instrument. The Valor number is an integer number that uniquely identifies an instrument.'
+                      cusip:
+                        nullable: true
+                        type: string
+                        description: The CUSIP (Committee on Uniform Security Identification Procedures) or CINS (CUSIP International Numbering System) identifier of the instrument. These numbers are 9-character codes of digits and upper-case letters that uniquely identify an instrument.
+                  fsym:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - security
+                    description: Instrument-level FactSet identifier of the financial instrument used primarily in FactSet products other than the MDG.
+                    properties:
+                      security:
+                        nullable: false
+                        type: object
+                        x-property-sort:
+                        - permanentIdentifier
+                        description: Security-level identifier.
+                        properties:
+                          permanentIdentifier:
+                            nullable: true
+                            type: string
+                            description: FactSet Permanent Identifier for an instrument. The format is six alpha numeric characters, excluding vowels, with an S suffix (XXXXXX-S).
+                  stockType:
+                    nullable: true
+                    type: string
+                    description: Type of stock.
+                    x-enum-description:
+                    - Common stock
+                    - Preferred stock
+                    - Depository receipt
+                    - Other stock
+                    enum:
+                    - common
+                    - preferred
+                    - depositoryReceipt
+                    - other
+                  company:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - id
+                    - name
+                    - country
+                    description: Details of the company the share instrument belongs to.
+                    properties:
+                      id:
+                        nullable: true
+                        type: number
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the company.
+                      name:
+                        nullable: true
+                        type: string
+                        description: Name of the company.
+                      country:
+                        nullable: false
+                        type: object
+                        x-property-sort:
+                        - id
+                        - name
+                        description: Country where the head office of the company is located. See endpoint `/basic/region/country/list` for possible values.
+                        properties:
+                          id:
+                            nullable: true
+                            type: number
+                            format: id32
+                            x-positive: true
+                            description: Identifier of the country.
+                          name:
+                            nullable: true
+                            type: string
+                            format: localizedString
+                            description: Name of the country.
+                  companyKeyFigures:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - sharesOutstanding
+                    - freeFloat
+                    - currencyDependentKeyFigures
+                    description: Company key figures.
+                    properties:
+                      sharesOutstanding:
+                        nullable: false
+                        type: object
+                        x-property-sort:
+                        - value
+                        - date
+                        description: Number of outstanding shares.
+                        properties:
+                          value:
+                            nullable: true
+                            type: string
+                            format: int64
+                            description: Value of the key figure.
+                          date:
+                            nullable: true
+                            type: string
+                            format: date
+                            description: As-of date of the key figure.
+                      freeFloat:
+                        nullable: false
+                        type: object
+                        x-property-sort:
+                        - value
+                        - date
+                        description: Number of free float shares.
+                        properties:
+                          value:
+                            nullable: true
+                            type: string
+                            format: int64
+                            description: Value of the key figure.
+                          date:
+                            nullable: true
+                            type: string
+                            format: date
+                            description: As-of date of the key figure.
+                      currencyDependentKeyFigures:
+                        nullable: false
+                        type: object
+                        x-property-sort:
+                        - marketCapitalizationSharesOutstanding
+                        - perShare
+                        description: Currency-dependent key figures.
+                        properties:
+                          marketCapitalizationSharesOutstanding:
+                            nullable: false
+                            type: object
+                            x-property-sort:
+                            - value
+                            - date
+                            description: Market capitalization based on the number of outstanding shares.
+                            properties:
+                              value:
+                                nullable: true
+                                type: number
+                                format: real
+                                description: Value of the key figure.
+                              date:
+                                nullable: true
+                                type: string
+                                format: date
+                                description: As-of date of the key figure.
+                          perShare:
+                            nullable: false
+                            type: object
+                            x-property-sort:
+                            - earnings
+                            - bookValue
+                            - cashFlow
+                            - sales
+                            description: Per-share key figures.
+                            properties:
+                              earnings:
+                                nullable: false
+                                type: object
+                                x-property-sort:
+                                - value
+                                - date
+                                description: Earnings per share, which is the company's net income from continuing operations divided by the number of shares. The earnings per share might be based on either the diluted or basic number of shares outstanding depending on how the company reports and may follow country-specific reporting patterns.
+                                properties:
+                                  value:
+                                    nullable: true
+                                    type: number
+                                    format: real
+                                    description: Value of the key figure.
+                                  date:
+                                    nullable: true
+                                    type: string
+                                    format: date
+                                    description: As-of date of the key figure.
+                              bookValue:
+                                nullable: false
+                                type: object
+                                x-property-sort:
+                                - value
+                                - date
+                                description: Book value per share, which is the common equity divided by the number of common shares outstanding.
+                                properties:
+                                  value:
+                                    nullable: true
+                                    type: number
+                                    format: real
+                                    description: Value of the key figure.
+                                  date:
+                                    nullable: true
+                                    type: string
+                                    format: date
+                                    description: As-of date of the key figure.
+                              cashFlow:
+                                nullable: false
+                                type: object
+                                x-property-sort:
+                                - value
+                                - date
+                                description: Cash flow per share, which is the company's gross cash flow from operating activities divided by the number of outstanding shares. The calculation method of the cash flow depends on the accounting standard used by the company.
+                                properties:
+                                  value:
+                                    nullable: true
+                                    type: number
+                                    format: real
+                                    description: Value of the key figure.
+                                  date:
+                                    nullable: true
+                                    type: string
+                                    format: date
+                                    description: As-of date of the key figure.
+                              sales:
+                                nullable: false
+                                type: object
+                                x-property-sort:
+                                - value
+                                - date
+                                description: Sales per share, which is the total sales revenue divided by the diluted shares outstanding.
+                                properties:
+                                  value:
+                                    nullable: true
+                                    type: number
+                                    format: real
+                                    description: Value of the key figure.
+                                  date:
+                                    nullable: true
+                                    type: string
+                                    format: date
+                                    description: As-of date of the key figure.
+                  shareInstrumentKeyFigures:
+                    nullable: false
+                    type: object
+                    x-property-sort:
+                    - sharesOutstanding
+                    - freeFloat
+                    - ratios
+                    - currencyDependentKeyFigures
+                    description: Share instrument key figures.
+                    properties:
+                      sharesOutstanding:
+                        nullable: false
+                        type: object
+                        x-property-sort:
+                        - value
+                        - date
+                        description: Number of outstanding shares.
+                        properties:
+                          value:
+                            nullable: true
+                            type: string
+                            format: int64
+                            description: Value of the key figure.
+                          date:
+                            nullable: true
+                            type: string
+                            format: date
+                            description: As-of date of the key figure.
+                      freeFloat:
+                        nullable: false
+                        type: object
+                        x-property-sort:
+                        - value
+                        - date
+                        description: Number of free float shares.
+                        properties:
+                          value:
+                            nullable: true
+                            type: string
+                            format: int64
+                            description: Value of the key figure.
+                          date:
+                            nullable: true
+                            type: string
+                            format: date
+                            description: As-of date of the key figure.
+                      ratios:
+                        nullable: false
+                        type: object
+                        x-property-sort:
+                        - priceEarnings
+                        - priceBookValue
+                        - priceCashFlow
+                        - priceSales
+                        - dividendYield
+                        - earningsYield
+                        description: Ratios.
+                        properties:
+                          priceEarnings:
+                            nullable: false
+                            type: object
+                            x-property-sort:
+                            - value
+                            - date
+                            description: Price earnings ratio, which is the most recent available end-of-day close price divided by the earnings per share.
+                            properties:
+                              value:
+                                nullable: true
+                                type: number
+                                format: real
+                                description: Value of the key figure.
+                              date:
+                                nullable: true
+                                type: string
+                                format: date
+                                description: As-of date of the key figure.
+                          priceBookValue:
+                            nullable: false
+                            type: object
+                            x-property-sort:
+                            - value
+                            - date
+                            description: Price book value ratio, which is the most recent available end-of-day close price divided by the book value per share.
+                            properties:
+                              value:
+                                nullable: true
+                                type: number
+                                format: real
+                                description: Value of the key figure.
+                              date:
+                                nullable: true
+                                type: string
+                                format: date
+                                description: As-of date of the key figure.
+                          priceCashFlow:
+                            nullable: false
+                            type: object
+                            x-property-sort:
+                            - value
+                            - date
+                            description: Price cash flow ratio, which is the most recent available end-of-day close price divided by the cash flow per share.
+                            properties:
+                              value:
+                                nullable: true
+                                type: number
+                                format: real
+                                description: Value of the key figure.
+                              date:
+                                nullable: true
+                                type: string
+                                format: date
+                                description: As-of date of the key figure.
+                          priceSales:
+                            nullable: false
+                            type: object
+                            x-property-sort:
+                            - value
+                            - date
+                            description: Price sales ratio, which is the most recent available end-of-day close price divided by the sales per share.
+                            properties:
+                              value:
+                                nullable: true
+                                type: number
+                                format: real
+                                description: Value of the key figure.
+                              date:
+                                nullable: true
+                                type: string
+                                format: date
+                                description: As-of date of the key figure.
+                          dividendYield:
+                            nullable: false
+                            type: object
+                            x-property-sort:
+                            - value
+                            - date
+                            description: Dividend yield, which is the dividend per share divided by the most recent available end-of-day close price.
+                            properties:
+                              value:
+                                nullable: true
+                                type: number
+                                format: relativeValue
+                                description: Value of the key figure.
+                              date:
+                                nullable: true
+                                type: string
+                                format: date
+                                description: As-of date of the key figure.
+                          earningsYield:
+                            nullable: false
+                            type: object
+                            x-property-sort:
+                            - value
+                            - date
+                            description: Earnings yield, which is the earnings per share divided by the most recent available end-of-day close price.
+                            properties:
+                              value:
+                                nullable: true
+                                type: number
+                                format: relativeValue
+                                description: Value of the key figure.
+                              date:
+                                nullable: true
+                                type: string
+                                format: date
+                                description: As-of date of the key figure.
+                      currencyDependentKeyFigures:
+                        nullable: false
+                        type: object
+                        x-property-sort:
+                        - marketCapitalizationSharesOutstanding
+                        - perShare
+                        description: Currency-dependent key figures.
+                        properties:
+                          marketCapitalizationSharesOutstanding:
+                            nullable: false
+                            type: object
+                            x-property-sort:
+                            - value
+                            - date
+                            description: Market capitalization based on the number of outstanding shares.
+                            properties:
+                              value:
+                                nullable: true
+                                type: number
+                                format: real
+                                description: Value of the key figure.
+                              date:
+                                nullable: true
+                                type: string
+                                format: date
+                                description: As-of date of the key figure.
+                          perShare:
+                            nullable: false
+                            type: object
+                            x-property-sort:
+                            - dividend
+                            description: Per-share key figures.
+                            properties:
+                              dividend:
+                                nullable: false
+                                type: object
+                                x-property-sort:
+                                - value
+                                - date
+                                description: Dividend per share.
+                                properties:
+                                  value:
+                                    nullable: true
+                                    type: number
+                                    format: real
+                                    description: Value of the key figure.
+                                  date:
+                                    nullable: true
+                                    type: string
+                                    format: date
+                                    description: As-of date of the key figure.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

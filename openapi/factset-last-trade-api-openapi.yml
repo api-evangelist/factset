@@ -1,0 +1,284 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Last Trade API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Last Trade
+paths:
+  /TickHistory/lasttrade:
+    get:
+      tags:
+      - Last Trade
+      summary: Factset Request Returns Data for the Last Trade and Associated Quotes Before the Specified Time
+      description: ''
+      parameters:
+      - name: id
+        in: query
+        description: 'Requested symbol or security. The symbol can be a FactSet exchange symbol, CUSIP, or SEDOL. **NOTE**: Only one identifier can be requested per request.<P>**TRY IT OUT** - Choose One from - BABA-USA,WALMEX-MX,7203-TKS,VOD-LON,NPN-JSE,MABAX,NZF,SPY-USA,AGG-USA,GLD-USA,AOR-USA,MNA-USA,UUP-USA,SP50-SPX,ESX-STX,XAO-ASX,WD-MSX,NG00-USA,GC00-USA,CC00-USA,C00-USA,FC00-USA,ER00-USA,EURUSD-FX1,USDMXN-FX1,AUDJPY-FX1,EURCZK-FX1,USDILS-FX1,USDZAR-FX1,US10YY-TU1,FDS#190621C00145000-USA,FDS#190621P00145000-USA'
+        required: true
+        schema:
+          type: string
+      - name: format
+        in: query
+        description: The format of the output file. TRY IT OUT Choose from JSON, CSV, CSV_NO_HEADER
+        schema:
+          type: string
+          default: XML
+          enum:
+          - XML
+          - JSON
+          - CSV
+          - CSV_NO_HEADER
+      - name: date
+        in: query
+        description: Request should be made in the format **YYYYMMDD**. The initial release only supports requests from completed trading days
+        schema:
+          type: string
+      - name: time
+        in: query
+        description: Request should be made in the format **HHMMSS**.HH- Hour, MM- Minutes, SSS- Seconds
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK  x
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tickhistory_response'
+              example:
+                Request ID: ''
+                Requested Symbol: IBM-USA
+                Requested Fields: LAST_1,LAST_TIME_1,LAST_VOL_1
+                Request Key: 5C8926159C36F315
+                Error Code: 0
+                Error Description: ''
+                Field Names:
+                - LAST_1
+                - LAST_TIME_1
+                - LAST_VOL_1
+                Field IDs:
+                - 300
+                - 302
+                - 304
+                Key: IBM-USA:D
+                Values:
+                - - 139.59
+                  - 105955785
+                  - 326658
+                - - 138.1872
+                  - 115957067
+                  - 444631
+                - - 137.4711
+                  - 125957913
+                  - 477766
+                - - 137.7599
+                  - 135956519
+                  - 252993
+                - - 137.81
+                  - 140059812
+                  - 4595
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/tickhistory_response'
+              example: <Response><Request id=""><RequestedSymbol>IBM-USA</RequestedSymbol><RequestedFields>LAST_1,LAST_TIME_1,LAST_VOL_1</RequestedFields><RequestKey>5C89235E1E3D65AE</RequestKey></Request><Error code="0" description=""/><Records req_sym="IBM-USA" key="IBM-USA:D" stale=""><Record><Fields><Field id="300" name="LAST_1" value="145.96"/><Field id="302" name="LAST_TIME_1" value="105959029"/><Field id="304" name="LAST_VOL_1" value="638559"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.95"/><Field id="302" name="LAST_TIME_1" value="115956985"/><Field id="304" name="LAST_VOL_1" value="359625"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.82"/><Field id="302" name="LAST_TIME_1" value="125955145"/><Field id="304" name="LAST_VOL_1" value="280630"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.74"/><Field id="302" name="LAST_TIME_1" value="135955094"/><Field id="304" name="LAST_VOL_1" value="256692"/></Fields></Record><Record><Fields><Field id="300" name="LAST_1" value="145.815"/><Field id="302" name="LAST_TIME_1" value="140055430"/><Field id="304" name="LAST_VOL_1" value="12274"/></Fields></Record></Records></Response>
+            text/csv:
+              schema:
+                $ref: '#/components/schemas/tickhistory_response'
+              example: 'LAST_1,LAST_TIME_1,LAST_VOL_1 139.59,105955785,326658 138.1872,115957067,444631 137.4711,125957913,477766 137.7599,135956519,252993 137.81,140059812,4595
+
+                '
+        '401':
+          description: Access Denied. The user is not authorized to view the data requested. Contact FactSet Consulting Services for assistance.
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: object
+            text/csv:
+              schema:
+                type: object
+        '403':
+          description: Invalid HTTP URL. Necessary query parameters are missing in the request. The description field will indicate the exact reason.
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: object
+            text/csv:
+              schema:
+                type: object
+        '405':
+          description: Invalid HTTP method. Either the method is not GET or exceeds the maximum request lenght (currently set at 5000 bytes. The description field will indicate the exact reason.
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: object
+            text/csv:
+              schema:
+                type: object
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    tickhistory_response:
+      type: object
+      properties:
+        Requested ID:
+          type: string
+          description: Request Identification String.
+          example: ''
+        Requested Symbol:
+          type: string
+          description: Single Requested Symbol or Security.
+          example: IBM-USA
+        Requested Fields:
+          type: array
+          description: 'Array of requested fields '
+          example: LAST_1,LAST_TIME_1,LAST_VOL_1
+          items:
+            $ref: '#/components/schemas/fields'
+        Request Key:
+          type: string
+          example: 5C8926159C36F315
+        Error Code:
+          type: string
+          example: '0'
+        Error Description:
+          type: string
+          description: Brief description of error response. Blank if successful.
+          example: ''
+        Field Names:
+          type: string
+          description: Requested Field Names
+          example: ''
+        Field IDs:
+          type: number
+          description: Requested Field ID numbers 'FID'. Found in Data Service Manual.
+          example: 42.5
+        Key:
+          type: string
+          description: Requested Symbol Key, where :D represented delayed data.
+          example: IBM-USA:D
+        Values:
+          type: number
+          description: Array of field values. Each value is returned for requested interval query.
+          example: 42.5
+      description: response for tick history
+    fields:
+      type: object
+      properties:
+        BID_1:
+          type: number
+          description: 'The last bid price or last bid price in an interval. FID # 100'
+          format: float
+          example: 42.5
+        BID_VOL_1:
+          type: integer
+          description: 'The volume of the last bid in an interval. FID # 104'
+          example: 10
+        BID_EXCH_1:
+          type: string
+          description: 'The volume of the last bid or last bid in an interval. FID # 107. Enumeration Table 7'
+          example: example_value
+        ASK_1:
+          type: number
+          description: 'The last ask price or last ask price in an interval. FID # 200'
+          format: float
+          example: 42.5
+        ASK_VOL_1:
+          type: integer
+          description: 'The volume of the last ask or last ask in an interval. FID # 204'
+          example: 10
+        ASK_EXCH_1:
+          type: string
+          description: 'The exchange of the last ask or last ask in an interval. FID # 207. Enumeration Table 7.'
+          example: example_value
+        LAST_1:
+          type: number
+          description: 'The last trade price or last trade price in an interval. FID # 300'
+          format: float
+          example: 42.5
+        LAST_DATE_1:
+          type: string
+          description: 'The date of the last trade or last trade in an interval. FID # 301'
+          example: example_value
+        LAST_TIME_1:
+          type: string
+          description: 'The time of the last trade or last trade in an interval. FID # 302'
+          example: example_value
+        LAST_VOL_1:
+          type: integer
+          description: 'The trade volume, or the sum of all trade volumes inside a bin. FID # 304'
+          example: 10
+        LAST_EXCH_1:
+          type: string
+          description: 'The exchange of the last trade or last trade in an interval. FID # 307. Enumeration Table 7'
+          example: example_value
+        CUM_VOL:
+          type: integer
+          description: 'The symbol''s daily cumulative volume, or the last cumulative volume in an interval. FID # 601'
+          example: 10
+        VWAP:
+          type: number
+          description: 'The daily volume weighted average price, or the last VWAP in an interval. FID # 603'
+          format: float
+          example: 42.5
+        OPEN_1:
+          type: number
+          description: 'The first trade of an interval. FID # 710'
+          format: float
+          example: 42.5
+        HIGH_1:
+          type: number
+          description: 'The highest trade price in an interval. FID # 720'
+          format: float
+          example: 42.5
+        LOW_1:
+          type: number
+          description: 'The lowest trade price in an interval. FID # 723'
+          format: float
+          example: 42.5
+        TRADE_CONDITION:
+          type: string
+          description: 'Trade Condition. FID # 2709'
+          example: example_value
+        GMT_OFFSET:
+          type: integer
+          description: 'GMT Offset in Minutes. FID # 2037'
+          example: 10
+        PRICE_CURRENCY:
+          type: string
+          description: 'Price Currency Code. FID # 2032'
+          example: example_value
+      description: All available fields in service. FID = Field ID Number.
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

@@ -1,0 +1,224 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Owner API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Owner
+paths:
+  /stock/owner/list:
+    get:
+      tags:
+      - Owner
+      operationId: get/stock/owner/list
+      x-supportsOffsetBasedPaging: false
+      x-supportsOffsetBasedPagingWithoutTotal: false
+      x-supportsCursorBasedPaging: false
+      x-supportsCursorBasedPagingWithoutTotal: false
+      x-supportsPush: false
+      x-requiresUser: false
+      x-requiresInternalClient: false
+      x-disallowUser: false
+      x-no-merge: false
+      x-maxSortParameterCount: 10
+      x-supportsPermissionDeniedResponse: false
+      summary: List of owners for a specific type of a company's shares.
+      description: List of top-20 owners for a specific type of a company's shares.
+      parameters:
+      - name: identifier
+        in: query
+        schema:
+          type: string
+          pattern: ^([B-DF-HJ-NP-TV-Z0-9]{6}-[SLR])|([A-Z0-9.]{1,47}-[A-Z0-9]{2,4})|([0-9]{3,20})|([B-DF-HJ-NP-TV-Z0-9]{6}[0-9])|([A-Z]{2}[A-Z0-9]{9}[0-9])|([A-Z1-9][A-Z0-9]{5})|(0*[0-9]{1,9})|([A-Z0-9]{8}[0-9])$
+          maxLength: 50
+          exclusiveMaximum: false
+          minLength: 3
+          exclusiveMinimum: false
+          description: Identifier to resolve.
+        required: true
+      - name: identifierType
+        in: query
+        schema:
+          type: string
+          description: Type of the identifier.
+          x-enum-description:
+          - MDG identifier of an instrument.
+          - MDG identifier of a listing.
+          - FactSet Permanent Identifier on security level.
+          - FactSet Permanent Identifier on listing level.
+          - Regional FactSet Permanent Identifier.
+          - FactSet market symbol of a listing.
+          - Regional FactSet ticker symbol.
+          - SEDOL or IDII of a listing.
+          - ISIN of an instrument.
+          - WKN of an instrument.
+          - Valor number of an instrument.
+          - CUSIP or CINS identifier of an instrument
+          enum:
+          - idInstrument
+          - idNotation
+          - fdsPermanentIdentifierSecurity
+          - fdsPermanentIdentifierListing
+          - fdsPermanentIdentifierRegional
+          - tickerExchange
+          - tickerRegion
+          - sedol
+          - isin
+          - wkn
+          - valor
+          - cusip
+        required: true
+      - name: _attributes
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+            exclusiveMaximum: false
+          uniqueItems: true
+          maxItems: 50
+        style: form
+        explode: false
+        description: Limit the attributes returned in the response to the specified set.
+      - name: _language
+        in: query
+        schema:
+          type: string
+          format: isoLanguage
+          description: ISO 639-1 code of the language.
+          maxLength: 2
+          minLength: 2
+          exclusiveMinimum: false
+          exclusiveMaximum: false
+      responses:
+        '200':
+          $ref: '#/components/responses/GetStockOwnerList200Response'
+components:
+  schemas:
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+      description: The status member contains the status code of the response.
+      required:
+      - code
+  responses:
+    GetStockOwnerList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: List of owners with their respective share sorted descending by the fraction owned.
+                nullable: false
+                type: object
+                x-property-sort:
+                - idInstrument
+                - sourceIdentifier
+                - owners
+                properties:
+                  idInstrument:
+                    nullable: true
+                    type: string
+                    format: id64
+                    x-positive: true
+                    description: MDG identifier of the instrument.
+                  sourceIdentifier:
+                    nullable: true
+                    type: string
+                    description: Identifier used in the request.
+                  owners:
+                    nullable: false
+                    description: List of owners.
+                    type: array
+                    items:
+                      type: object
+                      nullable: false
+                      x-property-sort:
+                      - id
+                      - name
+                      - type
+                      - ownership
+                      properties:
+                        id:
+                          nullable: true
+                          type: string
+                          format: id64
+                          x-positive: true
+                          description: Identifier of the owner. See endpoint `/legalEntity/list` for possible values.
+                        name:
+                          nullable: true
+                          type: string
+                          description: Name of the owner.
+                        type:
+                          nullable: false
+                          description: Type of the owner.
+                          type: object
+                          x-property-sort:
+                          - id
+                          - name
+                          properties:
+                            id:
+                              nullable: true
+                              type: number
+                              format: id32
+                              x-positive: true
+                              description: Identifier of the type. See endpoint `/stock/owner/type/list` for possible values.
+                            name:
+                              nullable: true
+                              type: string
+                              format: localizedString
+                              description: Name of the type.
+                        ownership:
+                          nullable: false
+                          description: Details of the ownership.
+                          type: object
+                          x-property-sort:
+                          - fraction
+                          - numberShares
+                          properties:
+                            fraction:
+                              nullable: true
+                              type: number
+                              format: relativeValue
+                              description: Fraction of stocks held by the owner.
+                            numberShares:
+                              nullable: true
+                              type: number
+                              format: real
+                              description: Number of stocks held by the owner.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

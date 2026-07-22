@@ -1,0 +1,175 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Product API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Product
+paths:
+  /analytics/pub-datastore/tag-search/v1/product-types/search:
+    post:
+      tags:
+      - Product
+      summary: Factset Gets a List of Product Types That a User Has Access To.
+      description: Retrieves a list of product types that have been specified across all documents the user has access to
+      operationId: getProductTypes
+      requestBody:
+        description: Request body to apply when filtering on this end point. Pagination controls are applied through the pagination object and additional tag filters can be used by supplying the tag name and its value in the tags object.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagFilterModel'
+      responses:
+        '200':
+          description: Expected response, a list of product types the user has access to.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductTypeListResponse'
+        '400':
+          description: Invalid parameter provided.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSets request key header.
+              schema:
+                type: string
+        '401':
+          description: Missing or invalid authentication.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSets request key header.
+              schema:
+                type: string
+        '403':
+          description: User is forbidden with current credentials
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSets request key header.
+              schema:
+                type: string
+        '404':
+          description: The provided request does not exist.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSets request key header.
+              schema:
+                type: string
+        '500':
+          description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSets request key header.
+              schema:
+                type: string
+        '503':
+          description: Request timed out. Retry the request in sometime.
+          headers:
+            X-RateLimit-Remaining:
+              description: Number of requests left for the time window.
+              schema:
+                type: string
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+            X-RateLimit-Reset:
+              description: Number of seconds remaining till rate limit resets.
+              schema:
+                type: string
+            X-RateLimit-Limit:
+              description: Number of allowed requests for the time window.
+              schema:
+                type: string
+            X-DataDirect-Request-Key:
+              description: FactSets request key header.
+              schema:
+                type: string
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    ProductTypeListResponse:
+      type: object
+      description: Response object for a list of documents
+      properties:
+        meta:
+          $ref: '#/components/schemas/MetaModel'
+        data:
+          type: array
+          items:
+            type: string
+          description: Array of product types
+          example:
+          - adf
+    TagFilterModel:
+      type: object
+      description: Request object for requesting product types
+      properties:
+        meta:
+          $ref: '#/components/schemas/MetaRequestModel'
+        data:
+          type: object
+          properties:
+            tags:
+              type: object
+              description: The documents tags, represented in a key value format with the tag name as the key; and the tag's value as the value
+              example:
+                account: TEST_ACCOUNT.ACCT
+                benchmark: TEST_BENCHMARK
+              additionalProperties:
+                type: string
+          example: example_value
+    MetaModel:
+      type: object
+      description: Meta model which includes pagination information
+      properties:
+        pagination:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: Total number of entries in the result set
+              example: 1
+            isEstimatedTotal:
+              type: boolean
+              description: Flag indicating that the value of total is estimated
+              example: false
+          description: Pagination attributes for the offset-based pagination strategy
+          example: example_value
+    MetaRequestModel:
+      type: object
+      description: Meta request model which includes pagination controls
+      properties:
+        pagination:
+          type: object
+          properties:
+            offset:
+              type: integer
+              example: 0
+            limit:
+              type: integer
+              example: 10
+          example: example_value
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

@@ -1,0 +1,149 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Request API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Request
+paths:
+  /streetaccount/historical/request-files:
+    get:
+      tags:
+      - Request
+      summary: Factset Returns the Jobid
+      description: Give the startDate and endDate parameters as request parameters in the /request-files endpoint, it returns the jobID. startDate and endDate should be in YYYY-MM-DDTHH:MM:SSZ format. This API only supports adhoc requests to retrieve historical files and does not support real-time files and if you interested in require real-time push should consider the other three methods (pushed via SFTP, to QNT account, or your Azure Storage). Per API request able to query till 2 years of data
+      parameters:
+      - name: startDate
+        in: query
+        description: Date from which data is required. Should be YYYY-MM-DDTHH:MM:SSZ format
+        required: true
+        schema:
+          type: string
+          format: date-time
+      - name: endDate
+        in: query
+        description: The date until which the data is to be fetched. Should be YYYY-MM-DDTHH:MM:SSZ format
+        required: true
+        schema:
+          type: string
+          format: date-time
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/requestfilesResponse'
+              examples:
+                default200ResponseExample:
+                  $ref: '#/components/examples/200RequestFilesExample'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StreetAccountStatus'
+              examples:
+                default400ResponseExample:
+                  $ref: '#/components/examples/StreetAccountExample'
+        '401':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StreetAccountStatus'
+              examples:
+                default400ResponseExample:
+                  $ref: '#/components/examples/StreetAccount401Example'
+        '403':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StreetAccountStatus'
+              examples:
+                default400ResponseExample:
+                  $ref: '#/components/examples/StreetAccount403Example'
+        '500':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StreetAccountStatus'
+              examples:
+                default400ResponseExample:
+                  $ref: '#/components/examples/StreetAccount500Example'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  examples:
+    StreetAccountExample:
+      summary: Sample error Response
+      value:
+        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
+        error_message: parameterError:Missing required parameter jobID
+    200RequestFilesExample:
+      summary: Sample Response
+      value:
+        jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
+        status: submitted
+    StreetAccount401Example:
+      summary: Sample error Response
+      value:
+        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
+        error_message: USERNAME-SERIAL does not have permission
+    StreetAccount500Example:
+      summary: Sample error Response
+      value:
+        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
+        error_message: An unexpected error happened
+    StreetAccount403Example:
+      summary: Sample error Response
+      value:
+        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
+        error_message: USERNAME-SERIAL does not have permission
+  schemas:
+    requestfilesResponse:
+      type: object
+      properties:
+        jobID:
+          description: Unique id to get the xml files for the requested date
+          type: string
+          example: '500123'
+        status:
+          description: Returns the value as submitted. Tells the request has been submitted
+          type: string
+          example: example_value
+    StreetAccountStatus:
+      title: Response Status of SA
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        error_message:
+          description: Textual error message
+          type: string
+          example: example_value
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

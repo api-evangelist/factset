@@ -1,0 +1,99 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Create Template API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Create Template
+paths:
+  /v1/create-template/:
+    post:
+      tags:
+      - Create Template
+      summary: Factset Kick off request to create template with reports of your choice
+      description: This end point retrieves template name and template_id of the template you create. All the book options such as name of the template, type, and reports can be specified in the request body. Please refer to the documentation for valid section ids and report ids.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createTemplatePostRequest'
+      responses:
+        '200':
+          description: Successful response contains book name and book ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Enable_Template_Info_Post'
+        '400':
+          description: Invalid template type/section_id/report_id
+        '401':
+          description: Missing or invalid authentication
+components:
+  schemas:
+    Enable_Template_Info_Post:
+      title: Template Request
+      description: Request to enable template list information for the client.
+      type: object
+      properties:
+        tmpl_id:
+          type: string
+          description: Template ID
+          example: 20200623094829450
+        tmpl_name:
+          type: string
+          description: Template name
+          example: Financials
+    createTemplatePostRequest:
+      title: Request Body for Template Request
+      description: The request body allows users to input the name of the template, ticker
+      type: object
+      properties:
+        tmpl_name:
+          type: string
+          description: name of the template
+          example: Quick Financials
+        tmpl_type:
+          type: string
+          description: Type of the template (public,pc,pe,fi)
+          example: public
+        content:
+          type: array
+          description: Content sections
+          items:
+            oneOf:
+            - type: object
+              properties:
+                section_id:
+                  example: COMPANY_OVERVIEW
+                reports:
+                  type: array
+                  items:
+                    oneOf:
+                    - type: string
+                      example: COMPANY_SNAPSHOT_IB
+                    - type: string
+                      example: COMPANY_SNAPSHOT_IM
+                    - type: string
+                      example: ENTITY_STRUCTURE
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

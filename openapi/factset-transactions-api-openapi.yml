@@ -1,0 +1,1299 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Transactions API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Transactions
+paths:
+  /transactions:
+    post:
+      tags:
+      - Transactions
+      summary: Push transactions data into FactSet.
+      description: This endpoint takes the transactions data and pushes them into FactSet.
+      operationId: sendTransactions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transactions'
+      responses:
+        '202':
+          description: Expected response.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet’s request key header.
+              schema:
+                type: string
+                description: FactSet’s request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '400':
+          description: Invalid POST body.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet’s request key header.
+              schema:
+                type: string
+                description: FactSet’s request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientErrorResponse'
+        '401':
+          description: Missing or invalid authentication.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet’s request key header.
+              schema:
+                type: string
+                description: FactSet’s request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '403':
+          description: User is forbidden with current credentials
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet’s request key header.
+              schema:
+                type: string
+                description: FactSet’s request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '415':
+          description: Missing/Invalid Content-Type header. Header needs to be set to application/json.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet’s request key header.
+              schema:
+                type: string
+                description: FactSet’s request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '429':
+          description: Rate limit reached. Retry the requests after waiting the time specified in the retry-after header.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet’s request key header.
+              schema:
+                type: string
+                description: FactSet’s request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '500':
+          description: Server error. Log the X-DataDirectRequest-Key header to assist in troubleshooting.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet’s request key header.
+              schema:
+                type: string
+                description: FactSet’s request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+        '503':
+          description: Request timed out. Retry the request in sometime.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet’s request key header.
+              schema:
+                type: string
+                description: FactSet’s request key header.
+            X-FactSet-Api-Request-Key:
+              description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+              schema:
+                type: string
+                description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+    get:
+      tags:
+      - Transactions
+      summary: Factset Transactions
+      parameters:
+      - name: id
+        in: query
+        description: Company ticker
+        required: true
+        schema:
+          type: string
+          example: FDS
+      - name: transactionType
+        in: query
+        description: Filters response to return only this type of transaction. If not specified, returns all transactions. Values are not case sensitive.
+        required: false
+        schema:
+          type: string
+          enum:
+          - ACQUISITION_MERGER
+          - MAJORITY_STAKE
+          - MINORITY_STAKE
+          - SPINOFF
+          - IPO
+          - FOLLOW_ON
+          - ST_DEBT
+          - NOTES_BONDS
+          - REVOLVING_CREDIT
+          - TERM_LOANS
+          - PEVC_INVESTMENTS
+          - FUNDING
+          example: ACQUISITION_MERGER
+      - name: financingType
+        in: query
+        description: Filters response to return transactions of this financing type. If not specified, returns all transactions. Values are not case sensitive
+        required: false
+        schema:
+          type: string
+          enum:
+          - DEBT
+          - EQUITY
+          example: EQUITY
+      responses:
+        '200':
+          $ref: '#/components/responses/200OKTransactions'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+        '429':
+          $ref: '#/components/responses/429TooManyRequests'
+        '500':
+          $ref: '#/components/responses/500InternalServerError'
+        '503':
+          $ref: '#/components/responses/503ServiceUnavailable'
+components:
+  schemas:
+    Meta:
+      type: object
+      additionalProperties:
+        type: string
+    ErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorObject'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ErrorObject:
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        title:
+          type: string
+        links:
+          type: object
+          properties:
+            about:
+              type: string
+        detail:
+          type: string
+        source:
+          type: object
+          properties:
+            parameter:
+              type: string
+    OrderParameters:
+      required:
+      - amount
+      - currencyiso
+      - description
+      - portfolio
+      - status
+      - symbol
+      - tradedate
+      - tradetype
+      - transactionid
+      type: object
+      properties:
+        orderid:
+          maxLength: 32
+          minLength: 0
+          type: string
+          description: Unique ID of the order which originated the record
+          nullable: true
+        portfolio:
+          type: string
+          description: 'Path of the portfolio (Ex: Client:/folder1/testing.ofdb)'
+        transactionid:
+          maxLength: 252
+          minLength: 0
+          type: string
+          description: Unique id for the transaction
+        symbol:
+          maxLength: 32
+          minLength: 0
+          type: string
+          description: Symbol corresponding to the traded instrument.
+        description:
+          maxLength: 32
+          minLength: 0
+          type: string
+          description: Description
+        tradetype:
+          maxLength: 8
+          minLength: 0
+          type: string
+          description: "Trade type could be any of the following values BL, BC, SL, SS.\r\nwhich stands for Buy Long, Buy to cover, Sell Long and Sell Short respectively."
+        status:
+          maxLength: 32
+          minLength: 0
+          type: string
+          description: "Status could be any of the following value: ACCT or CNCL.\r\nwhich stands for Accounted and Cancelled respectively."
+        tradedate:
+          type: string
+          description: Transaction date which is in the format YYYYMMDD
+        transactionleaves:
+          type: number
+          description: Shares that have been ordered and not executed
+          format: double
+        amount:
+          type: number
+          description: Quantity of the instrument traded.
+          format: double
+        currencyiso:
+          maxLength: 8
+          minLength: 0
+          type: string
+          description: The currency code of cash valued fields, Net Amount and Gross Amount.
+        foreignexchangerate:
+          type: number
+          description: FX rate that can be picked up by PA, multiplied with the cash valued fields, Net, Gross, to allow PA to show transactions in reporting currency.
+          format: float
+    Transactions:
+      type: object
+      properties:
+        executions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExecutionParameters'
+          description: List of executions
+          nullable: true
+        placements:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlacementParameters'
+          description: List of placements
+          nullable: true
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderParameters'
+          description: List of orders
+          nullable: true
+    Error:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+        code:
+          type: string
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        detail:
+          type: string
+          nullable: true
+        source:
+          $ref: '#/components/schemas/ErrorSource'
+    ClientErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+          nullable: true
+    PlacementParameters:
+      required:
+      - amount
+      - currencyiso
+      - description
+      - portfolio
+      - settlementcurrencyiso
+      - status
+      - symbol
+      - tradedate
+      - tradetype
+      - transactionid
+      type: object
+      properties:
+        settlementcurrencyiso:
+          maxLength: 32
+          minLength: 0
+          type: string
+          description: Currency code for Settlement Value
+        parentid:
+          maxLength: 32
+          minLength: 0
+          type: string
+          description: Unique ID of the order which spawned this placement
+          nullable: true
+        orderid:
+          maxLength: 32
+          minLength: 0
+          type: string
+          description: Unique ID of the order which originated the record
+          nullable: true
+        portfolio:
+          type: string
+          description: 'Path of the portfolio (Ex: Client:/folder1/testing.ofdb)'
+        transactionid:
+          maxLength: 252
+          minLength: 0
+          type: string
+          description: Unique id for the transaction
+        symbol:
+          maxLength: 32
+          minLength: 0
+          type: string
+          description: Symbol corresponding to the traded instrument.
+        description:
+          maxLength: 32
+          minLength: 0
+          type: string
+          description: Description
+        tradetype:
+          maxLength: 8
+          minLength: 0
+          type: string
+          description: "Trade type could be any of the following values BL, BC, SL, SS.\r\nwhich stands for Buy Long, Buy to cover, Sell Long and Sell Short respectively."
+        status:
+          maxLength: 32
+          minLength: 0
+          type: string
+          description: "Status could be any of the following value: ACCT or CNCL.\r\nwhich stands for Accounted and Cancelled respectively."
+        tradedate:
+          type: string
+          description: Transaction date which is in the format YYYYMMDD
+        transactionleaves:
+          type: number
+          description: Shares that have been ordered and not executed
+          format: double
+        amount:
+          type: number
+          description: Quantity of the instrument traded.
+          format: double
+        currencyiso:
+          maxLength: 8
+          minLength: 0
+          type: string
+          description: The currency code of cash valued fields, Net Amount and Gross Amount.
+        foreignexchangerate:
+          type: number
+          description: FX rate that can be picked up by PA, multiplied with the cash valued fields, Net, Gross, to allow PA to show transactions in reporting currency.
+          format: float
+    StachTableResponse:
+      type: object
+      properties:
+        data:
+          title: STACH
+          description: Returns a STACH 2.0 row organized package
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ErrorSource:
+      type: object
+      properties:
+        pointer:
+          type: string
+          nullable: true
+        parameter:
+          type: string
+          nullable: true
+    ExecutionParameters:
+      required:
+      - amount
+      - currencyiso
+      - description
+      - gross
+      - net
+      - portfolio
+      - settlementcurrencyiso
+      - settlementdate
+      - settlementvalue
+      - status
+      - symbol
+      - tradedate
+      - tradetype
+      - transactionid
+      type: object
+      properties:
+        parentid:
+          maxLength: 32
+          minLength: 0
+          type: string
+          description: Unique ID of the placement which spawned this execution
+          nullable: true
+        net:
+          type: number
+          description: Cash value of the transaction, net of brokerage costs.
+          format: double
+        gross:
+          type: number
+          description: Cash value of the transaction, including brokerage costs
+          format: double
+        settlementvalue:
+          type: number
+          description: Cash value of the transaction, a value that has been multiplied by an applicable FX rates to convert the a transacti
+          format: double
+        settlementdate:
+          type: string
+          description: Settlement date in YYYYMMDD format
+        settlementcurrencyiso:
+          maxLength: 32
+          minLength: 0
+          type: string
+          description: Currency code for Settlement Value
+        orderid:
+          maxLength: 32
+          minLength: 0
+          type: string
+          description: Unique ID of the order which originated the record
+          nullable: true
+        portfolio:
+          type: string
+          description: 'Path of the portfolio (Ex: Client:/folder1/testing.ofdb)'
+        transactionid:
+          maxLength: 252
+          minLength: 0
+          type: string
+          description: Unique id for the transaction
+        symbol:
+          maxLength: 32
+          minLength: 0
+          type: string
+          description: Symbol corresponding to the traded instrument.
+        description:
+          maxLength: 32
+          minLength: 0
+          type: string
+          description: Description
+        tradetype:
+          maxLength: 8
+          minLength: 0
+          type: string
+          description: "Trade type could be any of the following values BL, BC, SL, SS.\r\nwhich stands for Buy Long, Buy to cover, Sell Long and Sell Short respectively."
+        status:
+          maxLength: 32
+          minLength: 0
+          type: string
+          description: "Status could be any of the following value: ACCT or CNCL.\r\nwhich stands for Accounted and Cancelled respectively."
+        tradedate:
+          type: string
+          description: Transaction date which is in the format YYYYMMDD
+        transactionleaves:
+          type: number
+          description: Shares that have been ordered and not executed
+          format: double
+        amount:
+          type: number
+          description: Quantity of the instrument traded.
+          format: double
+        currencyiso:
+          maxLength: 8
+          minLength: 0
+          type: string
+          description: The currency code of cash valued fields, Net Amount and Gross Amount.
+        foreignexchangerate:
+          type: number
+          description: FX rate that can be picked up by PA, multiplied with the cash valued fields, Net, Gross, to allow PA to show transactions in reporting currency.
+          format: float
+  examples:
+    financingType200Response:
+      summary: financingType=DEBT response
+      value:
+        data:
+          version: '2.0'
+          tables:
+            main:
+              headersDefinition:
+                columns: []
+              definition:
+                columns:
+                - id: c_transaction_date
+                  type: string
+                - id: c_transaction_type
+                  type: string
+                - id: c_transaction_description
+                  type: string
+                - id: c_transaction_amount
+                  type: string
+                - id: c_transaction_status
+                  type: string
+              data:
+                rows:
+                - rowType: Header
+                  cells:
+                  - Date
+                  - Type
+                  - Description
+                  - Amount
+                  - Status
+                  headerCellDetails:
+                    '0':
+                      source: PRIMARY
+                      columnIndex: 0
+                    '1':
+                      source: PRIMARY
+                      columnIndex: 1
+                    '2':
+                      source: PRIMARY
+                      columnIndex: 2
+                    '3':
+                      source: PRIMARY
+                      columnIndex: 3
+                    '4':
+                      source: PRIMARY
+                      columnIndex: 4
+                - cells:
+                  - '20220523'
+                  - ST Debt
+                  - FactSet Research Systems Inc. 1.908% 22-NOV-2022
+                  - null
+                  - New Issue
+                  rowMetadata:
+                    transactionType:
+                      value: ST Debt
+                    transactionId:
+                      value: 06945PLN
+                - cells:
+                  - '20220301'
+                  - Notes/Bonds
+                  - FactSet Research Systems Inc. 3.450% 01-MAR-2032
+                  - null
+                  - New Issue
+                  rowMetadata:
+                    transactionType:
+                      value: Notes/Bonds
+                    transactionId:
+                      value: 303075AB
+                - cells:
+                  - '20220301'
+                  - Notes/Bonds
+                  - FactSet Research Systems Inc. 2.900% 01-MAR-2027
+                  - null
+                  - New Issue
+                  rowMetadata:
+                    transactionType:
+                      value: Notes/Bonds
+                    transactionId:
+                      value: 303075AA
+                - cells:
+                  - '20220301'
+                  - Term Loans
+                  - Senior Unsecured Term Loan
+                  - null
+                  - New Issue
+                  rowMetadata:
+                    transactionType:
+                      value: Term Loans
+                    transactionId:
+                      value: FDS1R53Q
+                - cells:
+                  - '20220301'
+                  - Revolving Credit
+                  - FactSet Research Systems Inc. Revolver/Standard 01-MAR-2027
+                  - null
+                  - New Issue
+                  rowMetadata:
+                    transactionType:
+                      value: Revolving Credit
+                    transactionId:
+                      value: FDS1R56X
+                - cells:
+                  - '20190329'
+                  - Revolving Credit
+                  - Senior Unsec. Revolving Credit Facility - PNC Bank National Association
+                  - 575
+                  - Terminated
+                  rowMetadata:
+                    transactionType:
+                      value: Revolving Credit
+                    transactionId:
+                      value: FDS0YFY41
+                tableMetadata:
+                  currencyCode:
+                    value: USD
+                  currencySymbol:
+                    value: $
+                  sources:
+                    value:
+                    - FactSet Fundamentals
+                    - FactSet Mergers
+                    - FactSet DCS
+                    - FactSet Fixed Income
+                columnMetadata:
+                  c_transaction_amount:
+                    items:
+                      scale:
+                        value: 6
+            details:
+              headersDefinition:
+                columns: []
+              definition:
+                columns:
+                - id: c_id
+                  type: string
+                - id: c_gross_proceeds
+                  type: real
+                - id: c_overallotment
+                  type: real
+                - id: c_total
+                  type: real
+              data:
+                rows:
+                - rowType: Header
+                  cells:
+                  - Transaction ID
+                  - Gross Proceeds Excl. Overallotment
+                  - Overallotment Amount Exercised
+                  - Gross Proceeds Inc. Overallotment
+                  headerCellDetails:
+                    '0':
+                      source: PRIMARY
+                      columnIndex: 0
+                    '1':
+                      source: PRIMARY
+                      columnIndex: 1
+                    '2':
+                      source: PRIMARY
+                      columnIndex: 2
+                    '3':
+                      source: PRIMARY
+                      columnIndex: 3
+                tableMetadata:
+                  currencyCode:
+                    value: USD
+                  currencySymbol:
+                    value: $
+                  sources:
+                    value:
+                    - FactSet Fundamentals
+                    - FactSet Mergers
+                    - FactSet DCS
+                    - FactSet Fixed Income
+                columnMetadata:
+                  c_gross_proceeds:
+                    items:
+                      scale:
+                        value: 6
+                  c_overallotment:
+                    items:
+                      scale:
+                        value: 6
+                  c_total:
+                    items:
+                      scale:
+                        value: 6
+        meta:
+          requestId: FDS-US
+          fsymId: SQFMK3-R
+    noData200TransactionsResponse:
+      summary: no data response
+      value:
+        data:
+          version: '2.0'
+          tables:
+            main:
+              definition:
+                columns:
+                - id: c_transaction_date
+                  type: string
+                  isDimension: true
+                - id: c_transaction_type
+                  type: string
+                  isDimension: true
+                - id: c_transaction_description
+                  type: real
+                  isDimension: true
+                - id: c_transaction_amount
+                  type: string
+                  isDimension: true
+                - id: c_transaction_status
+                  type: string
+                  isDimension: true
+              headersDefinition:
+                columns: []
+              data:
+                rows:
+                - cells:
+                  - Date
+                  - Type
+                  - Description
+                  - Amount
+                  - Status
+                  rowType: Header
+                  headerCellDetails:
+                    '0':
+                      source: PRIMARY
+                      columnIndex: 0
+                    '1':
+                      source: PRIMARY
+                      columnIndex: 1
+                    '2':
+                      source: PRIMARY
+                      columnIndex: 2
+                    '3':
+                      source: PRIMARY
+                      columnIndex: 3
+                    '4':
+                      source: PRIMARY
+                      columnIndex: 4
+                tableMetadata:
+                  currencyCode:
+                    value: null
+                  currencySymbol:
+                    value: null
+                columnMetadata:
+                  c_transaction_amount:
+                    items:
+                      scale:
+                        value: 6
+            details:
+              definition:
+                columns:
+                - id: c_id
+                  type: string
+                  isDimension: true
+                - id: c_gross_proceeds
+                  type: real
+                  isDimension: true
+                - id: c_overallotment
+                  type: real
+                  isDimension: true
+                - id: c_total
+                  type: real
+                  isDimension: true
+              headersDefinition:
+                columns: []
+              data:
+                rows:
+                - cells:
+                  - Transaction ID
+                  - Gross Proceeds Excl. Overallotment
+                  - Overallotment Amount Exercised
+                  - Gross Proceeds Inc. Overallotment
+                  rowType: Header
+                  headerCellDetails:
+                    '0':
+                      source: PRIMARY
+                      columnIndex: 0
+                    '1':
+                      source: PRIMARY
+                      columnIndex: 1
+                    '2':
+                      source: PRIMARY
+                      columnIndex: 2
+                    '3':
+                      source: PRIMARY
+                      columnIndex: 3
+                tableMetadata:
+                  currencyCode:
+                    value: null
+                  currencySymbol:
+                    value: null
+                columnMetaData:
+                  c_gross_proceeds:
+                    items:
+                      scale:
+                        value: 6
+        meta:
+          requestId: 07ZXHF-E
+          fsymId: null
+          noData: true
+          message: There is no data for this request.
+    parameterErrorTopn:
+      summary: topn parameter error
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Invalid parameter: ''topn'''
+    unsupportedEntityParameterError:
+      summary: unsupported entity type
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: Unsupported entity type
+    parameterErrorView:
+      summary: view parameter error
+      value:
+        errors:
+        - id: 3838f112-ed5a-4d9d-b0c7-3594d8eab0ed
+          code: parameterError
+          title: 'Invalid parameter: ''view''. Accepted values include: ''FINANCIAL'', ''VALUATION'', ''CAPITALIZATION'', ''MARGINS'' or ''PERFORMANCE'''
+    default200TransactionsResponse:
+      summary: sample response
+      value:
+        data:
+          version: '2.0'
+          tables:
+            main:
+              definition:
+                columns:
+                - id: c_transaction_date
+                  type: string
+                  isDimension: true
+                - id: c_transaction_type
+                  type: string
+                  isDimension: true
+                - id: c_transaction_description
+                  type: real
+                  isDimension: true
+                - id: c_transaction_amount
+                  type: string
+                  isDimension: true
+                - id: c_transaction_status
+                  type: string
+                  isDimension: true
+              headersDefinition:
+                columns: []
+              data:
+                rows:
+                - cells:
+                  - Date
+                  - Type
+                  - Description
+                  - Amount
+                  - Status
+                  rowType: Header
+                  headerCellDetails:
+                    '0':
+                      source: PRIMARY
+                      columnIndex: 0
+                    '1':
+                      source: PRIMARY
+                      columnIndex: 1
+                    '2':
+                      source: PRIMARY
+                      columnIndex: 2
+                    '3':
+                      source: PRIMARY
+                      columnIndex: 3
+                    '4':
+                      source: PRIMARY
+                      columnIndex: 4
+                - cells:
+                  - '20211013'
+                  - Acquisition / Merger
+                  - 'FactSet Research Systems, Inc. acquires Cobalt Software, Inc. '
+                  - 51
+                  - Complete
+                  rowMetadata:
+                    transactionType:
+                      value: DETAIL
+                    transactionId:
+                      value: 4071979MM
+                - cells:
+                  - '20210714'
+                  - Acquisition / Merger
+                  - 'FactSet Research Systems, Inc. acquires BTU Analytics LLC '
+                  - null
+                  - Complete
+                  rowMetadata:
+                    transactionType:
+                      value: DETAIL
+                    transactionId:
+                      value: 4054178MM
+                tableMetadata:
+                  currencyCode:
+                    value: USD
+                  currencySymbol:
+                    value: $
+                  sources:
+                    value:
+                    - FactSet Fundamentals
+                    - FactSet Mergers
+                    - FactSet DCS
+                    - FactSet Fixed Income
+            details:
+              definition:
+                columns:
+                - id: c_id
+                  type: string
+                  isDimension: true
+                - id: c_gross_proceeds
+                  type: real
+                  isDimension: true
+                - id: c_overallotment
+                  type: real
+                  isDimension: true
+                - id: c_total
+                  type: real
+                  isDimension: true
+              headersDefinition:
+                columns: []
+              data:
+                rows:
+                - cells:
+                  - Transaction ID
+                  - Gross Proceeds Excl. Overallotment
+                  - Overallotment Amount Exercised
+                  - Gross Proceeds Inc. Overallotment
+                  rowType: Header
+                  headerCellDetails:
+                    '0':
+                      source: PRIMARY
+                      columnIndex: 0
+                    '1':
+                      source: PRIMARY
+                      columnIndex: 1
+                    '2':
+                      source: PRIMARY
+                      columnIndex: 2
+                    '3':
+                      source: PRIMARY
+                      columnIndex: 3
+                tableMetadata:
+                  currencyCode:
+                    value: USD
+                  currencySymbol:
+                    value: $
+                  sources:
+                    value:
+                    - FactSet Fundamentals
+                    - FactSet Mergers
+                    - FactSet DCS
+                    - FactSet Fixed Income
+                columnMetadata:
+                  c_gross_proceeds:
+                    items:
+                      scale:
+                        value: 6
+        meta:
+          requestId: FDS-US
+          fsymId: SQFMK3-R
+    parameterErrorActual:
+      summary: actual periods parameter error
+      value:
+        errors:
+        - id: 35a62bd5-c4aa-4e6b-9357-0f1b5688e2db
+          code: parameterError
+          title: 'Invalid parameter: ''actual''. Accepted values include nonzero integers'
+    idInvalidParameterError:
+      summary: generic parameter error (invalid parameter)
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Invalid parameter(s): ''id'''
+    parameterErrorEstimate:
+      summary: estimate periods parameter error
+      value:
+        errors:
+        - id: 372a28d1-53ac-49cd-9be5-beb714cd62a8
+          code: parameterError
+          title: 'Invalid parameter: ''estimate''. Accepted values include nonzero integers'
+    endpointNotFound:
+      summary: endpoint not found
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: endpointNotFound
+          title: The requested endpoint does not exist.
+    transactionType200Response:
+      summary: transactionType=NOTES_BONDS response
+      value:
+        data:
+          version: '2.0'
+          tables:
+            main:
+              headersDefinition:
+                columns: []
+              definition:
+                columns:
+                - id: c_transaction_date
+                  type: string
+                - id: c_transaction_type
+                  type: string
+                - id: c_transaction_description
+                  type: string
+                - id: c_transaction_amount
+                  type: string
+                - id: c_transaction_status
+                  type: string
+              data:
+                rows:
+                - rowType: Header
+                  cells:
+                  - Date
+                  - Type
+                  - Description
+                  - Amount
+                  - Status
+                  headerCellDetails:
+                    '0':
+                      source: PRIMARY
+                      columnIndex: 0
+                    '1':
+                      source: PRIMARY
+                      columnIndex: 1
+                    '2':
+                      source: PRIMARY
+                      columnIndex: 2
+                    '3':
+                      source: PRIMARY
+                      columnIndex: 3
+                    '4':
+                      source: PRIMARY
+                      columnIndex: 4
+                - cells:
+                  - '20220301'
+                  - Notes/Bonds
+                  - FactSet Research Systems Inc. 3.450% 01-MAR-2032
+                  - null
+                  - New Issue
+                  rowMetadata:
+                    transactionType:
+                      value: Notes/Bonds
+                    transactionId:
+                      value: 303075AB
+                - cells:
+                  - '20220301'
+                  - Notes/Bonds
+                  - FactSet Research Systems Inc. 2.900% 01-MAR-2027
+                  - null
+                  - New Issue
+                  rowMetadata:
+                    transactionType:
+                      value: Notes/Bonds
+                    transactionId:
+                      value: 303075AA
+                tableMetadata:
+                  currencyCode:
+                    value: USD
+                  currencySymbol:
+                    value: $
+                  sources:
+                    value:
+                    - FactSet Fundamentals
+                    - FactSet Mergers
+                    - FactSet DCS
+                    - FactSet Fixed Income
+                columnMetadata:
+                  c_transaction_amount:
+                    items:
+                      scale:
+                        value: 6
+            details:
+              headersDefinition:
+                columns: []
+              definition:
+                columns:
+                - id: c_id
+                  type: string
+                - id: c_gross_proceeds
+                  type: real
+                - id: c_overallotment
+                  type: real
+                - id: c_total
+                  type: real
+              data:
+                rows:
+                - rowType: Header
+                  cells:
+                  - Transaction ID
+                  - Gross Proceeds Excl. Overallotment
+                  - Overallotment Amount Exercised
+                  - Gross Proceeds Inc. Overallotment
+                  headerCellDetails:
+                    '0':
+                      source: PRIMARY
+                      columnIndex: 0
+                    '1':
+                      source: PRIMARY
+                      columnIndex: 1
+                    '2':
+                      source: PRIMARY
+                      columnIndex: 2
+                    '3':
+                      source: PRIMARY
+                      columnIndex: 3
+                tableMetadata:
+                  currencyCode:
+                    value: USD
+                  currencySymbol:
+                    value: $
+                  sources:
+                    value:
+                    - FactSet Fundamentals
+                    - FactSet Mergers
+                    - FactSet DCS
+                    - FactSet Fixed Income
+                columnMetadata:
+                  c_gross_proceeds:
+                    items:
+                      scale:
+                        value: 6
+                  c_overallotment:
+                    items:
+                      scale:
+                        value: 6
+                  c_total:
+                    items:
+                      scale:
+                        value: 6
+    idRequiredParameterError:
+      summary: generic parameter error (missing parameter)
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Missing required parameter(s): ''id'''
+  responses:
+    401Unauthorized:
+      description: Missing or invalid authentication. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For further assistance, file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    429TooManyRequests:
+      description: Too many requests - this API is rate-limited to 20 requests per second. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    404NotFound:
+      description: Not found. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            endpointNotFound:
+              $ref: '#/components/examples/endpointNotFound'
+    200OKTransactions:
+      description: Expected response; Returns JSON data containing STACH 2.0 row organized package format
+      headers:
+        X-DataDirect-Request-Key:
+          $ref: '#/components/headers/xDataDirectRequestKey'
+        Api-Supported-Versions:
+          $ref: '#/components/headers/apiSupportedVersions'
+        Api-Version:
+          $ref: '#/components/headers/apiVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StachTableResponse'
+          examples:
+            default200ResponseExample:
+              $ref: '#/components/examples/default200TransactionsResponse'
+            transactionType200ResponseExample:
+              $ref: '#/components/examples/transactionType200Response'
+            financingType200ResponseExample:
+              $ref: '#/components/examples/financingType200Response'
+            noDataresponse:
+              $ref: '#/components/examples/noData200TransactionsResponse'
+    503ServiceUnavailable:
+      description: Service unavailable. Typically a timeout, or result of a rejected request to prevent service overload. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    400BadRequest:
+      description: Bad Request. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          $ref: '#/components/headers/xDataDirectRequestKey'
+        Api-Supported-Versions:
+          $ref: '#/components/headers/apiSupportedVersions'
+        Api-Version:
+          $ref: '#/components/headers/apiVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            idRequiredParameterError:
+              $ref: '#/components/examples/idRequiredParameterError'
+            idInvalidParameterError:
+              $ref: '#/components/examples/idInvalidParameterError'
+            unsupportedEntityParameterError:
+              $ref: '#/components/examples/unsupportedEntityParameterError'
+            parameterErrorActual:
+              $ref: '#/components/examples/parameterErrorActual'
+            parameterErrorEstimate:
+              $ref: '#/components/examples/parameterErrorEstimate'
+            parameterErrorTopn:
+              $ref: '#/components/examples/parameterErrorTopn'
+            parameterErrorView:
+              $ref: '#/components/examples/parameterErrorView'
+    500InternalServerError:
+      description: Server error. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+  headers:
+    xDataDirectRequestKey:
+      description: FactSet request ID
+      schema:
+        type: string
+    apiVersion:
+      description: API version (semantic versioning)
+      schema:
+        type: string
+    apiSupportedVersions:
+      description: Supported API versions (semantic versioning)
+      schema:
+        type: string
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

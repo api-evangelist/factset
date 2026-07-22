@@ -1,0 +1,109 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Servers API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Servers
+paths:
+  /analytics/quant/fpe/v1/files/{server}/{file}:
+    post:
+      tags:
+      - Servers
+      summary: Factset Starts a File Upload
+      description: This endpoint takes a file and uploads it
+      parameters:
+      - name: server
+        in: path
+        description: The server to upload the file to. Either `interactive` or `batch`.
+        required: true
+        schema:
+          type: string
+          description: The server to upload the file to. Either `interactive` or `batch`.
+      - name: file
+        in: path
+        description: The file name to upload the file to. Existing directory can be specified.
+        required: true
+        schema:
+          type: string
+          description: The file name to upload the file to. Existing directory can be specified.
+      requestBody:
+        content:
+          '*':
+            schema:
+              type: string
+              format: binary
+      responses:
+        '202':
+          description: Expected response, contains the relative URL in the Location header to check the status of the upload.
+          headers:
+            Location:
+              description: Relative URL to check status of the request.
+              schema:
+                type: string
+                description: Relative URL to check status of the request.
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileUploadStatus'
+        '500':
+          description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting.
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+        '503':
+          description: Request timeout. Retry the request later
+          headers:
+            X-DataDirect-Request-Key:
+              description: FactSet's request key header.
+              schema:
+                type: string
+                description: FactSet's request key header.
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    FileUploadStatus:
+      properties:
+        id:
+          type: string
+          description: The unique ID for this upload
+          example: abc123
+        status:
+          type: string
+          enum:
+          - pending
+          - failed
+          - completed
+          - running
+          example: pending
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

@@ -1,0 +1,217 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Calculate API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Calculate
+paths:
+  /v2/job/calculate:
+    post:
+      description: Begins calculation of screen. Subject to rate limiting by serial.
+      operationId: SubmitCalculate
+      requestBody:
+        $ref: '#/components/requestBodies/submitCalcRequest'
+      responses:
+        '202':
+          $ref: '#/components/responses/SubmitCalculateResponse'
+        '400':
+          $ref: '#/components/responses/Error400InvalidRequest'
+        '401':
+          $ref: '#/components/responses/Error401Response'
+        '429':
+          $ref: '#/components/responses/Error429Response'
+        '500':
+          $ref: '#/components/responses/Generic500ErrorResponse'
+      tags:
+      - Calculate
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    ErrorObjectSource:
+      properties:
+        parameter:
+          type: string
+          example: example_value
+      description: For errors and warnings found in screens, contains the paramID the error/warning belongs to
+      type: object
+    ErrorArray:
+      description: An array of errors
+      properties:
+        errors:
+          items:
+            $ref: '#/components/schemas/ErrorObject'
+          type: array
+          description: Array of Error Objects
+          example: []
+      type: object
+    ScreenCalcParameters:
+      properties:
+        data:
+          description: Object containing screen data
+          properties:
+            backtestDate:
+              description: Specifies the backtest date used when running the screen, replacing the backtest date saved in the screen, can be written in YYYYMMDD, MM/DD/YYYY or relative (0, -1, 0/-1/0) format. Requires addtional access to use.
+              type: string
+            globalVariablesMap:
+              additionalProperties:
+                type: string
+              description: 'Modifies existing global variables for this calculation request, temporarily adds them if they do not already exist
+
+                Variable names can only contain the characters A-Z (case insensitive). Variable values must be non-empty.'
+              type: object
+            legacyUniverseType:
+              description: Universe type to open legacy screen with. Must be one of "equity", "debt", or "fund". Defaults to "equity".
+              type: string
+            screenName:
+              description: File path to a valid screen
+              type: string
+          required:
+          - screenName
+          type: object
+          example: example_value
+      required:
+      - data
+      type: object
+    ErrorCode:
+      description: Factset API specific error codes
+      enum:
+      - notAuthenticated
+      - notAuthorized
+      - notFound
+      - endpointNotFound
+      - parameterError
+      - genericServerError
+      - resourceGone
+      - quantityLimitsExceeded
+      - universal_screening_parameterError
+      - universal_screening_parameterWarning
+      type: string
+    ErrorObject:
+      properties:
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+        id:
+          description: A unique ID for the occurrence of the error. It is advised to log this code and include it if you contact FactSet support desk.
+          type: string
+          example: abc123
+        source:
+          $ref: '#/components/schemas/ErrorObjectSource'
+        title:
+          description: a description of the error
+          type: string
+          example: Example Title
+      type: object
+      description: Associated Error Objects
+    ResourceStatusResponse:
+      description: ResourceStatusResponse contains information regarding the status of a calculation job
+      properties:
+        data:
+          properties:
+            error:
+              $ref: '#/components/schemas/ErrorObject'
+            id:
+              description: ID of the submitted calculation job
+              type: string
+            status:
+              description: Current status of the calculation job
+              type: string
+          type: object
+          example: example_value
+      type: object
+  requestBodies:
+    submitCalcRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ScreenCalcParameters'
+      description: Data required for a calculation request
+  responses:
+    Generic500ErrorResponse:
+      description: Internal Server Error
+      headers:
+        Request-Key:
+          description: Provide this key when reporting this issue
+          schema:
+            type: string
+    Error401Response:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorArray'
+      description: Invalid or missing authentication.
+    Error429Response:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorArray'
+      description: Too many requests.
+      headers:
+        X-FactSet-Api-Units-Limit:
+          description: Maximum number of jobs.
+          schema:
+            type: string
+        X-FactSet-Api-Units-Remaining:
+          description: Number of available jobs.
+          schema:
+            type: string
+    SubmitCalculateResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResourceStatusResponse'
+      description: Successful calculation submission response, returns the job ID unique to this calculation and the URL in the Location header to check the status of the calculation.
+      headers:
+        Location:
+          description: Relative location to poll for calculation status
+          schema:
+            type: string
+        X-FactSet-Api-Units-Limit:
+          description: Maximum number of jobs.
+          schema:
+            type: string
+        X-FactSet-Api-Units-Remaining:
+          description: Number of available jobs.
+          schema:
+            type: string
+        RateLimit-Limit:
+          description: Number of weekly jobs available.
+          schema:
+            type: string
+        RateLimit-Remaining:
+          description: Number of remaining weekly jobs.
+          schema:
+            type: string
+        RateLimit-Reset:
+          description: Time, in seconds, until weekly limit resets.
+          schema:
+            type: string
+    Error400InvalidRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorArray'
+      description: Invalid request body.
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

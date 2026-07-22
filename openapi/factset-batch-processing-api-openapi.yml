@@ -1,0 +1,389 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Batch Processing API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Batch Processing
+  description: Manage asynchronous batch requests for processing large data sets with up to 30,000 identifiers per request.
+paths:
+  /batch-status:
+    get:
+      tags:
+      - Batch Processing
+      operationId: getBatchStatus
+      summary: Factset Returns the Status for a Batch Request.
+      description: Return the status for the underlying batch request that is specified by the id.
+      parameters:
+      - $ref: '#/components/parameters/batchId'
+      responses:
+        '201':
+          description: The batch request has been completed and the response has been created.
+          headers:
+            Location:
+              description: Path to Batch Request result.
+              schema:
+                type: string
+              example: batch-result?id=2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchStatusResponse'
+        '202':
+          description: The batch request has not finished and the result has NOT been created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchStatusResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /batch-result:
+    get:
+      tags:
+      - Batch Processing
+      operationId: getBatchResult
+      summary: Factset Returns the Response for a Batch Request.
+      description: 'Returns the response data for the underlying batch request that is specified by the id.
+
+
+        By default, this endpoint will return data as JSON. If you wish to receive your data in CSV format, you can edit the header to have the "accept" parameter as "text/csv" instead of "application/json".'
+      parameters:
+      - $ref: '#/components/parameters/batchId'
+      responses:
+        '200':
+          description: Request response object when the batch request has been completed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchResultResponse'
+            text/csv:
+              schema:
+                type: string
+        '202':
+          description: The batch request has not finished and the result has NOT been created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchStatusResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    BatchStatus:
+      type: object
+      title: Batch Status
+      description: Status information for an asynchronous batch request.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The batch request identifier.
+          example: abc123
+        startTime:
+          type: string
+          format: date-time
+          description: Time when the batch request started (Eastern Time Zone).
+          example: '2026-01-15T10:30:00Z'
+        endTime:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time when the batch request ended. Null if still processing.
+          example: '2026-01-15T10:30:00Z'
+        status:
+          type: string
+          description: Current batch processing status.
+          enum:
+          - queued
+          - executing
+          - created
+          - failed
+          example: queued
+        error:
+          $ref: '#/components/schemas/BatchError'
+    BatchResultResponse:
+      type: object
+      title: Batch Result Response
+      description: Wrapper for completed batch request results.
+      required:
+      - data
+      properties:
+        data:
+          type: array
+          items:
+            oneOf:
+            - $ref: '#/components/schemas/Fundamental'
+            - $ref: '#/components/schemas/Segment'
+          example: []
+    ErrorResponse:
+      type: object
+      title: Error Response
+      description: Standard error response wrapper.
+      properties:
+        errors:
+          type: array
+          description: An array containing error details.
+          items:
+            $ref: '#/components/schemas/Error'
+          example: []
+    Segment:
+      type: object
+      title: Segment
+      description: A single business or geographic segment data point for a company.
+      properties:
+        requestId:
+          type: string
+          description: Identifier that was used for the request.
+          examples:
+          - AAPL-US
+        fsymId:
+          type:
+          - string
+          - 'null'
+          description: FactSet Regional Security Identifier.
+          examples:
+          - MH33D6-R
+        metric:
+          type:
+          - string
+          - 'null'
+          description: The segment metric (SALES, OPINC, ASSETS, DEP, CAPEX).
+          examples:
+          - SALES
+        label:
+          type:
+          - string
+          - 'null'
+          description: Report labels of the segment type requested.
+          examples:
+          - iPhone
+        date:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: Date for the period requested in YYYY-MM-DD format.
+          examples:
+          - '2023-09-30'
+        value:
+          description: Segment metric value. May be a number or string.
+          oneOf:
+          - type: 'null'
+          - type: string
+          - type: number
+            format: double
+          example: example_value
+    BatchError:
+      type:
+      - object
+      - 'null'
+      title: Batch Error
+      description: Error information for a failed batch request.
+      properties:
+        id:
+          type: string
+          description: A UUID for this particular occurrence of the problem.
+          example: abc123
+        code:
+          type: string
+          description: Error code.
+          example: example_value
+        title:
+          type: string
+          description: The plain text error message.
+          example: Example Title
+    Error:
+      type: object
+      title: Error
+      description: A single error detail object.
+      properties:
+        id:
+          type: string
+          description: A UUID for this particular occurrence of the problem.
+          examples:
+          - adb01824-252f-4420-b0c6-35a1e3507ef5
+        code:
+          type: string
+          description: Error status code description.
+          examples:
+          - Bad Request
+        title:
+          type: string
+          description: The plain text error message.
+          examples:
+          - Validation Error
+        links:
+          type: object
+          description: The endpoint path for reference.
+          properties:
+            about:
+              type: string
+              description: API path that generated the error.
+              examples:
+              - /factset-fundamentals/v2/fundamentals
+          example: example_value
+    Fundamental:
+      type: object
+      title: Fundamental
+      description: A single fundamental data point representing a metric value for a specific security, fiscal period, and periodicity.
+      properties:
+        requestId:
+          type: string
+          description: Identifier that was used for the request.
+          examples:
+          - FDS-US
+        fsymId:
+          type:
+          - string
+          - 'null'
+          description: FactSet Regional Security Identifier. Six alpha-numeric characters, excluding vowels, with an -R suffix (XXXXXX-R).
+          examples:
+          - SQFMK3-R
+        metric:
+          type:
+          - string
+          - 'null'
+          description: The requested metric input, representing the Fundamental Data Item.
+          examples:
+          - FF_SALES
+        periodicity:
+          type:
+          - string
+          - 'null'
+          description: Periodicity or frequency of the fiscal periods.
+          enum:
+          - ANN
+          - ANN_R
+          - QTR
+          - QTR_R
+          - SEMI
+          - SEMI_R
+          - CAL
+          - LTM
+          - LTM_R
+          - LTMSG
+          - LTM_SEMI
+          - YTD
+          examples:
+          - QTR
+        fiscalPeriod:
+          type:
+          - integer
+          - 'null'
+          description: 'Fiscal period indicator. QUARTERLY: 1-4, SEMI-ANNUAL: 1-2, ANNUAL: 0.'
+          examples:
+          - 4
+        fiscalYear:
+          type:
+          - integer
+          - 'null'
+          description: Fiscal year of the reported period in YYYY format.
+          examples:
+          - 2023
+        fiscalPeriodLength:
+          type:
+          - integer
+          - 'null'
+          description: Length of the fiscal period in days.
+          examples:
+          - 91
+        fiscalEndDate:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: The normalized date the fiscal period ended in YYYY-MM-DD format.
+          examples:
+          - '2023-12-31'
+        reportDate:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: The date the reported fiscal period ended.
+          examples:
+          - '2023-12-30'
+        epsReportDate:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: The date the EPS was reported for the requested periodicity.
+          examples:
+          - '2024-02-24'
+        updateType:
+          type:
+          - string
+          - 'null'
+          description: Update type. Preliminary indicates limited data; Final indicates full financial statement data.
+          enum:
+          - Preliminary
+          - Final
+          examples:
+          - Final
+        currency:
+          type:
+          - string
+          - 'null'
+          description: ISO 4217 currency code for the data values.
+          examples:
+          - USD
+        value:
+          description: Value of the data metric requested. The type varies depending on the metric - may be a number (double) or string.
+          oneOf:
+          - type: 'null'
+          - type: string
+          - type: number
+            format: double
+          example: example_value
+    BatchStatusResponse:
+      type: object
+      title: Batch Status Response
+      description: Wrapper for batch request status.
+      properties:
+        data:
+          $ref: '#/components/schemas/BatchStatus'
+  responses:
+    NotFound:
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  parameters:
+    batchId:
+      name: id
+      in: query
+      required: true
+      description: Batch request identifier (UUID).
+      schema:
+        type: string
+        format: uuid
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

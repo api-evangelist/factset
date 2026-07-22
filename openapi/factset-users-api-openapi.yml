@@ -1,0 +1,1333 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Users API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Users
+paths:
+  /v1/users:
+    get:
+      tags:
+      - Users
+      summary: Get All Assigned Factset Users
+      operationId: GetAssignedFactSetUsers
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserConfigDto'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /Users:
+    get:
+      tags:
+      - Users
+      summary: Factset Get a List of Users.
+      security:
+      - basicAuth: []
+      parameters:
+      - $ref: '#/components/parameters/filter'
+      - $ref: '#/components/parameters/startIndex'
+      - $ref: '#/components/parameters/count'
+      - $ref: '#/components/parameters/attributes'
+      - $ref: '#/components/parameters/excludedAttributes'
+      responses:
+        '200':
+          $ref: '#/components/responses/usersSuccess'
+        '400':
+          $ref: '#/components/responses/invalidFilterError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      tags:
+      - Users
+      summary: Factset Create a User.
+      security:
+      - basicAuth: []
+      requestBody:
+        $ref: '#/components/requestBodies/userResource'
+      responses:
+        '201':
+          $ref: '#/components/responses/userSuccess'
+        '400':
+          $ref: '#/components/responses/invalidResourceProvidedError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /Users/{id}:
+    get:
+      tags:
+      - Users
+      summary: Factset Get a User.
+      security:
+      - basicAuth: []
+      parameters:
+      - $ref: '#/components/parameters/resourceId'
+      responses:
+        '200':
+          $ref: '#/components/responses/userSuccess'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '404':
+          $ref: '#/components/responses/userNotFoundError'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    put:
+      tags:
+      - Users
+      summary: Factset Replace a User.
+      security:
+      - basicAuth: []
+      parameters:
+      - $ref: '#/components/parameters/resourceId'
+      requestBody:
+        $ref: '#/components/requestBodies/userResource'
+      responses:
+        '200':
+          $ref: '#/components/responses/userSuccess'
+        '400':
+          $ref: '#/components/responses/invalidResourceProvidedError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '404':
+          $ref: '#/components/responses/userNotFoundError'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      tags:
+      - Users
+      summary: Factset Patch a User (add, Replace, or Remove Attributes of a User.)
+      security:
+      - basicAuth: []
+      parameters:
+      - $ref: '#/components/parameters/resourceId'
+      requestBody:
+        $ref: '#/components/requestBodies/patchUserResource'
+      responses:
+        '200':
+          $ref: '#/components/responses/userSuccess'
+        '400':
+          $ref: '#/components/responses/invalidPatchRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    delete:
+      tags:
+      - Users
+      summary: Factset Delete a User
+      security:
+      - basicAuth: []
+      parameters:
+      - $ref: '#/components/parameters/resourceId'
+      responses:
+        '204':
+          description: User successfully deleted.
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '404':
+          $ref: '#/components/responses/userNotFoundError'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /scim/v2/Users:
+    get:
+      operationId: getAllUsers
+      tags:
+      - Users
+      summary: Factset Retrieves a List of Vrs Users
+      description: Retrieves a list of VRS users
+      parameters:
+      - in: query
+        name: count
+        description: Non-negative maximum number of entries to return
+        schema:
+          type: integer
+        examples:
+          count:
+            value: 25
+            description: Non-negative maximum number of entries to return
+      - in: query
+        name: startIndex
+        description: The 1-based index of the first query result
+        schema:
+          type: integer
+        examples:
+          startIndex:
+            value: 1
+            description: The 1-based index of the first query result
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimUserListResponse'
+        '403':
+          description: Forbidden, user does not have permission to view users
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have view or update permission
+                status: '403'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    post:
+      operationId: createUser
+      tags:
+      - Users
+      summary: Factset Creates a User
+      description: Creates a VRS user
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/CreateScimUserJSONRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/CreatedScimUserJSONResponse'
+          headers:
+            Location:
+              schema:
+                type: string
+              description: A callback URL to the newly create user, for example https://example.com/VRSAPI/scim/v2/Users/1
+        '400':
+          description: Bad Request, required values not provided in JSON request body (e.g. tenant, name or userName (loginID)
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: No tenant code given
+                status: '400'
+        '403':
+          description: Forbidden, user does not have permission to create users or it does not have requested tenancy assigned to it
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have update permission for users
+                status: '403'
+        '409':
+          description: User already exists
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User already exists
+                status: '409'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /scim/v2/Users/{userId}:
+    get:
+      operationId: getUserById
+      tags:
+      - Users
+      summary: Factset Retrieves a Vrs User
+      description: Retrieves a VRS user based on their ID
+      parameters:
+      - in: path
+        name: userId
+        description: The ID of the user
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimUser'
+          headers:
+            Location:
+              schema:
+                type: string
+              description: A callback URL to the user, for example https://example.com/VRSAPI/scim/v2/Users/1
+        '403':
+          description: Forbidden, user does not have permission to view users
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have permission to view users
+                status: '403'
+        '404':
+          description: Not Found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: Resource 1 not found
+                status: '404'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    delete:
+      operationId: deleteUserById
+      tags:
+      - Users
+      summary: Factset Deletes a Vrs User
+      description: Deletes a VRS user (this marks them as 'Deleted' in the database)
+      parameters:
+      - in: path
+        name: userId
+        description: The ID of the user
+        schema:
+          type: string
+        required: true
+      responses:
+        '204':
+          description: No Content
+        '403':
+          description: Forbidden, user does not have permission to delete users
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have permission to delete users
+                status: '403'
+        '404':
+          description: Not Found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: Resource 1 not found
+                status: '404'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    patch:
+      operationId: patchUserById
+      tags:
+      - Users
+      summary: Factset Add or Remove Vrs User Attributes
+      description: Adds or removes VRS user attributes based on the JSON properties
+      parameters:
+      - in: path
+        name: userId
+        description: The ID of the user
+        schema:
+          type: string
+        required: true
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimUserPatchRequestBody'
+            example:
+              schemas:
+              - urn:ietf:params:scim:api:messages:2.0:PatchOp
+              Operations:
+              - op: replace
+                path: name.formatted
+                value: vrstestuser1
+      responses:
+        '200':
+          description: Successfully updated user
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimUser'
+          headers:
+            Location:
+              schema:
+                type: string
+              description: A callback URL to the updated user, for example https://example.com/VRSAPI/scim/v2/Users/1
+        '403':
+          description: Forbidden, user does not have permission to update users
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have permission to update users
+                status: '403'
+        '404':
+          description: Not Found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: Resource 1 not found
+                status: '404'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    put:
+      operationId: updateUserById
+      tags:
+      - Users
+      summary: Factset Updates a Vrs User
+      description: Updates (replaces) a VRS user with the properties in the JSON
+      parameters:
+      - in: path
+        name: userId
+        description: The ID of the user
+        schema:
+          type: string
+        required: true
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimUser'
+      responses:
+        '200':
+          description: Successfully updated user
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimUser'
+          headers:
+            Location:
+              schema:
+                type: string
+              description: A callback URL to the updated user, for example https://example.com/VRSAPI/scim/v2/Users/1
+        '403':
+          description: Forbidden, user does not have permission to update users
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: User does not have permission to update users
+                status: '403'
+        '404':
+          description: Not Found
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+              example:
+                schemas:
+                - urn:ietf:params:scim:api:messages:2.0:Error
+                detail: Resource 1 not found
+                status: '404'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  responses:
+    invalidResourceProvidedError:
+      description: Provided resource contains invalid data.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            scimType: invalidValue
+            detail: Provided resource contains invalid data.
+            status: '400'
+    forbiddenError:
+      description: User is not authorized to use this API.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: FIN_WEALTH-999999 is not authorized to use the FactSet SCIM API.
+            status: '403'
+    usersSuccess:
+      description: Success.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/UserResourceList'
+    invalidPatchRequestError:
+      description: Patch request invalid.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            scimType: invalidValue
+            detail: Provided resource contains invalid data.
+            status: '400'
+    invalidFilterError:
+      description: Invalid filter value provided.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            scimType: invalidFilter
+            detail: Invalid filter value.
+            status: '400'
+    internalServerError:
+      description: Internal server error.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    userNotFoundError:
+      description: User not found.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: User FIN_WEALTH-123456 was not found.
+            status: '404'
+    unauthorizedError:
+      description: User has not been authenticated.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: FactSet.net credentials are missing or invalid.
+            status: '401'
+    userSuccess:
+      description: Success.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/UserResource'
+  schemas:
+    CreateScimUserJSONRequest:
+      type: object
+      properties:
+        userName:
+          type: string
+          example: example_value
+        password:
+          type: string
+          example: example_value
+        name:
+          type: object
+          properties:
+            formatted:
+              type: string
+          example: Example Title
+        preferredLanguage:
+          type: string
+          example: example_value
+        active:
+          type: boolean
+          example: true
+        authenticatedUserName:
+          type: string
+          example: example_value
+        tenant:
+          type: string
+          example: example_value
+        phoneNumbers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimPhone'
+          example: []
+        emails:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimEmail'
+          example: user@example.com
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimPhoto'
+          example: []
+        tenancies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tenancy'
+          example: []
+    ProductResourceReference:
+      type: object
+      properties:
+        value:
+          type: string
+          example: '6781'
+        $ref:
+          type: string
+          example: https://api.factset.com/scim/v2/Products/6781
+        display:
+          type: string
+          example: FactSet Identity
+      required:
+      - value
+    ScimUserListResponse:
+      type: object
+      properties:
+        totalResults:
+          type: integer
+          example: 10
+        itemsPerPage:
+          type: integer
+          example: 10
+        startIndex:
+          type: integer
+          example: 10
+        Resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimUser'
+          example: []
+    PendingProductOrder:
+      type: object
+      properties:
+        product:
+          $ref: '#/components/schemas/ProductResourceReference'
+        type:
+          type: string
+          description: Type of product order, e.g. 'Add' or 'Remove'.
+          example: Add
+          readOnly: true
+        status:
+          type: string
+          description: Status of the pending product order.
+          example: Processing
+          readOnly: true
+        requested:
+          type: string
+          description: Date and time when product was ordered.
+          example: '2019-06-07T08:59:37+00:00'
+          readOnly: true
+      required:
+      - product
+      - type
+      - status
+      - requested
+    CreatedScimUserJSONResponse:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example: []
+        id:
+          type: integer
+          example: abc123
+        userName:
+          type: string
+          example: example_value
+        name:
+          type: object
+          properties:
+            formatted:
+              type: string
+          example: Example Title
+        userType:
+          type: string
+          example: example_value
+        preferredLanguage:
+          type: string
+          example: example_value
+        active:
+          type: boolean
+          example: true
+        authenticatedUserName:
+          type: string
+          example: example_value
+        tenant:
+          type: string
+          example: example_value
+        phoneNumbers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimPhone'
+          example: []
+        emails:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimEmail'
+          example: user@example.com
+        tenancies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tenancy'
+          example: []
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimPhoto'
+          example: []
+        domainCode:
+          type: string
+          example: example_value
+        isAdministrator:
+          type: boolean
+          example: true
+        meta:
+          type: object
+          properties:
+            resourceType:
+              type: string
+            created:
+              type: string
+            lastModified:
+              type: string
+            location:
+              type: string
+          example: example_value
+    ScimEmail:
+      type: object
+      properties:
+        value:
+          type: string
+          example: example_value
+        type:
+          type: string
+          example: example_value
+        primary:
+          type: boolean
+          example: true
+    ScimMeta:
+      type: object
+      properties:
+        resourceType:
+          type: string
+          example: example_value
+        created:
+          type: string
+          example: example_value
+        lastModified:
+          type: string
+          example: example_value
+        location:
+          type: string
+          example: example_value
+    UserResourceList:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example:
+          - urn:ietf:params:scim:api:messages:2.0:ListResponse
+        totalResults:
+          type: integer
+          example: 1
+        Resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserResource'
+          example: []
+    ScimPhone:
+      type: object
+      properties:
+        value:
+          type: string
+          example: example_value
+        type:
+          type: string
+          example: example_value
+        primary:
+          type: boolean
+          example: true
+    ScimUserPatchRequestBody:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example: []
+        Operations:
+          type: array
+          items:
+            properties:
+              op:
+                type: string
+              path:
+                type: string
+              value:
+                type: string
+          example: []
+    ScimError:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example: []
+        detail:
+          type: string
+          example: example_value
+        status:
+          type: string
+          example: example_value
+    ScimUser:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example: []
+        id:
+          type: integer
+          example: abc123
+        userName:
+          type: string
+          example: example_value
+        name:
+          type: object
+          properties:
+            formatted:
+              type: string
+          example: Example Title
+        userType:
+          type: string
+          example: example_value
+        active:
+          type: boolean
+          example: true
+        authenticatedUserName:
+          type: string
+          example: example_value
+        tenant:
+          type: string
+          example: example_value
+        phoneNumbers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimPhone'
+          example: []
+        emails:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimEmail'
+          example: user@example.com
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimPhoto'
+          example: []
+        tenancies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tenancy'
+          example: []
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimUserGroup'
+          example: []
+        domainCode:
+          type: string
+          example: example_value
+        isAdministrator:
+          type: boolean
+          example: true
+        meta:
+          $ref: '#/components/schemas/ScimMeta'
+    UserResource:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example:
+          - urn:ietf:params:scim:schemas:core:2.0:User
+          - urn:scim:schemas:extension:FactSet:Core:1.0:User
+          - urn:scim:schemas:extension:FactSet:VRS:1.0:User
+        id:
+          type: string
+          readOnly: true
+          example: FIN_WEALTH-123456
+        externalId:
+          type: string
+          example: C3574707-FFF9-433C-A17F-DFF806C72A7F
+        userName:
+          type: string
+          description: Unique identifier for the User, typically used by the user to directly authenticate to the service provider. Each User MUST include a non-empty userName value.  This identifier MUST be unique across the service provider's entire set of Users.
+          readOnly: true
+          example: FIN_WEALTH-123456
+        name:
+          type: object
+          description: The components of the user's real name. Providers MAY return just the full name as a single string in the formatted sub-attribute, or they MAY return just the individual component attributes using the other sub-attributes, or they MAY return both.  If both variants are returned, they SHOULD be describing the same name, with the formatted name indicating how the component attributes should be combined.
+          properties:
+            familyName:
+              type: string
+              description: The family name of the User, or last name in most Western languages (e.g., 'Jensen' given the full name 'Ms. Barbara J Jensen, III').
+              example: Doe
+            givenName:
+              type: string
+              description: The given name of the User, or first name in most Western languages (e.g., 'Barbara' given the full name 'Ms. Barbara J Jensen, III').
+              example: John
+          required:
+          - familyName
+          - givenName
+          example: Example Title
+        email:
+          type: string
+          description: Email addresses for the user.  The value SHOULD be canonicalized by the service provider, e.g., 'bjensen@example.com' instead of 'bjensen@EXAMPLE.COM'.
+          example: jdoe@factset.com
+        phoneNumbers:
+          type: array
+          description: Phone numbers for the User.  The value SHOULD be canonicalized by the service provider according to the format specified in RFC 3966, e.g., 'tel:+1-201-555-0123'. Canonical type values of 'main', 'work', 'mobile', and 'home'.
+          items:
+            type: object
+            properties:
+              value:
+                type: string
+                description: Phone number of the User.
+                readOnly: true
+                example: tel:5558675309
+              display:
+                type: string
+                description: A human-readable name, primarily used for display purposes.  READ-ONLY.
+                readOnly: true
+                example: (555) 867-5309
+              type:
+                type: string
+                description: A label indicating the attribute's function, e.g., 'work', 'home', 'mobile'.
+                readOnly: true
+                example: work
+              primary:
+                type: boolean
+                description: A Boolean value indicating the 'primary' or preferred attribute value for this attribute, e.g., the preferred phone number or primary phone number.  The primary attribute value 'true' MUST appear no more than once.
+                readOnly: true
+                example: true
+          readOnly: true
+          example: []
+        groups:
+          type: array
+          description: A list of groups to which the user belongs, either through direct membership, through nested groups, or dynamically calculated.
+          items:
+            type: object
+            properties:
+              value:
+                type: string
+                description: The identifier of the User's group.
+                readOnly: true
+                example: Domain btud - Pod 04 - CitrixApps - Cymba OMS
+              $ref:
+                type: string
+                description: The URI of the corresponding 'Group' resource to which the user belongs.
+                readOnly: true
+                example: https://api.factset.com/scim/v2/Groups/Domain%20btud%20-%20Pod%2004%20-%20CitrixApps%20-%20Cymba%20OMS
+              display:
+                type: string
+                description: A human-readable name, primarily used for display purposes.  READ-ONLY.
+                readOnly: true
+                example: Domain btud - Pod 04 - CitrixApps - Cymba OMS
+          readOnly: true
+          example: []
+        urn:scim:schemas:extension:FactSet:Core:1.0:User:
+          type: object
+          properties:
+            username:
+              type: string
+              description: A FactSet "username" is FactSet's logical structure for grouping serial numbers into like-groups based on roleName, geographical location or line of business.
+              example: FIN_WEALTH
+            serialNumber:
+              type: string
+              description: A serial number represents an individual's unique FactSet account identifier and base-workstation access. Serial numbers are allocated to an individual when a valid RoleName is present.
+              readOnly: true
+              example: '123456'
+            factSetNetId:
+              type: string
+              description: FactSet.net ID.
+              readOnly: true
+              example: John.Doe9@factset.net
+            location:
+              $ref: '#/components/schemas/LocationResourceReference'
+            roleName:
+              type: string
+              description: Predetermined role of specific individual. Issues individual a base FactSet workstation and serial number. If passed as NULL a base-FactSet workstation will be allocated to the individual granting the individual a FactSet SerialNumber
+              example: Wealth Manager
+            products:
+              type: array
+              description: An array of FactSet products to allocate/remove from an individual. Individual must have a FactSet serial number associated with them.
+              items:
+                $ref: '#/components/schemas/ProductResourceReference'
+            pendingProductOrders:
+              type: array
+              description: An array of pending FactSet product orders.
+              items:
+                $ref: '#/components/schemas/PendingProductOrder'
+              readOnly: true
+            assertionValue:
+              type: string
+              description: Field containing the value, passed as nameID, used to assert the identity of an individual via SAML2.0 which maps service-provider-side to a FactSet serial number. Only applicable to individuals with a FactSet serial number with a Federation setup between your domain and FactSet's
+              example: exampleAssertionValue
+          required:
+          - username
+          example: example_value
+        urn:scim:schemas:extension:FactSet:VRS:1.0:User:
+          type: object
+          properties:
+            domainData:
+              type: array
+              description: A set of attributes pertaining to individual Vermilion domains.
+              items:
+                type: object
+                properties:
+                  domainCode:
+                    type: string
+                    description: Unique identifier for the Vermilion domain.
+                    example: btud
+                  tenancies:
+                    type: object
+                    description: List of tenancies where the User exists in the associated domain.
+                    properties:
+                      value:
+                        type: string
+                        description: Name of a tenant.
+                        example: MASTER
+                    required:
+                    - value
+                  isAdministrator:
+                    type: boolean
+                    description: Whether the User is an administrator in the associated domain.
+                    example: false
+                  password:
+                    type: string
+                    description: Password of the User in the associated domain. May be null upon creation of the User, but afterward may not change from a non-null to a null value.
+                required:
+                - domainCode
+                - tenancies
+                - isAdministrator
+          example: example_value
+        meta:
+          type: object
+          properties:
+            resourceType:
+              type: string
+              example: User
+            created:
+              type: string
+              example: '2019-02-11T15:33:31.077+00:00'
+            lastModified:
+              type: string
+              example: '2019-06-07T08:59:37+00:00'
+            location:
+              type: string
+              example: https://api.factset.com/scim/v2/Users/FIN_WEALTH-123456
+          readOnly: true
+          example: example_value
+      required:
+      - userName
+      - name
+      - email
+    LocationResourceReference:
+      type: object
+      properties:
+        value:
+          type: string
+          description: Identifier of the Location.
+          example: '1598276'
+        $ref:
+          type: string
+          description: The URI corresponding to a SCIM resource that is this Location.
+          example: https://api.factset.com/scim/v2/Locations/1598276
+        display:
+          type: string
+          description: A human-readable name, primarily used for display purposes.
+          example: FIN Wealth Management
+      required:
+      - value
+    TeamSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: abc123
+        name:
+          type: string
+          nullable: true
+          example: Example Title
+        code:
+          type: string
+          nullable: true
+          example: example_value
+      additionalProperties: false
+    Tenancy:
+      type: object
+      properties:
+        value:
+          type: string
+          example: example_value
+    ScimUserGroup:
+      type: object
+      properties:
+        value:
+          type: string
+          example: example_value
+        $ref:
+          type: string
+          description: A callback link which can be used to get the information of the user
+          example: example_value
+        type:
+          type: string
+          example: example_value
+        display:
+          type: string
+          description: Name of the group
+          example: example_value
+    Patch:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example: []
+        Operations:
+          type: array
+          items:
+            type: object
+            properties:
+              op:
+                type: string
+              path:
+                type: string
+              value:
+                type: string
+          example: []
+    UserConfigDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: abc123
+        userName:
+          type: string
+          nullable: true
+          example: example_value
+        serialNumber:
+          type: string
+          nullable: true
+          example: example_value
+        firstName:
+          type: string
+          nullable: true
+          example: example_value
+        lastName:
+          type: string
+          nullable: true
+          example: example_value
+        emailAddress:
+          type: string
+          nullable: true
+          example: user@example.com
+        team:
+          $ref: '#/components/schemas/TeamSummaryDto'
+      additionalProperties: false
+    ScimPhoto:
+      type: object
+      properties:
+        value:
+          type: string
+          example: example_value
+        type:
+          type: string
+          example: example_value
+        primary:
+          type: boolean
+          example: true
+  requestBodies:
+    userResource:
+      description: User resource.
+      required: true
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/UserResource'
+          examples:
+            Minimum:
+              value:
+                schemas:
+                - urn:ietf:params:scim:schemas:core:2.0:User
+                - urn:scim:schemas:extension:FactSet:Core:1.0:User
+                name:
+                  familyName: Doe
+                  givenName: John
+                email: jdoe@factset.com
+                urn:scim:schemas:extension:FactSet:Core:1.0:User:
+                  username: FIN_WEALTH
+                  location:
+                    value: '1598276'
+            Expanded:
+              value:
+                schemas:
+                - urn:ietf:params:scim:schemas:core:2.0:User
+                - urn:scim:schemas:extension:FactSet:Core:1.0:User
+                externalId: C3574707-FFF9-433C-A17F-DFF806C72A7F
+                name:
+                  familyName: Doe
+                  givenName: John
+                email: jdoe@factset.com
+                urn:scim:schemas:extension:FactSet:Core:1.0:User:
+                  username: FIN_WEALTH
+                  location:
+                    value: '1598276'
+                  roleName: Wealth Manager
+                  products:
+                  - value: '1396'
+                  assertionValue: exampleAssertionValue
+    patchUserResource:
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Patch'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:PatchOp
+            Operations:
+            - op: replace
+              path: urn:scim:schemas:extension:FactSet:Core:1.0:User:roleName
+              value: Wealth Manager
+  parameters:
+    resourceId:
+      name: id
+      description: ID of resource.
+      in: path
+      schema:
+        type: string
+      required: true
+    filter:
+      name: filter
+      description: Resource filter string. See [RFC 7644 section 3.4.2.2](https://tools.ietf.org/html/rfc7644#section-3.4.2.2) for syntax. Note this API implementation also supports a non-standard "re" operator for regular expression matching against strings.
+      in: query
+      schema:
+        type: string
+      required: false
+    startIndex:
+      name: startIndex
+      description: Result start index. The one-based index of the first result to be returned in the list of resources. For example, to exclude the first two resources, use a *startIndex* value of 3. This parameter has a default value of 1. This index applies *after* any resource filtration has been applied as specified by the *filter* argument.
+      in: query
+      schema:
+        type: integer
+      required: false
+    attributes:
+      name: attributes
+      description: Attribute whitelist filter string. A comma-separated list of resource attribute names to be returned in the response, overriding the set of attributes that would be returned by default. Attribute names must be specified in standard attribute notation (see [RFC 7644 section 3.10](https://datatracker.ietf.org/doc/html/rfc7644#section-3.10).) This parameter cannot be used with the *excludedAttributes* parameter.
+      in: query
+      schema:
+        type: string
+      required: false
+    excludedAttributes:
+      name: excludedAttributes
+      description: Attribute blacklist filter string. A comma-separated list of resource attribute names to be excluded in the response, overriding the set of attributes that would be returned by default. Attribute names must be specified in standard attribute notation (see [RFC 7644 section 3.10](https://datatracker.ietf.org/doc/html/rfc7644#section-3.10).) This parameter cannot be used with the *attributes* parameter.
+      in: query
+      schema:
+        type: string
+      required: false
+    count:
+      name: count
+      description: Maximum resource count. The server will not return more resources than this value, although it may return fewer.
+      in: query
+      schema:
+        type: integer
+      required: false
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

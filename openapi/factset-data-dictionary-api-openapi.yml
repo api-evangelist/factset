@@ -1,0 +1,285 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Data Dictionary API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Data Dictionary
+paths:
+  /data-dictionary:
+    get:
+      tags:
+      - Data Dictionary
+      operationId: getDataDictionary
+      description: Fetch a list of all active signals
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/signalMetaData'
+        '429':
+          description: API Rate Limit Exceeded
+          headers:
+            Api-Version:
+              $ref: '#/components/headers/Api-Version'
+            Api-Supported-Versions:
+              $ref: '#/components/headers/Api-Supported-Versions'
+            RateLimit-Limit:
+              $ref: '#/components/headers/RateLimit-Limit'
+            RateLimit-Remaining:
+              $ref: '#/components/headers/RateLimit-Remaining'
+            RateLimit-Reset:
+              $ref: '#/components/headers/RateLimit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rateLimitResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse'
+  /data-dictionary/{signalId}:
+    get:
+      tags:
+      - Data Dictionary
+      operationId: getDataDictionaryById
+      description: Fetch the metadata and contract for the requested signal
+      parameters:
+      - $ref: '#/components/parameters/signalIdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/signalDefinition'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse'
+        '429':
+          description: API Rate Limit Exceeded
+          headers:
+            Api-Version:
+              $ref: '#/components/headers/Api-Version'
+            Api-Supported-Versions:
+              $ref: '#/components/headers/Api-Supported-Versions'
+            RateLimit-Limit:
+              $ref: '#/components/headers/RateLimit-Limit'
+            RateLimit-Remaining:
+              $ref: '#/components/headers/RateLimit-Remaining'
+            RateLimit-Reset:
+              $ref: '#/components/headers/RateLimit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rateLimitResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse'
+components:
+  headers:
+    RateLimit-Reset:
+      description: Time remaining (in seconds) until the quota is reset.
+      schema:
+        type: integer
+        example: 1000
+    Api-Version:
+      description: Full semantic version of the API.
+      schema:
+        type: string
+        example: 1.0.0
+    RateLimit-Remaining:
+      description: Remaining number of requests in the current time window.
+      schema:
+        type: integer
+        example: 4
+    RateLimit-Limit:
+      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
+      schema:
+        type: integer
+        example: 5
+    Api-Supported-Versions:
+      description: Comma-separated list of supported major versions.
+      schema:
+        type: string
+        example: '1'
+  schemas:
+    contract:
+      type: object
+      required:
+      - fields
+      - version
+      properties:
+        fields:
+          $ref: '#/components/schemas/contractFields'
+        version:
+          type: string
+    contractProperty:
+      type: object
+      required:
+      - description
+      - type
+      properties:
+        description:
+          type: string
+        type:
+          type: string
+        optional:
+          type: boolean
+        items:
+          type: object
+          required:
+          - type
+          properties:
+            type:
+              type: string
+    errorItem:
+      type: object
+      required:
+      - id
+      - code
+      - title
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          example: parameterError
+        title:
+          type: string
+          example: Invalid type/value
+        detail:
+          type: string
+          example: Value must be a valid UTC date/time that conforms to ISO 8601 format
+        source:
+          type: object
+          properties:
+            parameter:
+              type: string
+    rateLimitResponse:
+      title: Rate Limit Error Object
+      description: Error returned if any of the user's rate limit have been reached.
+      properties:
+        message:
+          type: string
+          example: API rate limit exceeded
+    contractFields:
+      type: object
+      required:
+      - summary
+      - eventDate
+      properties:
+        summary:
+          type: object
+          properties:
+            description:
+              type: string
+            type:
+              type: string
+        eventDate:
+          type: object
+          properties:
+            description:
+              type: string
+            type:
+              type: string
+        additionalProperties:
+          $ref: '#/components/schemas/contractProperty'
+    signalMetaData:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            required:
+            - id
+            - name
+            - description
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              description:
+                type: string
+    errorResponse:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+          description: A short description of the error.
+          example: There was an error processing your request. Please try again later.
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errorItem'
+          description: Optional list of errors. e.g. Validation errors for multiple parameters
+    signalDefinition:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          type: object
+          required:
+          - signalId
+          - theme
+          - categories
+          - contract
+          properties:
+            signalId:
+              type: string
+            theme:
+              type: string
+            categories:
+              type: array
+              items:
+                type: string
+            contract:
+              $ref: '#/components/schemas/contract'
+  parameters:
+    signalIdParam:
+      name: signalId
+      in: path
+      required: true
+      schema:
+        type: string
+        description: A single signalId.
+      example: dilutionTrigger
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation

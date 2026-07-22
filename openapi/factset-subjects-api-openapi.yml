@@ -1,0 +1,348 @@
+openapi: 3.0.3
+info:
+  title: Factset Analytics Datastore About Subjects API
+  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  contact:
+    name: FactSet Research Systems
+    url: https://developer.factset.com/contact
+    email: api@factset.com
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+servers:
+- url: https://api.factset.com
+  description: Production
+- url: https://api-sandbox.factset.com
+  description: Sandbox
+security:
+- basicAuth: []
+tags:
+- name: Subjects
+paths:
+  /v1/subjects:
+    get:
+      tags:
+      - Subjects
+      summary: Factset Get All Subjects
+      operationId: GetSubjects
+      parameters:
+      - name: X-IRN-Ignore-Permissions
+        in: header
+        schema:
+          type: boolean
+          default: false
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubjectSummaryDto'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+  /v1/subjects/{subjectId}:
+    get:
+      tags:
+      - Subjects
+      summary: Factset Get Subject Details for the Given Id Provided
+      operationId: GetSubject
+      parameters:
+      - name: subjectId
+        in: path
+        description: Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-IRN-Ignore-Permissions
+        in: header
+        description: ''
+        schema:
+          type: boolean
+          default: false
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubjectConfigDto'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+components:
+  schemas:
+    ApprovalLevelConfigDto:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+          example: Example Title
+        approverIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          nullable: true
+          example: []
+      additionalProperties: false
+    HeadlineFormatConfigDto:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+          example: Example Title
+        customString:
+          type: string
+          nullable: true
+          example: example_value
+        customFieldName:
+          type: string
+          nullable: true
+          example: example_value
+      additionalProperties: false
+    SubjectConfigDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: abc123
+        name:
+          type: string
+          nullable: true
+          example: Example Title
+        code:
+          type: string
+          nullable: true
+          example: example_value
+        isHidden:
+          type: boolean
+          example: true
+        identifierType:
+          type: string
+          nullable: true
+          example: example_value
+        identifierTypes:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        type:
+          type: string
+          nullable: true
+          example: example_value
+        customFieldIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          nullable: true
+          example: []
+        approvalProcessConfig:
+          $ref: '#/components/schemas/ApprovalProcessConfigDto'
+        commentaryConfig:
+          $ref: '#/components/schemas/CommentaryConfigDto'
+        newsHeadlineFormat:
+          type: array
+          items:
+            $ref: '#/components/schemas/HeadlineFormatConfigDto'
+          nullable: true
+          example: []
+        emailHeadlineFormat:
+          type: array
+          items:
+            $ref: '#/components/schemas/HeadlineFormatConfigDto'
+          nullable: true
+          example: user@example.com
+        ratingConfig:
+          $ref: '#/components/schemas/RatingConfigDto'
+        noteLengthLimit:
+          type: integer
+          format: int32
+          nullable: true
+          example: 10
+      additionalProperties: false
+    CommentaryConfigDto:
+      type: object
+      properties:
+        shouldSendEmailAlertsToAuthor:
+          type: boolean
+          example: user@example.com
+        shouldSendEmailAlertsToCommenters:
+          type: boolean
+          example: user@example.com
+        shouldSendEmailAlertsToAll:
+          type: boolean
+          example: user@example.com
+      additionalProperties: false
+    SubjectSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: abc123
+        name:
+          type: string
+          nullable: true
+          example: Example Title
+        code:
+          type: string
+          nullable: true
+          example: example_value
+        identifierType:
+          type: string
+          nullable: true
+          example: example_value
+        identifierTypes:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: []
+        type:
+          type: string
+          nullable: true
+          example: example_value
+        isHidden:
+          type: boolean
+          example: true
+        customFieldIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          nullable: true
+          example: []
+        noteLengthLimit:
+          type: integer
+          format: int32
+          nullable: true
+          example: 10
+      additionalProperties: false
+    RatingConfigDto:
+      type: object
+      properties:
+        ratingsVisibleToAuthor:
+          type: boolean
+          example: true
+        ratingsVisibleToViewers:
+          type: boolean
+          example: true
+        ratingsVisibleToAll:
+          type: boolean
+          example: true
+        viewerIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          nullable: true
+          example: []
+        optionValues:
+          type: array
+          items:
+            type: integer
+            format: int32
+          nullable: true
+          example: []
+      additionalProperties: false
+    ApprovalProcessConfigDto:
+      type: object
+      properties:
+        approvalLevels:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApprovalLevelConfigDto'
+          nullable: true
+          example: []
+        viewerIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          nullable: true
+          example: []
+        shouldSendEmailAlertsWhenSubmittedForApproval:
+          type: boolean
+          example: user@example.com
+        shouldSendEmailAlertsWhenApproved:
+          type: boolean
+          example: user@example.com
+        shouldSendEmailAlertsWhenDenied:
+          type: boolean
+          example: user@example.com
+        shouldSendEmailAlertsToAuthor:
+          type: boolean
+          example: user@example.com
+        shouldSendEmailAlertsToApprovers:
+          type: boolean
+          example: user@example.com
+        shouldSendEmailAlertsToViewers:
+          type: boolean
+          example: user@example.com
+        canAuthorSelfApprove:
+          type: boolean
+          example: true
+        canAuthorEditPending:
+          type: boolean
+          example: true
+      additionalProperties: false
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+          nullable: true
+          example: example_value
+        title:
+          type: string
+          nullable: true
+          example: Example Title
+        status:
+          type: integer
+          format: int32
+          nullable: true
+          example: 10
+        detail:
+          type: string
+          nullable: true
+          example: example_value
+        instance:
+          type: string
+          nullable: true
+          example: example_value
+      additionalProperties: {}
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+externalDocs:
+  url: https://developer.factset.com/api-catalog/analytics-datastore-api
+  description: API Documentation
