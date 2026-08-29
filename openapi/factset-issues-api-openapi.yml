@@ -1,22 +1,22 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Issues API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  title: Factset Issue Tracker Issues API
+  version: 1.0.0
+  description: This API is used to file issues
   contact:
     name: FactSet Research Systems
-    url: https://developer.factset.com/contact
     email: api@factset.com
+    url: https://developer.factset.com/contact
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.factset.com/issue-tracker/v1
 security:
-- basicAuth: []
+- FactSetApiKey: []
+  FactSetOAuth2: []
+- FactSetApiKey: []
+  FactSetOAuth2: []
 tags:
 - name: Issues
   description: Updating and retrieving issue data within the Issue Tracker
@@ -171,20 +171,6 @@ paths:
                     content: <p>this is a sample comment</p>
 components:
   schemas:
-    error:
-      type: object
-      x-examples:
-        Example 1:
-          id: Error ID
-          title: Error title
-          code: Error code
-      properties:
-        id:
-          type: string
-        code:
-          type: string
-        title:
-          type: string
     issue:
       type: object
       x-examples:
@@ -247,6 +233,62 @@ components:
             id:
               type: string
               description: The generated ID for either an issue or a comment varies depending on the endpoint. Specifically, for the Issues endpoint, it will return 'issueid,' and for the comments endpoint, it will return 'commentid.'
+    comment:
+      type: object
+      x-examples:
+        Example 1:
+          id: 39d38193-2829-4e45-9825-61br87e59fe1
+          content: Here we can provide a complete description of why we are creating the issue.
+          createdAt: '2023-09-13T11:09:01.7274055Z'
+          author: Sreenu Narra
+      properties:
+        id:
+          type: string
+          description: generated comment id
+        content:
+          type: string
+          description: cotent of comment
+        createdAt:
+          type: string
+          description: comment creation time
+          format: date-time
+        author:
+          type: string
+          description: author of the comment.
+    commentRequest:
+      type: object
+      x-examples: {}
+      properties:
+        data:
+          type: object
+          properties:
+            content:
+              type: string
+              description: description for comment
+    errorResponse:
+      type: object
+      x-examples: {}
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/error'
+      x-stoplight:
+        id: 64ebd7841d11a
+    error:
+      type: object
+      x-examples:
+        Example 1:
+          id: Error ID
+          title: Error title
+          code: Error code
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        title:
+          type: string
     issueRequest:
       type: object
       x-examples: {}
@@ -270,52 +312,16 @@ components:
           - subject
           - description
           - productId
-    comment:
-      type: object
-      x-examples:
-        Example 1:
-          id: 39d38193-2829-4e45-9825-61br87e59fe1
-          content: Here we can provide a complete description of why we are creating the issue.
-          createdAt: '2023-09-13T11:09:01.7274055Z'
-          author: Sreenu Narra
-      properties:
-        id:
-          type: string
-          description: generated comment id
-        content:
-          type: string
-          description: cotent of comment
-        createdAt:
-          type: string
-          description: comment creation time
-          format: date-time
-        author:
-          type: string
-          description: author of the comment.
-    errorResponse:
-      type: object
-      x-examples: {}
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/error'
-      x-stoplight:
-        id: 64ebd7841d11a
-    commentRequest:
-      type: object
-      x-examples: {}
-      properties:
-        data:
-          type: object
-          properties:
-            content:
-              type: string
-              description: description for comment
   securitySchemes:
-    basicAuth:
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
+    FactSetApiKey:
       type: http
       scheme: basic
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
   description: API Documentation
+  url: https://developer.factset.com/api-catalog/issue-tracker-api

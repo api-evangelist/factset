@@ -1,7 +1,9 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About User Defined Field API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  title: Factset Portfolio Metadata User Defined Field API
+  version: 1.0.0
+  description: Basic operations for portfolio metadata
+  termsOfService: TOS
   contact:
     name: FactSet Research Systems
     url: https://developer.factset.com/contact
@@ -9,14 +11,12 @@ info:
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- description: production
+  url: https://api.factset.com/analytics/portfolio-metadata/v1
 security:
-- basicAuth: []
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: User Defined Field
   description: CRUD operations on User Defined Field
@@ -131,45 +131,94 @@ paths:
         '501':
           $ref: '#/components/responses/NotImplementedErrorResponse'
 components:
+  responses:
+    NotImplementedErrorResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    NotAcceptableErrorResponse:
+      description: The requested resource is capable of generating only content not acceptable according to the Accept headers sent in the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    UnauthorizedErrorResponse:
+      description: Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    BadRequestErrorResponse:
+      description: The server cannot or will not process the request due to an apparent client error (e.g., malformed request syntax, size too large, invalid request message framing, or deceptive request routing).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    NotFoundErrorResponse:
+      description: The requested resource could not be found but may be available in the future. Subsequent requests by the client are permissible.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    UnsupportedMediaTypeErrorResponse:
+      description: The request entity has a media type which the server or resource does not support.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    ForbiddenErrorResponse:
+      description: The request contained valid data and was understood by the server, but the server is refusing action. This may be due to the user not having the necessary permissions for a resource or needing an account of some sort, or attempting a prohibited action.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    InternalServerErrorResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
   schemas:
-    listUserDefinedFieldsResponse:
-      type: object
+    readUserDefinedFieldResponse:
+      type:
+      - object
+      - 'null'
       properties:
         data:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-                nullable: false
-                example: b1c36b19-1417-4e8c-8d0a-416cf6a92a6a
-              type:
-                type: string
-                enum:
-                - UserDefinedField
-                nullable: false
-              name:
-                type: string
-                nullable: false
-                example: MY_VALUE
-            nullable: false
-        meta:
-          type: object
+          type:
+          - object
+          - 'null'
           properties:
-            pagination:
+            id:
+              type: string
+              example: b1c36b19-1417-4e8c-8d0a-416cf6a92a6a
+            type:
+              type: string
+              enum:
+              - UserDefinedField
+            name:
+              type: string
+              example: MY_VALUE
+            dataType:
+              type: string
+              enum:
+              - NUMBER
+              - STRING
+            group:
               type: object
               properties:
-                next:
+                id:
                   type: string
-                  nullable: true
-                  example: YwAAAA==
-                previous:
+                  example: MDpEZWZhdWx0IEdyb3Vw
+                type:
                   type: string
-                  nullable: true
-                  example: AAAAAA==
-              nullable: false
-      nullable: true
+                  enum:
+                  - UserDefinedFieldGroup
+                name:
+                  type: string
+                  example: MY_GROUP
     Errors:
       type: object
       description: Information about one or more errors
@@ -215,103 +264,52 @@ components:
                 description: Detailed description of the error that occurred
       required:
       - errors
-    readUserDefinedFieldResponse:
-      type: object
+    listUserDefinedFieldsResponse:
+      type:
+      - object
+      - 'null'
       properties:
         data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                example: b1c36b19-1417-4e8c-8d0a-416cf6a92a6a
+              type:
+                type: string
+                enum:
+                - UserDefinedField
+              name:
+                type: string
+                example: MY_VALUE
+        meta:
           type: object
           properties:
-            id:
-              type: string
-              nullable: false
-              example: b1c36b19-1417-4e8c-8d0a-416cf6a92a6a
-            type:
-              type: string
-              enum:
-              - UserDefinedField
-              nullable: false
-            name:
-              type: string
-              nullable: false
-              example: MY_VALUE
-            dataType:
-              type: string
-              enum:
-              - NUMBER
-              - STRING
-              nullable: false
-            group:
+            pagination:
               type: object
               properties:
-                id:
-                  type: string
-                  nullable: false
-                  example: MDpEZWZhdWx0IEdyb3Vw
-                type:
-                  type: string
-                  enum:
-                  - UserDefinedFieldGroup
-                  nullable: false
-                name:
-                  type: string
-                  nullable: false
-                  example: MY_GROUP
-              nullable: false
-          nullable: true
-      nullable: true
-  responses:
-    UnauthorizedErrorResponse:
-      description: Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    UnsupportedMediaTypeErrorResponse:
-      description: The request entity has a media type which the server or resource does not support.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    ForbiddenErrorResponse:
-      description: The request contained valid data and was understood by the server, but the server is refusing action. This may be due to the user not having the necessary permissions for a resource or needing an account of some sort, or attempting a prohibited action.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    NotFoundErrorResponse:
-      description: The requested resource could not be found but may be available in the future. Subsequent requests by the client are permissible.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    NotImplementedErrorResponse:
-      description: ''
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    InternalServerErrorResponse:
-      description: ''
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    BadRequestErrorResponse:
-      description: The server cannot or will not process the request due to an apparent client error (e.g., malformed request syntax, size too large, invalid request message framing, or deceptive request routing).
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    NotAcceptableErrorResponse:
-      description: The requested resource is capable of generating only content not acceptable according to the Accept headers sent in the request.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
+                next:
+                  type:
+                  - string
+                  - 'null'
+                  example: YwAAAA==
+                previous:
+                  type:
+                  - string
+                  - 'null'
+                  example: AAAAAA==
   securitySchemes:
-    basicAuth:
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
+    FactSetApiKey:
       type: http
       scheme: basic
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
   description: API Documentation
+  url: https://developer.factset.com/api-catalog/portfolio-metadata-api

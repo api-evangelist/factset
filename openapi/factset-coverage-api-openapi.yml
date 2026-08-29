@@ -1,22 +1,24 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Coverage API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  title: FactSet Tick History Coverage API
+  description: '
+
+    Tick History provides dynamic access to historical tick data for a
+
+    specific security for specific dates or date range.'
+  version: 2.1.0
   contact:
     name: FactSet Research Systems
-    url: https://developer.factset.com/contact
     email: api@factset.com
+    url: https://developer.factset.com/contact
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.factset.com/tick-history/v2
 security:
-- basicAuth: []
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Coverage
 paths:
@@ -90,66 +92,6 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
-  examples:
-    401Example:
-      summary: sample error response
-      value:
-        errors:
-        - code: Not Authenticated
-          title: USERNAME-SERIAL does not have permission
-          id: 7af3d86ca5954503b9244f2620fcf5eb
-    403Example:
-      summary: sample error response
-      value:
-        errors:
-        - code: Forbidden
-          title: USERNAME-SERIAL does not have permission
-          id: 7af3d86ca5954503b9244f2620fcf5eb
-    500Example:
-      summary: sample error response
-      value:
-        errors:
-        - code: Internal server error
-          title: An unexpected error happened
-          id: 7af3d86ca5954503b9244f2620fcf5eb
-    sampleCoverageResponse:
-      summary: sample Response
-      value:
-        data:
-        - ticker: IBM
-          factsetExchangeCode: MUN
-          startDate: '2012-01-02'
-          latestTradeDate: '2023-01-01'
-          companyName: International Business Machines
-          isin: US3030751057
-          currency: USD
-          lastExchangeCode: '14002'
-          lastExchangeName: NYSE - Nasdaq Regional
-          primaryTickerExchange: IBM-NYS
-        - ticker: IBM
-          factsetExchangeCode: CAN
-          startDate: '2012-01-02'
-          latestTradeDate: '2023-01-01'
-          companyName: International Business Machines
-          isin: US3030751057
-          currency: EUR
-          lastExchangeCode: '257'
-          lastExchangeName: Turquoise
-          primaryTickerExchange: NOKIA-EUR
-    429Example:
-      summary: sample error response
-      value:
-        errors:
-        - code: Too Many Requests
-          title: quantityLimitsExceeded
-          id: 7af3d86ca5954503b9244f2620fcf5eb
-    400Example:
-      summary: Sample error Response
-      value:
-        errors:
-        - code: Bad Request
-          title: parameterError:['_id'] is not a valid parameter(s)
-          id: 7af3d86ca5954503b9244f2620fcf5eb
   schemas:
     errorExample:
       type: object
@@ -167,6 +109,16 @@ components:
           description: Specifies the id
           type: string
           example: abc123
+    status:
+      type: object
+      description: specifies the error message fields in the response
+      properties:
+        errors:
+          type: array
+          description: An array containing errors
+          items:
+            $ref: '#/components/schemas/errorExample'
+          example: []
     coverageTickHistory:
       title: Coverage Object
       type: object
@@ -224,17 +176,79 @@ components:
           items:
             $ref: '#/components/schemas/coverageTickHistory'
           example: []
-    status:
-      type: object
-      description: specifies the error message fields in the response
-      properties:
+  examples:
+    sampleCoverageResponse:
+      summary: sample Response
+      value:
+        data:
+        - ticker: IBM
+          factsetExchangeCode: MUN
+          startDate: '2012-01-02'
+          latestTradeDate: '2023-01-01'
+          companyName: International Business Machines
+          isin: US3030751057
+          currency: USD
+          lastExchangeCode: '14002'
+          lastExchangeName: NYSE - Nasdaq Regional
+          primaryTickerExchange: IBM-NYS
+        - ticker: IBM
+          factsetExchangeCode: CAN
+          startDate: '2012-01-02'
+          latestTradeDate: '2023-01-01'
+          companyName: International Business Machines
+          isin: US3030751057
+          currency: EUR
+          lastExchangeCode: '257'
+          lastExchangeName: Turquoise
+          primaryTickerExchange: NOKIA-EUR
+    400Example:
+      summary: Sample error Response
+      value:
         errors:
-          type: array
-          description: An array containing errors
-          items:
-            $ref: '#/components/schemas/errorExample'
-          example: []
+        - code: Bad Request
+          title: parameterError:['_id'] is not a valid parameter(s)
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    401Example:
+      summary: sample error response
+      value:
+        errors:
+        - code: Not Authenticated
+          title: USERNAME-SERIAL does not have permission
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    403Example:
+      summary: sample error response
+      value:
+        errors:
+        - code: Forbidden
+          title: USERNAME-SERIAL does not have permission
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    500Example:
+      summary: sample error response
+      value:
+        errors:
+        - code: Internal server error
+          title: An unexpected error happened
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    429Example:
+      summary: sample error response
+      value:
+        errors:
+        - code: Too Many Requests
+          title: quantityLimitsExceeded
+          id: 7af3d86ca5954503b9244f2620fcf5eb
   parameters:
+    isoCodeCoverage:
+      name: factsetExchangeCode
+      in: query
+      description: '<p>This parameter is used to filter the results based on the FactSet specific regional or composite exchange code.</p>
+
+        **NOTE**:Does not support multiple factsetExchangeCodes'
+      required: false
+      example: AUS
+      schema:
+        type: string
+        minItems: 1
+        maxItems: 1
     isin:
       name: isins
       in: query
@@ -282,22 +296,16 @@ components:
           value:
           - CBA
           - BHP
-    isoCodeCoverage:
-      name: factsetExchangeCode
-      in: query
-      description: '<p>This parameter is used to filter the results based on the FactSet specific regional or composite exchange code.</p>
-
-        **NOTE**:Does not support multiple factsetExchangeCodes'
-      required: false
-      example: AUS
-      schema:
-        type: string
-        minItems: 1
-        maxItems: 1
   securitySchemes:
-    basicAuth:
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
+    FactSetApiKey:
       type: http
       scheme: basic
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
   description: API Documentation
+  url: https://developer.factset.com/api-catalog/factset-tick-history-api

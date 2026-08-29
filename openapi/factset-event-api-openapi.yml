@@ -1,20 +1,20 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Event API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  title: FactSet Signals Event API
+  description: '
+
+    Leverage Signals to identify material events for a company. Signals are
+
+    derived from FactSet''s core data,  cognitive computing technology, and our
+
+    3rd party partners. '
+  version: 2.6.0
   contact:
-    name: FactSet Research Systems
-    url: https://developer.factset.com/contact
-    email: api@factset.com
-  license:
-    name: Apache License, Version 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+    name: Signals API Support
+    email: signals.api@factset.com
 servers:
-- url: https://api.factset.com
+- url: https://api.factset.com/signals/v2
   description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
 security:
 - basicAuth: []
 tags:
@@ -68,60 +68,50 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
+  parameters:
+    eventIdParam:
+      name: eventId
+      in: path
+      required: true
+      description: The UUID of the event to return.
+      schema:
+        type: string
+        format: uuid
+        minimum: 1
+  headers:
+    Api-Supported-Versions:
+      description: Comma-separated list of supported major versions.
+      schema:
+        type: string
+        example: '1'
+    RateLimit-Reset:
+      description: Time remaining (in seconds) until the quota is reset.
+      schema:
+        type: integer
+        example: 1000
+    Api-Version:
+      description: Full semantic version of the API.
+      schema:
+        type: string
+        example: 1.0.0
+    RateLimit-Limit:
+      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
+      schema:
+        type: integer
+        example: 5
+    RateLimit-Remaining:
+      description: Remaining number of requests in the current time window.
+      schema:
+        type: integer
+        example: 4
   schemas:
-    eventDetailDataItem:
-      allOf:
-      - $ref: '#/components/schemas/eventHeadlineDataItem'
-      - type: object
-        required:
-        - created
-        - updated
-        - details
-        properties:
-          created:
-            type: string
-            format: date-time
-            description: Date/Time in UTC the event was first recorded in our data store.
-            example: '2021-04-26T06:39:40.094Z'
-          updated:
-            type: string
-            format: date-time
-            description: Date/Time in UTC the event was last updated.
-            example: '2021-04-26T06:39:40.094Z'
-          details:
-            type: object
-            description: Signal specific event properties.
-            additionalProperties: true
-    eventDetail:
-      type: object
-      required:
-      - data
-      - meta
+    rateLimitResponse:
+      title: Rate Limit Error Object
+      description: Error returned if any of the user's rate limit have been reached.
       properties:
-        data:
-          $ref: '#/components/schemas/eventDetailDataItem'
-        meta:
-          $ref: '#/components/schemas/eventMeta'
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/errorItem'
-          example: []
-    idResolutionsMeta:
-      type: object
-      properties:
-        tickerRegion:
-          type: object
-          additionalProperties:
-            type: string
-            nullable: true
-          example: example_value
-        regionalPermId:
-          type: object
-          additionalProperties:
-            type: string
-            nullable: true
-          example: '500123'
+        message:
+          type: string
+          example: API rate limit exceeded
     eventHeadlineDataItem:
       type: object
       required:
@@ -183,6 +173,21 @@ components:
           format: date-time
           description: Date/Time in UTC the event was first recorded in our data store.
           example: '2021-04-26T06:39:40.094Z'
+    errorResponse:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+          description: A short description of the error.
+          example: There was an error processing your request. Please try again later.
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errorItem'
+          description: Optional list of errors. e.g. Validation errors for multiple parameters
+          example: []
     errorItem:
       type: object
       required:
@@ -209,27 +214,20 @@ components:
             parameter:
               type: string
           example: example_value
-    rateLimitResponse:
-      title: Rate Limit Error Object
-      description: Error returned if any of the user's rate limit have been reached.
-      properties:
-        message:
-          type: string
-          example: API rate limit exceeded
-    errorResponse:
+    eventDetail:
       type: object
       required:
-      - message
+      - data
+      - meta
       properties:
-        message:
-          type: string
-          description: A short description of the error.
-          example: There was an error processing your request. Please try again later.
+        data:
+          $ref: '#/components/schemas/eventDetailDataItem'
+        meta:
+          $ref: '#/components/schemas/eventMeta'
         errors:
           type: array
           items:
             $ref: '#/components/schemas/errorItem'
-          description: Optional list of errors. e.g. Validation errors for multiple parameters
           example: []
     eventMeta:
       type: object
@@ -243,46 +241,47 @@ components:
           example: '500123'
         idResolutions:
           $ref: '#/components/schemas/idResolutionsMeta'
-  headers:
-    RateLimit-Reset:
-      description: Time remaining (in seconds) until the quota is reset.
-      schema:
-        type: integer
-        example: 1000
-    Api-Version:
-      description: Full semantic version of the API.
-      schema:
-        type: string
-        example: 1.0.0
-    RateLimit-Remaining:
-      description: Remaining number of requests in the current time window.
-      schema:
-        type: integer
-        example: 4
-    RateLimit-Limit:
-      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
-      schema:
-        type: integer
-        example: 5
-    Api-Supported-Versions:
-      description: Comma-separated list of supported major versions.
-      schema:
-        type: string
-        example: '1'
-  parameters:
-    eventIdParam:
-      name: eventId
-      in: path
-      required: true
-      description: The UUID of the event to return.
-      schema:
-        type: string
-        format: uuid
-        minimum: 1
+    idResolutionsMeta:
+      type: object
+      properties:
+        tickerRegion:
+          type: object
+          additionalProperties:
+            type:
+            - string
+            - 'null'
+          example: example_value
+        regionalPermId:
+          type: object
+          additionalProperties:
+            type:
+            - string
+            - 'null'
+          example: '500123'
+    eventDetailDataItem:
+      allOf:
+      - $ref: '#/components/schemas/eventHeadlineDataItem'
+      - type: object
+        required:
+        - created
+        - updated
+        - details
+        properties:
+          created:
+            type: string
+            format: date-time
+            description: Date/Time in UTC the event was first recorded in our data store.
+            example: '2021-04-26T06:39:40.094Z'
+          updated:
+            type: string
+            format: date-time
+            description: Date/Time in UTC the event was last updated.
+            example: '2021-04-26T06:39:40.094Z'
+          details:
+            type: object
+            description: Signal specific event properties.
+            additionalProperties: true
   securitySchemes:
     basicAuth:
       type: http
       scheme: basic
-externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
-  description: API Documentation

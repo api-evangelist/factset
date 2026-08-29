@@ -1,22 +1,22 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Factset Options API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  title: Factset Options API
+  version: 1.0.0
+  description: 'The Option Prices database provides pricing data such as mid bid-ask price, reference data (e.g., strike price), and risk measures (e.g., Greeks and implied volatility). Visit [Options Overview OA Page # 14925](https://my.apps.factset.com/oa/pages/14925) for details on database coverage. U.S. exchange-traded option bid and ask quotes are continuously updated throughout the day even when no trades have occurred on the option (zero volume). The end-of-day closing bid and ask quotes are always in line with the underlying closing price.
+
+
+    **Note**
+
+    * Currently in Beta only **OPRA** exchanges are supported.
+
+    '
   contact:
     name: FactSet Research Systems
-    url: https://developer.factset.com/contact
     email: api@factset.com
-  license:
-    name: Apache License, Version 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.factset.com/content
 security:
-- basicAuth: []
+- BasicAuth: []
 tags:
 - name: Factset Options
 paths:
@@ -366,236 +366,6 @@ paths:
           $ref: '#/components/responses/500'
 components:
   schemas:
-    chains:
-      title: chains
-      type: object
-      properties:
-        fsymId:
-          description: FactSet's Security Permanent Identifier in XXXXXX-S format for the underlying security requested.
-          type: string
-          example: WWDPYB-S
-          x-fds-fql-formula: FSYM_SECURITY_PERM_ID
-          nullable: true
-        optionId:
-          description: The option id, in the format requested via `idType` parameter.
-          type: string
-          example: TSLA.US#C00LP
-          x-fds-fql-formula: P_OPT_SYMBOL
-          nullable: true
-        idType:
-          description: The type of id requested in the query. This is a straight pass-through value.
-          type: string
-          example: FOS
-          x-fds-fql-formula: NOT APPLICABLE - PASSTHROUGH
-          nullable: true
-        date:
-          description: The date the data is as of in YYYY-MM-DD format.
-          type: string
-          format: date
-          example: '2021-05-07'
-          x-fds-fql-formula: P_DATE
-          nullable: true
-        requestId:
-          description: The inputed value for the id parameter.
-          type: string
-          example: TSLA
-    underlyingIds:
-      title: underlyingIds
-      type: array
-      description: "Underlying Security Identifier of which can be used to return respective options chain. Only **one** security id is permitted per request. \n"
-      items:
-        type: string
-      minItems: 1
-      maxItems: 1
-      example:
-      - TSLA-US
-    snapshot:
-      title: snapshot
-      type: object
-      description: Snapshot Response fields
-      properties:
-        fsymId:
-          description: FactSet's Option Symbol. For more detail, visit [OA 12636](https://my.apps.factset.com/oa/pages/12636#options)
-          type: string
-          example: TSLA.US#CD33M-USA
-          x-fds-fql-formula: P_OPT_SYMBOL
-          nullable: true
-        date:
-          description: The date the data is as of in YYYY-MM-DD
-          type: string
-          format: date
-          example: '2021-04-13'
-          x-fds-fql-formula: P_DATE
-          nullable: true
-        delta:
-          description: 'The ratio comparing the change in the price of the underlying asset to the corresponding change in the price of a derivative. Sometimes referred to as the "hedge ratio". For example, with respect to call options, a delta of 0.7 means that for every $1 the underlying stock increases, the call option will increase by $0.70. Put option deltas, on the other hand, will be negative, because as the underlying security increases, the value of the option will decrease. So a put option with a delta of -0.7 will decrease by $0.70 for every $1 the underlying increases in price. As an in-the-money call option nears expiration, it will approach a delta of 1.00, and as an in-the-money put option nears expiration, it will approach a delta of -1.00.
-
-            '
-          type: number
-          format: double
-          example: 0.77158491
-          x-fds-fql-formula: P_OPT_DELTA
-          nullable: true
-        expirationDate:
-          description: The expiration date of the option contract in YYYY-MM-DD format
-          type: string
-          format: date
-          example: '2021-12-17'
-          x-fds-fql-formula: P_OPT_EXP_DATEN
-          nullable: true
-        impliedVolatility:
-          description: 'The implied volatility for the option identifier. Visit [OA 14932](https://my.apps.factset.com/oa/pages/14932)
-
-            '
-          type: number
-          format: double
-          example: 66.226879
-          x-fds-fql-formula: P_OPT_IMPV
-          nullable: true
-        name:
-          description: The name of the option security.
-          type: string
-          example: Tesla Inc Call DEC21 590.00
-          x-fds-fql-formula: P_OPT_SECURITY_NAME
-          nullable: true
-        openInterest:
-          description: The total number of options and/or futures contracts that are not closed or delivered on a particular day.
-          type: integer
-          example: 92
-          x-fds-fql-formula: P_OPT_OPEN_INTEREST
-          nullable: true
-        price:
-          description: 'The calculated price quote, based on the calculated status. For US Options - Returns "Ask Price" if calc status==20, otherwise returns "Mid Bid/Ask Price". For International Options - Returns "Settlement Price".
-
-            '
-          type: number
-          format: double
-          example: 247.425
-          x-fds-fql-formula: P_OPT_CALC_QUOTE
-          nullable: true
-        requestId:
-          description: The input value for the id parameter.
-          type: string
-          example: TSLA.US#CD33M-USA
-        style:
-          description: "Returns the style of the option id requested, where - \n\n|style|description|\n|||\n|0|American|\n|1|European|\n\nAn American style option can be exercised anytime during its life. The majority of exchange-traded options are American. \n\nSince investors have the freedom to exercise their American options at any point during the life of the contract, they are more valuable than European options which can only be exercised at maturity. \n\nConsider this example- If you bought a Ford March Call option expiring in March of 2006, in March 2005 you would have the right to exercise the call option at anytime up until its expiration date. Had the Ford option been a European option, you could only exercise the option at the expiry date in March 2006. During the year, the share price could have been most optimal for exercise in December of 2005, but you would have to wait to exercise your option until March 2006, where it could be out of the money and virtually worthless. The name of this option style has nothing to do with the geographic location.\n"
-          type: integer
-          example: 0
-          x-fds-fql-formula: P_OPT_STYLE
-          nullable: true
-        type:
-          description: "The option type code, where \n|code|description|\n|||\n|0|Equity Option|\n|2|Index Option|\n|99|Option on an ETF|\n|60|Option on a Future|\n|19|Option on a Spot FX Rate|\n"
-          type: integer
-          example: 1
-          x-fds-fql-formula: P_OPT_OPTION_TYPE
-          nullable: true
-        underlyingFsymSecurityId:
-          description: 'The Symbol of the security that must be delivered when a derivative contract, such as a put or call option, is exercised. This is represented in FactSet''s Permanent Security Identifier format (XXXXXX-S).
-
-            '
-          type: string
-          example: WWDPYB-S
-          x-fds-fql-formula: P_OPT_UNDERLYING_SECURITY
-          nullable: true
-        underlyingPrice:
-          description: 'The price of the underyling security as of the date requested.
-
-            '
-          type: number
-          format: double
-          example: 762.32
-          x-fds-fql-formula: P_OPT_UNDERLYING_PRICE
-          nullable: true
-    atmImpliedVolatilityResponse:
-      title: atmImpliedVolatilityResponse
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/atmImpliedVolatility'
-    atmImpliedVolatilityRequest:
-      title: atmImpliedVolatilityRequest
-      type: object
-      description: At-the-Money Implied Volatility Request Object
-      properties:
-        ids:
-          $ref: '#/components/schemas/underlyingIds'
-        startDate:
-          $ref: '#/components/schemas/startDate'
-        endDate:
-          $ref: '#/components/schemas/endDate'
-        frequency:
-          $ref: '#/components/schemas/frequency'
-        exchange:
-          $ref: '#/components/schemas/exchange'
-        period:
-          $ref: '#/components/schemas/period'
-      required:
-      - ids
-    underlyingVolumeRequest:
-      title: underlyingVolumeRequest
-      type: object
-      description: Underlying Volume Request Object
-      properties:
-        ids:
-          $ref: '#/components/schemas/underlyingIds'
-        startDate:
-          $ref: '#/components/schemas/startDate'
-        endDate:
-          $ref: '#/components/schemas/endDate'
-        frequency:
-          $ref: '#/components/schemas/frequency'
-        exchange:
-          $ref: '#/components/schemas/exchange'
-      required:
-      - ids
-    optionsPricesRequest:
-      title: optionsPricesRequest
-      type: object
-      properties:
-        ids:
-          $ref: '#/components/schemas/optionIds'
-        startDate:
-          $ref: '#/components/schemas/startDate'
-        endDate:
-          $ref: '#/components/schemas/endDate'
-        frequency:
-          $ref: '#/components/schemas/frequency'
-        currency:
-          $ref: '#/components/schemas/currency'
-        calendar:
-          $ref: '#/components/schemas/calendar'
-      required:
-      - ids
-    optionsReferencesRequest:
-      type: object
-      properties:
-        ids:
-          $ref: '#/components/schemas/optionIds'
-      required:
-      - ids
-    optionIds:
-      title: optionIds
-      type: array
-      description: 'Option Security Identifier. For more details visit [OA 12636 - Options Identifiers](https://my.apps.factset.com/oa/pages/12636#options)
-
-        '
-      items:
-        type: string
-      minItems: 1
-      maxItems: 1000
-      example:
-      - TSLA.US#CD33M-USA
-    optionsPricesResponse:
-      title: optionsPricesResponse
-      type: object
-      description: Options Prices Response
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/optionsPrices'
     impliedVolatility:
       title: volatility
       type: object
@@ -613,36 +383,51 @@ components:
             * Barone-Adesi model used for American Style options and Black-Scholes model for European Style options.
 
             '
-          type: number
+          type:
+          - number
+          - 'null'
           format: double
           example: 61.744664
           x-fds-fql-formula: P_OPT_IMPV
-          nullable: true
         date:
           description: The date the data is as of in YYYY-MM-DD format.
-          type: string
+          type:
+          - string
+          - 'null'
           format: date
           example: '2021-05-07'
-          nullable: true
         fsymId:
           description: FactSet's Option Symbol. For more detail, visit [OA 12636](https://my.apps.factset.com/oa/pages/12636#options)
-          type: string
+          type:
+          - string
+          - 'null'
           example: TSLA.US#CD33M
           x-fds-fql-formula: P_OPT_SYMBOL('FOS')
-          nullable: true
         requestId:
           description: The requested identifier submitted in the query.
           type: string
           example: TSLA.US#CD33M-USA
-    calendar:
-      type: string
-      enum:
-      - FIVEDAY
-      - SEVENDAY
-      - LOCAL
-      default: FIVEDAY
-      description: Calendar of data returned. SEVENDAY includes weekends. LOCAL calendar will default to the securities' trading calendar which excludes date records for respective holiday periods.
-      example: FIVEDAY
+    optionScreening:
+      title: optionScreening
+      type: object
+      properties:
+        optionId:
+          type:
+          - string
+          - 'null'
+          description: The option identifier
+          example: AAPL.US#C0185
+          x-fds-fql-formula: P_OPT_SCREENING
+      description: Option Screening response fields
+    greeksResponse:
+      title: greeksResponse
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/greeks'
+      description: Greeks Response Object
     greeksRequest:
       title: greeksRequest
       type: object
@@ -662,339 +447,6 @@ components:
           $ref: '#/components/schemas/calendar'
       required:
       - ids
-    endDate:
-      title: endDate
-      type: string
-      description: The end date requested for a given date range in **YYYY-MM-DD** format. If left blank, the API will default to previous close. Future dates (T+1) are not accepted in this endpoint.
-      example: '2021-05-03'
-    snapshotResponse:
-      title: snapshotResponse
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/snapshot'
-    greeksResponse:
-      title: greeksResponse
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/greeks'
-      description: Greeks Response Object
-    chainsResponse:
-      title: chainsResponse
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/chains'
-    optionsVolume:
-      title: optionsVolume
-      type: object
-      description: Options Volume Response Object
-      properties:
-        fsymId:
-          description: FactSet's Option Symbol. For more detail, visit [OA 12636](https://my.apps.factset.com/oa/pages/12636#options)
-          type: string
-          example: TSLA.US#PYG8L
-          x-fds-fql-formula: P_OPT_SYMBOL('FOS')
-          nullable: true
-        date:
-          description: The date of the data in YYYY-MM-DD format
-          type: string
-          format: date
-          example: '2021-05-06'
-          x-fds-fql-formula: P_DATE
-          nullable: true
-        exchange:
-          description: Option Exchange ISO. Visit [OA 14925](https://my.apps.factset.com/oa/pages/14925) for a list of Exchange ISOs.
-          type: string
-          example: USA
-          x-fds-fql-formula: P_OPT_EXCHANGE
-          nullable: true
-        openInterest:
-          description: The total number of options and/or futures contracts that are not closed or delivered on a particular day.
-          type: number
-          format: integer
-          example: 92
-          x-fds-fql-formula: P_OPT_OPEN_INTEREST
-          nullable: true
-        volume:
-          description: Volume of the option
-          type: number
-          format: double
-          example: 3017
-          x-fds-fql-formula: P_OPT_VOLUME
-          nullable: true
-        requestId:
-          description: The requested identifier submitted in the query.
-          type: string
-          example: TSLA.US#PYG8L-USA
-    chainsRequest:
-      title: chainsRequest
-      type: object
-      properties:
-        ids:
-          $ref: '#/components/schemas/underlyingIds'
-        date:
-          $ref: '#/components/schemas/chainsDate'
-        idType:
-          $ref: '#/components/schemas/idType'
-        exchange:
-          $ref: '#/components/schemas/exchange'
-      required:
-      - ids
-    impliedVolatilityRequest:
-      type: object
-      properties:
-        ids:
-          $ref: '#/components/schemas/optionIds'
-        startDate:
-          $ref: '#/components/schemas/startDate'
-        endDate:
-          $ref: '#/components/schemas/endDate'
-        frequency:
-          $ref: '#/components/schemas/frequency'
-        priceType:
-          $ref: '#/components/schemas/priceType'
-      required:
-      - ids
-    period:
-      type: integer
-      minimum: 0
-      maximum: 6
-      description: "The period for the options to calculate at the money volatility. Below are the available periods - \n* No Limit - (0)\n* One Month - (1)\n* Two Months - (2)\n* Three Months - (3)\n* Four Months - (4)\n* Five Months - (5)\n* Six Months - (6)"
-      default: 0
-    optionsDates:
-      title: optionDates
-      type: object
-      description: Options Dates Response Fields
-      properties:
-        expirationDate:
-          description: The date on which an options contract is no longer valid and, therefore, ceases to exist in YYYY-MM-DD format.
-          type: string
-          format: date
-          example: '2021-09-17'
-          x-fds-fql-formula: P_OPT_EXP_DATEN
-          nullable: true
-        firstAskDate:
-          description: The date of first ask price for the option in YYYY-MM-DD format.
-          type: string
-          format: date
-          example: '2020-08-31'
-          x-fds-fql-formula: P_OPT_FIRST_ASK_DATE
-          nullable: true
-        firstBidDate:
-          description: The date of first bid price for the option in YYYY-MM-DD format.
-          type: string
-          format: date
-          example: '2020-08-31'
-          x-fds-fql-formula: P_OPT_FIRST_BID_DATE
-          nullable: true
-        firstSettlementDate:
-          description: The date of first settlement price for the option in YYYY-MM-DD format.
-          type: string
-          format: date
-          example: null
-          x-fds-fql-formula: P_OPT_FIRST_SETTLE_DATE
-          nullable: true
-        firstTradeDate:
-          description: First Trading Date of the Option in YYYY-MM-DD format.
-          type: string
-          format: date
-          example: '2020-09-01'
-          x-fds-fql-formula: P_OPT_FIRST_TRADE_DATE
-          nullable: true
-        lastAskDate:
-          description: The date of last ask price for the option in YYYY-MM-DD format.
-          type: string
-          format: date
-          example: '2021-05-05'
-          x-fds-fql-formula: P_OPT_LAST_ASK_DATE
-          nullable: true
-        lastBidDate:
-          description: The date of last bid price for the option in YYYY-MM-DD format.
-          type: string
-          format: date
-          example: '2021-05-05'
-          x-fds-fql-formula: P_OPT_LAST_BID_DATE
-          nullable: true
-        lastSettlementDate:
-          description: The date of last settlement price for the option in YYYY-MM-DD format.
-          type: string
-          format: date
-          example: null
-          x-fds-fql-formula: P_OPT_LAST_SETTLE_DATE
-          nullable: true
-        lastTradeDate:
-          description: Last Trading Date of the Option in YYYY-MM-DD format.
-          type: string
-          format: date
-          example: '2021-02-16'
-          x-fds-fql-formula: P_OPT_LAST_TRADE_DATE
-          nullable: true
-        date:
-          description: The date the data is as of in YYYY-MM-DD format.
-          type: string
-          format: date
-          example: '2021-05-07'
-          nullable: true
-        fsymId:
-          description: FactSet's Option Symbol. For more detail, visit [OA 12636](https://my.apps.factset.com/oa/pages/12636#options)
-          type: string
-          example: TSLA.US#C00LP
-          x-fds-fql-formula: P_OPT_SYMBOL('FOS')
-          nullable: true
-        requestId:
-          description: The requested identifier submitted in the query.
-          type: string
-          example: TSLA.US#C00LP
-    underlyingVolume:
-      title: underlyingVolume
-      type: object
-      description: Underlying Volume response fields
-      properties:
-        date:
-          description: The date of data as of the YYYY-MM-DD format.
-          type: string
-          format: date
-          example: '2021-05-14'
-          nullable: true
-        exchange:
-          description: Option Exchange ISO. Visit [OA 14925](https://my.apps.factset.com/oa/pages/14925) for a list of Exchange ISOs.
-          type: string
-          example: USA
-          nullable: true
-        fsymId:
-          description: FactSet's Security Permanent Identifier for input security in XXXXXX-S format.
-          type: string
-          example: WWDPYB-S
-          x-fds-fql-formula: FSYM_SECURITY_PERM_ID('SECURITY')
-          nullable: true
-        putCallRatio:
-          description: Put/Call Ratio (Open Interest)
-          type: number
-          format: double
-          example: 1.0257621
-          x-fds-fql-formula: P_OPT_OI_PC_RATIO
-          nullable: true
-        requestId:
-          description: The requested identifier submitted in the query.
-          type: string
-          example: TSLA
-        totalCallOpenInterest:
-          description: Total Call Open Interest
-          type: number
-          format: integer
-          example: 2753464
-          x-fds-fql-formula: P_OPT_CALL_OPEN_INTEREST
-          nullable: true
-        totalCallVolume:
-          description: Total Call Volume
-          type: number
-          format: double
-          example: 946936
-          x-fds-fql-formula: P_OPT_CALL_VOLUME
-          nullable: true
-        totalPutCallOpenInterest:
-          description: Total Call/Put Open Interest
-          type: number
-          format: integer
-          example: 5577863
-          x-fds-fql-formula: P_OPT_ALL_OPEN_INTEREST
-          nullable: true
-        totalPutCallVolume:
-          description: Total Call/Put Volume
-          type: number
-          format: double
-          example: 1646616
-          x-fds-fql-formula: P_OPT_ALL_VOLUME
-          nullable: true
-        totalPutOpenInterest:
-          description: Total Put Open Interest
-          type: number
-          format: integer
-          example: 2824399
-          x-fds-fql-formula: P_OPT_PUT_OPEN_INTEREST
-          nullable: true
-        totalPutVolume:
-          description: Total Put Volume
-          type: number
-          format: double
-          example: 699680
-          x-fds-fql-formula: P_OPT_PUT_VOLUME
-          nullable: true
-    atmImpliedVolatility:
-      title: atmImpliedVolatility
-      type: object
-      description: At-the-money implied volatility response fields
-      properties:
-        aTMImplVol:
-          description: Option at the money implied volatility.
-          type: number
-          format: double
-          example: 58.015339
-          nullable: true
-        aTMImplVolMarket:
-          description: Option at the money implied volatility market.
-          type: number
-          format: double
-          example: 58.579093
-          nullable: true
-        callATMImplVol:
-          description: Call option at the money implied volatility.
-          type: number
-          format: double
-          example: 58.015339
-          nullable: true
-        callATMImplVolMarket:
-          description: Call option at the money implied volatility market.
-          type: number
-          example: 58.791874
-          format: double
-          nullable: true
-        date:
-          description: The date of the data represented in YYYY-MM-DD format
-          type: string
-          format: date
-          example: '2021-05-14'
-          nullable: true
-        exchange:
-          description: Option Exchange ISO. Visit [OA 14925](https://my.apps.factset.com/oa/pages/14925) for a list of Exchange ISOs.
-          type: string
-          example: USA
-          nullable: true
-        fsymId:
-          description: FactSet's Security Permanent Identifier in XXXXXX-S format.
-          type: string
-          example: WWDPYB-S
-          x-fds-fql-formula: FSYM_SECURITY_PERM_ID
-          nullable: true
-        period:
-          description: The period of the At-the-money volatility at current, 1, 2, 3, 4, and 6 month periods.
-          type: string
-          example: '1'
-          nullable: true
-        putATMImplVol:
-          description: Put Option at the money implied volatility.
-          type: number
-          format: double
-          example: 58.015339
-          nullable: true
-        putATMImplVolMarket:
-          description: Put Option at the money implied volatility market.
-          type: number
-          example: 58.810684
-          format: double
-          nullable: true
-        requestId:
-          description: The requested identifier submitted in the query.
-          type: string
-          example: TSLA
     errorResponse:
       type: object
       title: Error Response
@@ -1034,6 +486,1038 @@ components:
               type: array
               items:
                 type: string
+    optionsReferences:
+      title: optionsReferences
+      type: object
+      description: Options Reference Response Fields
+      properties:
+        fsymId:
+          description: FactSet's Option Symbol. For more detail, visit [OA 12636](https://my.apps.factset.com/oa/pages/12636#options)
+          type:
+          - string
+          - 'null'
+          example: TSLA.US#C00LP
+          x-fds-fql-formula: P_OPT_SYMBOL('FOS')
+        adjustedFlag:
+          description: Indicates whether or not a given option contract is adjusted for corporate actions in Y/N format.
+          type:
+          - string
+          - 'null'
+          example: N
+          x-fds-fql-formula: P_OPT_ISADJUSTED
+        callPutFlag:
+          description: Returns a 0 if the option is a call, returns a 1 if the option is a put.
+          type:
+          - integer
+          - 'null'
+          example: 0
+          x-fds-fql-formula: P_OPT_CALL_OR_PUT
+        callPutPairSymbol:
+          description: Returns the corresponding put symbol given a call symbol; and vice-versa.
+          type:
+          - string
+          - 'null'
+          example: TSLA.US#PGGVL
+          x-fds-fql-formula: P_OPT_PC_PAIRS
+        contractSize:
+          description: The Option Contract Size
+          type:
+          - integer
+          - 'null'
+          example: 100
+          x-fds-fql-formula: P_OPT_CONTRACT_SIZE
+        currency:
+          description: Option Currency in ISO3 format.
+          type:
+          - string
+          - 'null'
+          example: USD
+          x-fds-fql-formula: P_OPT_CURRENCY
+        exchange:
+          description: Option Exchange ISO. Visit [OA 14925](https://my.apps.factset.com/oa/pages/14925) for a list of Exchange ISOs.
+          type:
+          - string
+          - 'null'
+          example: USA
+          x-fds-fql-formula: P_OPT_EXCHANGE
+        expirationDate:
+          description: The date on which an options contract is no longer valid and, therefore, ceases to exist, in YYYY-MM-DD format
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2021-09-17'
+          x-fds-fql-formula: P_OPT_EXP_DATEN
+        expirationFrequency:
+          description: Returns the corresponding expiration frequency for a given option symbol. If an option has more than four expiration months, then a Long-term Equity Anticipation Security (LEAPS) indicator will be returned.
+          type:
+          - string
+          - 'null'
+          example: LEAPS
+          x-fds-fql-formula: P_OPT_EXP_FREQ
+        expirationMonth:
+          description: Option Expiration month in MMM format.
+          type:
+          - string
+          - 'null'
+          example: SEP
+          x-fds-fql-formula: P_OPT_EXP_MONTH
+        lepoFlag:
+          description: Indicates whether or not a given options contract is a Low Exercise Price Option "LEPO" (0/1). This is unique to European Options (e.g. ASX exchange).
+          type:
+          - integer
+          - 'null'
+          example: null
+          x-fds-fql-formula: P_OPT_IS_LEPO
+        name:
+          description: Option Descriptive Security Name
+          type:
+          - string
+          - 'null'
+          example: Tesla Inc Call SEP21 190.00 (LEAPs)
+          x-fds-fql-formula: P_OPT_SECURITY_NAME
+        occ21Symbol:
+          description: 'Options Clearing Corporation OSI Series Key This option symbol has up to 21 alphanumeric characters (excluding -ISO and # sign) and uses the following syntax- (Underlying Symbol + # + Expiration Year + Expiration Month + Expiration Day + Call/Put Indicator + Five-Digit Strike Dollar + Three-Digit Strike Decimal + - + ISO)
+
+            '
+          type:
+          - string
+          - 'null'
+          example: TSLA#210917C00190000
+          x-fds-fql-formula: P_OPT_SYMBOL("OCC21")
+        opra17Symbol:
+          description: 'Options Price Reporting Authority''s OSI Series Key. This option symbol has up to 17 alphanumeric characters (excluding the -ISO and #) and uses the following syntax - (Underlying Symbol + # + Call/Put Expiration Month Code + Expiration Day + Expiration Year + Decimal Indicator + Strike Price + - + ISO)
+
+            '
+          type:
+          - string
+          - 'null'
+          example: TSLA#I1721C190000
+          x-fds-fql-formula: P_OPT_SYMBOL("OPRA17")
+        rootTicker:
+          description: The Root Ticker for the underlying security.
+          type:
+          - string
+          - 'null'
+          example: TSLA
+          x-fds-fql-formula: P_OPT_ROOT_SYMBOL
+        style:
+          description: "Returns the style of the option id requested, where - \n\n|style|description|\n|||\n|0|American|\n|1|European|\n\nAn American style option can be exercised anytime during its life. The majority of exchange-traded options are American.\n\nSince investors have the freedom to exercise their American options at any point during the life of the contract, they are more valuable than European options which can only be exercised at maturity.\n\nConsider this example -  If you bought a Ford March Call option expiring in March of 2006 in March 2005, you would have the right to exercise the call option at anytime up until its expiration date. Had the Ford option been a European option, you could only exercise the option at the expiry date in March '06. During the year, the share price could have been most optimal for exercise in December of 2005, but you would have to wait to exercise your option until March 2006, where it could be out-of-the-money and virtually worthless.\n\nNote that the name of this option style has nothing to do with the geographic location.\n"
+          type:
+          - integer
+          - 'null'
+          example: 0
+          x-fds-fql-formula: P_OPT_STYLE
+        type:
+          description: "The option type code, where \n|code|description|\n|||\n|0|Equity Option|\n|2|Index Option|\n|99|Option on an ETF|\n|60|Option on a Future|\n|19|Option on a Spot FX Rate|\n"
+          type:
+          - integer
+          - 'null'
+          example: 1
+          x-fds-fql-formula: P_OPT_OPTION_TYPE
+        underlyingFsymSecurityId:
+          description: Underlying FactSet Security Permanent Identifier in XXXXXX-S format.
+          type:
+          - string
+          - 'null'
+          example: WWDPYB-S
+        date:
+          description: The date the data is as of in YYYY-MM-DD format.
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2021-05-07'
+        settlementMethod:
+          description: 'The contract settlement method. Possible values are -
+
+            |method|description|
+
+            |||
+
+            |C|Cash|
+
+            |P|Physical|
+
+            |NA|Not Covered|
+
+            '
+          type:
+          - string
+          - 'null'
+          example: null
+        requestId:
+          description: The requested identifier submitted in the query.
+          type: string
+          example: TSLA.US#C00LP
+    snapshot:
+      title: snapshot
+      type: object
+      description: Snapshot Response fields
+      properties:
+        fsymId:
+          description: FactSet's Option Symbol. For more detail, visit [OA 12636](https://my.apps.factset.com/oa/pages/12636#options)
+          type:
+          - string
+          - 'null'
+          example: TSLA.US#CD33M-USA
+          x-fds-fql-formula: P_OPT_SYMBOL
+        date:
+          description: The date the data is as of in YYYY-MM-DD
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2021-04-13'
+          x-fds-fql-formula: P_DATE
+        delta:
+          description: 'The ratio comparing the change in the price of the underlying asset to the corresponding change in the price of a derivative. Sometimes referred to as the "hedge ratio". For example, with respect to call options, a delta of 0.7 means that for every $1 the underlying stock increases, the call option will increase by $0.70. Put option deltas, on the other hand, will be negative, because as the underlying security increases, the value of the option will decrease. So a put option with a delta of -0.7 will decrease by $0.70 for every $1 the underlying increases in price. As an in-the-money call option nears expiration, it will approach a delta of 1.00, and as an in-the-money put option nears expiration, it will approach a delta of -1.00.
+
+            '
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 0.77158491
+          x-fds-fql-formula: P_OPT_DELTA
+        expirationDate:
+          description: The expiration date of the option contract in YYYY-MM-DD format
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2021-12-17'
+          x-fds-fql-formula: P_OPT_EXP_DATEN
+        impliedVolatility:
+          description: 'The implied volatility for the option identifier. Visit [OA 14932](https://my.apps.factset.com/oa/pages/14932)
+
+            '
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 66.226879
+          x-fds-fql-formula: P_OPT_IMPV
+        name:
+          description: The name of the option security.
+          type:
+          - string
+          - 'null'
+          example: Tesla Inc Call DEC21 590.00
+          x-fds-fql-formula: P_OPT_SECURITY_NAME
+        openInterest:
+          description: The total number of options and/or futures contracts that are not closed or delivered on a particular day.
+          type:
+          - integer
+          - 'null'
+          example: 92
+          x-fds-fql-formula: P_OPT_OPEN_INTEREST
+        price:
+          description: 'The calculated price quote, based on the calculated status. For US Options - Returns "Ask Price" if calc status==20, otherwise returns "Mid Bid/Ask Price". For International Options - Returns "Settlement Price".
+
+            '
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 247.425
+          x-fds-fql-formula: P_OPT_CALC_QUOTE
+        requestId:
+          description: The input value for the id parameter.
+          type: string
+          example: TSLA.US#CD33M-USA
+        style:
+          description: "Returns the style of the option id requested, where - \n\n|style|description|\n|||\n|0|American|\n|1|European|\n\nAn American style option can be exercised anytime during its life. The majority of exchange-traded options are American. \n\nSince investors have the freedom to exercise their American options at any point during the life of the contract, they are more valuable than European options which can only be exercised at maturity. \n\nConsider this example- If you bought a Ford March Call option expiring in March of 2006, in March 2005 you would have the right to exercise the call option at anytime up until its expiration date. Had the Ford option been a European option, you could only exercise the option at the expiry date in March 2006. During the year, the share price could have been most optimal for exercise in December of 2005, but you would have to wait to exercise your option until March 2006, where it could be out of the money and virtually worthless. The name of this option style has nothing to do with the geographic location.\n"
+          type:
+          - integer
+          - 'null'
+          example: 0
+          x-fds-fql-formula: P_OPT_STYLE
+        type:
+          description: "The option type code, where \n|code|description|\n|||\n|0|Equity Option|\n|2|Index Option|\n|99|Option on an ETF|\n|60|Option on a Future|\n|19|Option on a Spot FX Rate|\n"
+          type:
+          - integer
+          - 'null'
+          example: 1
+          x-fds-fql-formula: P_OPT_OPTION_TYPE
+        underlyingFsymSecurityId:
+          description: 'The Symbol of the security that must be delivered when a derivative contract, such as a put or call option, is exercised. This is represented in FactSet''s Permanent Security Identifier format (XXXXXX-S).
+
+            '
+          type:
+          - string
+          - 'null'
+          example: WWDPYB-S
+          x-fds-fql-formula: P_OPT_UNDERLYING_SECURITY
+        underlyingPrice:
+          description: 'The price of the underyling security as of the date requested.
+
+            '
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 762.32
+          x-fds-fql-formula: P_OPT_UNDERLYING_PRICE
+    startDate:
+      type: string
+      title: startDate
+      description: The start date requested for a given date range in **YYYY-MM-DD** format. If left blank, the API will default to previous close. Future dates (T+1) are not accepted in this endpoint.
+      example: '2021-05-09'
+    optionsPricesResponse:
+      title: optionsPricesResponse
+      type: object
+      description: Options Prices Response
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/optionsPrices'
+    optionsDates:
+      title: optionDates
+      type: object
+      description: Options Dates Response Fields
+      properties:
+        expirationDate:
+          description: The date on which an options contract is no longer valid and, therefore, ceases to exist in YYYY-MM-DD format.
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2021-09-17'
+          x-fds-fql-formula: P_OPT_EXP_DATEN
+        firstAskDate:
+          description: The date of first ask price for the option in YYYY-MM-DD format.
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2020-08-31'
+          x-fds-fql-formula: P_OPT_FIRST_ASK_DATE
+        firstBidDate:
+          description: The date of first bid price for the option in YYYY-MM-DD format.
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2020-08-31'
+          x-fds-fql-formula: P_OPT_FIRST_BID_DATE
+        firstSettlementDate:
+          description: The date of first settlement price for the option in YYYY-MM-DD format.
+          type:
+          - string
+          - 'null'
+          format: date
+          example: null
+          x-fds-fql-formula: P_OPT_FIRST_SETTLE_DATE
+        firstTradeDate:
+          description: First Trading Date of the Option in YYYY-MM-DD format.
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2020-09-01'
+          x-fds-fql-formula: P_OPT_FIRST_TRADE_DATE
+        lastAskDate:
+          description: The date of last ask price for the option in YYYY-MM-DD format.
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2021-05-05'
+          x-fds-fql-formula: P_OPT_LAST_ASK_DATE
+        lastBidDate:
+          description: The date of last bid price for the option in YYYY-MM-DD format.
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2021-05-05'
+          x-fds-fql-formula: P_OPT_LAST_BID_DATE
+        lastSettlementDate:
+          description: The date of last settlement price for the option in YYYY-MM-DD format.
+          type:
+          - string
+          - 'null'
+          format: date
+          example: null
+          x-fds-fql-formula: P_OPT_LAST_SETTLE_DATE
+        lastTradeDate:
+          description: Last Trading Date of the Option in YYYY-MM-DD format.
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2021-02-16'
+          x-fds-fql-formula: P_OPT_LAST_TRADE_DATE
+        date:
+          description: The date the data is as of in YYYY-MM-DD format.
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2021-05-07'
+        fsymId:
+          description: FactSet's Option Symbol. For more detail, visit [OA 12636](https://my.apps.factset.com/oa/pages/12636#options)
+          type:
+          - string
+          - 'null'
+          example: TSLA.US#C00LP
+          x-fds-fql-formula: P_OPT_SYMBOL('FOS')
+        requestId:
+          description: The requested identifier submitted in the query.
+          type: string
+          example: TSLA.US#C00LP
+    optionsVolumeResponse:
+      title: optionsVolumeResponse
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/optionsVolume'
+    atmImpliedVolatility:
+      title: atmImpliedVolatility
+      type: object
+      description: At-the-money implied volatility response fields
+      properties:
+        aTMImplVol:
+          description: Option at the money implied volatility.
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 58.015339
+        aTMImplVolMarket:
+          description: Option at the money implied volatility market.
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 58.579093
+        callATMImplVol:
+          description: Call option at the money implied volatility.
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 58.015339
+        callATMImplVolMarket:
+          description: Call option at the money implied volatility market.
+          type:
+          - number
+          - 'null'
+          example: 58.791874
+          format: double
+        date:
+          description: The date of the data represented in YYYY-MM-DD format
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2021-05-14'
+        exchange:
+          description: Option Exchange ISO. Visit [OA 14925](https://my.apps.factset.com/oa/pages/14925) for a list of Exchange ISOs.
+          type:
+          - string
+          - 'null'
+          example: USA
+        fsymId:
+          description: FactSet's Security Permanent Identifier in XXXXXX-S format.
+          type:
+          - string
+          - 'null'
+          example: WWDPYB-S
+          x-fds-fql-formula: FSYM_SECURITY_PERM_ID
+        period:
+          description: The period of the At-the-money volatility at current, 1, 2, 3, 4, and 6 month periods.
+          type:
+          - string
+          - 'null'
+          example: '1'
+        putATMImplVol:
+          description: Put Option at the money implied volatility.
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 58.015339
+        putATMImplVolMarket:
+          description: Put Option at the money implied volatility market.
+          type:
+          - number
+          - 'null'
+          example: 58.810684
+          format: double
+        requestId:
+          description: The requested identifier submitted in the query.
+          type: string
+          example: TSLA
+    chainsRequest:
+      title: chainsRequest
+      type: object
+      properties:
+        ids:
+          $ref: '#/components/schemas/underlyingIds'
+        date:
+          $ref: '#/components/schemas/chainsDate'
+        idType:
+          $ref: '#/components/schemas/idType'
+        exchange:
+          $ref: '#/components/schemas/exchange'
+      required:
+      - ids
+    chainsResponse:
+      title: chainsResponse
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/chains'
+    idType:
+      type: string
+      title: idType
+      description: "Controls the type of option id or symbol returned in response of the Option Chain. For more details visit - [OA 12636](https://my.apps.factset.com/oa/pages/12636#options)\n  |idType|Type Name|Description|\n  ||||\n  |FOS|FactSet Option Symbology|This option symbol is a unique FactSet-generated symbol with the following syntax - (Underlying Symbol + . + Region + # + Call/Put Indicator + Four Alphanumeric Characters + - + ISO)|\n  |OCC21|Options Clearing Corporation OSI Series Key|This option symbol has up to 21 alphanumeric characters (excluding -ISO and # sign) and uses the following syntax- (Underlying Symbol + # + Expiration Year + Expiration Month + Expiration Day + Call/Put Indicator + Five-Digit Strike Dollar + Three-Digit Strike Decimal + - + ISO)|\n  |OPRA17|Options Price Reporting Authority's OSI Series Key|This option symbol has up to 17 alphanumeric characters (excluding the -ISO and #) and uses the following syntax - (Underlying Symbol + # + Call/Put Expiration Month Code + Expiration Day + Expiration Year + Decimal Indicator + Strike Price + - + ISO)|"
+      enum:
+      - FOS
+      - OPRA17
+      - OCC21
+      default: FOS
+      example: FOS
+    underlyingVolume:
+      title: underlyingVolume
+      type: object
+      description: Underlying Volume response fields
+      properties:
+        date:
+          description: The date of data as of the YYYY-MM-DD format.
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2021-05-14'
+        exchange:
+          description: Option Exchange ISO. Visit [OA 14925](https://my.apps.factset.com/oa/pages/14925) for a list of Exchange ISOs.
+          type:
+          - string
+          - 'null'
+          example: USA
+        fsymId:
+          description: FactSet's Security Permanent Identifier for input security in XXXXXX-S format.
+          type:
+          - string
+          - 'null'
+          example: WWDPYB-S
+          x-fds-fql-formula: FSYM_SECURITY_PERM_ID('SECURITY')
+        putCallRatio:
+          description: Put/Call Ratio (Open Interest)
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 1.0257621
+          x-fds-fql-formula: P_OPT_OI_PC_RATIO
+        requestId:
+          description: The requested identifier submitted in the query.
+          type: string
+          example: TSLA
+        totalCallOpenInterest:
+          description: Total Call Open Interest
+          type:
+          - number
+          - 'null'
+          format: integer
+          example: 2753464
+          x-fds-fql-formula: P_OPT_CALL_OPEN_INTEREST
+        totalCallVolume:
+          description: Total Call Volume
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 946936
+          x-fds-fql-formula: P_OPT_CALL_VOLUME
+        totalPutCallOpenInterest:
+          description: Total Call/Put Open Interest
+          type:
+          - number
+          - 'null'
+          format: integer
+          example: 5577863
+          x-fds-fql-formula: P_OPT_ALL_OPEN_INTEREST
+        totalPutCallVolume:
+          description: Total Call/Put Volume
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 1646616
+          x-fds-fql-formula: P_OPT_ALL_VOLUME
+        totalPutOpenInterest:
+          description: Total Put Open Interest
+          type:
+          - number
+          - 'null'
+          format: integer
+          example: 2824399
+          x-fds-fql-formula: P_OPT_PUT_OPEN_INTEREST
+        totalPutVolume:
+          description: Total Put Volume
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 699680
+          x-fds-fql-formula: P_OPT_PUT_VOLUME
+    exchangeScreeningId:
+      title: exchangeScreeningId
+      type: string
+      description: 'Controls the Option Universe Screen By Exchange. Screening across all Exchanges is not currently supported.
+
+        |Exchange ISO|Exchange Name|Option Types Covered|Price Type Used in Greeks|
+
+        |||||
+
+        |ALLUSA_OPTS|U.S. Exchange (Composite) - All Historical Options|Equity, Index|Mid Bid/Ask|
+
+        |USA_OPTS|U.S. Exchange (Composite) - Latest 1 Year|Equity, Index|Mid Bid/Ask|
+
+        '
+      enum:
+      - ALLUSA_OPTS
+      - USA_OPTS
+      default: USA_OPTS
+      example: USA_OPTS
+      minItems: 1
+      maxItems: 1
+    optionsVolume:
+      title: optionsVolume
+      type: object
+      description: Options Volume Response Object
+      properties:
+        fsymId:
+          description: FactSet's Option Symbol. For more detail, visit [OA 12636](https://my.apps.factset.com/oa/pages/12636#options)
+          type:
+          - string
+          - 'null'
+          example: TSLA.US#PYG8L
+          x-fds-fql-formula: P_OPT_SYMBOL('FOS')
+        date:
+          description: The date of the data in YYYY-MM-DD format
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2021-05-06'
+          x-fds-fql-formula: P_DATE
+        exchange:
+          description: Option Exchange ISO. Visit [OA 14925](https://my.apps.factset.com/oa/pages/14925) for a list of Exchange ISOs.
+          type:
+          - string
+          - 'null'
+          example: USA
+          x-fds-fql-formula: P_OPT_EXCHANGE
+        openInterest:
+          description: The total number of options and/or futures contracts that are not closed or delivered on a particular day.
+          type:
+          - number
+          - 'null'
+          format: integer
+          example: 92
+          x-fds-fql-formula: P_OPT_OPEN_INTEREST
+        volume:
+          description: Volume of the option
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 3017
+          x-fds-fql-formula: P_OPT_VOLUME
+        requestId:
+          description: The requested identifier submitted in the query.
+          type: string
+          example: TSLA.US#PYG8L-USA
+    frequency:
+      type: string
+      title: frequency
+      description: "Controls the display frequency of the data returned.\n  * **D** = Daily\n  * **W** = Weekly, based on the last day of the week of the start date.\n  * **M** = Monthly, based on the last trading day of the month.\n  * **AM** = Monthly, based on the start date (e.g., if the start date is June 16, data is displayed for June 16, May 16, April 16 etc.).\n  * **CQ** = Quarterly based on the last trading day of the calendar quarter (March, June, September, or December).\n  * **FQ** = Fiscal Quarter of the company.\n  * **AY** = Actual Annual, based on the start date.\n  * **CY** = Calendar Annual, based on the last trading day of the calendar year.\n  * **FY** = Fiscal Annual, based on the last trading day of the company's fiscal year."
+      enum:
+      - D
+      - W
+      - M
+      - AM
+      - CQ
+      - FQ
+      - AY
+      - CY
+      - FY
+      default: D
+      example: D
+    greeks:
+      title: Greeks
+      description: Greeks Response fields
+      type: object
+      properties:
+        delta:
+          description: The delta value of the option. Refer to the `greeks` endpoint description for more details
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 0.973638814832741
+          x-fds-fql-formula: P_OPT_DELTA
+        fsymId:
+          description: FactSet's Option Symbol. For more detail, visit [OA 12636](https://my.apps.factset.com/oa/pages/12636#options)
+          type:
+          - string
+          - 'null'
+          example: TSLA.US#C00LP
+          x-fds-fql-formula: P_OPT_SYMBOL('FOS')
+        gamma:
+          description: The gamma value of the option. Refer to the `greeks` endpoint description for more details
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 2.76813921231278e-05
+          x-fds-fql-formula: P_OPT_GAMMA
+        requestId:
+          description: The requested identifier submitted in the query.
+          type: string
+          example: TSLA.US#C00LP
+        rho:
+          description: The rho value of the option. Refer to the `greeks` endpoint description for more details
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 0.094465131548418
+          x-fds-fql-formula: P_OPT_RHO
+        theta:
+          description: The theta value of the option. Refer to the `greeks` endpoint description for more details
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 0.473699140972176
+          x-fds-fql-formula: P_OPT_THETA
+        vega:
+          description: The vega value of the option. Refer to the `greeks` endpoint description for more details
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 0.246816993561083
+          x-fds-fql-formula: P_OPT_VEGA
+        date:
+          description: The date the data is as of in YYYY-MM-DD format.
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2021-05-07'
+    optionsPricesRequest:
+      title: optionsPricesRequest
+      type: object
+      properties:
+        ids:
+          $ref: '#/components/schemas/optionIds'
+        startDate:
+          $ref: '#/components/schemas/startDate'
+        endDate:
+          $ref: '#/components/schemas/endDate'
+        frequency:
+          $ref: '#/components/schemas/frequency'
+        currency:
+          $ref: '#/components/schemas/currency'
+        calendar:
+          $ref: '#/components/schemas/calendar'
+      required:
+      - ids
+    snapshotRequest:
+      title: snapshotRequest
+      type: object
+      properties:
+        ids:
+          $ref: '#/components/schemas/optionIds'
+        date:
+          $ref: '#/components/schemas/chainsDate'
+        currency:
+          $ref: '#/components/schemas/currency'
+        calendar:
+          $ref: '#/components/schemas/calendar'
+      required:
+      - ids
+    optionsDatesResponse:
+      title: optionsDatesResponse
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/optionsDates'
+    atmImpliedVolatilityResponse:
+      title: atmImpliedVolatilityResponse
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/atmImpliedVolatility'
+    calendar:
+      type: string
+      enum:
+      - FIVEDAY
+      - SEVENDAY
+      - LOCAL
+      default: FIVEDAY
+      description: Calendar of data returned. SEVENDAY includes weekends. LOCAL calendar will default to the securities' trading calendar which excludes date records for respective holiday periods.
+      example: FIVEDAY
+    impliedVolatilityResponse:
+      title: volatilityResponse
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/impliedVolatility'
+    optionsVolumeRequest:
+      title: optionsVolumeRequest
+      type: object
+      properties:
+        ids:
+          $ref: '#/components/schemas/optionIds'
+        startDate:
+          $ref: '#/components/schemas/startDate'
+        endDate:
+          $ref: '#/components/schemas/endDate'
+        frequency:
+          $ref: '#/components/schemas/frequency'
+        exchange:
+          $ref: '#/components/schemas/exchange'
+        calendar:
+          $ref: '#/components/schemas/calendar'
+      required:
+      - ids
+    underlyingVolumeResponse:
+      title: underlyingVolumeResponse
+      type: object
+      description: Underlying Volume Response Object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/underlyingVolume'
+    optionsPrices:
+      title: optionsPrices
+      type: object
+      description: The Options prices response object
+      properties:
+        askTime:
+          description: Returns the Bid time
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 155959
+          x-fds-fql-formula: P_OPT_ASK_TIME
+        bidTime:
+          description: Returns the Last Trade time
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 155959
+          x-fds-fql-formula: P_OPT_BID_TIME
+        date:
+          description: The date of data in YYYY-MM-DD format
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2021-05-05'
+        fsymId:
+          description: FactSet's Option Symbol. For more detail, visit [OA 12636](https://my.apps.factset.com/oa/pages/12636#options)
+          type:
+          - string
+          - 'null'
+          example: TSLA.US#C00LP
+          x-fds-fql-formula: P_OPT_SYMBOL('FOS')
+        price52WeekHigh:
+          description: 52-Week High Price
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 663.6
+          x-fds-fql-formula: P_OPT_HIGH_52WK
+        price52WeekLow:
+          description: 52-Week Low Price
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 189.3
+          x-fds-fql-formula: P_OPT_LOW_52WK
+        priceAsk:
+          description: Ask price of the option
+          type:
+          - number
+          - 'null'
+          example: 492
+          format: double
+          x-fds-fql-formula: P_OPT_ASK_PRICE
+        priceBid:
+          description: Bid price of the option
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 472.25
+          x-fds-fql-formula: P_OPT_BID_PRICE
+        priceMidBidAsk:
+          description: Mid/Bid/Ask price of the option
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 482.125
+          x-fds-fql-formula: P_OPT_MIDBIDASK_PRICE
+        priceOpen:
+          description: Open price of the option
+          type:
+          - number
+          - 'null'
+          format: double
+          example: null
+          x-fds-fql-formula: P_OPT_OPEN_PRICE
+        priceHigh:
+          description: High price of the option
+          type:
+          - number
+          - 'null'
+          format: double
+          example: null
+          x-fds-fql-formula: P_OPT_HIGH_PRICE
+        priceLow:
+          description: Low price of the option
+          type:
+          - number
+          - 'null'
+          format: double
+          example: null
+          x-fds-fql-formula: P_OPT_LOW_PRICE
+        priceSettlement:
+          description: Settlement price of the option
+          type:
+          - number
+          - 'null'
+          example: null
+          x-fds-fql-formula: P_OPT_SETTLEMENT_PRICE
+        priceStrike:
+          description: The stated price per share for which underlying stock may be purchased (for a call) or sold (for a put) by the option holder upon exercise of the option contract.
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 190
+          x-fds-fql-formula: P_OPT_STRIKE_PRICE
+        priceUnderlying:
+          description: The price of the security that must be delivered when a derivative contract, such as a put or call option, is exercised.
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 670.94
+          x-fds-fql-formula: P_OPT_UNDERLYING_PRICE
+        price:
+          description: 'The price of the option based on the `quoteType` calculation. For US Options - Returns "Ask Price" if calc status==20, otherwise returns "Mid Bid/Ask Price". For International Options - Returns "Settlement Price".
+
+            '
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 428.375
+          x-fds-fql-formula: P_OPT_CALC_QUOTE
+        quoteType:
+          description: 'The calculated quote type, based on the calculated status. This represents the type for `price` field. For US Options - Returns "Ask Price" if calc status==20, otherwise returns "Mid Bid/Ask Price". For International Options - Returns "Settlement Price".
+
+            '
+          type:
+          - string
+          - 'null'
+          example: Mid Bid/Ask Price
+          x-fds-fql-formula: P_OPT_CALC_QUOTE_TYPE
+        requestId:
+          description: The requested identifier submitted in the query.
+          type: string
+          example: TSLA.US#C00LP
+    period:
+      type: integer
+      minimum: 0
+      maximum: 6
+      description: "The period for the options to calculate at the money volatility. Below are the available periods - \n* No Limit - (0)\n* One Month - (1)\n* Two Months - (2)\n* Three Months - (3)\n* Four Months - (4)\n* Five Months - (5)\n* Six Months - (6)"
+      default: 0
+    exchange:
+      title: exchange
+      type: string
+      description: "Controls the display of data returned based on the exchange for the specified Options Identifier.\n|Exchange ISO|Exchange Name|Option Types Covered|Price Type Used in Greeks|\n|||||\n|USA|U.S. Exchange (Composite)|Equity, Index|Mid Bid/Ask|\n\n  *Currently only OPRA Exchange is supported with exchange ISO \"USA\"*\n"
+      enum:
+      - USA
+      default: USA
+      example: USA
+    chainsDate:
+      title: chainsDate
+      type: string
+      description: The as of date for the option chain in **YYYY-MM-DD** format. If left blank, the API will default to previous close. Future dates (T+1) are not accepted in this endpoint.
+      example: '2021-05-03'
+    optionsReferencesResponse:
+      title: optionsReferencesResponse
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/optionsReferences'
+    chains:
+      title: chains
+      type: object
+      properties:
+        fsymId:
+          description: FactSet's Security Permanent Identifier in XXXXXX-S format for the underlying security requested.
+          type:
+          - string
+          - 'null'
+          example: WWDPYB-S
+          x-fds-fql-formula: FSYM_SECURITY_PERM_ID
+        optionId:
+          description: The option id, in the format requested via `idType` parameter.
+          type:
+          - string
+          - 'null'
+          example: TSLA.US#C00LP
+          x-fds-fql-formula: P_OPT_SYMBOL
+        idType:
+          description: The type of id requested in the query. This is a straight pass-through value.
+          type:
+          - string
+          - 'null'
+          example: FOS
+          x-fds-fql-formula: NOT APPLICABLE - PASSTHROUGH
+        date:
+          description: The date the data is as of in YYYY-MM-DD format.
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2021-05-07'
+          x-fds-fql-formula: P_DATE
+        requestId:
+          description: The inputed value for the id parameter.
+          type: string
+          example: TSLA
     optionScreeningRequest:
       title: optionScreeningRequest
       type: object
@@ -1126,11 +1610,93 @@ components:
         date:
           type: string
           example: '2021-03-31'
-    chainsDate:
-      title: chainsDate
+    endDate:
+      title: endDate
       type: string
-      description: The as of date for the option chain in **YYYY-MM-DD** format. If left blank, the API will default to previous close. Future dates (T+1) are not accepted in this endpoint.
+      description: The end date requested for a given date range in **YYYY-MM-DD** format. If left blank, the API will default to previous close. Future dates (T+1) are not accepted in this endpoint.
       example: '2021-05-03'
+    underlyingIds:
+      title: underlyingIds
+      type: array
+      description: "Underlying Security Identifier of which can be used to return respective options chain. Only **one** security id is permitted per request. \n"
+      items:
+        type: string
+      minItems: 1
+      maxItems: 1
+      example:
+      - TSLA-US
+    currency:
+      title: currency
+      type: string
+      description: 'The ISO3 currency control for the requested option identifier. For a list of Currency ISOs, visit - [OA 1470](https://my.apps.factset.com/oa/pages/1470)
+
+        '
+      example: USD
+    snapshotResponse:
+      title: snapshotResponse
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/snapshot'
+    atmImpliedVolatilityRequest:
+      title: atmImpliedVolatilityRequest
+      type: object
+      description: At-the-Money Implied Volatility Request Object
+      properties:
+        ids:
+          $ref: '#/components/schemas/underlyingIds'
+        startDate:
+          $ref: '#/components/schemas/startDate'
+        endDate:
+          $ref: '#/components/schemas/endDate'
+        frequency:
+          $ref: '#/components/schemas/frequency'
+        exchange:
+          $ref: '#/components/schemas/exchange'
+        period:
+          $ref: '#/components/schemas/period'
+      required:
+      - ids
+    optionsReferencesRequest:
+      type: object
+      properties:
+        ids:
+          $ref: '#/components/schemas/optionIds'
+      required:
+      - ids
+    optionsDatesRequest:
+      title: optionsDatesRequest
+      type: object
+      properties:
+        ids:
+          $ref: '#/components/schemas/optionIds'
+      required:
+      - ids
+    impliedVolatilityRequest:
+      type: object
+      properties:
+        ids:
+          $ref: '#/components/schemas/optionIds'
+        startDate:
+          $ref: '#/components/schemas/startDate'
+        endDate:
+          $ref: '#/components/schemas/endDate'
+        frequency:
+          $ref: '#/components/schemas/frequency'
+        priceType:
+          $ref: '#/components/schemas/priceType'
+      required:
+      - ids
+    optionScreeningResponse:
+      title: optionScreeningResponse
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/optionScreening'
     priceType:
       title: priceType
       type: string
@@ -1156,489 +1722,25 @@ components:
       - ''
       default: ''
       example: CLOSE
-    currency:
-      title: currency
-      type: string
-      description: 'The ISO3 currency control for the requested option identifier. For a list of Currency ISOs, visit - [OA 1470](https://my.apps.factset.com/oa/pages/1470)
+    optionIds:
+      title: optionIds
+      type: array
+      description: 'Option Security Identifier. For more details visit [OA 12636 - Options Identifiers](https://my.apps.factset.com/oa/pages/12636#options)
 
         '
-      example: USD
-    underlyingVolumeResponse:
-      title: underlyingVolumeResponse
-      type: object
-      description: Underlying Volume Response Object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/underlyingVolume'
-    startDate:
-      type: string
-      title: startDate
-      description: The start date requested for a given date range in **YYYY-MM-DD** format. If left blank, the API will default to previous close. Future dates (T+1) are not accepted in this endpoint.
-      example: '2021-05-09'
-    idType:
-      type: string
-      title: idType
-      description: "Controls the type of option id or symbol returned in response of the Option Chain. For more details visit - [OA 12636](https://my.apps.factset.com/oa/pages/12636#options)\n  |idType|Type Name|Description|\n  ||||\n  |FOS|FactSet Option Symbology|This option symbol is a unique FactSet-generated symbol with the following syntax - (Underlying Symbol + . + Region + # + Call/Put Indicator + Four Alphanumeric Characters + - + ISO)|\n  |OCC21|Options Clearing Corporation OSI Series Key|This option symbol has up to 21 alphanumeric characters (excluding -ISO and # sign) and uses the following syntax- (Underlying Symbol + # + Expiration Year + Expiration Month + Expiration Day + Call/Put Indicator + Five-Digit Strike Dollar + Three-Digit Strike Decimal + - + ISO)|\n  |OPRA17|Options Price Reporting Authority's OSI Series Key|This option symbol has up to 17 alphanumeric characters (excluding the -ISO and #) and uses the following syntax - (Underlying Symbol + # + Call/Put Expiration Month Code + Expiration Day + Expiration Year + Decimal Indicator + Strike Price + - + ISO)|"
-      enum:
-      - FOS
-      - OPRA17
-      - OCC21
-      default: FOS
-      example: FOS
-    optionsPrices:
-      title: optionsPrices
-      type: object
-      description: The Options prices response object
-      properties:
-        askTime:
-          description: Returns the Bid time
-          type: number
-          format: double
-          example: 155959
-          x-fds-fql-formula: P_OPT_ASK_TIME
-          nullable: true
-        bidTime:
-          description: Returns the Last Trade time
-          type: number
-          format: double
-          example: 155959
-          x-fds-fql-formula: P_OPT_BID_TIME
-          nullable: true
-        date:
-          description: The date of data in YYYY-MM-DD format
-          type: string
-          format: date
-          example: '2021-05-05'
-          nullable: true
-        fsymId:
-          description: FactSet's Option Symbol. For more detail, visit [OA 12636](https://my.apps.factset.com/oa/pages/12636#options)
-          type: string
-          example: TSLA.US#C00LP
-          x-fds-fql-formula: P_OPT_SYMBOL('FOS')
-          nullable: true
-        price52WeekHigh:
-          description: 52-Week High Price
-          type: number
-          format: double
-          example: 663.6
-          x-fds-fql-formula: P_OPT_HIGH_52WK
-          nullable: true
-        price52WeekLow:
-          description: 52-Week Low Price
-          type: number
-          format: double
-          example: 189.3
-          x-fds-fql-formula: P_OPT_LOW_52WK
-          nullable: true
-        priceAsk:
-          description: Ask price of the option
-          type: number
-          example: 492
-          format: double
-          x-fds-fql-formula: P_OPT_ASK_PRICE
-          nullable: true
-        priceBid:
-          description: Bid price of the option
-          type: number
-          format: double
-          example: 472.25
-          x-fds-fql-formula: P_OPT_BID_PRICE
-          nullable: true
-        priceMidBidAsk:
-          description: Mid/Bid/Ask price of the option
-          type: number
-          format: double
-          example: 482.125
-          x-fds-fql-formula: P_OPT_MIDBIDASK_PRICE
-          nullable: true
-        priceOpen:
-          description: Open price of the option
-          type: number
-          format: double
-          example: null
-          x-fds-fql-formula: P_OPT_OPEN_PRICE
-          nullable: true
-        priceHigh:
-          description: High price of the option
-          type: number
-          format: double
-          example: null
-          x-fds-fql-formula: P_OPT_HIGH_PRICE
-          nullable: true
-        priceLow:
-          description: Low price of the option
-          type: number
-          format: double
-          example: null
-          x-fds-fql-formula: P_OPT_LOW_PRICE
-          nullable: true
-        priceSettlement:
-          description: Settlement price of the option
-          type: number
-          example: null
-          x-fds-fql-formula: P_OPT_SETTLEMENT_PRICE
-          nullable: true
-        priceStrike:
-          description: The stated price per share for which underlying stock may be purchased (for a call) or sold (for a put) by the option holder upon exercise of the option contract.
-          type: number
-          format: double
-          example: 190
-          x-fds-fql-formula: P_OPT_STRIKE_PRICE
-          nullable: true
-        priceUnderlying:
-          description: The price of the security that must be delivered when a derivative contract, such as a put or call option, is exercised.
-          type: number
-          format: double
-          example: 670.94
-          x-fds-fql-formula: P_OPT_UNDERLYING_PRICE
-          nullable: true
-        price:
-          description: 'The price of the option based on the `quoteType` calculation. For US Options - Returns "Ask Price" if calc status==20, otherwise returns "Mid Bid/Ask Price". For International Options - Returns "Settlement Price".
-
-            '
-          type: number
-          format: double
-          example: 428.375
-          x-fds-fql-formula: P_OPT_CALC_QUOTE
-          nullable: true
-        quoteType:
-          description: 'The calculated quote type, based on the calculated status. This represents the type for `price` field. For US Options - Returns "Ask Price" if calc status==20, otherwise returns "Mid Bid/Ask Price". For International Options - Returns "Settlement Price".
-
-            '
-          type: string
-          example: Mid Bid/Ask Price
-          x-fds-fql-formula: P_OPT_CALC_QUOTE_TYPE
-          nullable: true
-        requestId:
-          description: The requested identifier submitted in the query.
-          type: string
-          example: TSLA.US#C00LP
-    optionsDatesRequest:
-      title: optionsDatesRequest
-      type: object
-      properties:
-        ids:
-          $ref: '#/components/schemas/optionIds'
-      required:
-      - ids
-    exchangeScreeningId:
-      title: exchangeScreeningId
-      type: string
-      description: 'Controls the Option Universe Screen By Exchange. Screening across all Exchanges is not currently supported.
-
-        |Exchange ISO|Exchange Name|Option Types Covered|Price Type Used in Greeks|
-
-        |||||
-
-        |ALLUSA_OPTS|U.S. Exchange (Composite) - All Historical Options|Equity, Index|Mid Bid/Ask|
-
-        |USA_OPTS|U.S. Exchange (Composite) - Latest 1 Year|Equity, Index|Mid Bid/Ask|
-
-        '
-      enum:
-      - ALLUSA_OPTS
-      - USA_OPTS
-      default: USA_OPTS
-      example: USA_OPTS
+      items:
+        type: string
       minItems: 1
-      maxItems: 1
-    exchange:
-      title: exchange
-      type: string
-      description: "Controls the display of data returned based on the exchange for the specified Options Identifier.\n|Exchange ISO|Exchange Name|Option Types Covered|Price Type Used in Greeks|\n|||||\n|USA|U.S. Exchange (Composite)|Equity, Index|Mid Bid/Ask|\n\n  *Currently only OPRA Exchange is supported with exchange ISO \"USA\"*\n"
-      enum:
-      - USA
-      default: USA
-      example: USA
-    greeks:
-      title: Greeks
-      description: Greeks Response fields
+      maxItems: 1000
+      example:
+      - TSLA.US#CD33M-USA
+    underlyingVolumeRequest:
+      title: underlyingVolumeRequest
       type: object
-      properties:
-        delta:
-          description: The delta value of the option. Refer to the `greeks` endpoint description for more details
-          type: number
-          format: double
-          example: 0.973638814832741
-          x-fds-fql-formula: P_OPT_DELTA
-          nullable: true
-        fsymId:
-          description: FactSet's Option Symbol. For more detail, visit [OA 12636](https://my.apps.factset.com/oa/pages/12636#options)
-          type: string
-          example: TSLA.US#C00LP
-          x-fds-fql-formula: P_OPT_SYMBOL('FOS')
-          nullable: true
-        gamma:
-          description: The gamma value of the option. Refer to the `greeks` endpoint description for more details
-          type: number
-          format: double
-          example: 2.76813921231278e-05
-          x-fds-fql-formula: P_OPT_GAMMA
-          nullable: true
-        requestId:
-          description: The requested identifier submitted in the query.
-          type: string
-          example: TSLA.US#C00LP
-        rho:
-          description: The rho value of the option. Refer to the `greeks` endpoint description for more details
-          type: number
-          format: double
-          example: 0.094465131548418
-          x-fds-fql-formula: P_OPT_RHO
-          nullable: true
-        theta:
-          description: The theta value of the option. Refer to the `greeks` endpoint description for more details
-          type: number
-          format: double
-          example: 0.473699140972176
-          x-fds-fql-formula: P_OPT_THETA
-          nullable: true
-        vega:
-          description: The vega value of the option. Refer to the `greeks` endpoint description for more details
-          type: number
-          format: double
-          example: 0.246816993561083
-          x-fds-fql-formula: P_OPT_VEGA
-          nullable: true
-        date:
-          description: The date the data is as of in YYYY-MM-DD format.
-          type: string
-          format: date
-          example: '2021-05-07'
-          nullable: true
-    impliedVolatilityResponse:
-      title: volatilityResponse
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/impliedVolatility'
-    optionsReferences:
-      title: optionsReferences
-      type: object
-      description: Options Reference Response Fields
-      properties:
-        fsymId:
-          description: FactSet's Option Symbol. For more detail, visit [OA 12636](https://my.apps.factset.com/oa/pages/12636#options)
-          type: string
-          example: TSLA.US#C00LP
-          x-fds-fql-formula: P_OPT_SYMBOL('FOS')
-          nullable: true
-        adjustedFlag:
-          description: Indicates whether or not a given option contract is adjusted for corporate actions in Y/N format.
-          type: string
-          example: N
-          x-fds-fql-formula: P_OPT_ISADJUSTED
-          nullable: true
-        callPutFlag:
-          description: Returns a 0 if the option is a call, returns a 1 if the option is a put.
-          type: integer
-          example: 0
-          x-fds-fql-formula: P_OPT_CALL_OR_PUT
-          nullable: true
-        callPutPairSymbol:
-          description: Returns the corresponding put symbol given a call symbol; and vice-versa.
-          type: string
-          example: TSLA.US#PGGVL
-          x-fds-fql-formula: P_OPT_PC_PAIRS
-          nullable: true
-        contractSize:
-          description: The Option Contract Size
-          type: integer
-          example: 100
-          x-fds-fql-formula: P_OPT_CONTRACT_SIZE
-          nullable: true
-        currency:
-          description: Option Currency in ISO3 format.
-          type: string
-          example: USD
-          x-fds-fql-formula: P_OPT_CURRENCY
-          nullable: true
-        exchange:
-          description: Option Exchange ISO. Visit [OA 14925](https://my.apps.factset.com/oa/pages/14925) for a list of Exchange ISOs.
-          type: string
-          example: USA
-          x-fds-fql-formula: P_OPT_EXCHANGE
-          nullable: true
-        expirationDate:
-          description: The date on which an options contract is no longer valid and, therefore, ceases to exist, in YYYY-MM-DD format
-          type: string
-          format: date
-          example: '2021-09-17'
-          x-fds-fql-formula: P_OPT_EXP_DATEN
-          nullable: true
-        expirationFrequency:
-          description: Returns the corresponding expiration frequency for a given option symbol. If an option has more than four expiration months, then a Long-term Equity Anticipation Security (LEAPS) indicator will be returned.
-          type: string
-          example: LEAPS
-          x-fds-fql-formula: P_OPT_EXP_FREQ
-          nullable: true
-        expirationMonth:
-          description: Option Expiration month in MMM format.
-          type: string
-          example: SEP
-          x-fds-fql-formula: P_OPT_EXP_MONTH
-          nullable: true
-        lepoFlag:
-          description: Indicates whether or not a given options contract is a Low Exercise Price Option "LEPO" (0/1). This is unique to European Options (e.g. ASX exchange).
-          type: integer
-          example: null
-          x-fds-fql-formula: P_OPT_IS_LEPO
-          nullable: true
-        name:
-          description: Option Descriptive Security Name
-          type: string
-          example: Tesla Inc Call SEP21 190.00 (LEAPs)
-          x-fds-fql-formula: P_OPT_SECURITY_NAME
-          nullable: true
-        occ21Symbol:
-          description: 'Options Clearing Corporation OSI Series Key This option symbol has up to 21 alphanumeric characters (excluding -ISO and # sign) and uses the following syntax- (Underlying Symbol + # + Expiration Year + Expiration Month + Expiration Day + Call/Put Indicator + Five-Digit Strike Dollar + Three-Digit Strike Decimal + - + ISO)
-
-            '
-          type: string
-          example: TSLA#210917C00190000
-          x-fds-fql-formula: P_OPT_SYMBOL("OCC21")
-          nullable: true
-        opra17Symbol:
-          description: 'Options Price Reporting Authority''s OSI Series Key. This option symbol has up to 17 alphanumeric characters (excluding the -ISO and #) and uses the following syntax - (Underlying Symbol + # + Call/Put Expiration Month Code + Expiration Day + Expiration Year + Decimal Indicator + Strike Price + - + ISO)
-
-            '
-          type: string
-          example: TSLA#I1721C190000
-          x-fds-fql-formula: P_OPT_SYMBOL("OPRA17")
-          nullable: true
-        rootTicker:
-          description: The Root Ticker for the underlying security.
-          type: string
-          example: TSLA
-          x-fds-fql-formula: P_OPT_ROOT_SYMBOL
-          nullable: true
-        style:
-          description: "Returns the style of the option id requested, where - \n\n|style|description|\n|||\n|0|American|\n|1|European|\n\nAn American style option can be exercised anytime during its life. The majority of exchange-traded options are American.\n\nSince investors have the freedom to exercise their American options at any point during the life of the contract, they are more valuable than European options which can only be exercised at maturity.\n\nConsider this example -  If you bought a Ford March Call option expiring in March of 2006 in March 2005, you would have the right to exercise the call option at anytime up until its expiration date. Had the Ford option been a European option, you could only exercise the option at the expiry date in March '06. During the year, the share price could have been most optimal for exercise in December of 2005, but you would have to wait to exercise your option until March 2006, where it could be out-of-the-money and virtually worthless.\n\nNote that the name of this option style has nothing to do with the geographic location.\n"
-          type: integer
-          example: 0
-          x-fds-fql-formula: P_OPT_STYLE
-          nullable: true
-        type:
-          description: "The option type code, where \n|code|description|\n|||\n|0|Equity Option|\n|2|Index Option|\n|99|Option on an ETF|\n|60|Option on a Future|\n|19|Option on a Spot FX Rate|\n"
-          type: integer
-          example: 1
-          x-fds-fql-formula: P_OPT_OPTION_TYPE
-          nullable: true
-        underlyingFsymSecurityId:
-          description: Underlying FactSet Security Permanent Identifier in XXXXXX-S format.
-          type: string
-          example: WWDPYB-S
-          nullable: true
-        date:
-          description: The date the data is as of in YYYY-MM-DD format.
-          type: string
-          format: date
-          example: '2021-05-07'
-          nullable: true
-        settlementMethod:
-          description: 'The contract settlement method. Possible values are -
-
-            |method|description|
-
-            |||
-
-            |C|Cash|
-
-            |P|Physical|
-
-            |NA|Not Covered|
-
-            '
-          type: string
-          example: null
-          nullable: true
-        requestId:
-          description: The requested identifier submitted in the query.
-          type: string
-          example: TSLA.US#C00LP
-    snapshotRequest:
-      title: snapshotRequest
-      type: object
+      description: Underlying Volume Request Object
       properties:
         ids:
-          $ref: '#/components/schemas/optionIds'
-        date:
-          $ref: '#/components/schemas/chainsDate'
-        currency:
-          $ref: '#/components/schemas/currency'
-        calendar:
-          $ref: '#/components/schemas/calendar'
-      required:
-      - ids
-    optionsDatesResponse:
-      title: optionsDatesResponse
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/optionsDates'
-    optionsVolumeResponse:
-      title: optionsVolumeResponse
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/optionsVolume'
-    optionsReferencesResponse:
-      title: optionsReferencesResponse
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/optionsReferences'
-    frequency:
-      type: string
-      title: frequency
-      description: "Controls the display frequency of the data returned.\n  * **D** = Daily\n  * **W** = Weekly, based on the last day of the week of the start date.\n  * **M** = Monthly, based on the last trading day of the month.\n  * **AM** = Monthly, based on the start date (e.g., if the start date is June 16, data is displayed for June 16, May 16, April 16 etc.).\n  * **CQ** = Quarterly based on the last trading day of the calendar quarter (March, June, September, or December).\n  * **FQ** = Fiscal Quarter of the company.\n  * **AY** = Actual Annual, based on the start date.\n  * **CY** = Calendar Annual, based on the last trading day of the calendar year.\n  * **FY** = Fiscal Annual, based on the last trading day of the company's fiscal year."
-      enum:
-      - D
-      - W
-      - M
-      - AM
-      - CQ
-      - FQ
-      - AY
-      - CY
-      - FY
-      default: D
-      example: D
-    optionScreeningResponse:
-      title: optionScreeningResponse
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/optionScreening'
-    optionScreening:
-      title: optionScreening
-      type: object
-      properties:
-        optionId:
-          type: string
-          description: The option identifier
-          example: AAPL.US#C0185
-          x-fds-fql-formula: P_OPT_SCREENING
-          nullable: true
-      description: Option Screening response fields
-    optionsVolumeRequest:
-      title: optionsVolumeRequest
-      type: object
-      properties:
-        ids:
-          $ref: '#/components/schemas/optionIds'
+          $ref: '#/components/schemas/underlyingIds'
         startDate:
           $ref: '#/components/schemas/startDate'
         endDate:
@@ -1647,19 +1749,17 @@ components:
           $ref: '#/components/schemas/frequency'
         exchange:
           $ref: '#/components/schemas/exchange'
-        calendar:
-          $ref: '#/components/schemas/calendar'
       required:
       - ids
   examples:
-    badRequestInvalidParameters:
-      summary: Bad Request - Invalid Parameters
-      description: This error message occurs when a request parameter is used in which is not recognized by the service. Please revise your request to include only the parameters listed in the specification. Typical causes are spelling mistakes and use of improper casing.
+    unsupportedMediaType:
+      summary: Unsupported Media Type
+      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
       value:
-        status: Bad Request
-        timestamp: '2020-06-12 15:58:54.068'
+        status: Unsupported Media Type
+        timestamp: '2019-11-05 09:42:27.237'
         path: /factset-options/v1/{endpoint}
-        message: 'Invalid Parameter (s): fakeParameterName1 fakeParameterName2. Please modify your request to use parameters outlined in the specification for this endpoint.'
+        message: text/html media type is not supported. Supported media types are application/json
         subErrors: null
     badRequestDateFormat:
       summary: Bad Request - Date Format
@@ -1670,41 +1770,23 @@ components:
         path: /factset-options/v1/{endpoint}
         message: 'The date parameter ''startDate'' must be in the following date format: YYYY-MM-DD'
         subErrors: null
-    notWritable:
-      summary: Internal Server Error - Not Writable
-      description: This error may be returned when the server encounters an error writing the JSON response.
-      value:
-        status: Internal Server Error
-        timestamp: '2019-11-05 09:48:29.18'
-        path: /factset-options/v1/{endpoint}
-        message: Error writing JSON output
-        subErrors: null
-    unsupportedMediaType:
-      summary: Unsupported Media Type
-      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
-      value:
-        status: Unsupported Media Type
-        timestamp: '2019-11-05 09:42:27.237'
-        path: /factset-options/v1/{endpoint}
-        message: text/html media type is not supported. Supported media types are application/json
-        subErrors: null
-    generalException:
-      summary: Internal Server Error - General Exception
-      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
-      value:
-        status: Internal Server Error
-        timestamp: '2019-11-01 10:36:01.944'
-        path: /factset-options/v1/{endpoint}
-        message: Unexpected error
-        subErrors: null
-    badRequestReadTimeout:
-      summary: Bad Request - Read Timeout
-      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
+    badRequestInvalidParameters:
+      summary: Bad Request - Invalid Parameters
+      description: This error message occurs when a request parameter is used in which is not recognized by the service. Please revise your request to include only the parameters listed in the specification. Typical causes are spelling mistakes and use of improper casing.
       value:
         status: Bad Request
-        timestamp: '2019-11-04 16:18:38.949'
+        timestamp: '2020-06-12 15:58:54.068'
         path: /factset-options/v1/{endpoint}
-        message: The request took too long. Try again with a smaller request.
+        message: 'Invalid Parameter (s): fakeParameterName1 fakeParameterName2. Please modify your request to use parameters outlined in the specification for this endpoint.'
+        subErrors: null
+    badRequestMalformedJSON:
+      summary: Bad Request - Malformed JSON Request
+      description: This error may be returned when the request body is specified as JSON, but is not in proper JSON format.
+      value:
+        status: Bad Request
+        timestamp: '2019-11-05 09:48:29.18'
+        path: /factset-options/v1/{endpoint}
+        message: Malformed JSON Request
         subErrors: null
     badRequestFutureDate:
       summary: Bad Request - Future Date
@@ -1724,6 +1806,24 @@ components:
         path: /factset-options/v1/{endpoint}
         message: USERNAME-SERIAL does not have permission to use /factset-funds /v1/{endpoint}
         subErrors: null
+    generalException:
+      summary: Internal Server Error - General Exception
+      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
+      value:
+        status: Internal Server Error
+        timestamp: '2019-11-01 10:36:01.944'
+        path: /factset-options/v1/{endpoint}
+        message: Unexpected error
+        subErrors: null
+    notWritable:
+      summary: Internal Server Error - Not Writable
+      description: This error may be returned when the server encounters an error writing the JSON response.
+      value:
+        status: Internal Server Error
+        timestamp: '2019-11-05 09:48:29.18'
+        path: /factset-options/v1/{endpoint}
+        message: Error writing JSON output
+        subErrors: null
     unauthenticated:
       summary: User Authentication Failed
       description: This occurs when a user is not properly authenticated or recognized by the service. Please double check the USERNAME-SERIAL and API-Key used to request and ensure you are within the IP range specified for the Key. Report Issue under 401 error for help with troubleshooting.
@@ -1732,15 +1832,6 @@ components:
         timestamp: '2019-10-31 16:08:07.945'
         path: /factset-options/v1/{endpoint}
         message: User Authentication Failed.
-        subErrors: null
-    badRequestMalformedJSON:
-      summary: Bad Request - Malformed JSON Request
-      description: This error may be returned when the request body is specified as JSON, but is not in proper JSON format.
-      value:
-        status: Bad Request
-        timestamp: '2019-11-05 09:48:29.18'
-        path: /factset-options/v1/{endpoint}
-        message: Malformed JSON Request
         subErrors: null
     badRequestRequiredParameter:
       summary: Bad Request - Required Parameter Missing
@@ -1751,25 +1842,16 @@ components:
         path: /factset-options/v1/{endpoint}
         message: The parameter 'ids' is required and may not be empty.
         subErrors: null
+    badRequestReadTimeout:
+      summary: Bad Request - Read Timeout
+      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
+      value:
+        status: Bad Request
+        timestamp: '2019-11-04 16:18:38.949'
+        path: /factset-options/v1/{endpoint}
+        message: The request took too long. Try again with a smaller request.
+        subErrors: null
   responses:
-    '401':
-      description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the **Report Issue** in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/errorResponse'
-          examples:
-            Bad Request - Date Format:
-              $ref: '#/components/examples/unauthenticated'
-    '415':
-      description: Unsupported Media Type. This error may be returned when the caller sends a resource in a format that is not accepted by the server. This can be fixed by ensuring that Content-Type header is set to the correct value. In this instance, "application/json" would be the appropriate value.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/errorResponse'
-          examples:
-            Bad Request - Date Format:
-              $ref: '#/components/examples/unsupportedMediaType'
     '403':
       description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
       content:
@@ -1779,17 +1861,6 @@ components:
           examples:
             Bad Request - Date Format:
               $ref: '#/components/examples/forbidden'
-    '500':
-      description: Internal Server Error.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/errorResponse'
-          examples:
-            Internal Server Error - Not Writable:
-              $ref: '#/components/examples/notWritable'
-            Internal Server Error - General Exception:
-              $ref: '#/components/examples/generalException'
     '400':
       description: Bad Request. This can occur for several reasons. Please review the "message" for more details.
       content:
@@ -1809,10 +1880,36 @@ components:
               $ref: '#/components/examples/badRequestMalformedJSON'
             Bad Request - Read Timeout:
               $ref: '#/components/examples/badRequestReadTimeout'
+    '415':
+      description: Unsupported Media Type. This error may be returned when the caller sends a resource in a format that is not accepted by the server. This can be fixed by ensuring that Content-Type header is set to the correct value. In this instance, "application/json" would be the appropriate value.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/unsupportedMediaType'
+    '401':
+      description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the **Report Issue** in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/unauthenticated'
+    '500':
+      description: Internal Server Error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Internal Server Error - Not Writable:
+              $ref: '#/components/examples/notWritable'
+            Internal Server Error - General Exception:
+              $ref: '#/components/examples/generalException'
   securitySchemes:
-    basicAuth:
+    BasicAuth:
       type: http
       scheme: basic
-externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
-  description: API Documentation

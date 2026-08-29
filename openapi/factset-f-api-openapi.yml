@@ -1,22 +1,26 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About F API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  version: 1.0.0
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
   contact:
     name: FactSet Research Systems
-    url: https://developer.factset.com/contact
     email: api@factset.com
-  license:
-    name: Apache License, Version 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+  title: FactSet Exchange DataFeed Snapshot API - Symbol List F API
+  description: '
+
+    FactSet''s Exchange DataFeed Snapshot API provides cost-effective access to
+
+    real-time and delayed global exchange data.  Proprietary technology
+
+    normalizes over 200 global exchanges and 150+ data fields.  Asset types
+
+    integrated include equities,_'
 servers:
-- url: https://api.factset.com
-  description: Production
 - url: https://api-sandbox.factset.com
-  description: Sandbox
 security:
-- basicAuth: []
+- BasicAuth: []
 tags:
 - name: F
 paths:
@@ -172,60 +176,63 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
-  parameters:
-    req_id:
-      name: req_id
-      in: query
-      description: Request Identification String. Can be used by the application to keep track of requests.  The id is not used by this service, however, it is included in the XML response.<p> **Try it Out** - any value can be passed through.</p>
-      required: false
-      schema:
-        type: string
-    format:
-      name: format
-      description: The format of the output file.<p>**Try it Out** - All formats available</p>
-      in: query
-      schema:
-        type: string
-        default: XML
-        enum:
-        - XML
-        - JSON
-        - CSV
-    sf:
-      description: "Symbol Filters, ability to apply filtering to the result of an option chain `oc` request based on available fields and values for the symbols. `sf`=VALUE_[filter],[field],[value]\n  * **VALUE_MINMAX** -  Field value will be within specified interval. ex. - VALUE_MINMAX,BID_1,min,max\n  * **VALUE_EQUALS** - Field value will equal specified value. ex. - VALUE_EQUALS,BID_1,value\n  * **VALUE_NOT_EQUALS** - Field value will not equal specified value. ex. - VALUE_NOT_EQUALS,BID_1,value\n  \n  **Try it Out** - depends on fields used. Example - VALUE_MINMAX,STRIKE_PRICE,120,130 \n"
-      name: sf
-      in: query
-      schema:
-        type: string
-    oc:
-      description: Option Chain, accepts one underlying symbol for which the option chain will be returned. **Required** if not using `ids`. <p>**Try it Out** - Only available for BABA-USA</p>
-      name: oc
-      in: query
-      schema:
-        type: string
-    serv:
-      description: "The Data Service that handles the request for the specified symbols. Available live services are - \n  * **FDS1** -Production Data Service\n  * **FDS_FUND** -Fundamental Data Service used for End-of-Day data.\n\n**Try it Out** - use FDS1\n"
-      name: serv
-      in: query
-      schema:
-        type: string
-        enum:
-        - FDS1
-        - FDS_FUND
-    ids:
-      description: Requested symbols or securities. **Required** if not using `oc`. This is a comma-seperated list with a maximum of 500. Each symbol can be a FactSet Exchange Symbol, CUSIP, or SEDOL. This can be used in combination with `chain` parameter to pull in a custom portfolio.<P>**Try it out** - Choose one or multiple - IBM-USA, BABA-USA, WALMEX-MX, 7203-TKS, VOD-LON, NPN-JSE, MABAX, NZF, SPY-USA, AGG-USA, GLD-USA, AOR-USA, MNA-USA, UUP-USA, SP50-SPX, ESX-STX, XAO-ASX, WD-MSX, NG00-USA, GC00-USA, CC00-USA, C00-USA, FC00-USA, ER00-USA, EURUSD-FX1, USDMXN-FX1, AUDJPY-FX1, EURCZK-FX1, USDILS-FX1, USDZAR-FX1, US10YY-TU1, FDS#190621C00145000-USA, FDS#190621P00145000-USA. *Leave blank if you are trying the `oc` parameter*.</p>
-      name: ids
-      in: query
-      schema:
-        type: string
-      required: false
-    fields:
-      description: 'All available fields. This is a comma-seperated list (no spaces). **Required** only when using `oc`. Otherwise, leave blank to return all fields by default. See definitions for details on available field names and Field ID #s. The Data Service Manual has complete reference.<p>**Try it Out** - All fields available. Use either FID # or name. For `oc`, recommend to use BID_1,ASK_1,STRIKE_PRICE.'
-      name: fields
-      in: query
-      schema:
-        type: string
   schemas:
+    DFSnapshot_Response:
+      type: object
+      description: sample response
+      properties:
+        Error:
+          description: error value
+          example: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/errorResponse'
+        symbol1:
+          description: first symbol from `ids` or `chain`
+          type: array
+          items:
+            $ref: '#/components/schemas/fields'
+          example: []
+        Host:
+          description: host name
+          example: FactSet
+          type: string
+        symbol2:
+          description: second symbol from `ids` or `chain` list
+          type: string
+          example: example_value
+    errorResponse:
+      type: object
+      title: Error Response
+      properties:
+        status:
+          description: status
+          type: string
+          example: Bad Request
+        timestamp:
+          description: timestamp in YYYY-MM-DD HH:MM:SS.SSS
+          type: string
+          example: '2019-11-01 11:09:41.918'
+          format: date-time
+        path:
+          description: The Endpoint path {endpoint}
+          type: string
+          example: /dfsnapshot
+        message:
+          description: The plain text error message
+          type: string
+          example: Validation Error
+        subErrors:
+          description: subErrors related to the error message. Null if not applicable.
+          type: object
+          properties:
+            field:
+              description: Parameter Field Name
+              type: string
+            message:
+              description: Error message
+              type: string
+          example: example_value
     fields:
       type: object
       description: All available fields in service. FID = Field ID Number.
@@ -718,66 +725,63 @@ components:
           description: 'Field ID # 747. 52-Week Total Return for US mutual funds'
           type: number
           example: 42.5
-    errorResponse:
-      type: object
-      title: Error Response
-      properties:
-        status:
-          description: status
-          type: string
-          example: Bad Request
-        timestamp:
-          description: timestamp in YYYY-MM-DD HH:MM:SS.SSS
-          type: string
-          example: '2019-11-01 11:09:41.918'
-          format: date-time
-        path:
-          description: The Endpoint path {endpoint}
-          type: string
-          example: /dfsnapshot
-        message:
-          description: The plain text error message
-          type: string
-          example: Validation Error
-        subErrors:
-          description: subErrors related to the error message. Null if not applicable.
-          type: object
-          properties:
-            field:
-              description: Parameter Field Name
-              type: string
-            message:
-              description: Error message
-              type: string
-          example: example_value
-    DFSnapshot_Response:
-      type: object
-      description: sample response
-      properties:
-        Error:
-          description: error value
-          example: 0
-          type: array
-          items:
-            $ref: '#/components/schemas/errorResponse'
-        symbol1:
-          description: first symbol from `ids` or `chain`
-          type: array
-          items:
-            $ref: '#/components/schemas/fields'
-          example: []
-        Host:
-          description: host name
-          example: FactSet
-          type: string
-        symbol2:
-          description: second symbol from `ids` or `chain` list
-          type: string
-          example: example_value
+  parameters:
+    fields:
+      description: 'All available fields. This is a comma-seperated list (no spaces). **Required** only when using `oc`. Otherwise, leave blank to return all fields by default. See definitions for details on available field names and Field ID #s. The Data Service Manual has complete reference.<p>**Try it Out** - All fields available. Use either FID # or name. For `oc`, recommend to use BID_1,ASK_1,STRIKE_PRICE.'
+      name: fields
+      in: query
+      schema:
+        type: string
+    ids:
+      description: Requested symbols or securities. **Required** if not using `oc`. This is a comma-seperated list with a maximum of 500. Each symbol can be a FactSet Exchange Symbol, CUSIP, or SEDOL. This can be used in combination with `chain` parameter to pull in a custom portfolio.<P>**Try it out** - Choose one or multiple - IBM-USA, BABA-USA, WALMEX-MX, 7203-TKS, VOD-LON, NPN-JSE, MABAX, NZF, SPY-USA, AGG-USA, GLD-USA, AOR-USA, MNA-USA, UUP-USA, SP50-SPX, ESX-STX, XAO-ASX, WD-MSX, NG00-USA, GC00-USA, CC00-USA, C00-USA, FC00-USA, ER00-USA, EURUSD-FX1, USDMXN-FX1, AUDJPY-FX1, EURCZK-FX1, USDILS-FX1, USDZAR-FX1, US10YY-TU1, FDS#190621C00145000-USA, FDS#190621P00145000-USA. *Leave blank if you are trying the `oc` parameter*.</p>
+      name: ids
+      in: query
+      schema:
+        type: string
+      required: false
+    req_id:
+      name: req_id
+      in: query
+      description: Request Identification String. Can be used by the application to keep track of requests.  The id is not used by this service, however, it is included in the XML response.<p> **Try it Out** - any value can be passed through.</p>
+      required: false
+      schema:
+        type: string
+    sf:
+      description: "Symbol Filters, ability to apply filtering to the result of an option chain `oc` request based on available fields and values for the symbols. `sf`=VALUE_[filter],[field],[value]\n  * **VALUE_MINMAX** -  Field value will be within specified interval. ex. - VALUE_MINMAX,BID_1,min,max\n  * **VALUE_EQUALS** - Field value will equal specified value. ex. - VALUE_EQUALS,BID_1,value\n  * **VALUE_NOT_EQUALS** - Field value will not equal specified value. ex. - VALUE_NOT_EQUALS,BID_1,value\n  \n  **Try it Out** - depends on fields used. Example - VALUE_MINMAX,STRIKE_PRICE,120,130 \n"
+      name: sf
+      in: query
+      schema:
+        type: string
+    oc:
+      description: Option Chain, accepts one underlying symbol for which the option chain will be returned. **Required** if not using `ids`. <p>**Try it Out** - Only available for BABA-USA</p>
+      name: oc
+      in: query
+      schema:
+        type: string
+    serv:
+      description: "The Data Service that handles the request for the specified symbols. Available live services are - \n  * **FDS1** -Production Data Service\n  * **FDS_FUND** -Fundamental Data Service used for End-of-Day data.\n\n**Try it Out** - use FDS1\n"
+      name: serv
+      in: query
+      schema:
+        type: string
+        enum:
+        - FDS1
+        - FDS_FUND
+    format:
+      name: format
+      description: The format of the output file.<p>**Try it Out** - All formats available</p>
+      in: query
+      schema:
+        type: string
+        default: XML
+        enum:
+        - XML
+        - JSON
+        - CSV
   securitySchemes:
-    basicAuth:
+    BasicAuth:
       type: http
       scheme: basic
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
-  description: API Documentation
+  description: OpenFactSet Marketplace Card
+  url: https://open.factset.com/products/factset-exchange-datafeed-snapshot-api/en-us

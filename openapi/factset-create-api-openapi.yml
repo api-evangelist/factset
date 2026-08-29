@@ -1,22 +1,12 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Create API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
-  contact:
-    name: FactSet Research Systems
-    url: https://developer.factset.com/contact
-    email: api@factset.com
-  license:
-    name: Apache License, Version 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+  title: Factset Create API
+  version: '1.0'
+  description: 'Operations tagged Create across 2 of this provider''s published API definitions: conversational-api-powered-by-mercury-openapi-original.yml, factset-bookbuilder-api-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
-security:
-- basicAuth: []
+- url: https://api.factset.com/conversational/v0
+- url: https://api.factset.com/book-builder-api/
+  description: Base URL Production
 tags:
 - name: Create
 paths:
@@ -167,6 +157,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+      security:
+      - FactSetApiKey: []
+      - FactSetOAuth2: []
+    servers:
+    - url: https://api.factset.com/conversational/v0
   /v1/create-template/:
     post:
       tags:
@@ -193,133 +188,52 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
-  /v1/create-book:
-    post:
-      tags:
-      - Create
-      summary: Factset Kicks Off Request to Create a Book With Reports of Your Choice
-      description: This end point retrieves book name and book_id for the PDF book you create. All the book options such as name of the book, ticker, pagination options, and reports can be specified in the request body. Please refer to the documentation for valid section ids and report ids.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/createBookPostRequest'
-      responses:
-        '200':
-          description: Successful response contains book name and book ID
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Enable_Book_Info'
-        '400':
-          description: Invalid ticker/section_id/report_id
-        '401':
-          description: Missing or invalid authentication
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-  /v1/create-book-from-template:
-    post:
-      tags:
-      - Create
-      summary: Factset Kicks Off Request to Create a Book With Template
-      description: This endpoint retrieves book status, book name, and book ID for ticker requested in JSON format. This end-point excepts ticker and template_id as inputs. If the template_id input is not used, a book will be created with FactSet's default template.</br></br>Please try out the below template ids to quickly get the FactSet curated books</br></br>Company Quick Book - <b>g_20210415065838185</b></br>Post-Earnings Call - <b>g_20210415070044785</b> </br>Public Information Book(PIB) - <b>g_20210415070353151</b></br></br> Take a look at the example books attached under API documentation below.</br></br>If you are scheduling Post Earnings Call curated book, please note that in contains Corrected Transcript that takes a little while to be available.</br> </br>Once a Raw Transcript is published, FactSet's editors review the call to produce a Corrected Transcript. They listen to the entire audio file again to confirm that all of the terms and numbers are correctly transcribed. FactSet aims to publish a Corrected Transcript within six times the length of the event, measured from the beginning of the event. That means for a typical one-hour call, FactSet will produce a Corrected Transcript within approximately five hours of the call's completion. Visit [OA 13208](https://my.apps.factset.com/oa/pages/13208)
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/createBookFromTemplatePostRequest'
-      responses:
-        '200':
-          description: Successful response contains request status, book name, and book ID
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Enable_Book_Info_From_Template'
-        '400':
-          description: Invalid ticker or Unknown error
-        '401':
-          description: Missing or invalid authentication
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
+      security:
+      - BasicAuth: []
+    servers:
+    - url: https://api.factset.com/book-builder-api/
+      description: Base URL Production
 components:
   schemas:
-    createBookPostRequest:
-      title: Request Body for Post Request
-      description: The request body allows users to input the name of the book, ticker
+    ErrorObject:
+      description: Represents a single error, with error name and identifiers
       type: object
       properties:
-        book_name:
+        id:
           type: string
-          description: name of the book
-          example: Company Book for FDS
-        ticker:
+        title:
           type: string
-          description: Identifier.
-          example: FDS-US
-        pagination:
-          type: object
-          description: options for pagination
-          properties:
-            cover:
-              example: 'true'
-            divider:
-              example: 'true'
-            toc:
-              example: 'true'
-          example: example_value
-        content:
-          type: array
-          description: Content sections
-          items:
-            oneOf:
-            - type: object
-              properties:
-                section_id:
-                  example: COMPANY_OVERVIEW
-                reports:
-                  type: array
-                  items:
-                    oneOf:
-                    - type: string
-                      example: COMPANY_SNAPSHOT_IB
-                    - type: string
-                      example: COMPANY_SNAPSHOT_IM
-                    - type: string
-                      example: ENTITY_STRUCTURE
-          example: []
-    createBookFromTemplatePostRequest:
-      title: Request Body for Post Request
-      description: It is a request body to allow users to input ticker and template id.
+        code:
+          type: string
+    RateLimitExceededError:
+      description: Error response when rate limit has been exceeded.
       type: object
       properties:
-        ticker:
+        message:
           type: string
-          description: ticker
-          example: FDS-US
-        template_id:
-          type: string
-          description: Template ID
-          example: g_20210415065838185
+          enum:
+          - API rate limit exceeded
     403ForbiddenError:
       description: Error response for a user without entitlements to the API.
       type: string
-    Enable_Book_Info:
-      title: Book Information Request
-      description: Request to enable book information for the client.
-      type: object
+    401UnauthorizedError:
+      description: Error response for a user without authentication to use the API.
+      type: string
+    CreateChatRequest:
+      description: Request body containing the query to be sent to the LLM
       properties:
-        bookName:
-          type: string
-          description: Report Name
-          example: Apple Inc.
-        bookID:
-          type: string
-          description: Book ID
-          example: 20200317133713790
+        data:
+          type: object
+          required:
+          - query
+          properties:
+            query:
+              description: Natural language query for FactSet data
+              type: string
+              title: Query
+      required:
+      - data
+      type: object
     CreateChatResponse:
       description: Response from `/create` containing the chat ID and executing status
       type: object
@@ -334,9 +248,6 @@ components:
               type: string
               enum:
               - executing
-    401UnauthorizedError:
-      description: Error response for a user without authentication to use the API.
-      type: string
     Error:
       description: Wrapper containing metadata and appropriate errors as thrown by the API
       type: object
@@ -345,31 +256,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ErrorObject'
-    RateLimitExceededError:
-      description: Error response when rate limit has been exceeded.
-      type: object
-      properties:
-        message:
-          type: string
-          enum:
-          - API rate limit exceeded
-    Enable_Book_Info_From_Template:
-      title: Book Information Request
-      description: Request to enable book information for the client.
-      type: object
-      properties:
-        status:
-          type: string
-          description: Request status
-          example: OK
-        bookName:
-          type: string
-          description: Report Name
-          example: Apple Inc.
-        bookID:
-          type: string
-          description: Book ID
-          example: 20200317133713790
     createTemplatePostRequest:
       title: Request Body for Template Request
       description: The request body allows users to input the name of the template, ticker
@@ -416,34 +302,9 @@ components:
           type: string
           description: Template name
           example: Financials
-    ErrorObject:
-      description: Represents a single error, with error name and identifiers
-      type: object
-      properties:
-        id:
-          type: string
-        title:
-          type: string
-        code:
-          type: string
-    CreateChatRequest:
-      description: Request body containing the query to be sent to the LLM
-      properties:
-        data:
-          type: object
-          required:
-          - query
-          properties:
-            query:
-              description: Natural language query for FactSet data
-              type: string
-              title: Query
-      required:
-      - data
-      type: object
   examples:
-    401UnauthorizedErrorExample:
-      value: Authentication Failed
+    403ForbiddenErrorExample:
+      value: 'Client does not have the required CACCESS: {00QAI}, Request key: 65CA96B3129489A6'
     CreateChatResponseExample:
       value:
         data:
@@ -452,16 +313,28 @@ components:
     RateLimitExceededErrorExample:
       value:
         message: API rate limit exceeded
-    403ForbiddenErrorExample:
-      value: 'Client does not have the required CACCESS: {00QAI}, Request key: 65CA96B3129489A6'
+    401UnauthorizedErrorExample:
+      value: Authentication Failed
     CreateChatRequestExample:
       value:
         data:
           query: What is Tesla's enterprise value?
   securitySchemes:
-    basicAuth:
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
+    FactSetApiKey:
+      type: http
+      scheme: basic
+    BasicAuth:
       type: http
       scheme: basic
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
   description: API Documentation
+  url: https://developer.factset.com/api-catalog/conversational-api-powered-factset-mercury
+x-refined-from:
+- conversational-api-powered-by-mercury-openapi-original.yml
+- factset-bookbuilder-api-openapi.yml

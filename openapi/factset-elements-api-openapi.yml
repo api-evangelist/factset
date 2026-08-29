@@ -1,22 +1,14 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Elements API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
-  contact:
-    name: FactSet Research Systems
-    url: https://developer.factset.com/contact
-    email: api@factset.com
-  license:
-    name: Apache License, Version 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+  title: FactSet Recommendation List API for Digital Portals Elements API
+  description: 'Manage lists of financial products via a CMS or upload job, including
+
+    revision control.'
+  version: '2'
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.factset.com/wealth/v1
 security:
-- basicAuth: []
+- Basic: []
 tags:
 - name: Elements
 paths:
@@ -54,7 +46,6 @@ paths:
           items:
             type: string
             maxLength: 100
-            exclusiveMaximum: false
           uniqueItems: true
           maxItems: 50
         style: form
@@ -68,8 +59,6 @@ paths:
           description: ISO 639-1 code of the language.
           maxLength: 2
           minLength: 2
-          exclusiveMinimum: false
-          exclusiveMaximum: false
       responses:
         '200':
           $ref: '#/components/responses/GetRecommendationListRevisionElementList200Response'
@@ -77,6 +66,198 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
+  responses:
+    GetRecommendationListRevisionElementList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: List of elements sorted by position.
+                type: array
+                items:
+                  type: object
+                  x-property-sort:
+                  - hasNotationData
+                  - position
+                  - notation
+                  - description
+                  - weight
+                  - recommendationClass
+                  properties:
+                    hasNotationData:
+                      type:
+                      - boolean
+                      - 'null'
+                      description: 'Attributes referred to by the notation identifier, beyond notation.instrument.customName, are available.
+
+
+                        If this flag is false, it indicates that some notation data for this element is no longer available because the notation may have expired. For answers without notation data, the members position, instrument.customName, weight, description and recommendationClass are retained.'
+                    position:
+                      type:
+                      - number
+                      - 'null'
+                      format: id32
+                      x-positive: true
+                      description: Position of the element.
+                    notation:
+                      type: object
+                      x-property-sort:
+                      - id
+                      - symbol
+                      - market
+                      - instrument
+                      description: Notation data of the element.
+                      properties:
+                        id:
+                          type:
+                          - string
+                          - 'null'
+                          format: id64
+                          x-positive: true
+                          description: Identifier of the notation.
+                        symbol:
+                          type:
+                          - string
+                          - 'null'
+                          description: The symbol of the notation. It is a market-specific code to identify the notation. Which characters can be part of a symbol depends on the market. If a market does not define a proprietary symbol, but uses a different identifier (for example, the ISIN or the WKN) to identify notations, no symbol will be set for the notations of that market.
+                        market:
+                          type: object
+                          x-property-sort:
+                          - id
+                          - name
+                          description: Market of the notation.
+                          properties:
+                            id:
+                              type:
+                              - number
+                              - 'null'
+                              format: id32
+                              x-positive: true
+                              description: Identifier of the market.
+                            name:
+                              type:
+                              - string
+                              - 'null'
+                              format: localizedString
+                              description: Name of the market.
+                        instrument:
+                          type: object
+                          x-property-sort:
+                          - id
+                          - isin
+                          - name
+                          - customName
+                          - type
+                          description: Instrument data of the notation.
+                          properties:
+                            id:
+                              type:
+                              - string
+                              - 'null'
+                              format: id64
+                              x-positive: true
+                              description: Identifier of the instrument.
+                            isin:
+                              type:
+                              - string
+                              - 'null'
+                              format: isin
+                              description: International Securities Identification Number of the instrument.
+                            name:
+                              type:
+                              - string
+                              - 'null'
+                              description: Name of the instrument.
+                            customName:
+                              type:
+                              - string
+                              - 'null'
+                              format: localizedString
+                              description: Customer specific name of the instrument.
+                            type:
+                              description: Instrument type as defined by FactSet Digital Solutions. Instrument types are arranged in a hierarchy, with level 1 representing the most coarse granularity and further levels successively refining the granularity (see MDG category system 18).
+                              type: array
+                              items:
+                                type: object
+                                x-property-sort:
+                                - id
+                                - name
+                                properties:
+                                  id:
+                                    type:
+                                    - number
+                                    - 'null'
+                                    format: id32
+                                    x-positive: true
+                                    description: Identifier of the instrument type.
+                                  name:
+                                    type:
+                                    - string
+                                    - 'null'
+                                    format: localizedString
+                                    description: Name of the instrument type.
+                    description:
+                      type: object
+                      x-property-sort:
+                      - short
+                      - long
+                      description: Description of the element.
+                      properties:
+                        short:
+                          type:
+                          - string
+                          - 'null'
+                          format: localizedString
+                          description: Short description of the element.
+                        long:
+                          type:
+                          - string
+                          - 'null'
+                          format: localizedString
+                          description: Long description of the element.
+                    weight:
+                      type:
+                      - number
+                      - 'null'
+                      format: real
+                      description: Weight of this list element. If set for at least one list element, the sum off all weights of an element list must be 1.
+                    recommendationClass:
+                      type: object
+                      x-property-sort:
+                      - id
+                      - code
+                      - description
+                      description: Customer-defined recommendation class of the element.
+                      properties:
+                        id:
+                          type:
+                          - number
+                          - 'null'
+                          format: id32
+                          x-positive: true
+                          description: Identifier of the recommendation class.
+                        code:
+                          type:
+                          - string
+                          - 'null'
+                          description: Code of the recommendation class.
+                        description:
+                          type:
+                          - string
+                          - 'null'
+                          format: localizedString
+                          description: Description of the recommendation class.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
   schemas:
     StatusObject:
       type: object
@@ -89,193 +270,14 @@ components:
       description: The status member contains the status code of the response.
       required:
       - code
-  responses:
-    GetRecommendationListRevisionElementList200Response:
-      description: Successful Response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                description: List of elements sorted by position.
-                nullable: false
-                type: array
-                items:
-                  type: object
-                  nullable: false
-                  x-property-sort:
-                  - hasNotationData
-                  - position
-                  - notation
-                  - description
-                  - weight
-                  - recommendationClass
-                  properties:
-                    hasNotationData:
-                      nullable: true
-                      type: boolean
-                      description: 'Attributes referred to by the notation identifier, beyond notation.instrument.customName, are available.
-
-
-                        If this flag is false, it indicates that some notation data for this element is no longer available because the notation may have expired. For answers without notation data, the members position, instrument.customName, weight, description and recommendationClass are retained.'
-                    position:
-                      nullable: true
-                      type: number
-                      format: id32
-                      x-positive: true
-                      description: Position of the element.
-                    notation:
-                      nullable: false
-                      type: object
-                      x-property-sort:
-                      - id
-                      - symbol
-                      - market
-                      - instrument
-                      description: Notation data of the element.
-                      properties:
-                        id:
-                          nullable: true
-                          type: string
-                          format: id64
-                          x-positive: true
-                          description: Identifier of the notation.
-                        symbol:
-                          nullable: true
-                          type: string
-                          description: The symbol of the notation. It is a market-specific code to identify the notation. Which characters can be part of a symbol depends on the market. If a market does not define a proprietary symbol, but uses a different identifier (for example, the ISIN or the WKN) to identify notations, no symbol will be set for the notations of that market.
-                        market:
-                          nullable: false
-                          type: object
-                          x-property-sort:
-                          - id
-                          - name
-                          description: Market of the notation.
-                          properties:
-                            id:
-                              nullable: true
-                              type: number
-                              format: id32
-                              x-positive: true
-                              description: Identifier of the market.
-                            name:
-                              nullable: true
-                              type: string
-                              format: localizedString
-                              description: Name of the market.
-                        instrument:
-                          nullable: false
-                          type: object
-                          x-property-sort:
-                          - id
-                          - isin
-                          - name
-                          - customName
-                          - type
-                          description: Instrument data of the notation.
-                          properties:
-                            id:
-                              nullable: true
-                              type: string
-                              format: id64
-                              x-positive: true
-                              description: Identifier of the instrument.
-                            isin:
-                              nullable: true
-                              type: string
-                              format: isin
-                              description: International Securities Identification Number of the instrument.
-                            name:
-                              nullable: true
-                              type: string
-                              description: Name of the instrument.
-                            customName:
-                              nullable: true
-                              type: string
-                              format: localizedString
-                              description: Customer specific name of the instrument.
-                            type:
-                              nullable: false
-                              description: Instrument type as defined by FactSet Digital Solutions. Instrument types are arranged in a hierarchy, with level 1 representing the most coarse granularity and further levels successively refining the granularity (see MDG category system 18).
-                              type: array
-                              items:
-                                type: object
-                                nullable: false
-                                x-property-sort:
-                                - id
-                                - name
-                                properties:
-                                  id:
-                                    nullable: true
-                                    type: number
-                                    format: id32
-                                    x-positive: true
-                                    description: Identifier of the instrument type.
-                                  name:
-                                    nullable: true
-                                    type: string
-                                    format: localizedString
-                                    description: Name of the instrument type.
-                    description:
-                      nullable: false
-                      type: object
-                      x-property-sort:
-                      - short
-                      - long
-                      description: Description of the element.
-                      properties:
-                        short:
-                          nullable: true
-                          type: string
-                          format: localizedString
-                          description: Short description of the element.
-                        long:
-                          nullable: true
-                          type: string
-                          format: localizedString
-                          description: Long description of the element.
-                    weight:
-                      nullable: true
-                      type: number
-                      format: real
-                      description: Weight of this list element. If set for at least one list element, the sum off all weights of an element list must be 1.
-                    recommendationClass:
-                      nullable: false
-                      type: object
-                      x-property-sort:
-                      - id
-                      - code
-                      - description
-                      description: Customer-defined recommendation class of the element.
-                      properties:
-                        id:
-                          nullable: true
-                          type: number
-                          format: id32
-                          x-positive: true
-                          description: Identifier of the recommendation class.
-                        code:
-                          nullable: true
-                          type: string
-                          description: Code of the recommendation class.
-                        description:
-                          nullable: true
-                          type: string
-                          format: localizedString
-                          description: Description of the recommendation class.
-              meta:
-                type: object
-                description: The meta member contains the meta information of the response.
-                properties:
-                  status:
-                    $ref: '#/components/schemas/StatusObject'
-                x-property-sort:
-                - status
   securitySchemes:
-    basicAuth:
+    Basic:
       type: http
+      description: Input your username and password to access this API.
       scheme: basic
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
-  description: API Documentation
+  description: Endpoint Reference
+  url: https://endpointreference.mdgms.com
+x-interface-version: 2
+x-documenter-version: 6.3.0
+x-api-version: 4.0.2

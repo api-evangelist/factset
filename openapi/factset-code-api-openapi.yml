@@ -1,7 +1,6 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Code API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  title: Factset Code API
   contact:
     name: FactSet Research Systems
     url: https://developer.factset.com/contact
@@ -9,129 +8,16 @@ info:
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+  version: '1.0'
+  description: 'Operations tagged Code across 2 of this provider''s published API definitions: factset-real-time-quotes-api-openapi.yml, factset-vermilion-api-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.factset.com/wealth/v3
 security:
-- basicAuth: []
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Code
 paths:
-  /basic/language/getByCode:
-    get:
-      tags:
-      - Code
-      operationId: get/basic/language/getByCode
-      x-supportsOffsetBasedPaging: false
-      x-supportsOffsetBasedPagingWithoutTotal: false
-      x-supportsCursorBasedPaging: false
-      x-supportsCursorBasedPagingWithoutTotal: false
-      x-supportsPush: false
-      x-requiresUser: false
-      x-requiresInternalClient: false
-      x-disallowUser: false
-      x-no-merge: false
-      x-maxSortParameterCount: 10
-      x-supportsPermissionDeniedResponse: false
-      description: Details for a language identified by code.
-      summary: Factset Details for a Language Identified by Code.
-      parameters:
-      - name: code
-        in: query
-        schema:
-          type: string
-          maxLength: 2
-          exclusiveMaximum: false
-          description: ISO 639-1 code of the language.
-        required: true
-      - name: _attributes
-        in: query
-        schema:
-          type: array
-          items:
-            type: string
-            maxLength: 100
-            exclusiveMaximum: false
-          uniqueItems: true
-          maxItems: 50
-        style: form
-        explode: false
-        description: Limit the attributes returned in the response to the specified set.
-      - name: _language
-        in: query
-        schema:
-          type: string
-          format: isoLanguage
-          description: ISO 639-1 code of the language.
-          maxLength: 2
-          minLength: 2
-          exclusiveMinimum: false
-          exclusiveMaximum: false
-      responses:
-        '200':
-          $ref: '#/components/responses/GetBasicLanguageGetByCode200Response'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-  /basic/region/country/getByCode:
-    get:
-      tags:
-      - Code
-      operationId: get/basic/region/country/getByCode
-      x-supportsOffsetBasedPaging: false
-      x-supportsOffsetBasedPagingWithoutTotal: false
-      x-supportsCursorBasedPaging: false
-      x-supportsCursorBasedPagingWithoutTotal: false
-      x-supportsPush: false
-      x-requiresUser: false
-      x-requiresInternalClient: false
-      x-disallowUser: false
-      x-no-merge: false
-      x-maxSortParameterCount: 10
-      x-supportsPermissionDeniedResponse: false
-      summary: Factset Details for a Country Identified by Code.
-      description: Details for a country identified by code.
-      parameters:
-      - name: code
-        in: query
-        schema:
-          type: string
-          maxLength: 2
-          exclusiveMaximum: false
-          description: ISO 3166-1 alpha-2 code of a country.
-        required: true
-      - name: _attributes
-        in: query
-        schema:
-          type: array
-          items:
-            type: string
-            maxLength: 100
-            exclusiveMaximum: false
-          uniqueItems: true
-          maxItems: 50
-        style: form
-        explode: false
-        description: Limit the attributes returned in the response to the specified set.
-      - name: _language
-        in: query
-        schema:
-          type: string
-          format: isoLanguage
-          description: ISO 639-1 code of the language.
-          maxLength: 2
-          minLength: 2
-          exclusiveMinimum: false
-          exclusiveMaximum: false
-      responses:
-        '200':
-          $ref: '#/components/responses/GetBasicRegionCountryGetByCode200Response'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
   /instrument/exchangeRate/getByISOCode:
     get:
       tags:
@@ -156,9 +42,7 @@ paths:
         schema:
           type: string
           minLength: 3
-          exclusiveMinimum: false
           maxLength: 3
-          exclusiveMaximum: false
           description: ISO 4217 code of the target main currency.
         required: true
       - name: source
@@ -166,9 +50,7 @@ paths:
         schema:
           type: string
           minLength: 3
-          exclusiveMinimum: false
           maxLength: 3
-          exclusiveMaximum: false
           description: ISO 4217 code of the source main currency.
         required: true
       - name: _attributes
@@ -178,7 +60,6 @@ paths:
           items:
             type: string
             maxLength: 100
-            exclusiveMaximum: false
           uniqueItems: true
           maxItems: 50
         style: form
@@ -192,14 +73,14 @@ paths:
           description: ISO 639-1 code of the language.
           maxLength: 2
           minLength: 2
-          exclusiveMinimum: false
-          exclusiveMaximum: false
       responses:
         '200':
           $ref: '#/components/responses/GetInstrumentExchangeRateGetByISOCode200Response'
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
+    servers:
+    - url: https://api.factset.com/wealth/v3
   /v1/{tenant}/data-sources/{dataSourceCode}:
     get:
       operationId: getDataSourceByCode
@@ -609,7 +490,88 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
+  responses:
+    GetInstrumentExchangeRateGetByISOCode200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  instrument:
+                    type: object
+                    x-property-sort:
+                    - id
+                    - name
+                    - shortName
+                    - fsym
+                    description: Details regarding the exchange rate instrument.
+                    properties:
+                      id:
+                        type:
+                        - string
+                        - 'null'
+                        format: id64
+                        x-positive: true
+                        description: Identifier of the instrument.
+                      name:
+                        type:
+                        - string
+                        - 'null'
+                        format: localizedString
+                        description: Name of the instrument.
+                      shortName:
+                        type:
+                        - string
+                        - 'null'
+                        format: localizedString
+                        description: Short name of the instrument.
+                      fsym:
+                        type: object
+                        x-property-sort:
+                        - security
+                        description: Instrument-level FactSet identifier of the financial instrument used primarily in FactSet products other than the MDG.
+                        properties:
+                          security:
+                            type: object
+                            x-property-sort:
+                            - permanentIdentifier
+                            description: Security-level identifier.
+                            properties:
+                              permanentIdentifier:
+                                type:
+                                - string
+                                - 'null'
+                                description: FactSet Permanent Identifier for an instrument. The format is six alpha numeric characters, excluding vowels, with an S suffix (XXXXXX-S).
+                description: Basic data for an exchange rate.
+                x-property-sort:
+                - instrument
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
   schemas:
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
     RecordSetFields:
       type: object
       properties:
@@ -635,6 +597,11 @@ components:
         name:
           type: string
           example: Example Title
+    DataSourceData:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DataSourceDTO'
     EntityDTO:
       type: object
       properties:
@@ -648,6 +615,90 @@ components:
         code:
           type: string
           example: example_value
+    DataSourceInstance:
+      type: object
+      properties:
+        dstInstanceId:
+          type: integer
+          example: '500123'
+        dstInstanceType:
+          type: integer
+          example: 10
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataSourceInstanceRows'
+          example: []
+    EntityFieldValueDTO:
+      type: object
+      properties:
+        meta:
+          type: object
+          properties:
+            pagination:
+              type: object
+              properties:
+                total:
+                  type: integer
+                isEstimatedTotal:
+                  type: boolean
+            sort:
+              type: array
+              items:
+                type: string
+          example: example_value
+        data:
+          type: array
+          items:
+            properties:
+              entityRowId:
+                type: integer
+              keyValue:
+                type: string
+              descriptionValue:
+                type: string
+              fieldsWithValues:
+                type: array
+                items:
+                  type: string
+          example: []
+    ReportDefinitionData:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ReportDefinitionDTO'
+    DataSourceDataInstance:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DataSourceAllData'
+    RecordSetFieldValues:
+      type: object
+      properties:
+        fieldId:
+          type: integer
+          example: '500123'
+        fieldType:
+          type: string
+          enum:
+          - BOOLEAN
+          - DATETIME
+          - DECIMAL
+          - HTML
+          - INTEGER
+          - TEXT
+          example: BOOLEAN
+        fieldValue:
+          type: string
+          example: example_value
+    ErrorList:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+          example: []
     DataSourceDTO:
       type: object
       properties:
@@ -691,6 +742,28 @@ components:
         lastUpdated:
           type: number
           example: 42.5
+    Error:
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        code:
+          type: string
+          example: example_value
+        title:
+          type: string
+          example: Example Title
+    DataSourceAllData:
+      type: object
+      properties:
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecordSetFields'
+          example: []
+        dstInstance:
+          $ref: '#/components/schemas/DataSourceInstance'
     ReportDefinitionDTO:
       type: object
       properties:
@@ -708,34 +781,6 @@ components:
           items:
             $ref: '#/components/schemas/EntityDTO'
           example: []
-    DataSourceDataInstance:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/DataSourceAllData'
-    DataSourceAllData:
-      type: object
-      properties:
-        fields:
-          type: array
-          items:
-            $ref: '#/components/schemas/RecordSetFields'
-          example: []
-        dstInstance:
-          $ref: '#/components/schemas/DataSourceInstance'
-    ErrorList:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/Error'
-          example: []
-    ReportDefinitionData:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/ReportDefinitionDTO'
     DataSourceInstanceRows:
       type: object
       properties:
@@ -750,271 +795,16 @@ components:
           items:
             $ref: '#/components/schemas/RecordSetFieldValues'
           example: []
-    Error:
-      type: object
-      properties:
-        id:
-          type: string
-          example: abc123
-        code:
-          type: string
-          example: example_value
-        title:
-          type: string
-          example: Example Title
-    DataSourceInstance:
-      type: object
-      properties:
-        dstInstanceId:
-          type: integer
-          example: '500123'
-        dstInstanceType:
-          type: integer
-          example: 10
-        rows:
-          type: array
-          items:
-            $ref: '#/components/schemas/DataSourceInstanceRows'
-          example: []
-    StatusObject:
-      type: object
-      properties:
-        code:
-          type: number
-          format: int32
-          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
-          example: 42.5
-      description: The status member contains the status code of the response.
-      required:
-      - code
-    DataSourceData:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/DataSourceDTO'
-    EntityFieldValueDTO:
-      type: object
-      properties:
-        meta:
-          type: object
-          properties:
-            pagination:
-              type: object
-              properties:
-                total:
-                  type: integer
-                isEstimatedTotal:
-                  type: boolean
-            sort:
-              type: array
-              items:
-                type: string
-          example: example_value
-        data:
-          type: array
-          items:
-            properties:
-              entityRowId:
-                type: integer
-              keyValue:
-                type: string
-              descriptionValue:
-                type: string
-              fieldsWithValues:
-                type: array
-                items:
-                  type: string
-          example: []
-    RecordSetFieldValues:
-      type: object
-      properties:
-        fieldId:
-          type: integer
-          example: '500123'
-        fieldType:
-          type: string
-          enum:
-          - BOOLEAN
-          - DATETIME
-          - DECIMAL
-          - HTML
-          - INTEGER
-          - TEXT
-          example: BOOLEAN
-        fieldValue:
-          type: string
-          example: example_value
-  responses:
-    GetInstrumentExchangeRateGetByISOCode200Response:
-      description: Successful Response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: object
-                properties:
-                  instrument:
-                    nullable: false
-                    type: object
-                    x-property-sort:
-                    - id
-                    - name
-                    - shortName
-                    - fsym
-                    description: Details regarding the exchange rate instrument.
-                    properties:
-                      id:
-                        nullable: true
-                        type: string
-                        format: id64
-                        x-positive: true
-                        description: Identifier of the instrument.
-                      name:
-                        nullable: true
-                        type: string
-                        format: localizedString
-                        description: Name of the instrument.
-                      shortName:
-                        nullable: true
-                        type: string
-                        format: localizedString
-                        description: Short name of the instrument.
-                      fsym:
-                        nullable: false
-                        type: object
-                        x-property-sort:
-                        - security
-                        description: Instrument-level FactSet identifier of the financial instrument used primarily in FactSet products other than the MDG.
-                        properties:
-                          security:
-                            nullable: false
-                            type: object
-                            x-property-sort:
-                            - permanentIdentifier
-                            description: Security-level identifier.
-                            properties:
-                              permanentIdentifier:
-                                nullable: true
-                                type: string
-                                description: FactSet Permanent Identifier for an instrument. The format is six alpha numeric characters, excluding vowels, with an S suffix (XXXXXX-S).
-                description: Basic data for an exchange rate.
-                nullable: false
-                x-property-sort:
-                - instrument
-              meta:
-                type: object
-                description: The meta member contains the meta information of the response.
-                properties:
-                  status:
-                    $ref: '#/components/schemas/StatusObject'
-                x-property-sort:
-                - status
-            x-property-sort:
-            - data
-            - meta
-    GetBasicRegionCountryGetByCode200Response:
-      description: Successful Response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: object
-                properties:
-                  id:
-                    nullable: true
-                    type: number
-                    format: id32
-                    x-positive: true
-                    description: Identifier of a country.
-                  name:
-                    nullable: true
-                    type: string
-                    format: localizedString
-                    description: Name of the country.
-                  subdivisions:
-                    nullable: false
-                    type: array
-                    items:
-                      type: object
-                      nullable: false
-                      x-property-sort:
-                      - id
-                      - name
-                      description: Subdivisions of this country in unspecified order.
-                      properties:
-                        id:
-                          nullable: true
-                          type: number
-                          format: id32
-                          x-positive: true
-                          description: Identifier of a country subdivision.
-                        name:
-                          nullable: true
-                          type: string
-                          format: localizedString
-                          description: Name of the country subdivision.
-                description: Details of a country.
-                nullable: false
-                x-property-sort:
-                - id
-                - name
-                - subdivisions
-              meta:
-                type: object
-                description: The meta member contains the meta information of the response.
-                properties:
-                  status:
-                    $ref: '#/components/schemas/StatusObject'
-                x-property-sort:
-                - status
-            x-property-sort:
-            - data
-            - meta
-    GetBasicLanguageGetByCode200Response:
-      description: Successful Response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: object
-                properties:
-                  id:
-                    nullable: true
-                    type: number
-                    format: id32
-                    x-positive: true
-                    description: Identifier of a language.
-                  name:
-                    nullable: true
-                    type: string
-                    format: localizedString
-                    description: Name of the language.
-                description: Details of a language.
-                nullable: false
-                x-property-sort:
-                - id
-                - name
-              meta:
-                type: object
-                description: The meta member contains the meta information of the response.
-                properties:
-                  status:
-                    $ref: '#/components/schemas/StatusObject'
-                x-property-sort:
-                - status
-            x-property-sort:
-            - data
-            - meta
   securitySchemes:
-    basicAuth:
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
+    FactSetApiKey:
       type: http
       scheme: basic
-externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
-  description: API Documentation
+x-refined-from:
+- factset-real-time-quotes-api-openapi.yml
+- factset-vermilion-api-openapi.yml

@@ -1,7 +1,14 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Grades API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  version: 3.0.0
+  title: FactSet Real-Time Quotes Grades API
+  description: '
+
+    The Quotes API combines endpoints for retrieving security end-of-day,
+
+    delayed, and realtime prices with performance key figures and basic
+
+    reference data on the security and market level.'
   contact:
     name: FactSet Research Systems
     url: https://developer.factset.com/contact
@@ -9,14 +16,11 @@ info:
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.factset.com/wealth/v3
 security:
-- basicAuth: []
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Grades
 paths:
@@ -54,6 +58,17 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
     PostInstrumentRatingGradeListRequest:
       x-property-sort:
       - data
@@ -78,13 +93,10 @@ components:
                 values:
                   description: Set of identifiers to resolve.
                   type: array
-                  nullable: false
                   items:
                     type: string
                     minLength: 3
-                    exclusiveMinimum: false
                     maxLength: 50
-                    exclusiveMaximum: false
                     pattern: ^[B-DF-HJ-NP-TV-Z0-9]{6}-[SLR]$|^[A-Z0-9.#&*+]{1,47}-[A-Z0-9]{2,4}$|^[0-9]{3,20}$|^[B-DF-HJ-NP-TV-Z0-9]{6}[0-9]$|^[A-Z]{2}[A-Z0-9]{9}[0-9]$|^[A-Z1-9][A-Z0-9]{5}$|^[0-9]{1,9}$|^[A-Z0-9]{8}[0-9]$
                   uniqueItems: true
                   minItems: 1
@@ -135,7 +147,6 @@ components:
                   properties:
                     ids:
                       type: array
-                      nullable: false
                       items:
                         type: number
                         format: id32
@@ -155,24 +166,12 @@ components:
           x-property-sort:
           - attributes
           example: example_value
-    StatusObject:
-      type: object
-      properties:
-        code:
-          type: number
-          format: int32
-          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
-          example: 42.5
-      description: The status member contains the status code of the response.
-      required:
-      - code
     AttributesMember:
       type: array
       description: Limit the attributes returned in the response to the specified set.
       items:
         type: string
         maxLength: 100
-        exclusiveMaximum: false
       maxItems: 50
       uniqueItems: true
   responses:
@@ -185,10 +184,8 @@ components:
             properties:
               data:
                 type: array
-                nullable: false
                 items:
                   type: object
-                  nullable: false
                   x-property-sort:
                   - idInstrument
                   - sourceIdentifier
@@ -196,17 +193,18 @@ components:
                   - ratings
                   properties:
                     idInstrument:
-                      nullable: true
-                      type: string
+                      type:
+                      - string
+                      - 'null'
                       format: id64
                       x-positive: true
                       description: MDG identifier of the instrument.
                     sourceIdentifier:
-                      nullable: true
-                      type: string
+                      type:
+                      - string
+                      - 'null'
                       description: Identifier used in the request.
                     status:
-                      nullable: false
                       type: object
                       x-property-sort:
                       - code
@@ -216,8 +214,9 @@ components:
                       description: Error status for the requested identifier.
                       properties:
                         code:
-                          nullable: true
-                          type: string
+                          type:
+                          - string
+                          - 'null'
                           description: Code of the error condition.
                           x-enum-description:
                           - No error.
@@ -230,23 +229,24 @@ components:
                           - entitlement
                           - identifierMapping
                         identifier:
-                          nullable: true
-                          type: string
+                          type:
+                          - string
+                          - 'null'
                           description: Provided identifier.
                         details:
-                          nullable: true
-                          type: string
+                          type:
+                          - string
+                          - 'null'
                           description: A human-readable, unstructured explanation specific to this occurrence of the problem.
                         encryptedDetails:
-                          nullable: true
-                          type: string
+                          type:
+                          - string
+                          - 'null'
                           description: Base64-encoded internal details about the error.
                     ratings:
-                      nullable: false
                       type: array
                       items:
                         type: object
-                        nullable: false
                         x-property-sort:
                         - system
                         - current
@@ -254,7 +254,6 @@ components:
                         - change
                         properties:
                           system:
-                            nullable: false
                             type: object
                             x-property-sort:
                             - id
@@ -262,19 +261,20 @@ components:
                             description: Rating system.
                             properties:
                               id:
-                                nullable: true
-                                type: number
+                                type:
+                                - number
+                                - 'null'
                                 format: id32
                                 x-positive: true
                                 description: Identifier of the rating system.
                               name:
-                                nullable: true
-                                type: string
+                                type:
+                                - string
+                                - 'null'
                                 description: 'Official name of the rating system in the original language, as
 
                                   supplied by the rating agency.'
                           current:
-                            nullable: false
                             type: object
                             x-property-sort:
                             - id
@@ -284,29 +284,32 @@ components:
                             description: Current rating.
                             properties:
                               id:
-                                nullable: true
-                                type: number
+                                type:
+                                - number
+                                - 'null'
                                 format: id32
                                 x-positive: true
                                 description: Identifier of the rating grade.
                               grade:
-                                nullable: true
-                                type: string
+                                type:
+                                - string
+                                - 'null'
                                 description: Rating grade.
                               rank:
-                                nullable: true
-                                type: number
+                                type:
+                                - number
+                                - 'null'
                                 format: int32
                                 description: 'Rank of the rating grade according to the sort order of the
 
                                   rating system.'
                               date:
-                                nullable: true
-                                type: string
+                                type:
+                                - string
+                                - 'null'
                                 format: date
                                 description: Date on which the instrument was rated.
                           previous:
-                            nullable: false
                             type: object
                             x-property-sort:
                             - id
@@ -316,30 +319,35 @@ components:
                             description: Previous rating.
                             properties:
                               id:
-                                nullable: true
-                                type: number
+                                type:
+                                - number
+                                - 'null'
                                 format: id32
                                 x-positive: true
                                 description: Identifier of the rating grade.
                               grade:
-                                nullable: true
-                                type: string
+                                type:
+                                - string
+                                - 'null'
                                 description: Rating grade.
                               rank:
-                                nullable: true
-                                type: number
+                                type:
+                                - number
+                                - 'null'
                                 format: int32
                                 description: 'Rank of the rating grade according to the sort order of the
 
                                   rating system.'
                               date:
-                                nullable: true
-                                type: string
+                                type:
+                                - string
+                                - 'null'
                                 format: date
                                 description: Date on which the instrument was rated.
                           change:
-                            nullable: true
-                            type: number
+                            type:
+                            - number
+                            - 'null'
                             format: int32
                             description: 'Rating grade change which is the difference between the rank of the current rating and the rank of the previous rating.
 
@@ -366,9 +374,18 @@ components:
             - data
             - meta
   securitySchemes:
-    basicAuth:
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
+    FactSetApiKey:
       type: http
       scheme: basic
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
   description: API Documentation
+  url: https://developer.factset.com/api-catalog/
+x-interface-version: 2
+x-documenter-version: 6.3.9
+x-api-version: 4.4.0

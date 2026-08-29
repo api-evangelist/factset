@@ -1,22 +1,14 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Recommendation List API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
-  contact:
-    name: FactSet Research Systems
-    url: https://developer.factset.com/contact
-    email: api@factset.com
-  license:
-    name: Apache License, Version 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+  title: FactSet API for Digital Portals Recommendation List API
+  description: 'Manage lists of financial products via a CMS or upload job, including
+
+    revision control.'
+  version: '2'
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.factset.com/wealth/v1
 security:
-- basicAuth: []
+- Basic: []
 tags:
 - name: Recommendation List
 paths:
@@ -54,7 +46,6 @@ paths:
           items:
             type: string
             maxLength: 100
-            exclusiveMaximum: false
           uniqueItems: true
           maxItems: 50
         style: form
@@ -68,8 +59,6 @@ paths:
           description: ISO 639-1 code of the language.
           maxLength: 2
           minLength: 2
-          exclusiveMinimum: false
-          exclusiveMaximum: false
       responses:
         '200':
           $ref: '#/components/responses/GetRecommendationListRevisionGet200Response'
@@ -108,23 +97,6 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    AttributesMember:
-      type: array
-      description: Limit the attributes returned in the response to the specified set.
-      items:
-        type: string
-        maxLength: 100
-        exclusiveMaximum: false
-      maxItems: 50
-      uniqueItems: true
-    LanguageMember:
-      type: string
-      format: isoLanguage
-      description: ISO 639-1 code of the language.
-      maxLength: 2
-      minLength: 2
-      exclusiveMinimum: false
-      exclusiveMaximum: false
     StatusObject:
       type: object
       properties:
@@ -136,6 +108,20 @@ components:
       description: The status member contains the status code of the response.
       required:
       - code
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+      maxItems: 50
+      uniqueItems: true
+    LanguageMember:
+      type: string
+      format: isoLanguage
+      description: ISO 639-1 code of the language.
+      maxLength: 2
+      minLength: 2
     PostRecommendationListRevisionListRequest:
       required:
       - data
@@ -156,7 +142,6 @@ components:
               description: Identifier of the recommendation list.
             idRevision:
               type: array
-              nullable: false
               items:
                 type: number
                 format: id32
@@ -200,125 +185,6 @@ components:
           - language
           example: example_value
   responses:
-    GetRecommendationListRevisionGet200Response:
-      description: Successful Response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                description: Details about the revision.
-                nullable: false
-                type: object
-                x-property-sort:
-                - id
-                - recommendationList
-                - types
-                - title
-                - description
-                - activeRange
-                - instrument
-                properties:
-                  id:
-                    nullable: true
-                    type: number
-                    format: id32
-                    x-positive: true
-                    description: Identifier of the revision.
-                  recommendationList:
-                    nullable: false
-                    type: object
-                    x-property-sort:
-                    - id
-                    - name
-                    description: The recommendation list to which this revision belongs.
-                    properties:
-                      id:
-                        nullable: true
-                        type: number
-                        format: id32
-                        x-positive: true
-                        description: Identifier of the recommendation list.
-                      name:
-                        nullable: true
-                        type: string
-                        description: Name of the recommendation list.
-                  types:
-                    nullable: false
-                    type: array
-                    items:
-                      type: object
-                      nullable: false
-                      x-property-sort:
-                      - id
-                      - name
-                      description: Type assigned to the recommendation list as of the given revision.
-                      properties:
-                        id:
-                          nullable: true
-                          type: number
-                          format: id32
-                          x-positive: true
-                          description: Identifier of the type.
-                        name:
-                          nullable: true
-                          type: string
-                          description: Name of the type.
-                    description: Set of types assigned to the recommendation list as of the given revision. The customer maintains a list of valid types for all of its recommendation lists.
-                  title:
-                    nullable: true
-                    type: string
-                    format: localizedString
-                    description: Title assigned to the recommendation list as of the given revision.
-                  description:
-                    nullable: true
-                    type: string
-                    format: localizedString
-                    description: Description assigned to the recommendation list as of the given revision.
-                  activeRange:
-                    nullable: true
-                    type: object
-                    format: timeRange
-                    properties:
-                      start:
-                        nullable: true
-                        type: string
-                        format: datetime
-                        description: The starting point of the time range (inclusive), or `null` to indicate that the time range extends indefinitely into the past.
-                      end:
-                        nullable: true
-                        type: string
-                        format: datetime
-                        description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
-                    x-property-sort:
-                    - start
-                    - end
-                    required:
-                    - start
-                    - end
-                    description: Time range during which the revision is, was, or will be active.
-                  instrument:
-                    nullable: false
-                    type: object
-                    x-property-sort:
-                    - id
-                    description: Instrument to which the recommendation list points, as of the given revision.
-                    properties:
-                      id:
-                        nullable: true
-                        type: string
-                        format: id64
-                        x-positive: true
-                        description: Identifier of the instrument.
-              meta:
-                type: object
-                description: The meta member contains the meta information of the response.
-                properties:
-                  status:
-                    $ref: '#/components/schemas/StatusObject'
-                x-property-sort:
-                - status
     PostRecommendationListRevisionList200Response:
       description: Successful Response
       content:
@@ -328,11 +194,9 @@ components:
             properties:
               data:
                 description: An unordered list of revisions.
-                nullable: false
                 type: array
                 items:
                   type: object
-                  nullable: false
                   x-property-sort:
                   - id
                   - types
@@ -343,56 +207,62 @@ components:
                   description: Revision
                   properties:
                     id:
-                      nullable: true
-                      type: number
+                      type:
+                      - number
+                      - 'null'
                       format: id32
                       x-positive: true
                       description: Identifier of the revision.
                     types:
-                      nullable: false
                       type: array
                       items:
                         type: object
-                        nullable: false
                         x-property-sort:
                         - id
                         - name
                         description: Type assigned to the recommendation list as of the given revision.
                         properties:
                           id:
-                            nullable: true
-                            type: number
+                            type:
+                            - number
+                            - 'null'
                             format: id32
                             x-positive: true
                             description: Identifier of the type.
                           name:
-                            nullable: true
-                            type: string
+                            type:
+                            - string
+                            - 'null'
                             description: Name of the type.
                       description: Set of types assigned to the recommendation list as of the given revision. The customer maintains a list of valid types for all of its recommendation lists.
                     title:
-                      nullable: true
-                      type: string
+                      type:
+                      - string
+                      - 'null'
                       format: localizedString
                       description: Title assigned to the recommendation list as of the given revision.
                     description:
-                      nullable: true
-                      type: string
+                      type:
+                      - string
+                      - 'null'
                       format: localizedString
                       description: Description assigned to the recommendation list as of the given revision.
                     activeRange:
-                      nullable: true
-                      type: object
+                      type:
+                      - object
+                      - 'null'
                       format: timeRange
                       properties:
                         start:
-                          nullable: true
-                          type: string
+                          type:
+                          - string
+                          - 'null'
                           format: datetime
                           description: The starting point of the time range (inclusive), or `null` to indicate that the time range extends indefinitely into the past.
                         end:
-                          nullable: true
-                          type: string
+                          type:
+                          - string
+                          - 'null'
                           format: datetime
                           description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
                       x-property-sort:
@@ -403,15 +273,15 @@ components:
                       - end
                       description: Time range during which the revision is, was, or will be active.
                     instrument:
-                      nullable: false
                       type: object
                       x-property-sort:
                       - id
                       description: Instrument to which the recommendation list points, as of the given revision.
                       properties:
                         id:
-                          nullable: true
-                          type: string
+                          type:
+                          - string
+                          - 'null'
                           format: id64
                           x-positive: true
                           description: Identifier of the instrument.
@@ -423,10 +293,139 @@ components:
                     $ref: '#/components/schemas/StatusObject'
                 x-property-sort:
                 - status
+    GetRecommendationListRevisionGet200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: Details about the revision.
+                type: object
+                x-property-sort:
+                - id
+                - recommendationList
+                - types
+                - title
+                - description
+                - activeRange
+                - instrument
+                properties:
+                  id:
+                    type:
+                    - number
+                    - 'null'
+                    format: id32
+                    x-positive: true
+                    description: Identifier of the revision.
+                  recommendationList:
+                    type: object
+                    x-property-sort:
+                    - id
+                    - name
+                    description: The recommendation list to which this revision belongs.
+                    properties:
+                      id:
+                        type:
+                        - number
+                        - 'null'
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the recommendation list.
+                      name:
+                        type:
+                        - string
+                        - 'null'
+                        description: Name of the recommendation list.
+                  types:
+                    type: array
+                    items:
+                      type: object
+                      x-property-sort:
+                      - id
+                      - name
+                      description: Type assigned to the recommendation list as of the given revision.
+                      properties:
+                        id:
+                          type:
+                          - number
+                          - 'null'
+                          format: id32
+                          x-positive: true
+                          description: Identifier of the type.
+                        name:
+                          type:
+                          - string
+                          - 'null'
+                          description: Name of the type.
+                    description: Set of types assigned to the recommendation list as of the given revision. The customer maintains a list of valid types for all of its recommendation lists.
+                  title:
+                    type:
+                    - string
+                    - 'null'
+                    format: localizedString
+                    description: Title assigned to the recommendation list as of the given revision.
+                  description:
+                    type:
+                    - string
+                    - 'null'
+                    format: localizedString
+                    description: Description assigned to the recommendation list as of the given revision.
+                  activeRange:
+                    type:
+                    - object
+                    - 'null'
+                    format: timeRange
+                    properties:
+                      start:
+                        type:
+                        - string
+                        - 'null'
+                        format: datetime
+                        description: The starting point of the time range (inclusive), or `null` to indicate that the time range extends indefinitely into the past.
+                      end:
+                        type:
+                        - string
+                        - 'null'
+                        format: datetime
+                        description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
+                    x-property-sort:
+                    - start
+                    - end
+                    required:
+                    - start
+                    - end
+                    description: Time range during which the revision is, was, or will be active.
+                  instrument:
+                    type: object
+                    x-property-sort:
+                    - id
+                    description: Instrument to which the recommendation list points, as of the given revision.
+                    properties:
+                      id:
+                        type:
+                        - string
+                        - 'null'
+                        format: id64
+                        x-positive: true
+                        description: Identifier of the instrument.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
   securitySchemes:
-    basicAuth:
+    Basic:
       type: http
+      description: Input your username and password to access this API.
       scheme: basic
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
-  description: API Documentation
+  description: Endpoint Reference
+  url: https://endpointreference.mdgms.com
+x-interface-version: 2
+x-documenter-version: 6.3.0
+x-api-version: 4.0.2

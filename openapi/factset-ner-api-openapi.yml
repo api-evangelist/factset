@@ -1,22 +1,20 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Ner API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  title: Factset Natural Language Processing Ner API
+  description: APIs that leverage Natural Language Processing to help extract meaningful data from unstructured text
   contact:
     name: FactSet Research Systems
     url: https://developer.factset.com/contact
     email: api@factset.com
+  version: 1.3.0
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.factset.com/cognitive/nlp/v1
 security:
-- basicAuth: []
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Ner
 paths:
@@ -48,6 +46,36 @@ paths:
       - Ner
 components:
   schemas:
+    NEROrganization:
+      properties:
+        entityId:
+          description: The FactSet Entity ID that is linked to this organization.
+          example: 0016YD-E
+          title: Entity ID
+          type: string
+        lookupUrl:
+          description: A link to the information page for the given organization
+          example: https://....
+          title: Lookp URL
+          type: string
+        name:
+          description: The name this organization.
+          example: FactSet Research Systems
+          title: Name
+          type: string
+      type: object
+    NERResponseSchema:
+      properties:
+        data:
+          $ref: '#/components/schemas/NEREntityList'
+        errors:
+          items:
+            $ref: '#/components/schemas/Error'
+          type: array
+        meta:
+          description: Any associated metadata
+          type: object
+      type: object
     NERInputDataSchema:
       properties:
         enableIdLookup:
@@ -73,6 +101,11 @@ components:
             $ref: '#/components/schemas/NEREntity'
           type: array
       type: object
+    NERInputSchema:
+      properties:
+        data:
+          $ref: '#/components/schemas/NERInputDataSchema'
+      type: object
     Error:
       type: object
       properties:
@@ -85,36 +118,6 @@ components:
         code:
           type: string
       additionalProperties: false
-    NERResponseSchema:
-      properties:
-        data:
-          $ref: '#/components/schemas/NEREntityList'
-        errors:
-          items:
-            $ref: '#/components/schemas/Error'
-          type: array
-        meta:
-          description: Any associated metadata
-          type: object
-      type: object
-    NEROrganization:
-      properties:
-        entityId:
-          description: The FactSet Entity ID that is linked to this organization.
-          example: 0016YD-E
-          title: Entity ID
-          type: string
-        lookupUrl:
-          description: A link to the information page for the given organization
-          example: https://....
-          title: Lookp URL
-          type: string
-        name:
-          description: The name this organization.
-          example: FactSet Research Systems
-          title: Name
-          type: string
-      type: object
     NEREntity:
       properties:
         associatedOrgs:
@@ -173,15 +176,13 @@ components:
       - text
       - type
       type: object
-    NERInputSchema:
-      properties:
-        data:
-          $ref: '#/components/schemas/NERInputDataSchema'
-      type: object
   securitySchemes:
-    basicAuth:
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
+    FactSetApiKey:
       type: http
       scheme: basic
-externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
-  description: API Documentation

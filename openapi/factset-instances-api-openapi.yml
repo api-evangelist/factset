@@ -1,306 +1,29 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Instances API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  version: 1.0.0
+  title: FactSet Vermilion Instances API
   contact:
     name: FactSet Research Systems
-    url: https://developer.factset.com/contact
     email: api@factset.com
+    url: https://developer.factset.com/contact
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
-servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+  description: '
+
+    The Vermilion API, enables users to programmatically access FactSet''s
+
+    Vermilion Reporting Suite (VRS) and seamlessly integrate into customer''s
+
+    3rd party applications. The API is referred to as two key product
+
+    initiatives, the REST API and the SCIM API.'
 security:
-- basicAuth: []
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Instances
 paths:
-  /v1/report-instances/generate:
-    post:
-      operationId: generateReport
-      tags:
-      - Instances
-      summary: Factset Generates a Report
-      description: Generates a report using the specified ID and the JSON in the request body
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ReportGenerationRequestBody'
-            example:
-              vrs:
-                '1':
-                  report: MONTHLY_REPORT
-                  tenancy: CLIENT_REPORTING
-                  outputFormat: PDF
-                  sectionFilter: Section One
-                  priority: '2'
-                  startDate: 15 December 2023 00:00:00
-                  entitySelection:
-                    ACCOUNT:
-                      key: Account name
-                    PORTFOLIO:
-                      key: Test fund
-                    DATE:
-                      key: '2020-01-01 00:00:00'
-      responses:
-        '202':
-          description: Report generation request succeeded and report generation is in progress
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ReportInstanceDataResponse'
-          headers:
-            Location:
-              schema:
-                type: string
-              description: End point location to retrieve the latest status of the report generation. This is v1/{tenant}/report-instances/{reportInstanceId}
-        '400':
-          description: The supplied report definition code was either missing or invalid, or the report definition was not found
-          headers:
-            Location:
-              schema:
-                type: string
-              description: End point location to retrieve the latest status of the report generation. This is v1/{tenant}/report-instances/{reportInstanceId}
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: parameterError
-                  title: The report definition code passed was invalid
-        '401':
-          description: Unauthorised
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAuthenticated
-                  title: User is not authenticated
-          headers:
-            Location:
-              schema:
-                type: string
-              description: End point location to retrieve the latest status of the report generation. This is v1/{tenant}/report-instances/{reportInstanceId}
-        '403':
-          description: No permissions to view reports in VRS
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAuthorized
-                  title: No permissions to view this item
-        '404':
-          description: The report code could not be found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notFound
-                  title: The report definition code passed was not found
-        '406':
-          description: Unsupported Accept header. Header needs to be set to application/json.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAcceptable
-                  title: Unsupported Accept header. Header needs to be set to application/json
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-  /v1/{tenant}/report-instances/{reportInstanceId}:
-    delete:
-      operationId: cancelReport
-      tags:
-      - Instances
-      summary: Factset Cancels a Report Generation
-      description: Sends a request to cancel a report generation based on the report instance id passed
-      parameters:
-      - in: path
-        name: tenant
-        description: The code of the tenancy
-        schema:
-          type: string
-        required: true
-      - in: path
-        name: reportInstanceId
-        description: The id of the report instance
-        required: true
-        schema:
-          type: string
-      responses:
-        '204':
-          description: Successful operation - no response
-        '400':
-          description: The supplied report instance id was either missing or invalid
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: parameterError
-                  title: The ID passed is not a numerical value
-        '401':
-          description: Unauthorised
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAuthenticated
-                  title: User is not authenticated
-        '403':
-          description: No permissions to view reports in VRS
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAuthorized
-                  title: No permissions to view this item
-        '404':
-          description: The supplied report instance ID could not be found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notFound
-                  title: The report definition code passed was not found
-        '406':
-          description: Unsupported Accept header. Header needs to be set to application/json.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAcceptable
-                  title: Unsupported Accept header. Header needs to be set to application/json
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-    get:
-      operationId: getReportInstanceById
-      tags:
-      - Instances
-      summary: Factset Gets a Report Instance Based on the Id
-      description: Gets a report instance object based on the ID passed
-      parameters:
-      - in: path
-        name: reportInstanceId
-        description: The ID of the report instance
-        schema:
-          type: string
-        required: true
-      - in: path
-        name: tenant
-        description: The code of the tenancy
-        schema:
-          type: string
-        required: true
-      responses:
-        '200':
-          description: Report generation has completed and the report is ready to download
-          headers:
-            Location:
-              schema:
-                type: string
-              description: A callback URL to the report file on VRS ready to download
-        '202':
-          description: Expected response returned if the report generation is not yet completed.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ReportInstanceData'
-        '400':
-          description: The supplied report instance id was either missing or invalid, or the report instance was not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: parameterError
-                  title: The ID passed is not a numerical value
-        '401':
-          description: Unauthorised
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAuthenticated
-                  title: User is not authenticated
-        '403':
-          description: No permissions to view reports in VRS
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAuthorized
-                  title: No permissions to view this item
-        '404':
-          description: The supplied report instance ID could not be found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notFound
-                  title: The report definition code passed was not found
-        '406':
-          description: Unsupported Accept header. Header needs to be set to application/json.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAcceptable
-                  title: Unsupported Accept header. Header needs to be set to application/json
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
   /v1/{tenant}/report-instances:
     get:
       operationId: getAllReportInstances
@@ -437,223 +160,8 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
-  /v1/{tenant}/report-instances/{reportInstanceId}/results/{reportFileName}:
-    get:
-      operationId: getReportFile
-      tags:
-      - Instances
-      summary: Factset Gets the Generated File
-      description: Get the generated file for a report instance. Users can fetch the generated report once the genration is finished. The report instance id and the report file name are passed in as path paramters
-      parameters:
-      - in: path
-        name: tenant
-        description: The code of the tenancy
-        schema:
-          type: string
-        required: true
-      - in: path
-        name: reportInstanceId
-        description: Used to validate that report file name belongs to the report instance passed
-        schema:
-          type: string
-        required: true
-      - in: path
-        name: reportFileName
-        description: 'The report file name that has to be retrieved. report file name. E.g: xyz.pdf'
-        schema:
-          type: string
-        required: true
-      responses:
-        '200':
-          description: Successful operation
-        '400':
-          description: The supplied report instance id was either missing or invalid or the report instance was not found. The supplied report file name was either invalid or not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: parameterError
-                  title: The ID passed is not a numerical value
-        '401':
-          description: Unauthorised
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAuthenticated
-                  title: User is not authenticated
-        '403':
-          description: No permissions to view the generated file in VRS
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAuthorized
-                  title: No permissions to view this item
-        '406':
-          description: Unsupported Accept header. Header needs to be set to application/json.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAcceptable
-                  title: "Unsupported Accept header. Header needs to be set to\n    application/json"
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-  /v1/{tenant}/report-instances/{reportInstanceId}/logs:
-    get:
-      operationId: getReportGenerationLogs
-      tags:
-      - Instances
-      summary: Factset Gets a List of Logs for the Report Instance Generation
-      description: Gets a list of logs for the generated report instance. Allows the user to sort on log message, type and date. Also allows for retrieving of just the errors & warnings'
-      parameters:
-      - in: path
-        name: tenant
-        description: The code of the tenancy
-        schema:
-          type: string
-        required: true
-      - in: path
-        name: reportInstanceId
-        description: Used to validate that report file name belongs to the report instance passed
-        schema:
-          type: string
-        required: true
-      - in: query
-        name: errorsOnly
-        description: 'If the parameter is set to true the endpoint should return just errors and warnings E.g: errorsOnly=true'
-        schema:
-          type: string
-      - in: query
-        name: _sort
-        description: The column to sort on. Can add - to sort
-        required: false
-        style: form
-        explode: false
-        schema:
-          type: array
-          maxItems: 1
-          items:
-            type: string
-        examples:
-          sequenceNumber:
-            value:
-            - sequenceNumber
-            description: The sequence number of the log entry
-          message:
-            value:
-            - message
-            description: The log message to sort
-          type:
-            value:
-            - type
-            description: The type of the log to sort
-          updatedDate:
-            value:
-            - updatdeDate
-            description: The updated date of the log to sort
-      - in: query
-        name: _paginationLimit
-        description: Non-negative maximum number of entries to return
-        schema:
-          type: integer
-        examples:
-          pageSize:
-            value: 25
-            description: Non-negative maximum number of entries to return
-      - in: query
-        name: _paginationOffset
-        description: Non-negative number of entries to skip
-        schema:
-          type: integer
-        examples:
-          startIndex:
-            value: 0
-            description: Non-negative maximum number of entries to return
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ReportInstanceLogList'
-        '401':
-          description: Unauthorised
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAuthenticated
-                  title: User is not authenticated
-        '403':
-          description: No permissions to view reports in VRS
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAuthorized
-                  title: No permissions to view this item
-        '404':
-          description: The supplied report instance ID could not be found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notFound
-                  title: The report instance ID passed was not found
-        '406':
-          description: Unsupported Accept header. Header needs to be set to application/json.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAcceptable
-                  title: "Unsupported Accept header. Header needs to be set to\n    application/json"
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
 components:
   schemas:
-    ReportInstanceLogList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/ReportInstanceLogDTO'
-          example: []
-    ReportInstanceId:
-      type: object
-      properties:
-        reportInstanceId:
-          type: integer
-          example: '500123'
     ReportInstanceList:
       type: object
       properties:
@@ -673,34 +181,6 @@ components:
           items:
             $ref: '#/components/schemas/ReportInstanceDTO'
           example: []
-    ReportGenerationRequestBody:
-      type: object
-      properties:
-        vrs:
-          type: object
-          additionalProperties:
-            type: object
-            properties:
-              report:
-                type: string
-              tenancy:
-                type: string
-              outputFormat:
-                type: string
-              sectionFilter:
-                type: string
-              priority:
-                type: string
-              startDate:
-                type: string
-              entitySelection:
-                type: object
-                additionalProperties:
-                  type: object
-                  properties:
-                    key:
-                      type: string
-          example: example_value
     ErrorList:
       type: object
       properties:
@@ -709,32 +189,16 @@ components:
           items:
             $ref: '#/components/schemas/Error'
           example: []
-    ReportInstanceDTO:
+    Error:
       type: object
       properties:
-        reportInstanceId:
-          type: integer
-          format: int32
-          example: '500123'
-        reportDefinitionId:
-          type: integer
-          format: int32
-          example: '500123'
-        reportDefinitionName:
+        id:
+          type: string
+          example: abc123
+        code:
           type: string
           example: example_value
-        reportName:
-          type: string
-          example: example_value
-        userFriendlyReportName:
-          type: string
-          example: example_value
-        extension:
-          type: string
-          example: example_value
-        reportRevision:
-          $ref: '#/components/schemas/ReportRevisionDTO'
-        name:
+        title:
           type: string
           example: Example Title
     ReportRevisionDTO:
@@ -806,51 +270,44 @@ components:
           type: integer
           format: int32
           example: 10
-    Error:
+    ReportInstanceDTO:
       type: object
       properties:
-        id:
-          type: string
-          example: abc123
-        code:
-          type: string
-          example: example_value
-        title:
-          type: string
-          example: Example Title
-    ReportInstanceDataResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/ReportInstanceId'
-    ReportInstanceLogDTO:
-      type: object
-      properties:
-        sequenceNumber:
+        reportInstanceId:
           type: integer
           format: int32
-          example: 10
-        message:
+          example: '500123'
+        reportDefinitionId:
+          type: integer
+          format: int32
+          example: '500123'
+        reportDefinitionName:
           type: string
           example: example_value
-        type:
-          type: string
-          enum:
-          - LOG
-          - ERROR
-          example: LOG
-        updateDate:
+        reportName:
           type: string
           example: example_value
-    ReportInstanceData:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/ReportInstanceDTO'
+        userFriendlyReportName:
+          type: string
+          example: example_value
+        extension:
+          type: string
+          example: example_value
+        reportRevision:
+          $ref: '#/components/schemas/ReportRevisionDTO'
+        name:
+          type: string
+          example: Example Title
   securitySchemes:
-    basicAuth:
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
+    FactSetApiKey:
       type: http
       scheme: basic
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
   description: API Documentation
+  url: https://developer.factset.com/api-catalog/vermilion-api

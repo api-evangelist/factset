@@ -1,22 +1,13 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Catalog API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
-  contact:
-    name: FactSet Research Systems
-    url: https://developer.factset.com/contact
-    email: api@factset.com
-  license:
-    name: Apache License, Version 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
+  title: Factset Chart Generation Service Catalog API
+  description: This is a service for generating charts in a node environment that were created using web charting and get back images in form of `PNGs` and `JPEGs` as response.
   version: 1.0.0
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
-security:
-- basicAuth: []
+- url: https://api-sandbox.factset.com/charting
+  description: sandbox server (uses dummy data)
+- url: https://api.factset.com/charting
+  description: production server (uses live data)
 tags:
 - name: Catalog
 paths:
@@ -105,14 +96,6 @@ components:
           description: List of additional inputs for the chart
           items:
             $ref: '#/components/schemas/ChartInput'
-    ChartListErrorResponse:
-      type: object
-      properties:
-        error:
-          type: string
-          enum:
-          - Invalid Category Name(s)
-          - Unable to build chart-list
     CategoriesErrorResponse:
       type: object
       properties:
@@ -131,6 +114,30 @@ components:
       - interest_rates
       - market_analysis
       - options
+    CategorizedChartList:
+      type: array
+      items:
+        type: object
+        properties:
+          category:
+            type: string
+            example: equity
+            description: Name of the category. This is required when building the request for the chart image.
+          chartList:
+            type: array
+            items:
+              $ref: '#/components/schemas/ChartList'
+    ChartListErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          enum:
+          - Invalid Category Name(s)
+          - Unable to build chart-list
+    CatalogPDF:
+      type: string
+      format: binary
     ChartInput:
       type: object
       properties:
@@ -160,26 +167,3 @@ components:
           type: string
           description: An example value for the input
           example: America/New_York
-    CatalogPDF:
-      type: string
-      format: binary
-    CategorizedChartList:
-      type: array
-      items:
-        type: object
-        properties:
-          category:
-            type: string
-            example: equity
-            description: Name of the category. This is required when building the request for the chart image.
-          chartList:
-            type: array
-            items:
-              $ref: '#/components/schemas/ChartList'
-  securitySchemes:
-    basicAuth:
-      type: http
-      scheme: basic
-externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
-  description: API Documentation

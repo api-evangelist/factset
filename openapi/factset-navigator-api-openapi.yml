@@ -1,20 +1,11 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Navigator API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
-  contact:
-    name: FactSet Research Systems
-    url: https://developer.factset.com/contact
-    email: api@factset.com
-  license:
-    name: Apache License, Version 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+  description: An API for interacting with CTS Data Dictionary.
+  title: Factset CTS Data Dictionary Navigator API
+  version: '0.2'
 servers:
-- url: https://api.factset.com
+- url: https://api.factset.com/data-dictionary
   description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
 security:
 - basicAuth: []
 tags:
@@ -188,24 +179,45 @@ components:
           type: boolean
           example: true
           description: Flag indicating if the user is entitled to access the data in their subscriptions
-    ReferenceGroup:
+    Product:
+      type: object
       properties:
         id:
           type: string
-          example: 180443
-          description: Unique identifier for the api endpoint
+          example: '3210'
+          description: Unique identifier for the product
         name:
           type: string
-          example: /symbology/v1/bloomberg
-          description: API endpoint path
-        description:
+          example: Estimize US Equities
+          description: Name of the product
+        ofmLink:
           type: string
-          example: Translate FactSet symbols into Bloomberg Identifiers.
-          description: A description of the endpoint
+          example: https://open.factset.com/products/estimize-us-equities/en-us
+          description: URL to the product page on the Open:FactSet Marketplace
+        ofmProductId:
+          type: string
+          example: 168e9bf8-108c-4912-beca-b658083c7c86
+          description: The id defining a product in the Open:FactSet Marketplace
         entitled:
-          type: string
+          type: boolean
           example: true
           description: Flag indicating if the user is entitled to access the data in their subscriptions
+        providerName:
+          type: string
+          example: Estimize
+          description: Name of the Data Provider for the product
+        dataFeed:
+          type: boolean
+          example: true
+          description: Flag indicating if this product is available in a data feed
+        api:
+          type: boolean
+          example: true
+          description: Flag indicating if this product is available in an api
+        referenceDataFeed:
+          type: boolean
+          example: false
+          description: Flag indicating if this product is maintained by RDF/UCF
     DataItem:
       type: object
       properties:
@@ -252,12 +264,38 @@ components:
       required:
       - codeInfo
       - fields
-    BasicSearchRequest:
+    TableCodeInfo:
       properties:
-        searchTerms:
-          type: array
-          items:
-            type: string
+        dataItemIsCode:
+          type: boolean
+          example: true
+          description: Flag indicating if the field is represented as a code in Standard DataFeeds
+        codeFieldId:
+          type: string
+          example: '9019'
+          description: Unique identifier for the code
+        codeString:
+          type: string
+          example: ACCESS_LINES
+          description: String value for the code as it appears in Standard DataFeeds
+    ReferenceGroup:
+      properties:
+        id:
+          type: string
+          example: 180443
+          description: Unique identifier for the api endpoint
+        name:
+          type: string
+          example: /symbology/v1/bloomberg
+          description: API endpoint path
+        description:
+          type: string
+          example: Translate FactSet symbols into Bloomberg Identifiers.
+          description: A description of the endpoint
+        entitled:
+          type: string
+          example: true
+          description: Flag indicating if the user is entitled to access the data in their subscriptions
     ApiEndpoint:
       properties:
         id:
@@ -280,45 +318,6 @@ components:
           type: string
           example: true
           description: Flag indicating if the user is entitled to access the data in their subscriptions
-    Product:
-      type: object
-      properties:
-        id:
-          type: string
-          example: '3210'
-          description: Unique identifier for the product
-        name:
-          type: string
-          example: Estimize US Equities
-          description: Name of the product
-        ofmLink:
-          type: string
-          example: https://open.factset.com/products/estimize-us-equities/en-us
-          description: URL to the product page on the Open:FactSet Marketplace
-        ofmProductId:
-          type: string
-          example: 168e9bf8-108c-4912-beca-b658083c7c86
-          description: The id defining a product in the Open:FactSet Marketplace
-        entitled:
-          type: boolean
-          example: true
-          description: Flag indicating if the user is entitled to access the data in their subscriptions
-        providerName:
-          type: string
-          example: Estimize
-          description: Name of the Data Provider for the product
-        dataFeed:
-          type: boolean
-          example: true
-          description: Flag indicating if this product is available in a data feed
-        api:
-          type: boolean
-          example: true
-          description: Flag indicating if this product is available in an api
-        referenceDataFeed:
-          type: boolean
-          example: false
-          description: Flag indicating if this product is maintained by RDF/UCF
     NavigatorSourcesResponse:
       type: object
       properties:
@@ -336,34 +335,12 @@ components:
             $ref: '#/components/schemas/ReferenceGroup'
       required:
       - sdf
-    TableCodeInfo:
+    BasicSearchRequest:
       properties:
-        dataItemIsCode:
-          type: boolean
-          example: true
-          description: Flag indicating if the field is represented as a code in Standard DataFeeds
-        codeFieldId:
-          type: string
-          example: '9019'
-          description: Unique identifier for the code
-        codeString:
-          type: string
-          example: ACCESS_LINES
-          description: String value for the code as it appears in Standard DataFeeds
-    BasicSearchResponse:
-      properties:
-        results:
+        searchTerms:
           type: array
           items:
-            type: object
-            properties:
-              product:
-                $ref: '#/components/schemas/Product'
-              dataItem:
-                $ref: '#/components/schemas/DataItem'
-            required:
-            - product
-            - dataItem
+            type: string
     TableField:
       properties:
         id:
@@ -414,10 +391,21 @@ components:
           type: string
           example: FactSet Security-Level Permanent Identifier
           description: A description of the data field within the context of its table
+    BasicSearchResponse:
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              product:
+                $ref: '#/components/schemas/Product'
+              dataItem:
+                $ref: '#/components/schemas/DataItem'
+            required:
+            - product
+            - dataItem
   securitySchemes:
     basicAuth:
       type: http
       scheme: basic
-externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
-  description: API Documentation

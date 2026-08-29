@@ -1,7 +1,12 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Checks API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  title: FactSet StreetAccount News Checks API
+  description: '
+
+    Accessing streetAccount news along with business logic contained in the
+
+    workstation experience'
+  version: 0.1.0
   contact:
     name: FactSet Research Systems
     url: https://developer.factset.com/contact
@@ -9,14 +14,11 @@ info:
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.factset.com/research/news/v0
 security:
-- basicAuth: []
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Checks
 paths:
@@ -95,56 +97,7 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
-  examples:
-    StreetAccountExample:
-      summary: Sample error Response
-      value:
-        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
-        error_message: parameterError:Missing required parameter jobID
-    200CheckStatusExample:
-      summary: Sample Response
-      value:
-        data:
-        - product: SA
-          jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
-          status: completed
-          percentDone: 100
-          startDate: '2021-11-21T00:00:00Z'
-          endDate: '2021-11-28T00:00:00Z'
-          part: 1
-        meta:
-          pagination:
-            total: 105
-            isEstimatedTotal: false
-            limit: 200
-            offset: 105
-          partial:
-            isPartial: false
-    StreetAccount401Example:
-      summary: Sample error Response
-      value:
-        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
-        error_message: USERNAME-SERIAL does not have permission
-    StreetAccount500Example:
-      summary: Sample error Response
-      value:
-        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
-        error_message: An unexpected error happened
-    StreetAccount403Example:
-      summary: Sample error Response
-      value:
-        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
-        error_message: USERNAME-SERIAL does not have permission
   schemas:
-    metaOne:
-      title: Meta
-      description: Array of metadata objects
-      type: object
-      properties:
-        pagination:
-          $ref: '#/components/schemas/paginationOne'
-        partial:
-          $ref: '#/components/schemas/isPartialOne'
     checkstatus:
       type: object
       properties:
@@ -178,6 +131,26 @@ components:
           description: Returns the part number of the jobID
           type: integer
           example: 10
+    metaOne:
+      title: Meta
+      description: Array of metadata objects
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/paginationOne'
+        partial:
+          $ref: '#/components/schemas/isPartialOne'
+    StreetAccountStatus:
+      title: Response Status of SA
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        error_message:
+          description: Textual error message
+          type: string
+          example: example_value
     paginationOne:
       title: PaginationItems
       description: List of pagination objects
@@ -199,14 +172,6 @@ components:
           description: The flag indicating the position in the results array if additional results are available beyond the default value or the value in paginationLimit parameter (if used). This value is passed in the _paginationOffset parameter to retreieve subsequent results
           type: integer
           example: 10
-    isPartialOne:
-      title: IsPartialItems
-      description: If the value is true, it indicates additional results are available. False represents that this is the last set of results for this request.
-      type: object
-      properties:
-        isPartial:
-          type: boolean
-          example: true
     checkstatusResponse:
       type: object
       properties:
@@ -217,21 +182,64 @@ components:
           example: []
         meta:
           $ref: '#/components/schemas/metaOne'
-    StreetAccountStatus:
-      title: Response Status of SA
+    isPartialOne:
+      title: IsPartialItems
+      description: If the value is true, it indicates additional results are available. False represents that this is the last set of results for this request.
       type: object
       properties:
-        id:
-          type: string
-          example: abc123
-        error_message:
-          description: Textual error message
-          type: string
-          example: example_value
+        isPartial:
+          type: boolean
+          example: true
+  examples:
+    StreetAccount401Example:
+      summary: Sample error Response
+      value:
+        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
+        error_message: USERNAME-SERIAL does not have permission
+    StreetAccount403Example:
+      summary: Sample error Response
+      value:
+        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
+        error_message: USERNAME-SERIAL does not have permission
+    StreetAccount500Example:
+      summary: Sample error Response
+      value:
+        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
+        error_message: An unexpected error happened
+    200CheckStatusExample:
+      summary: Sample Response
+      value:
+        data:
+        - product: SA
+          jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
+          status: completed
+          percentDone: 100
+          startDate: '2021-11-21T00:00:00Z'
+          endDate: '2021-11-28T00:00:00Z'
+          part: 1
+        meta:
+          pagination:
+            total: 105
+            isEstimatedTotal: false
+            limit: 200
+            offset: 105
+          partial:
+            isPartial: false
+    StreetAccountExample:
+      summary: Sample error Response
+      value:
+        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
+        error_message: parameterError:Missing required parameter jobID
   securitySchemes:
-    basicAuth:
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
+    FactSetApiKey:
       type: http
       scheme: basic
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
   description: API Documentation
+  url: https://developer.factset.com/api-catalog/streetaccount-news-api

@@ -1,22 +1,13 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Schemas API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
-  contact:
-    name: FactSet Research Systems
-    url: https://developer.factset.com/contact
-    email: api@factset.com
-  license:
-    name: Apache License, Version 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+  title: Factset Schemas API
+  version: 2.0.0
+  description: 'Operations tagged Schemas across 2 of this provider''s published API definitions: factset-procure-to-pay-scim-openapi.yml, procure-to-pay-api-scim-openapi-original.yml. Each path carries the servers of the definition it was published in.'
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
-security:
-- basicAuth: []
+- url: https://api.factset.com/scim/v2/
+  description: Production environment
+- url: https://api.uat.factset.com/scim/v2/
+  description: UAT environment
 tags:
 - name: Schemas
 paths:
@@ -42,6 +33,11 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
+    servers:
+    - url: https://api.factset.com/scim/v2/
+      description: Production environment
+    - url: https://api.uat.factset.com/scim/v2/
+      description: UAT environment
   /Schemas/{id}:
     get:
       tags:
@@ -72,31 +68,25 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
+    servers:
+    - url: https://api.factset.com/scim/v2/
+      description: Production environment
+    - url: https://api.uat.factset.com/scim/v2/
+      description: UAT environment
 components:
   responses:
-    schemaSuccess:
-      description: Success.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/Schema'
-    forbiddenError:
-      description: User is not authorized to use this API.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            schemas:
-            - urn:ietf:params:scim:api:messages:2.0:Error
-            detail: FIN_WEALTH-999999 is not authorized to use the FactSet SCIM API.
-            status: '403'
     schemasSuccess:
       description: Success.
       content:
         application/scim+json:
           schema:
             $ref: '#/components/schemas/SchemaList'
+    internalServerError:
+      description: Internal server error.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
     unauthorizedError:
       description: User has not been authenticated.
       content:
@@ -108,16 +98,27 @@ components:
             - urn:ietf:params:scim:api:messages:2.0:Error
             detail: FactSet.net credentials are missing or invalid.
             status: '401'
-    internalServerError:
-      description: Internal server error.
+    forbiddenError:
+      description: User is not authorized to use this API.
       content:
         application/scim+json:
           schema:
             $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: FIN_WEALTH-999999 is not authorized to use the FactSet SCIM API.
+            status: '403'
+    schemaSuccess:
+      description: Success.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Schema'
   parameters:
-    startIndex:
-      name: startIndex
-      description: Result start index. The one-based index of the first result to be returned in the list of resources. For example, to exclude the first two resources, use a *startIndex* value of 3. This parameter has a default value of 1. This index applies *after* any resource filtration has been applied as specified by the *filter* argument.
+    count:
+      name: count
+      description: Maximum resource count. The server will not return more resources than this value, although it may return fewer.
       in: query
       schema:
         type: integer
@@ -129,9 +130,9 @@ components:
       schema:
         type: string
       required: true
-    count:
-      name: count
-      description: Maximum resource count. The server will not return more resources than this value, although it may return fewer.
+    startIndex:
+      name: startIndex
+      description: Result start index. The one-based index of the first result to be returned in the list of resources. For example, to exclude the first two resources, use a *startIndex* value of 3. This parameter has a default value of 1. This index applies *after* any resource filtration has been applied as specified by the *filter* argument.
       in: query
       schema:
         type: integer
@@ -357,10 +358,26 @@ components:
       - id
       - name
       - attributes
+    SchemaList_2:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example:
+          - urn:ietf:params:scim:api:messages:2.0:ListResponse
+        totalResults:
+          type: integer
+          example: 1
+        Resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/Schema'
   securitySchemes:
     basicAuth:
       type: http
       scheme: basic
-externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
-  description: API Documentation
+x-refined-from:
+- factset-procure-to-pay-scim-openapi.yml
+- procure-to-pay-api-scim-openapi-original.yml

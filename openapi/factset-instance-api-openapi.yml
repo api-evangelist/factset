@@ -1,22 +1,26 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Instance API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  version: 1.0.0
+  title: FactSet Vermilion Instance API
   contact:
     name: FactSet Research Systems
-    url: https://developer.factset.com/contact
     email: api@factset.com
+    url: https://developer.factset.com/contact
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
-servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+  description: '
+
+    The Vermilion API, enables users to programmatically access FactSet''s
+
+    Vermilion Reporting Suite (VRS) and seamlessly integrate into customer''s
+
+    3rd party applications. The API is referred to as two key product
+
+    initiatives, the REST API and the SCIM API.'
 security:
-- basicAuth: []
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Instance
 paths:
@@ -192,82 +196,6 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
-  /v1/{tenant}/report-instances/{reportInstanceId}/results/{reportFileName}:
-    get:
-      operationId: getReportFile
-      tags:
-      - Instance
-      summary: Factset Gets the Generated File
-      description: Get the generated file for a report instance. Users can fetch the generated report once the genration is finished. The report instance id and the report file name are passed in as path paramters
-      parameters:
-      - in: path
-        name: tenant
-        description: The code of the tenancy
-        schema:
-          type: string
-        required: true
-      - in: path
-        name: reportInstanceId
-        description: Used to validate that report file name belongs to the report instance passed
-        schema:
-          type: string
-        required: true
-      - in: path
-        name: reportFileName
-        description: 'The report file name that has to be retrieved. report file name. E.g: xyz.pdf'
-        schema:
-          type: string
-        required: true
-      responses:
-        '200':
-          description: Successful operation
-        '400':
-          description: The supplied report instance id was either missing or invalid or the report instance was not found. The supplied report file name was either invalid or not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: parameterError
-                  title: The ID passed is not a numerical value
-        '401':
-          description: Unauthorised
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAuthenticated
-                  title: User is not authenticated
-        '403':
-          description: No permissions to view the generated file in VRS
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAuthorized
-                  title: No permissions to view this item
-        '406':
-          description: Unsupported Accept header. Header needs to be set to application/json.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAcceptable
-                  title: "Unsupported Accept header. Header needs to be set to\n    application/json"
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
   /v1/{tenant}/report-instances/{reportInstanceId}/logs:
     get:
       operationId: getReportGenerationLogs
@@ -395,6 +323,11 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    ReportInstanceData:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ReportInstanceDTO'
     ReportInstanceLogList:
       type: object
       properties:
@@ -411,46 +344,6 @@ components:
           items:
             $ref: '#/components/schemas/Error'
           example: []
-    ReportInstanceDTO:
-      type: object
-      properties:
-        reportInstanceId:
-          type: integer
-          format: int32
-          example: '500123'
-        reportDefinitionId:
-          type: integer
-          format: int32
-          example: '500123'
-        reportDefinitionName:
-          type: string
-          example: example_value
-        reportName:
-          type: string
-          example: example_value
-        userFriendlyReportName:
-          type: string
-          example: example_value
-        extension:
-          type: string
-          example: example_value
-        reportRevision:
-          $ref: '#/components/schemas/ReportRevisionDTO'
-        name:
-          type: string
-          example: Example Title
-    Error:
-      type: object
-      properties:
-        id:
-          type: string
-          example: abc123
-        code:
-          type: string
-          example: example_value
-        title:
-          type: string
-          example: Example Title
     ReportRevisionDTO:
       type: object
       properties:
@@ -539,15 +432,56 @@ components:
         updateDate:
           type: string
           example: example_value
-    ReportInstanceData:
+    Error:
       type: object
       properties:
-        data:
-          $ref: '#/components/schemas/ReportInstanceDTO'
+        id:
+          type: string
+          example: abc123
+        code:
+          type: string
+          example: example_value
+        title:
+          type: string
+          example: Example Title
+    ReportInstanceDTO:
+      type: object
+      properties:
+        reportInstanceId:
+          type: integer
+          format: int32
+          example: '500123'
+        reportDefinitionId:
+          type: integer
+          format: int32
+          example: '500123'
+        reportDefinitionName:
+          type: string
+          example: example_value
+        reportName:
+          type: string
+          example: example_value
+        userFriendlyReportName:
+          type: string
+          example: example_value
+        extension:
+          type: string
+          example: example_value
+        reportRevision:
+          $ref: '#/components/schemas/ReportRevisionDTO'
+        name:
+          type: string
+          example: Example Title
   securitySchemes:
-    basicAuth:
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
+    FactSetApiKey:
       type: http
       scheme: basic
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
   description: API Documentation
+  url: https://developer.factset.com/api-catalog/vermilion-api

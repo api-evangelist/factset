@@ -1,20 +1,14 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Data Dictionary API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  title: Factset Signals Data Dictionary API
+  description: Collection of endpoints for providing Signal Events, Definitions and Metadata
+  version: 2.6.0
   contact:
-    name: FactSet Research Systems
-    url: https://developer.factset.com/contact
-    email: api@factset.com
-  license:
-    name: Apache License, Version 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+    name: Signals API Support
+    email: signals.api@factset.com
 servers:
-- url: https://api.factset.com
+- url: https://api.factset.com/signals/v2
   description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
 security:
 - basicAuth: []
 tags:
@@ -102,6 +96,11 @@ paths:
                 $ref: '#/components/schemas/errorResponse'
 components:
   headers:
+    Api-Supported-Versions:
+      description: Comma-separated list of supported major versions.
+      schema:
+        type: string
+        example: '1'
     RateLimit-Reset:
       description: Time remaining (in seconds) until the quota is reset.
       schema:
@@ -112,22 +111,44 @@ components:
       schema:
         type: string
         example: 1.0.0
-    RateLimit-Remaining:
-      description: Remaining number of requests in the current time window.
-      schema:
-        type: integer
-        example: 4
     RateLimit-Limit:
       description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
       schema:
         type: integer
         example: 5
-    Api-Supported-Versions:
-      description: Comma-separated list of supported major versions.
+    RateLimit-Remaining:
+      description: Remaining number of requests in the current time window.
       schema:
-        type: string
-        example: '1'
+        type: integer
+        example: 4
   schemas:
+    signalMetaData:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            required:
+            - id
+            - name
+            - description
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              description:
+                type: string
+    rateLimitResponse:
+      title: Rate Limit Error Object
+      description: Error returned if any of the user's rate limit have been reached.
+      properties:
+        message:
+          type: string
+          example: API rate limit exceeded
     contract:
       type: object
       required:
@@ -157,79 +178,6 @@ components:
           properties:
             type:
               type: string
-    errorItem:
-      type: object
-      required:
-      - id
-      - code
-      - title
-      properties:
-        id:
-          type: string
-          format: uuid
-        code:
-          type: string
-          example: parameterError
-        title:
-          type: string
-          example: Invalid type/value
-        detail:
-          type: string
-          example: Value must be a valid UTC date/time that conforms to ISO 8601 format
-        source:
-          type: object
-          properties:
-            parameter:
-              type: string
-    rateLimitResponse:
-      title: Rate Limit Error Object
-      description: Error returned if any of the user's rate limit have been reached.
-      properties:
-        message:
-          type: string
-          example: API rate limit exceeded
-    contractFields:
-      type: object
-      required:
-      - summary
-      - eventDate
-      properties:
-        summary:
-          type: object
-          properties:
-            description:
-              type: string
-            type:
-              type: string
-        eventDate:
-          type: object
-          properties:
-            description:
-              type: string
-            type:
-              type: string
-        additionalProperties:
-          $ref: '#/components/schemas/contractProperty'
-    signalMetaData:
-      type: object
-      required:
-      - data
-      properties:
-        data:
-          type: array
-          items:
-            type: object
-            required:
-            - id
-            - name
-            - description
-            properties:
-              id:
-                type: string
-              name:
-                type: string
-              description:
-                type: string
     errorResponse:
       type: object
       required:
@@ -267,6 +215,52 @@ components:
                 type: string
             contract:
               $ref: '#/components/schemas/contract'
+    errorItem:
+      type: object
+      required:
+      - id
+      - code
+      - title
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          example: parameterError
+        title:
+          type: string
+          example: Invalid type/value
+        detail:
+          type: string
+          example: Value must be a valid UTC date/time that conforms to ISO 8601 format
+        source:
+          type: object
+          properties:
+            parameter:
+              type: string
+    contractFields:
+      type: object
+      required:
+      - summary
+      - eventDate
+      properties:
+        summary:
+          type: object
+          properties:
+            description:
+              type: string
+            type:
+              type: string
+        eventDate:
+          type: object
+          properties:
+            description:
+              type: string
+            type:
+              type: string
+        additionalProperties:
+          $ref: '#/components/schemas/contractProperty'
   parameters:
     signalIdParam:
       name: signalId
@@ -280,6 +274,3 @@ components:
     basicAuth:
       type: http
       scheme: basic
-externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
-  description: API Documentation

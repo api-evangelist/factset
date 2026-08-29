@@ -1,7 +1,7 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Runs API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  title: Factset Runs API
+  version: 0.3.0
   contact:
     name: FactSet Research Systems
     url: https://developer.factset.com/contact
@@ -9,14 +9,12 @@ info:
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+  description: 'Operations tagged Runs across 2 of this provider''s published API definitions: factset-portfolio-reporting-batcher-api-openapi.yml, portfolio-reporting-batcher-openapi-original.yml. Each path carries the servers of the definition it was published in.'
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.factset.com/analytics/prb/v0
 security:
-- basicAuth: []
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Runs
   description: These endpoints refer to specific runs for a PRB job
@@ -203,6 +201,8 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
+    servers:
+    - url: https://api.factset.com/analytics/prb/v0
   /runs/{id}/status:
     parameters:
     - schema:
@@ -381,105 +381,41 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
+    servers:
+    - url: https://api.factset.com/analytics/prb/v0
 components:
   schemas:
-    clientErrorResponse:
-      description: The response schema for reporting errors
-      properties:
-        errors:
-          description: List of errors
-          items:
-            $ref: '#/components/schemas/error'
-          type: array
-          example: []
-      type: object
-    error:
-      description: Full details of any error
-      properties:
-        code:
-          description: The error code
-          type: string
-          example: example_value
-        detail:
-          description: Explanation specific to the occurrence of the error
-          type: string
-          example: example_value
-        id:
-          description: Identifier for the error
-          type: string
-          example: abc123
-        source:
-          $ref: '#/components/schemas/errorSource'
-        title:
-          description: The title of the error
-          type: string
-          example: Example Title
-      type: object
-    calendar:
-      default: fiveDay
-      description: Used for ADF jobs only
+    jobTypes:
+      description: PA - Portfolio Analysis, PUB - Publisher, ADF - Analytics DataFeed, PI - Portfolio Insight, PD - Portfolio Dashboard, Portfolio Vault - vault
       enum:
-      - fiveDay
-      - sevenDay
-      example: fiveDay
-      title: calendar
+      - ADF
+      - PA
+      - PD
+      - PI
+      - PUB
+      - vault
+      example: vault
+      title: jobTypes
       type: string
-    jobOverridesCombinationsRoot:
-      description: Used for Vault job type only. This creates a matrix of given accounts and dates. When the job is run, it will only run for the accounts and dates within this object. (Settings will only be used temporarily and no changes will be made to the default PRB job.)
-      properties:
-        accounts:
-          description: An array of accounts
-          items:
-            type: string
-          type: array
-          example: []
-        dates:
-          description: An array of dates
-          items:
-            format: date
-            type: string
-          type: array
-          example: []
-      type: object
-    errorSource:
-      description: The pointer and parameter of the error
-      properties:
-        parameter:
-          description: Indicates which path or URI query parameter caused the error
-          type: string
-          example: example_value
-        pointer:
-          description: Pointer to the associated entity in the request body
-          type: string
-          example: example_value
-      type: object
-    startJobRunResponse:
-      description: Gives details about the run which was requested wrapped in a data object
-      properties:
-        data:
-          description: The main object within the startJobRunResponse schema
-          properties:
-            id:
-              description: The run ID for the job that has been triggered which is used in the /runs/{id}/status endpoint
-              type: string
-            jobName:
-              description: Name of the job
-              type: string
-              maxLength: 29
-            status:
-              $ref: '#/components/schemas/status'
-            jobType:
-              $ref: '#/components/schemas/jobTypes'
-          required:
-          - id
-          - jobName
-          - status
-          - jobType
-          type: object
-          example: example_value
-      required:
-      - data
-      type: object
+    prbStatus:
+      description: The status of the job as per the application
+      enum:
+      - failed
+      - pending
+      - running
+      - soft
+      - stopped
+      - success
+      - warning
+      example: running
+      title: prbStatus
+      type: string
+    statusDescription:
+      description: Further details on the job's status
+      example: job has completed with success
+      title: statusDescription
+      type: string
+      maxLength: 500
     idStatus:
       description: Details about the instance of the job run specified via id wrapped in a data object
       properties:
@@ -500,19 +436,6 @@ components:
           type: object
           example: example_value
       type: object
-    prbStatus:
-      description: The status of the job as per the application
-      enum:
-      - failed
-      - pending
-      - running
-      - soft
-      - stopped
-      - success
-      - warning
-      example: running
-      title: prbStatus
-      type: string
     status:
       description: The status of the job as per FactSets API standards
       enum:
@@ -524,12 +447,14 @@ components:
       example: queued
       title: status
       type: string
-    startJobRoot:
-      description: Details required to start the job wrapped in a data object
-      properties:
-        data:
-          $ref: '#/components/schemas/startJob'
-      type: object
+    frequency:
+      default: daily
+      description: Used for ADF job types only. Will determine the frequency between the start and end dates.
+      enum:
+      - daily
+      - monthly
+      - weekly
+      type: string
     jobOverrides:
       description: If this object is provided, the settings given here will override the default settings of the job for the job run (settings will only be used temporarily and no changes will be made to the default PRB job). Only certain objects can be used for certain job types.
       properties:
@@ -572,12 +497,6 @@ components:
           type: array
           example: []
       type: object
-    statusDescription:
-      description: Further details on the job's status
-      example: job has completed with success
-      title: statusDescription
-      type: string
-      maxLength: 500
     startJob:
       description: Details required to start a job
       example:
@@ -601,37 +520,277 @@ components:
       - jobType
       title: startJob
       type: object
-    jobTypes:
-      description: PA - Portfolio Analysis, PUB - Publisher, ADF - Analytics DataFeed, PI - Portfolio Insight, PD - Portfolio Dashboard, Portfolio Vault - vault
+    calendar:
+      default: fiveDay
+      description: Used for ADF jobs only
       enum:
-      - ADF
-      - PA
-      - PD
-      - PI
-      - PUB
-      - vault
-      example: vault
-      title: jobTypes
+      - fiveDay
+      - sevenDay
+      example: fiveDay
+      title: calendar
       type: string
-    frequency:
-      default: daily
-      description: Used for ADF job types only. Will determine the frequency between the start and end dates.
-      enum:
-      - daily
-      - monthly
-      - weekly
-      type: string
+    errorSource:
+      description: The pointer and parameter of the error
+      properties:
+        parameter:
+          description: Indicates which path or URI query parameter caused the error
+          type: string
+          example: example_value
+        pointer:
+          description: Pointer to the associated entity in the request body
+          type: string
+          example: example_value
+      type: object
+    clientErrorResponse:
+      description: The response schema for reporting errors
+      properties:
+        errors:
+          description: List of errors
+          items:
+            $ref: '#/components/schemas/error'
+          type: array
+          example: []
+      type: object
+    jobOverridesCombinationsRoot:
+      description: Used for Vault job type only. This creates a matrix of given accounts and dates. When the job is run, it will only run for the accounts and dates within this object. (Settings will only be used temporarily and no changes will be made to the default PRB job.)
+      properties:
+        accounts:
+          description: An array of accounts
+          items:
+            type: string
+          type: array
+          example: []
+        dates:
+          description: An array of dates
+          items:
+            format: date
+            type: string
+          type: array
+          example: []
+      type: object
+    startJobRoot:
+      description: Details required to start the job wrapped in a data object
+      properties:
+        data:
+          $ref: '#/components/schemas/startJob'
+      type: object
+    startJobRunResponse:
+      description: Gives details about the run which was requested wrapped in a data object
+      properties:
+        data:
+          description: The main object within the startJobRunResponse schema
+          properties:
+            id:
+              description: The run ID for the job that has been triggered which is used in the /runs/{id}/status endpoint
+              type: string
+            jobName:
+              description: Name of the job
+              type: string
+              maxLength: 29
+            status:
+              $ref: '#/components/schemas/status'
+            jobType:
+              $ref: '#/components/schemas/jobTypes'
+          required:
+          - id
+          - jobName
+          - status
+          - jobType
+          type: object
+          example: example_value
+      required:
+      - data
+      type: object
+    error:
+      description: Full details of any error
+      properties:
+        code:
+          description: The error code
+          type: string
+          example: example_value
+        detail:
+          description: Explanation specific to the occurrence of the error
+          type: string
+          example: example_value
+        id:
+          description: Identifier for the error
+          type: string
+          example: abc123
+        source:
+          $ref: '#/components/schemas/errorSource'
+        title:
+          description: The title of the error
+          type: string
+          example: Example Title
+      type: object
+    idStatus_2:
+      description: Details about the instance of the job run specified via id wrapped in a data object
+      properties:
+        data:
+          description: Details about the instance of the job run specified via id
+          properties:
+            id:
+              description: The run ID
+              type: string
+            inputs:
+              $ref: '#/components/schemas/startJob_2'
+            prbStatus:
+              $ref: '#/components/schemas/prbStatus'
+            status:
+              $ref: '#/components/schemas/status'
+            statusDescription:
+              $ref: '#/components/schemas/statusDescription'
+          type: object
+      type: object
+    jobOverrides_2:
+      description: If this object is provided, the settings given here will override the default settings of the job for the job run (settings will only be used temporarily and no changes will be made to the default PRB job). Only certain objects can be used for certain job types.
+      properties:
+        calendar:
+          $ref: '#/components/schemas/calendar'
+        combinations:
+          description: An array of date account combinations
+          items:
+            $ref: '#/components/schemas/jobOverridesCombinationsRoot_2'
+          type: array
+        dates:
+          description: Used only for jobs where type is ADF. If using dates override, please provide both start date and end date.
+          properties:
+            end:
+              description: The end date in format YYYY-MM-DD
+              format: date
+              type: string
+            start:
+              description: The start date in format YYYY-MM-DD
+              format: date
+              type: string
+          type: object
+        frequency:
+          $ref: '#/components/schemas/frequency'
+        runAsOfDate:
+          description: PUB
+          format: date
+          type: string
+        runAsSerialNumber:
+          description: The FactSet serial number which has the credentials wanted to run the job
+          type: string
+        tasks:
+          description: Used only for jobs where type is PA
+          items:
+            type: string
+          type: array
+      type: object
+    startJob_2:
+      description: Details required to start a job
+      example:
+        jobName: my_pa_job
+        overrides:
+          runAsSerialNumber: '123456'
+          tasks:
+          - my_task_1
+        jobType: PA
+      properties:
+        jobName:
+          description: The name of the PRB job
+          type: string
+        overrides:
+          $ref: '#/components/schemas/jobOverrides_2'
+        jobType:
+          $ref: '#/components/schemas/jobTypes'
+      required:
+      - jobName
+      - jobType
+      title: startJob
+      type: object
+    errorSource_2:
+      description: The pointer and parameter of the error
+      properties:
+        parameter:
+          description: Indicates which path or URI query parameter caused the error
+          type: string
+        pointer:
+          description: Pointer to the associated entity in the request body
+          type: string
+      type: object
+    clientErrorResponse_2:
+      description: The response schema for reporting errors
+      properties:
+        errors:
+          description: List of errors
+          items:
+            $ref: '#/components/schemas/error_2'
+          type: array
+      type: object
+    jobOverridesCombinationsRoot_2:
+      description: Used for Vault job type only. This creates a matrix of given accounts and dates. When the job is run, it will only run for the accounts and dates within this object. (Settings will only be used temporarily and no changes will be made to the default PRB job.)
+      properties:
+        accounts:
+          description: An array of accounts
+          items:
+            type: string
+          type: array
+        dates:
+          description: An array of dates
+          items:
+            format: date
+            type: string
+          type: array
+      type: object
+    startJobRunResponse_2:
+      description: Gives details about the run which was requested wrapped in a data object
+      properties:
+        data:
+          description: The main object within the startJobRunResponse schema
+          properties:
+            id:
+              description: The run ID for the job that has been triggered which is used in the /runs/{id}/status endpoint
+              type: string
+            jobName:
+              description: Name of the job
+              type: string
+              maxLength: 29
+            status:
+              $ref: '#/components/schemas/status'
+            jobType:
+              $ref: '#/components/schemas/jobTypes'
+          required:
+          - id
+          - jobName
+          - status
+          - jobType
+          type: object
+      required:
+      - data
+      type: object
+    error_2:
+      description: Full details of any error
+      properties:
+        code:
+          description: The error code
+          type: string
+        detail:
+          description: Explanation specific to the occurrence of the error
+          type: string
+        id:
+          description: Identifier for the error
+          type: string
+        source:
+          $ref: '#/components/schemas/errorSource_2'
+        title:
+          description: The title of the error
+          type: string
+      type: object
   headers:
-    X-FactSet-Api-RateLimit-Reset:
-      description: Number of seconds remaining till rate limit resets.
+    X-DataDirect-Request-Key:
+      description: FactSet's request key header.
       schema:
         type: string
-    X-FactSet-Api-RateLimit-Remaining:
-      description: Number of requests left for the time window.
-      schema:
-        type: string
+        description: FactSet's request key header.
     X-FactSet-Api-RateLimit-Limit:
       description: Number of allowed requests for the time window.
+      schema:
+        type: string
+    X-FactSet-Api-RateLimit-Reset:
+      description: Number of seconds remaining till rate limit resets.
       schema:
         type: string
     X-FactSet-Api-Request-Key:
@@ -639,15 +798,23 @@ components:
       schema:
         type: string
         description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
-    X-DataDirect-Request-Key:
-      description: FactSet's request key header.
+    X-FactSet-Api-RateLimit-Remaining:
+      description: Number of requests left for the time window.
       schema:
         type: string
-        description: FactSet's request key header.
   securitySchemes:
-    basicAuth:
+    FactSetApiKey:
       type: http
       scheme: basic
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
   description: API Documentation
+  url: https://developer.factset.com/api-catalog/portfolio-reporting-batcher-api
+x-refined-from:
+- factset-portfolio-reporting-batcher-api-openapi.yml
+- portfolio-reporting-batcher-openapi-original.yml

@@ -1,7 +1,26 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Streetaccount API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  title: Factset News Streetaccount API
+  description: 'The StreetAccount News API provides access to FactSet''s proprietary news provider, StreetAccount. StreetAccount, is a premium real-time market intelligence news service that delivers comprehensive U.S., Canadian, and European coverage (and expanding Asia coverage). All possible sources for corporate news are scanned and key story facts are highlighted and presented in an easy-to-read format.
+
+
+    **StreetAccount Filters, Headlines, and Views:**
+
+
+    These endpoints allow for the retrieval of news headlines using filters such as Watchlists/Indices/Tickers, Company Filters, Market Topics, Regions, and Sectors.  Headlines can also be retrieved based on saved views within the Workstation.
+
+
+    **StreetAccount Historical Stories:**
+
+
+    These endpoints provide access to historical StreetAccount (SA) news. The API delivers SA stories in XML format based on user-specified date input parameters. Output files are securely available to users through a URL. This API has three endpoints: Request Files, Check Status, and Get Files.
+
+
+    Please note that this API only supports adhoc requests for historical files and does not support real-time files. If real-time push is required, consider using other methods such as SFTP, QNT account, or Azure Storage. Both historical and real-time Street Account news can be delivered via SFTP, QNT account, or Azure Storage.
+
+
+    The files delivered contain both metadata and content body, eliminating the need for multiple requests through multiple services to retrieve all the information.'
+  version: 0.1.0
   contact:
     name: FactSet Research Systems
     url: https://developer.factset.com/contact
@@ -9,14 +28,11 @@ info:
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.factset.com/research/news/v0
 security:
-- basicAuth: []
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Streetaccount
 paths:
@@ -510,46 +526,76 @@ paths:
                   $ref: '#/components/examples/StreetAccount500Example'
 components:
   schemas:
-    flattenedFiltersTopicsObject:
+    errorObject:
       type: object
       properties:
-        name:
+        id:
           type: string
-        value:
-          type: array
-          items:
-            type: string
-      example:
-        name: '13F Summary '
-        value:
-        - SA_13F_SUMMARY
-    structuredFiltersRegionsObject:
-      type: object
-      properties:
-        name:
+        title:
           type: string
-        value:
-          type: array
-          items:
-            type: number
-    error:
+        code:
+          type: string
+    checkstatus:
       type: object
       properties:
-        meta:
-          type: object
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/errorObject'
-    requestfilesResponse:
-      type: object
-      properties:
+        product:
+          description: Defines the name of the product
+          type: string
         jobID:
           description: Unique id to get the xml files for the requested date
           type: string
         status:
-          description: Returns the value as submitted. Tells the request has been submitted
+          description: Returns any of the 2 results Submitted ->Running->Completed and Failed
           type: string
+        percentDone:
+          description: Returns how much percentage of  task is completed for the requested jobID
+          type: integer
+        startDate:
+          description: The date from which the data is required in YYYY-MM-DDTHH:MM:SSZ format
+          type: string
+          format: date
+        endDate:
+          description: The date until which the data is fetched in YYYY-MM-DDTHH:MM:SSZ format
+          type: string
+          format: date
+        part:
+          description: Returns the part number of the jobID
+          type: integer
+    metaOne:
+      title: Meta
+      description: Array of metadata objects
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/paginationOne'
+        partial:
+          $ref: '#/components/schemas/isPartialOne'
+    getfiles:
+      type: object
+      properties:
+        product:
+          description: Defines the name of the product
+          type: string
+        startDate:
+          description: The startDate from which the data is required in YYYY-MM-DDTHH:MM:SSZ format
+          type: string
+          format: date
+        endDate:
+          description: The endDate until which the data is fetched in YYYY-MM-DDTHH:MM:SSZ format
+          type: string
+          format: date
+        jobID:
+          description: Unique id to get the xml files for the requested date
+          type: string
+        status:
+          description: Defines the status of the request
+          type: string
+        url:
+          description: Link to download the zip file which contains xml files
+          type: string
+        part:
+          description: Returns the part number of the jobID
+          type: integer
     searchResponseArrayObject:
       type: object
       properties:
@@ -583,16 +629,60 @@ components:
         docsReferenceUris:
           type: string
           example: Sample URI
-    checkstatusResponse:
+    paginationOne:
+      title: PaginationItems
+      description: List of pagination objects
+      type: object
+      properties:
+        total:
+          description: Total number of files the API returns for a particular query
+          type: integer
+        isEstimatedTotal:
+          description: Boolean value that represents whether the total count of files returned is exact or an estimate. This is defaulted to “False” as the API should always return the exact count
+          type: boolean
+        limit:
+          description: Number of results returned per page
+          type: integer
+        offset:
+          description: The flag indicating the position in the results array if additional results are available beyond the default value or the value in paginationLimit parameter (if used). This value is passed in the _paginationOffset parameter to retreieve subsequent results
+          type: integer
+    structuredFiltersWatchlistsObject:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        value:
+          type: string
+    createOrEditViewTickers:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Russell 1000
+        value:
+          type: string
+          example: R.1000
+        type:
+          type: string
+          example: Index
+          enum:
+          - Index
+          - ETF
+          - Holder
+          - Mutual_Fund
+          - Portfolios
+    getfilesResponse:
       type: object
       properties:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/checkstatus'
+            $ref: '#/components/schemas/getfiles'
         meta:
           $ref: '#/components/schemas/metaOne'
-    structuredFiltersTopicsObject:
+    flattenedFiltersCategoriesObject:
       type: object
       properties:
         name:
@@ -601,47 +691,91 @@ components:
           type: array
           items:
             type: string
-        children:
-          type: array
-          items:
-            $ref: '#/components/schemas/structuredFiltersChildrenObject'
-    getfiles:
-      type: object
-      properties:
-        product:
-          description: Defines the name of the product
-          type: string
-        startDate:
-          description: The startDate from which the data is required in YYYY-MM-DDTHH:MM:SSZ format
-          type: string
-          format: date
-        endDate:
-          description: The endDate until which the data is fetched in YYYY-MM-DDTHH:MM:SSZ format
-          type: string
-          format: date
-        jobID:
-          description: Unique id to get the xml files for the requested date
-          type: string
-        status:
-          description: Defines the status of the request
-          type: string
-        url:
-          description: Link to download the zip file which contains xml files
-          type: string
-        part:
-          description: Returns the part number of the jobID
-          type: integer
-    structuredFiltersSectorsObject:
+      example:
+        name: Dividends
+        value:
+        - SA_DIVIDENDS
+    saHeadlinesRequestTickersObject:
       type: object
       properties:
         name:
           type: string
-        expanded:
-          type: boolean
-        children:
+          example: S&P 500
+        value:
+          type: string
+          example: SP50
+        type:
+          type: string
+          example: Index
+          enum:
+          - Index
+          - ETF
+          - Mutual_Fund
+          - Portfolios
+    flattenedFilters:
+      type: object
+      description: Flattened Filters Object
+      properties:
+        categories:
           type: array
           items:
-            $ref: '#/components/schemas/structuredFiltersChildrenObject'
+            $ref: '#/components/schemas/flattenedFiltersCategoriesObject'
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/flattenedFiltersTopicsObject'
+        regions:
+          type: array
+          items:
+            $ref: '#/components/schemas/flattenedFiltersRegionsObject'
+        sectors:
+          type: array
+          items:
+            $ref: '#/components/schemas/flattenedFiltersSectorsObject'
+        watchlists:
+          type: array
+          items:
+            $ref: '#/components/schemas/flattenedFiltersWatchlistsObject'
+    structuredFilters:
+      type: object
+      description: Structured Filters Object
+      properties:
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/structuredFiltersCategoriesObject'
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/structuredFiltersTopicsObject'
+        regions:
+          type: array
+          items:
+            $ref: '#/components/schemas/structuredFiltersRegionsObject'
+        sectors:
+          type: array
+          items:
+            $ref: '#/components/schemas/structuredFiltersSectorsObject'
+        watchlists:
+          type: array
+          items:
+            $ref: '#/components/schemas/structuredFiltersWatchlistsObject'
+    createEditDeleteViewResponse:
+      type: object
+      description: Properties in object are results of the create or save operation
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              example: StreetAccount News Summaries Europe
+            message:
+              type: object
+              properties:
+                view:
+                  type: string
+                  example: View created/edited/deleted sucessfully
     saHeadlinesRequest:
       type: object
       properties:
@@ -703,6 +837,205 @@ components:
                   example: 100
                   default: 0
                   description: Non-negative number of entries to skip.
+    structuredFiltersSectorsObject:
+      type: object
+      properties:
+        name:
+          type: string
+        expanded:
+          type: boolean
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/structuredFiltersChildrenObject'
+    structuredFiltersCategoriesObject:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: array
+          items:
+            type: string
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/structuredFiltersChildrenObject'
+    searchResponse:
+      type: object
+      description: Properties in results objects are based on return values
+      properties:
+        data:
+          type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/searchResponseArrayObject'
+        meta:
+          type: object
+          properties:
+            requestGuid:
+              type: string
+            pagination:
+              type: object
+              properties:
+                total:
+                  type: integer
+                  example: 100
+                isEstimatedTotal:
+                  type: boolean
+                  example: false
+    FilterResponse:
+      type: object
+      description: Filters Object
+      properties:
+        data:
+          type: object
+          properties:
+            structuredFilters:
+              $ref: '#/components/schemas/structuredFilters'
+            flattenedFilters:
+              $ref: '#/components/schemas/flattenedFilters'
+    flattenedFiltersTopicsObject:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: array
+          items:
+            type: string
+      example:
+        name: '13F Summary '
+        value:
+        - SA_13F_SUMMARY
+    flattenedFiltersRegionsObject:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: array
+          items:
+            type: number
+      example:
+        name: Canada
+        value:
+        - 5
+    requestfilesResponse:
+      type: object
+      properties:
+        jobID:
+          description: Unique id to get the xml files for the requested date
+          type: string
+        status:
+          description: Returns the value as submitted. Tells the request has been submitted
+          type: string
+    checkstatusResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/checkstatus'
+        meta:
+          $ref: '#/components/schemas/metaOne'
+    saHeadlinesRequestByView:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            searchDate:
+              type: object
+              properties:
+                start:
+                  type: string
+                  description: Start time for custom search. startTime must follow the ISO 8601 standard format, YYYY-MM-DDTHH:mm:ssZ (UTC). It also supports offsets ±[hh]:[mm]
+                  example: '2022-08-21T12:35:45Z'
+                end:
+                  type: string
+                  description: End time for custom search. If end time is not present end time is automatically set to the time of the search. endTime must follow the ISO 8601 standard format, YYYY-MM-DDTHH:mm:ssZ (UTC). It also supports offsets ±[hh]:[mm]
+                  example: '2022-08-29T08:10:30Z'
+        meta:
+          type: object
+          properties:
+            pagination:
+              type: object
+              description: Object defining pagination for the results pageable attribute. Offset-based strategy is used for Pagination.
+              properties:
+                limit:
+                  type: integer
+                  example: 50
+                  default: 500
+                  description: Non-negative maximum number of entries to return.
+                offset:
+                  type: integer
+                  example: 100
+                  default: 0
+                  description: Non-negative number of entries to skip.
+    structuredFiltersTopicsObject:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: array
+          items:
+            type: string
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/structuredFiltersChildrenObject'
+    views:
+      type: object
+      description: StreetAccount views
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/viewsObject'
+    structuredFiltersChildrenObject:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: array
+          items:
+            type: string
+    flattenedFiltersWatchlistsObject:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        value:
+          type: string
+      example:
+        name: S&P 500
+        type: Index
+        value: SP50
+    StreetAccountStatus:
+      title: Response Status of SA
+      type: object
+      properties:
+        id:
+          type: string
+        error_message:
+          description: Textual error message
+          type: string
+    structuredFiltersRegionsObject:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: array
+          items:
+            type: number
     flattenedFiltersSectorsObject:
       type: object
       properties:
@@ -716,6 +1049,15 @@ components:
         name: Chemical Manufacturing
         value:
         - 106
+    error:
+      type: object
+      properties:
+        meta:
+          type: object
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errorObject'
     viewsObject:
       type: object
       properties:
@@ -748,6 +1090,13 @@ components:
             type: string
             example: Chemicals - Plastics & Rubber
         isPrimary:
+          type: boolean
+    isPartialOne:
+      title: IsPartialItems
+      description: If the value is true, it indicates additional results are available. False represents that this is the last set of results for this request.
+      type: object
+      properties:
+        isPartial:
           type: boolean
     createOrEditViewBody:
       type: object
@@ -785,364 +1134,17 @@ components:
             quickAlert:
               type: boolean
               example: false
-    checkstatus:
-      type: object
-      properties:
-        product:
-          description: Defines the name of the product
-          type: string
-        jobID:
-          description: Unique id to get the xml files for the requested date
-          type: string
-        status:
-          description: Returns any of the 2 results Submitted ->Running->Completed and Failed
-          type: string
-        percentDone:
-          description: Returns how much percentage of  task is completed for the requested jobID
-          type: integer
-        startDate:
-          description: The date from which the data is required in YYYY-MM-DDTHH:MM:SSZ format
-          type: string
-          format: date
-        endDate:
-          description: The date until which the data is fetched in YYYY-MM-DDTHH:MM:SSZ format
-          type: string
-          format: date
-        part:
-          description: Returns the part number of the jobID
-          type: integer
-    paginationOne:
-      title: PaginationItems
-      description: List of pagination objects
-      type: object
-      properties:
-        total:
-          description: Total number of files the API returns for a particular query
-          type: integer
-        isEstimatedTotal:
-          description: Boolean value that represents whether the total count of files returned is exact or an estimate. This is defaulted to “False” as the API should always return the exact count
-          type: boolean
-        limit:
-          description: Number of results returned per page
-          type: integer
-        offset:
-          description: The flag indicating the position in the results array if additional results are available beyond the default value or the value in paginationLimit parameter (if used). This value is passed in the _paginationOffset parameter to retreieve subsequent results
-          type: integer
-    flattenedFilters:
-      type: object
-      description: Flattened Filters Object
-      properties:
-        categories:
-          type: array
-          items:
-            $ref: '#/components/schemas/flattenedFiltersCategoriesObject'
-        topics:
-          type: array
-          items:
-            $ref: '#/components/schemas/flattenedFiltersTopicsObject'
-        regions:
-          type: array
-          items:
-            $ref: '#/components/schemas/flattenedFiltersRegionsObject'
-        sectors:
-          type: array
-          items:
-            $ref: '#/components/schemas/flattenedFiltersSectorsObject'
-        watchlists:
-          type: array
-          items:
-            $ref: '#/components/schemas/flattenedFiltersWatchlistsObject'
-    isPartialOne:
-      title: IsPartialItems
-      description: If the value is true, it indicates additional results are available. False represents that this is the last set of results for this request.
-      type: object
-      properties:
-        isPartial:
-          type: boolean
-    saHeadlinesRequestTickersObject:
-      type: object
-      properties:
-        name:
-          type: string
-          example: S&P 500
-        value:
-          type: string
-          example: SP50
-        type:
-          type: string
-          example: Index
-          enum:
-          - Index
-          - ETF
-          - Mutual_Fund
-          - Portfolios
-    flattenedFiltersWatchlistsObject:
-      type: object
-      properties:
-        name:
-          type: string
-        type:
-          type: string
-        value:
-          type: string
-      example:
-        name: S&P 500
-        type: Index
-        value: SP50
-    searchResponse:
-      type: object
-      description: Properties in results objects are based on return values
-      properties:
-        data:
-          type: object
-          properties:
-            results:
-              type: array
-              items:
-                $ref: '#/components/schemas/searchResponseArrayObject'
-        meta:
-          type: object
-          properties:
-            requestGuid:
-              type: string
-            pagination:
-              type: object
-              properties:
-                total:
-                  type: integer
-                  example: 100
-                isEstimatedTotal:
-                  type: boolean
-                  example: false
-    structuredFiltersWatchlistsObject:
-      type: object
-      properties:
-        name:
-          type: string
-        type:
-          type: string
-        value:
-          type: string
-    errorObject:
-      type: object
-      properties:
-        id:
-          type: string
-        title:
-          type: string
-        code:
-          type: string
-    flattenedFiltersCategoriesObject:
-      type: object
-      properties:
-        name:
-          type: string
-        value:
-          type: array
-          items:
-            type: string
-      example:
-        name: Dividends
-        value:
-        - SA_DIVIDENDS
-    views:
-      type: object
-      description: StreetAccount views
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/viewsObject'
-    getfilesResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/getfiles'
-        meta:
-          $ref: '#/components/schemas/metaOne'
-    structuredFilters:
-      type: object
-      description: Structured Filters Object
-      properties:
-        categories:
-          type: array
-          items:
-            $ref: '#/components/schemas/structuredFiltersCategoriesObject'
-        topics:
-          type: array
-          items:
-            $ref: '#/components/schemas/structuredFiltersTopicsObject'
-        regions:
-          type: array
-          items:
-            $ref: '#/components/schemas/structuredFiltersRegionsObject'
-        sectors:
-          type: array
-          items:
-            $ref: '#/components/schemas/structuredFiltersSectorsObject'
-        watchlists:
-          type: array
-          items:
-            $ref: '#/components/schemas/structuredFiltersWatchlistsObject'
-    structuredFiltersCategoriesObject:
-      type: object
-      properties:
-        name:
-          type: string
-        value:
-          type: array
-          items:
-            type: string
-        children:
-          type: array
-          items:
-            $ref: '#/components/schemas/structuredFiltersChildrenObject'
-    flattenedFiltersRegionsObject:
-      type: object
-      properties:
-        name:
-          type: string
-        value:
-          type: array
-          items:
-            type: number
-      example:
-        name: Canada
-        value:
-        - 5
-    saHeadlinesRequestByView:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            searchDate:
-              type: object
-              properties:
-                start:
-                  type: string
-                  description: Start time for custom search. startTime must follow the ISO 8601 standard format, YYYY-MM-DDTHH:mm:ssZ (UTC). It also supports offsets ±[hh]:[mm]
-                  example: '2022-08-21T12:35:45Z'
-                end:
-                  type: string
-                  description: End time for custom search. If end time is not present end time is automatically set to the time of the search. endTime must follow the ISO 8601 standard format, YYYY-MM-DDTHH:mm:ssZ (UTC). It also supports offsets ±[hh]:[mm]
-                  example: '2022-08-29T08:10:30Z'
-        meta:
-          type: object
-          properties:
-            pagination:
-              type: object
-              description: Object defining pagination for the results pageable attribute. Offset-based strategy is used for Pagination.
-              properties:
-                limit:
-                  type: integer
-                  example: 50
-                  default: 500
-                  description: Non-negative maximum number of entries to return.
-                offset:
-                  type: integer
-                  example: 100
-                  default: 0
-                  description: Non-negative number of entries to skip.
-    createOrEditViewTickers:
-      type: object
-      properties:
-        name:
-          type: string
-          example: Russell 1000
-        value:
-          type: string
-          example: R.1000
-        type:
-          type: string
-          example: Index
-          enum:
-          - Index
-          - ETF
-          - Holder
-          - Mutual_Fund
-          - Portfolios
-    structuredFiltersChildrenObject:
-      type: object
-      properties:
-        name:
-          type: string
-        value:
-          type: array
-          items:
-            type: string
-    metaOne:
-      title: Meta
-      description: Array of metadata objects
-      type: object
-      properties:
-        pagination:
-          $ref: '#/components/schemas/paginationOne'
-        partial:
-          $ref: '#/components/schemas/isPartialOne'
-    FilterResponse:
-      type: object
-      description: Filters Object
-      properties:
-        data:
-          type: object
-          properties:
-            structuredFilters:
-              $ref: '#/components/schemas/structuredFilters'
-            flattenedFilters:
-              $ref: '#/components/schemas/flattenedFilters'
-    StreetAccountStatus:
-      title: Response Status of SA
-      type: object
-      properties:
-        id:
-          type: string
-        error_message:
-          description: Textual error message
-          type: string
-    createEditDeleteViewResponse:
-      type: object
-      description: Properties in object are results of the create or save operation
-      properties:
-        data:
-          type: object
-          properties:
-            id:
-              type: string
-              example: StreetAccount News Summaries Europe
-            message:
-              type: object
-              properties:
-                view:
-                  type: string
-                  example: View created/edited/deleted sucessfully
   examples:
-    200CheckStatusExample:
+    200RequestFilesExample:
       summary: Sample Response
       value:
-        data:
-        - product: SA
-          jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
-          status: completed
-          percentDone: 100
-          startDate: '2021-11-21T00:00:00Z'
-          endDate: '2021-11-28T00:00:00Z'
-          part: 1
-        meta:
-          pagination:
-            total: 105
-            isEstimatedTotal: false
-            limit: 200
-            offset: 105
-          partial:
-            isPartial: false
-    StreetAccountExample:
+        jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
+        status: submitted
+    StreetAccount500Example:
       summary: Sample error Response
       value:
         id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
-        error_message: parameterError:Missing required parameter jobID
+        error_message: An unexpected error happened
     searchDate:
       summary: Using searchDate
       value:
@@ -1167,6 +1169,11 @@ components:
           pagination:
             limit: 50
             offset: 100
+    StreetAccount401Example:
+      summary: Sample error Response
+      value:
+        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
+        error_message: USERNAME-SERIAL does not have permission
     200GetFilesExample:
       summary: Sample Response
       value:
@@ -1197,33 +1204,36 @@ components:
           pagination:
             limit: 50
             offset: 100
-    200RequestFilesExample:
-      summary: Sample Response
-      value:
-        jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
-        status: submitted
-    StreetAccount500Example:
+    StreetAccountExample:
       summary: Sample error Response
       value:
         id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
-        error_message: An unexpected error happened
+        error_message: parameterError:Missing required parameter jobID
     StreetAccount403Example:
       summary: Sample error Response
       value:
         id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
         error_message: USERNAME-SERIAL does not have permission
-    StreetAccount401Example:
-      summary: Sample error Response
+    200CheckStatusExample:
+      summary: Sample Response
       value:
-        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
-        error_message: USERNAME-SERIAL does not have permission
+        data:
+        - product: SA
+          jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
+          status: completed
+          percentDone: 100
+          startDate: '2021-11-21T00:00:00Z'
+          endDate: '2021-11-28T00:00:00Z'
+          part: 1
+        meta:
+          pagination:
+            total: 105
+            isEstimatedTotal: false
+            limit: 200
+            offset: 105
+          partial:
+            isPartial: false
   requestBodies:
-    createOrEditViewBody:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/createOrEditViewBody'
-      description: Create or Edit View Body which needs to be sent with request
     saHeadlinesRequest:
       content:
         application/json:
@@ -1242,10 +1252,22 @@ components:
             Using searchDate with id:
               $ref: '#/components/examples/searchDateid'
       description: View body which needs to be sent with request
+    createOrEditViewBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/createOrEditViewBody'
+      description: Create or Edit View Body which needs to be sent with request
   securitySchemes:
-    basicAuth:
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
+    FactSetApiKey:
       type: http
       scheme: basic
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
   description: API Documentation
+  url: https://developer.factset.com/api-catalog/streetaccount-news-api

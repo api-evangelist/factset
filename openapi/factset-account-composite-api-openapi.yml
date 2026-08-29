@@ -1,7 +1,9 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Account Composite API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  title: Factset Portfolio Metadata Account Composite API
+  version: 1.0.0
+  description: Basic operations for portfolio metadata
+  termsOfService: TOS
   contact:
     name: FactSet Research Systems
     url: https://developer.factset.com/contact
@@ -9,14 +11,12 @@ info:
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- description: production
+  url: https://api.factset.com/analytics/portfolio-metadata/v1
 security:
-- basicAuth: []
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Account Composite
   description: CRUD operations on Account Composite
@@ -248,892 +248,10 @@ paths:
           $ref: '#/components/responses/NotImplementedErrorResponse'
 components:
   schemas:
-    readAccountCompositeResponse:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            type:
-              type: string
-              enum:
-              - AccountComposite
-              nullable: false
-              description: Metadata file type formatted for consistency with the REST api
-            id:
-              type: string
-              nullable: false
-              description: Unique identifier for this metadata file.
-              example: 9a030822-d1ee-4fc0-a598-75e65d1512fd
-            display:
-              type: string
-              nullable: false
-              description: The GUI path of this file, including the name and extension.
-              example: Client:EXAMPLE.ACTM
-            path:
-              type: string
-              nullable: false
-              description: The GUI path to this object.
-              example: 'Client:'
-            name:
-              type: string
-              nullable: false
-              description: Name of this file object including the extension.
-              example: EXAMPLE.ACTM
-            description:
-              type: string
-              nullable: true
-              description: User provided description of this file.
-              example: Domestic equity composite
-            dataCatalog:
-              type: object
-              properties:
-                holdings:
-                  type: object
-                  properties:
-                    type:
-                      type: string
-                      enum:
-                      - BLENDED
-                      - FIXED_DOLLAR
-                      - FLOATING
-                      - GIPS
-                      - SIMPLE
-                      nullable: false
-                      description: The type of composite.  Determines how component weights are interpreted
-                    methodology:
-                      type: string
-                      enum:
-                      - BUY_AND_HOLD
-                      - ORDER_MANAGMENT_SYSTEM
-                      - TRANSACTIONS
-                      nullable: false
-                      description: The holdings methodology to apply when reading this account's holdings data.
-                    rebalance:
-                      type: object
-                      properties:
-                        frequency:
-                          type: string
-                          enum:
-                          - ANNUALLY
-                          - BUY_AND_HOLD
-                          - WEEKLY
-                          - MONTHLY
-                          - QUARTERLY
-                          - SEMI_ANNUALLY
-                          - CONSTANTLY
-                          - DAILY
-                          nullable: false
-                        start:
-                          type: string
-                          enum:
-                          - SPECIFIC_POINT
-                          - LATEST_FREQUENCY_END
-                          - REPORT_START_DATE
-                          nullable: false
-                        month:
-                          type: string
-                          enum:
-                          - APRIL
-                          - AUGUST
-                          - DECEMBER
-                          - FEBRUARY
-                          - JANUARY
-                          - JULY
-                          - JUNE
-                          - MARCH
-                          - MAY
-                          - NOVEMBER
-                          - OCTOBER
-                          - SEPTEMBER
-                          nullable: false
-                        dayOfMonth:
-                          type: string
-                          nullable: false
-                        date:
-                          type: string
-                          nullable: false
-                        quarters:
-                          type: string
-                          enum:
-                          - FEBRUARY_MAY_AUGUST_NOVEMBER
-                          - JANUARY_APRIL_JULY_OCTOBER
-                          - MARCH_JUNE_SEPTEMBER_DECEMBER
-                          nullable: false
-                        useActualFrequencies:
-                          type: boolean
-                          nullable: false
-                        periods:
-                          type: string
-                          enum:
-                          - APRIL_OCTOBER
-                          - FEBRUARY_AUGUST
-                          - JANUARY_JULY
-                          - JUNE_DECEMBER
-                          - MARCH_SEPTEMBER
-                          - MAY_NOVEMBER
-                          nullable: false
-                        dayOfWeek:
-                          type: string
-                          enum:
-                          - FRIDAY
-                          - MONDAY
-                          - SATURDAY
-                          - SUNDAY
-                          - THURSDAY
-                          - TUESDAY
-                          - WEDNESDAY
-                          nullable: false
-                      nullable: false
-                      description: Settings used to determine how a composite's components are rebalanced.
-                      example:
-                        frequency: DAILY
-                    components:
-                      type: object
-                      properties:
-                        all:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              startDate:
-                                type: string
-                                nullable: false
-                                description: 'First date the data is valid.  If using the EARLIEST date in the report, this
-
-                                  will be set to 0000-01-01'
-                                example: '2022-01-01'
-                              endDate:
-                                type: string
-                                nullable: false
-                                description: 'Last date the data is valid.  If using the LATEST date in the report, this
-
-                                  will be set to 9999-12-31'
-                                example: '2022-01-31'
-                              weight:
-                                type: number
-                                nullable: false
-                                example: 10
-                              isSpar:
-                                type: boolean
-                                nullable: false
-                              portfolio:
-                                type: object
-                                properties:
-                                  type:
-                                    type: string
-                                    enum:
-                                    - Account
-                                    - AccountComposite
-                                    - Forbidden
-                                    - HoldingsComposite
-                                    - Returns
-                                    - ReturnsComposite
-                                    - Vendor
-                                    nullable: false
-                                    description: Metadata file type formatted for consistency with the REST api
-                                  id:
-                                    type: string
-                                    nullable: false
-                                    description: Unique identifier for this metadata file.
-                                    example: BENCH:SP50
-                                  display:
-                                    type: string
-                                    nullable: false
-                                    description: String suitable for display in a UI.
-                                    example: Client:EXAMPLE.CSTM
-                                nullable: false
-                            nullable: false
-                          description: Raw component, time range list
-                      nullable: false
-                      description: 'A holdings portfolio or vendor benchmark to use as this accounts''s holdings
-
-                        data.'
-                  nullable: true
-                  description: Describes the location of the account's holdings data containers.
-                returns:
-                  type: object
-                  properties:
-                    primaryType:
-                      type: string
-                      enum:
-                      - CAPITAL
-                      - GROSS
-                      - NET
-                      - NET_AFTER_TAX
-                      - NET_INCOME
-                      - OTHER_1
-                      - OTHER_2
-                      - OTHER_3
-                      - OTHER_4
-                      - PRIVATE_EQUITY_GROSS
-                      - PRIVATE_EQUITY_NET
-                      - REAL_ESTATE_TOTAL
-                      nullable: false
-                      description: The type of the default return series portfolio used for this account.
-                      example: NET
-                    net:
-                      type: object
-                      properties:
-                        portfolio:
-                          type: object
-                          properties:
-                            type:
-                              type: string
-                              enum:
-                              - Account
-                              - AccountComposite
-                              - Forbidden
-                              - Returns
-                              - ReturnsComposite
-                              - Vendor
-                              nullable: false
-                              description: Metadata file type formatted for consistency with the REST api
-                            id:
-                              type: string
-                              nullable: false
-                              description: Unique identifier for this metadata file.
-                              example: BENCH:SP50
-                            display:
-                              type: string
-                              nullable: false
-                              description: String suitable for display in a UI.
-                              example: Client:EXAMPLE.CSTM
-                          nullable: false
-                      nullable: true
-                      description: 'Reference to the NET returns portfolio directly.  NOTE: this portfolio is
-
-                        included in the portfolios field above as well.'
-                    gross:
-                      type: object
-                      properties:
-                        portfolio:
-                          type: object
-                          properties:
-                            type:
-                              type: string
-                              enum:
-                              - Account
-                              - AccountComposite
-                              - Forbidden
-                              - Returns
-                              - ReturnsComposite
-                              - Vendor
-                              nullable: false
-                              description: Metadata file type formatted for consistency with the REST api
-                            id:
-                              type: string
-                              nullable: false
-                              description: Unique identifier for this metadata file.
-                              example: BENCH:SP50
-                            display:
-                              type: string
-                              nullable: false
-                              description: String suitable for display in a UI.
-                              example: Client:EXAMPLE.CSTM
-                          nullable: false
-                      nullable: true
-                      description: 'Reference to the GROSS returns portfolio directly.  NOTE: this portfolio is
-
-                        included in the portfolios field above as well.'
-                    other1:
-                      type: object
-                      properties:
-                        portfolio:
-                          type: object
-                          properties:
-                            type:
-                              type: string
-                              enum:
-                              - Account
-                              - AccountComposite
-                              - Forbidden
-                              - Returns
-                              - ReturnsComposite
-                              - Vendor
-                              nullable: false
-                              description: Metadata file type formatted for consistency with the REST api
-                            id:
-                              type: string
-                              nullable: false
-                              description: Unique identifier for this metadata file.
-                              example: BENCH:SP50
-                            display:
-                              type: string
-                              nullable: false
-                              description: String suitable for display in a UI.
-                              example: Client:EXAMPLE.CSTM
-                          nullable: false
-                      nullable: true
-                      description: 'Reference to the OTHER1 returns portfolio directly.  NOTE: this portfolio is
-
-                        included in the portfolios field above as well.'
-                    other2:
-                      type: object
-                      properties:
-                        portfolio:
-                          type: object
-                          properties:
-                            type:
-                              type: string
-                              enum:
-                              - Account
-                              - AccountComposite
-                              - Forbidden
-                              - Returns
-                              - ReturnsComposite
-                              - Vendor
-                              nullable: false
-                              description: Metadata file type formatted for consistency with the REST api
-                            id:
-                              type: string
-                              nullable: false
-                              description: Unique identifier for this metadata file.
-                              example: BENCH:SP50
-                            display:
-                              type: string
-                              nullable: false
-                              description: String suitable for display in a UI.
-                              example: Client:EXAMPLE.CSTM
-                          nullable: false
-                      nullable: true
-                      description: 'Reference to the OTHER2 returns portfolio directly.  NOTE: this portfolio is
-
-                        included in the portfolios field above as well.'
-                    other3:
-                      type: object
-                      properties:
-                        portfolio:
-                          type: object
-                          properties:
-                            type:
-                              type: string
-                              enum:
-                              - Account
-                              - AccountComposite
-                              - Forbidden
-                              - Returns
-                              - ReturnsComposite
-                              - Vendor
-                              nullable: false
-                              description: Metadata file type formatted for consistency with the REST api
-                            id:
-                              type: string
-                              nullable: false
-                              description: Unique identifier for this metadata file.
-                              example: BENCH:SP50
-                            display:
-                              type: string
-                              nullable: false
-                              description: String suitable for display in a UI.
-                              example: Client:EXAMPLE.CSTM
-                          nullable: false
-                      nullable: true
-                      description: 'Reference to the OTHER3 returns portfolio directly.  NOTE: this portfolio is
-
-                        included in the portfolios field above as well.'
-                    other4:
-                      type: object
-                      properties:
-                        portfolio:
-                          type: object
-                          properties:
-                            type:
-                              type: string
-                              enum:
-                              - Account
-                              - AccountComposite
-                              - Forbidden
-                              - Returns
-                              - ReturnsComposite
-                              - Vendor
-                              nullable: false
-                              description: Metadata file type formatted for consistency with the REST api
-                            id:
-                              type: string
-                              nullable: false
-                              description: Unique identifier for this metadata file.
-                              example: BENCH:SP50
-                            display:
-                              type: string
-                              nullable: false
-                              description: String suitable for display in a UI.
-                              example: Client:EXAMPLE.CSTM
-                          nullable: false
-                      nullable: true
-                      description: 'Reference to the OTHER4 returns portfolio directly.  NOTE: this portfolio is
-
-                        included in the portfolios field above as well.'
-                    netAfterTax:
-                      type: object
-                      properties:
-                        portfolio:
-                          type: object
-                          properties:
-                            type:
-                              type: string
-                              enum:
-                              - Account
-                              - AccountComposite
-                              - Forbidden
-                              - Returns
-                              - ReturnsComposite
-                              - Vendor
-                              nullable: false
-                              description: Metadata file type formatted for consistency with the REST api
-                            id:
-                              type: string
-                              nullable: false
-                              description: Unique identifier for this metadata file.
-                              example: BENCH:SP50
-                            display:
-                              type: string
-                              nullable: false
-                              description: String suitable for display in a UI.
-                              example: Client:EXAMPLE.CSTM
-                          nullable: false
-                      nullable: true
-                      description: 'Reference to the NET_AFTER_TAX returns portfolio directly.  NOTE: this
-
-                        portfolio is included in the portfolios field above as well.'
-                    netIncome:
-                      type: object
-                      properties:
-                        portfolio:
-                          type: object
-                          properties:
-                            type:
-                              type: string
-                              enum:
-                              - Account
-                              - AccountComposite
-                              - Forbidden
-                              - Returns
-                              - ReturnsComposite
-                              - Vendor
-                              nullable: false
-                              description: Metadata file type formatted for consistency with the REST api
-                            id:
-                              type: string
-                              nullable: false
-                              description: Unique identifier for this metadata file.
-                              example: BENCH:SP50
-                            display:
-                              type: string
-                              nullable: false
-                              description: String suitable for display in a UI.
-                              example: Client:EXAMPLE.CSTM
-                          nullable: false
-                      nullable: true
-                      description: 'Reference to the NET_INCOME returns portfolio directly.  NOTE: this portfolio
-
-                        is included in the portfolios field above as well.'
-                    capital:
-                      type: object
-                      properties:
-                        portfolio:
-                          type: object
-                          properties:
-                            type:
-                              type: string
-                              enum:
-                              - Account
-                              - AccountComposite
-                              - Forbidden
-                              - Returns
-                              - ReturnsComposite
-                              - Vendor
-                              nullable: false
-                              description: Metadata file type formatted for consistency with the REST api
-                            id:
-                              type: string
-                              nullable: false
-                              description: Unique identifier for this metadata file.
-                              example: BENCH:SP50
-                            display:
-                              type: string
-                              nullable: false
-                              description: String suitable for display in a UI.
-                              example: Client:EXAMPLE.CSTM
-                          nullable: false
-                      nullable: true
-                      description: 'Reference to the CAPITAL returns portfolio directly.  NOTE: this portfolio is
-
-                        included in the portfolios field above as well.'
-                    realEstateTotal:
-                      type: object
-                      properties:
-                        portfolio:
-                          type: object
-                          properties:
-                            type:
-                              type: string
-                              enum:
-                              - Account
-                              - AccountComposite
-                              - Forbidden
-                              - Returns
-                              - ReturnsComposite
-                              - Vendor
-                              nullable: false
-                              description: Metadata file type formatted for consistency with the REST api
-                            id:
-                              type: string
-                              nullable: false
-                              description: Unique identifier for this metadata file.
-                              example: BENCH:SP50
-                            display:
-                              type: string
-                              nullable: false
-                              description: String suitable for display in a UI.
-                              example: Client:EXAMPLE.CSTM
-                          nullable: false
-                      nullable: true
-                      description: 'Reference to the REAL_ESTATE_TOTAL returns portfolio directly.  NOTE: this
-
-                        portfolio is included in the portfolios field above as well.'
-                    privateEquityGross:
-                      type: object
-                      properties:
-                        portfolio:
-                          type: object
-                          properties:
-                            type:
-                              type: string
-                              enum:
-                              - Account
-                              - AccountComposite
-                              - Forbidden
-                              - Returns
-                              - ReturnsComposite
-                              - Vendor
-                              nullable: false
-                              description: Metadata file type formatted for consistency with the REST api
-                            id:
-                              type: string
-                              nullable: false
-                              description: Unique identifier for this metadata file.
-                              example: BENCH:SP50
-                            display:
-                              type: string
-                              nullable: false
-                              description: String suitable for display in a UI.
-                              example: Client:EXAMPLE.CSTM
-                          nullable: false
-                      nullable: true
-                      description: 'Reference to the PRIVATE_EQUITY_GROSS returns portfolio directly.  NOTE: this
-
-                        portfolio is included in the portfolios field above as well.'
-                    privateEquityNet:
-                      type: object
-                      properties:
-                        portfolio:
-                          type: object
-                          properties:
-                            type:
-                              type: string
-                              enum:
-                              - Account
-                              - AccountComposite
-                              - Forbidden
-                              - Returns
-                              - ReturnsComposite
-                              - Vendor
-                              nullable: false
-                              description: Metadata file type formatted for consistency with the REST api
-                            id:
-                              type: string
-                              nullable: false
-                              description: Unique identifier for this metadata file.
-                              example: BENCH:SP50
-                            display:
-                              type: string
-                              nullable: false
-                              description: String suitable for display in a UI.
-                              example: Client:EXAMPLE.CSTM
-                          nullable: false
-                      nullable: true
-                      description: 'Reference to the PRIVATE_EQUITY_NET returns portfolio directly.  NOTE: this
-
-                        portfolio is included in the portfolios field above as well.'
-                  nullable: true
-                  description: Describes the location of the account's returns data containers.
-              nullable: false
-              description: 'Contains references to data containers for this account composite, and
-
-                settings related to interpretting that data correctly.'
-            benchmarks:
-              type: object
-              properties:
-                holdings:
-                  type: object
-                  properties:
-                    primary:
-                      type: object
-                      properties:
-                        startDate:
-                          type: string
-                          nullable: false
-                          description: 'First date the data is valid.  If using the EARLIEST date in the report, this
-
-                            will be set to 0000-01-01'
-                          example: '2022-01-01'
-                        endDate:
-                          type: string
-                          nullable: false
-                          description: 'Last date the data is valid.  If using the LATEST date in the report, this
-
-                            will be set to 9999-12-31'
-                          example: '2022-01-31'
-                        portfolio:
-                          type: object
-                          properties:
-                            type:
-                              type: string
-                              enum:
-                              - Account
-                              - AccountComposite
-                              - Forbidden
-                              - Holdings
-                              - HoldingsComposite
-                              - Vendor
-                              nullable: false
-                              description: Metadata file type formatted for consistency with the REST api
-                            id:
-                              type: string
-                              nullable: false
-                              description: Unique identifier for this metadata file.
-                              example: BENCH:SP50
-                            display:
-                              type: string
-                              nullable: false
-                              description: String suitable for display in a UI.
-                              example: Client:EXAMPLE.CSTM
-                          nullable: true
-                          description: 'A reference to the portfolio or vendor benchmark that contains the data this
-
-                            account should be benchmarked against'
-                      nullable: true
-                  nullable: true
-                returns:
-                  type: object
-                  properties:
-                    primary:
-                      type: object
-                      properties:
-                        startDate:
-                          type: string
-                          nullable: false
-                          description: 'First date the data is valid.  If using the EARLIEST date in the report, this
-
-                            will be set to 0000-01-01'
-                          example: '2022-01-01'
-                        endDate:
-                          type: string
-                          nullable: false
-                          description: 'Last date the data is valid.  If using the LATEST date in the report, this
-
-                            will be set to 9999-12-31'
-                          example: '2022-01-31'
-                        portfolio:
-                          type: object
-                          properties:
-                            type:
-                              type: string
-                              enum:
-                              - Account
-                              - AccountComposite
-                              - Forbidden
-                              - Returns
-                              - ReturnsComposite
-                              - Vendor
-                              nullable: false
-                              description: Metadata file type formatted for consistency with the REST api
-                            id:
-                              type: string
-                              nullable: false
-                              description: Unique identifier for this metadata file.
-                              example: BENCH:SP50
-                            display:
-                              type: string
-                              nullable: false
-                              description: String suitable for display in a UI.
-                              example: Client:EXAMPLE.CSTM
-                          nullable: true
-                          description: 'A reference to the portfolio or vendor benchmark that contains the data this
-
-                            account should be benchmarked against'
-                      nullable: true
-                  nullable: false
-              nullable: false
-              description: 'Contains references to benchmarks used in this account and settings related to
-
-                interpretting them correctly.'
-            publisher:
-              type: object
-              properties:
-                benchmarks:
-                  type: object
-                  properties:
-                    holdings:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          display:
-                            type: string
-                            nullable: false
-                            description: String suitable for display in a UI.
-                            example: Client:EXAMPLE.ACCT
-                          portfolio:
-                            type: object
-                            properties:
-                              type:
-                                type: string
-                                enum:
-                                - Account
-                                - AccountComposite
-                                - Forbidden
-                                - Holdings
-                                - HoldingsComposite
-                                - Vendor
-                                nullable: false
-                                description: Metadata file type formatted for consistency with the REST api
-                              id:
-                                type: string
-                                nullable: false
-                                description: Unique identifier for this metadata file.
-                                example: BENCH:SP50
-                              display:
-                                type: string
-                                nullable: false
-                                description: String suitable for display in a UI.
-                                example: Client:EXAMPLE.CSTM
-                            nullable: true
-                        nullable: false
-                    returns:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          display:
-                            type: string
-                            nullable: false
-                            description: String suitable for display in a UI.
-                            example: Client:EXAMPLE.ACCT
-                          portfolio:
-                            type: object
-                            properties:
-                              type:
-                                type: string
-                                enum:
-                                - Account
-                                - AccountComposite
-                                - Forbidden
-                                - Holdings
-                                - HoldingsComposite
-                                - Vendor
-                                nullable: false
-                                description: Metadata file type formatted for consistency with the REST api
-                              id:
-                                type: string
-                                nullable: false
-                                description: Unique identifier for this metadata file.
-                                example: BENCH:SP50
-                              display:
-                                type: string
-                                nullable: false
-                                description: String suitable for display in a UI.
-                                example: Client:EXAMPLE.CSTM
-                            nullable: true
-                        nullable: false
-                  nullable: false
-                  description: Contains references to benchmarks used in Publisher.
-              nullable: false
-              description: Contains default settings for this account when used within the Publisher application.
-            analytics:
-              type: object
-              properties:
-                currency:
-                  type: object
-                  properties:
-                    iso:
-                      type: string
-                      nullable: false
-                      description: ISO 4217 Currency code.
-                      example: USD
-                    display:
-                      type: string
-                      nullable: false
-                      description: ISO 4217 Currency name
-                      example: US Dollar
-                  nullable: false
-                userDefinedValues:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      field:
-                        type: object
-                        properties:
-                          type:
-                            type: string
-                            enum:
-                            - UserDefinedField
-                            nullable: false
-                          id:
-                            type: string
-                            nullable: false
-                            example: b1c36b19-1417-4e8c-8d0a-416cf6a92a6a
-                          display:
-                            type: string
-                            nullable: false
-                            description: String suitable for display in a UI.
-                            example: MY_VALUE
-                          group:
-                            type: object
-                            properties:
-                              type:
-                                type: string
-                                enum:
-                                - UserDefinedFieldGroup
-                                nullable: false
-                              id:
-                                type: string
-                                nullable: false
-                                example: MDpEZWZhdWx0IEdyb3Vw
-                              display:
-                                type: string
-                                nullable: false
-                                description: String suitable for display in a UI.
-                                example: MY_GROUP
-                            nullable: false
-                        nullable: false
-                      value:
-                        type: string
-                        nullable: false
-                        example: A user defined value
-                    nullable: false
-              nullable: false
-              description: Contains default settings used when running analytics on this account.
-            risk:
-              type: object
-              properties:
-                model:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                      nullable: false
-                      example: AXIOMA:AP21_MH_FUND
-                  nullable: true
-              nullable: false
-              description: Contains default settings used when running risk analytics on this account.
-          nullable: true
-          description: Read a metadata file by its id.
-      nullable: true
     listAccountCompositeResponse:
-      type: object
+      type:
+      - object
+      - 'null'
       properties:
         data:
           type: array
@@ -1144,34 +262,29 @@ components:
                 type: string
                 enum:
                 - AccountComposite
-                nullable: false
                 description: Metadata file type formatted for consistency with the REST api
               id:
                 type: string
-                nullable: false
                 description: Unique identifier for this metadata file.
                 example: 9a030822-d1ee-4fc0-a598-75e65d1512fd
               display:
                 type: string
-                nullable: false
                 description: The GUI path of this file, including the name and extension.
                 example: Client:EXAMPLE.ACTM
               path:
                 type: string
-                nullable: false
                 description: The GUI path to this object.
                 example: 'Client:'
               name:
                 type: string
-                nullable: false
                 description: Name of this file object including the extension.
                 example: EXAMPLE.ACTM
               description:
-                type: string
-                nullable: true
+                type:
+                - string
+                - 'null'
                 description: User provided description of this file.
                 example: Domestic equity composite
-            nullable: false
         meta:
           type: object
           properties:
@@ -1179,15 +292,15 @@ components:
               type: object
               properties:
                 next:
-                  type: string
-                  nullable: true
+                  type:
+                  - string
+                  - 'null'
                   example: YwAAAA==
                 previous:
-                  type: string
-                  nullable: true
+                  type:
+                  - string
+                  - 'null'
                   example: AAAAAA==
-              nullable: false
-      nullable: true
     updateAccountCompositeRequest:
       type: object
       properties:
@@ -2021,8 +1134,802 @@ components:
                 iso: USD
       required:
       - data
+    readAccountCompositeResponse:
+      type:
+      - object
+      - 'null'
+      properties:
+        data:
+          type:
+          - object
+          - 'null'
+          properties:
+            type:
+              type: string
+              enum:
+              - AccountComposite
+              description: Metadata file type formatted for consistency with the REST api
+            id:
+              type: string
+              description: Unique identifier for this metadata file.
+              example: 9a030822-d1ee-4fc0-a598-75e65d1512fd
+            display:
+              type: string
+              description: The GUI path of this file, including the name and extension.
+              example: Client:EXAMPLE.ACTM
+            path:
+              type: string
+              description: The GUI path to this object.
+              example: 'Client:'
+            name:
+              type: string
+              description: Name of this file object including the extension.
+              example: EXAMPLE.ACTM
+            description:
+              type:
+              - string
+              - 'null'
+              description: User provided description of this file.
+              example: Domestic equity composite
+            dataCatalog:
+              type: object
+              properties:
+                holdings:
+                  type:
+                  - object
+                  - 'null'
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                      - BLENDED
+                      - FIXED_DOLLAR
+                      - FLOATING
+                      - GIPS
+                      - SIMPLE
+                      description: The type of composite.  Determines how component weights are interpreted
+                    methodology:
+                      type: string
+                      enum:
+                      - BUY_AND_HOLD
+                      - ORDER_MANAGMENT_SYSTEM
+                      - TRANSACTIONS
+                      description: The holdings methodology to apply when reading this account's holdings data.
+                    rebalance:
+                      type: object
+                      properties:
+                        frequency:
+                          type: string
+                          enum:
+                          - ANNUALLY
+                          - BUY_AND_HOLD
+                          - WEEKLY
+                          - MONTHLY
+                          - QUARTERLY
+                          - SEMI_ANNUALLY
+                          - CONSTANTLY
+                          - DAILY
+                        start:
+                          type: string
+                          enum:
+                          - SPECIFIC_POINT
+                          - LATEST_FREQUENCY_END
+                          - REPORT_START_DATE
+                        month:
+                          type: string
+                          enum:
+                          - APRIL
+                          - AUGUST
+                          - DECEMBER
+                          - FEBRUARY
+                          - JANUARY
+                          - JULY
+                          - JUNE
+                          - MARCH
+                          - MAY
+                          - NOVEMBER
+                          - OCTOBER
+                          - SEPTEMBER
+                        dayOfMonth:
+                          type: string
+                        date:
+                          type: string
+                        quarters:
+                          type: string
+                          enum:
+                          - FEBRUARY_MAY_AUGUST_NOVEMBER
+                          - JANUARY_APRIL_JULY_OCTOBER
+                          - MARCH_JUNE_SEPTEMBER_DECEMBER
+                        useActualFrequencies:
+                          type: boolean
+                        periods:
+                          type: string
+                          enum:
+                          - APRIL_OCTOBER
+                          - FEBRUARY_AUGUST
+                          - JANUARY_JULY
+                          - JUNE_DECEMBER
+                          - MARCH_SEPTEMBER
+                          - MAY_NOVEMBER
+                        dayOfWeek:
+                          type: string
+                          enum:
+                          - FRIDAY
+                          - MONDAY
+                          - SATURDAY
+                          - SUNDAY
+                          - THURSDAY
+                          - TUESDAY
+                          - WEDNESDAY
+                      description: Settings used to determine how a composite's components are rebalanced.
+                      example:
+                        frequency: DAILY
+                    components:
+                      type: object
+                      properties:
+                        all:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              startDate:
+                                type: string
+                                description: 'First date the data is valid.  If using the EARLIEST date in the report, this
+
+                                  will be set to 0000-01-01'
+                                example: '2022-01-01'
+                              endDate:
+                                type: string
+                                description: 'Last date the data is valid.  If using the LATEST date in the report, this
+
+                                  will be set to 9999-12-31'
+                                example: '2022-01-31'
+                              weight:
+                                type: number
+                                example: 10
+                              isSpar:
+                                type: boolean
+                              portfolio:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                    enum:
+                                    - Account
+                                    - AccountComposite
+                                    - Forbidden
+                                    - HoldingsComposite
+                                    - Returns
+                                    - ReturnsComposite
+                                    - Vendor
+                                    description: Metadata file type formatted for consistency with the REST api
+                                  id:
+                                    type: string
+                                    description: Unique identifier for this metadata file.
+                                    example: BENCH:SP50
+                                  display:
+                                    type: string
+                                    description: String suitable for display in a UI.
+                                    example: Client:EXAMPLE.CSTM
+                          description: Raw component, time range list
+                      description: 'A holdings portfolio or vendor benchmark to use as this accounts''s holdings
+
+                        data.'
+                  description: Describes the location of the account's holdings data containers.
+                returns:
+                  type:
+                  - object
+                  - 'null'
+                  properties:
+                    primaryType:
+                      type: string
+                      enum:
+                      - CAPITAL
+                      - GROSS
+                      - NET
+                      - NET_AFTER_TAX
+                      - NET_INCOME
+                      - OTHER_1
+                      - OTHER_2
+                      - OTHER_3
+                      - OTHER_4
+                      - PRIVATE_EQUITY_GROSS
+                      - PRIVATE_EQUITY_NET
+                      - REAL_ESTATE_TOTAL
+                      description: The type of the default return series portfolio used for this account.
+                      example: NET
+                    net:
+                      type:
+                      - object
+                      - 'null'
+                      properties:
+                        portfolio:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                              - Account
+                              - AccountComposite
+                              - Forbidden
+                              - Returns
+                              - ReturnsComposite
+                              - Vendor
+                              description: Metadata file type formatted for consistency with the REST api
+                            id:
+                              type: string
+                              description: Unique identifier for this metadata file.
+                              example: BENCH:SP50
+                            display:
+                              type: string
+                              description: String suitable for display in a UI.
+                              example: Client:EXAMPLE.CSTM
+                      description: 'Reference to the NET returns portfolio directly.  NOTE: this portfolio is
+
+                        included in the portfolios field above as well.'
+                    gross:
+                      type:
+                      - object
+                      - 'null'
+                      properties:
+                        portfolio:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                              - Account
+                              - AccountComposite
+                              - Forbidden
+                              - Returns
+                              - ReturnsComposite
+                              - Vendor
+                              description: Metadata file type formatted for consistency with the REST api
+                            id:
+                              type: string
+                              description: Unique identifier for this metadata file.
+                              example: BENCH:SP50
+                            display:
+                              type: string
+                              description: String suitable for display in a UI.
+                              example: Client:EXAMPLE.CSTM
+                      description: 'Reference to the GROSS returns portfolio directly.  NOTE: this portfolio is
+
+                        included in the portfolios field above as well.'
+                    other1:
+                      type:
+                      - object
+                      - 'null'
+                      properties:
+                        portfolio:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                              - Account
+                              - AccountComposite
+                              - Forbidden
+                              - Returns
+                              - ReturnsComposite
+                              - Vendor
+                              description: Metadata file type formatted for consistency with the REST api
+                            id:
+                              type: string
+                              description: Unique identifier for this metadata file.
+                              example: BENCH:SP50
+                            display:
+                              type: string
+                              description: String suitable for display in a UI.
+                              example: Client:EXAMPLE.CSTM
+                      description: 'Reference to the OTHER1 returns portfolio directly.  NOTE: this portfolio is
+
+                        included in the portfolios field above as well.'
+                    other2:
+                      type:
+                      - object
+                      - 'null'
+                      properties:
+                        portfolio:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                              - Account
+                              - AccountComposite
+                              - Forbidden
+                              - Returns
+                              - ReturnsComposite
+                              - Vendor
+                              description: Metadata file type formatted for consistency with the REST api
+                            id:
+                              type: string
+                              description: Unique identifier for this metadata file.
+                              example: BENCH:SP50
+                            display:
+                              type: string
+                              description: String suitable for display in a UI.
+                              example: Client:EXAMPLE.CSTM
+                      description: 'Reference to the OTHER2 returns portfolio directly.  NOTE: this portfolio is
+
+                        included in the portfolios field above as well.'
+                    other3:
+                      type:
+                      - object
+                      - 'null'
+                      properties:
+                        portfolio:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                              - Account
+                              - AccountComposite
+                              - Forbidden
+                              - Returns
+                              - ReturnsComposite
+                              - Vendor
+                              description: Metadata file type formatted for consistency with the REST api
+                            id:
+                              type: string
+                              description: Unique identifier for this metadata file.
+                              example: BENCH:SP50
+                            display:
+                              type: string
+                              description: String suitable for display in a UI.
+                              example: Client:EXAMPLE.CSTM
+                      description: 'Reference to the OTHER3 returns portfolio directly.  NOTE: this portfolio is
+
+                        included in the portfolios field above as well.'
+                    other4:
+                      type:
+                      - object
+                      - 'null'
+                      properties:
+                        portfolio:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                              - Account
+                              - AccountComposite
+                              - Forbidden
+                              - Returns
+                              - ReturnsComposite
+                              - Vendor
+                              description: Metadata file type formatted for consistency with the REST api
+                            id:
+                              type: string
+                              description: Unique identifier for this metadata file.
+                              example: BENCH:SP50
+                            display:
+                              type: string
+                              description: String suitable for display in a UI.
+                              example: Client:EXAMPLE.CSTM
+                      description: 'Reference to the OTHER4 returns portfolio directly.  NOTE: this portfolio is
+
+                        included in the portfolios field above as well.'
+                    netAfterTax:
+                      type:
+                      - object
+                      - 'null'
+                      properties:
+                        portfolio:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                              - Account
+                              - AccountComposite
+                              - Forbidden
+                              - Returns
+                              - ReturnsComposite
+                              - Vendor
+                              description: Metadata file type formatted for consistency with the REST api
+                            id:
+                              type: string
+                              description: Unique identifier for this metadata file.
+                              example: BENCH:SP50
+                            display:
+                              type: string
+                              description: String suitable for display in a UI.
+                              example: Client:EXAMPLE.CSTM
+                      description: 'Reference to the NET_AFTER_TAX returns portfolio directly.  NOTE: this
+
+                        portfolio is included in the portfolios field above as well.'
+                    netIncome:
+                      type:
+                      - object
+                      - 'null'
+                      properties:
+                        portfolio:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                              - Account
+                              - AccountComposite
+                              - Forbidden
+                              - Returns
+                              - ReturnsComposite
+                              - Vendor
+                              description: Metadata file type formatted for consistency with the REST api
+                            id:
+                              type: string
+                              description: Unique identifier for this metadata file.
+                              example: BENCH:SP50
+                            display:
+                              type: string
+                              description: String suitable for display in a UI.
+                              example: Client:EXAMPLE.CSTM
+                      description: 'Reference to the NET_INCOME returns portfolio directly.  NOTE: this portfolio
+
+                        is included in the portfolios field above as well.'
+                    capital:
+                      type:
+                      - object
+                      - 'null'
+                      properties:
+                        portfolio:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                              - Account
+                              - AccountComposite
+                              - Forbidden
+                              - Returns
+                              - ReturnsComposite
+                              - Vendor
+                              description: Metadata file type formatted for consistency with the REST api
+                            id:
+                              type: string
+                              description: Unique identifier for this metadata file.
+                              example: BENCH:SP50
+                            display:
+                              type: string
+                              description: String suitable for display in a UI.
+                              example: Client:EXAMPLE.CSTM
+                      description: 'Reference to the CAPITAL returns portfolio directly.  NOTE: this portfolio is
+
+                        included in the portfolios field above as well.'
+                    realEstateTotal:
+                      type:
+                      - object
+                      - 'null'
+                      properties:
+                        portfolio:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                              - Account
+                              - AccountComposite
+                              - Forbidden
+                              - Returns
+                              - ReturnsComposite
+                              - Vendor
+                              description: Metadata file type formatted for consistency with the REST api
+                            id:
+                              type: string
+                              description: Unique identifier for this metadata file.
+                              example: BENCH:SP50
+                            display:
+                              type: string
+                              description: String suitable for display in a UI.
+                              example: Client:EXAMPLE.CSTM
+                      description: 'Reference to the REAL_ESTATE_TOTAL returns portfolio directly.  NOTE: this
+
+                        portfolio is included in the portfolios field above as well.'
+                    privateEquityGross:
+                      type:
+                      - object
+                      - 'null'
+                      properties:
+                        portfolio:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                              - Account
+                              - AccountComposite
+                              - Forbidden
+                              - Returns
+                              - ReturnsComposite
+                              - Vendor
+                              description: Metadata file type formatted for consistency with the REST api
+                            id:
+                              type: string
+                              description: Unique identifier for this metadata file.
+                              example: BENCH:SP50
+                            display:
+                              type: string
+                              description: String suitable for display in a UI.
+                              example: Client:EXAMPLE.CSTM
+                      description: 'Reference to the PRIVATE_EQUITY_GROSS returns portfolio directly.  NOTE: this
+
+                        portfolio is included in the portfolios field above as well.'
+                    privateEquityNet:
+                      type:
+                      - object
+                      - 'null'
+                      properties:
+                        portfolio:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                              - Account
+                              - AccountComposite
+                              - Forbidden
+                              - Returns
+                              - ReturnsComposite
+                              - Vendor
+                              description: Metadata file type formatted for consistency with the REST api
+                            id:
+                              type: string
+                              description: Unique identifier for this metadata file.
+                              example: BENCH:SP50
+                            display:
+                              type: string
+                              description: String suitable for display in a UI.
+                              example: Client:EXAMPLE.CSTM
+                      description: 'Reference to the PRIVATE_EQUITY_NET returns portfolio directly.  NOTE: this
+
+                        portfolio is included in the portfolios field above as well.'
+                  description: Describes the location of the account's returns data containers.
+              description: 'Contains references to data containers for this account composite, and
+
+                settings related to interpretting that data correctly.'
+            benchmarks:
+              type: object
+              properties:
+                holdings:
+                  type:
+                  - object
+                  - 'null'
+                  properties:
+                    primary:
+                      type:
+                      - object
+                      - 'null'
+                      properties:
+                        startDate:
+                          type: string
+                          description: 'First date the data is valid.  If using the EARLIEST date in the report, this
+
+                            will be set to 0000-01-01'
+                          example: '2022-01-01'
+                        endDate:
+                          type: string
+                          description: 'Last date the data is valid.  If using the LATEST date in the report, this
+
+                            will be set to 9999-12-31'
+                          example: '2022-01-31'
+                        portfolio:
+                          type:
+                          - object
+                          - 'null'
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                              - Account
+                              - AccountComposite
+                              - Forbidden
+                              - Holdings
+                              - HoldingsComposite
+                              - Vendor
+                              description: Metadata file type formatted for consistency with the REST api
+                            id:
+                              type: string
+                              description: Unique identifier for this metadata file.
+                              example: BENCH:SP50
+                            display:
+                              type: string
+                              description: String suitable for display in a UI.
+                              example: Client:EXAMPLE.CSTM
+                          description: 'A reference to the portfolio or vendor benchmark that contains the data this
+
+                            account should be benchmarked against'
+                returns:
+                  type: object
+                  properties:
+                    primary:
+                      type:
+                      - object
+                      - 'null'
+                      properties:
+                        startDate:
+                          type: string
+                          description: 'First date the data is valid.  If using the EARLIEST date in the report, this
+
+                            will be set to 0000-01-01'
+                          example: '2022-01-01'
+                        endDate:
+                          type: string
+                          description: 'Last date the data is valid.  If using the LATEST date in the report, this
+
+                            will be set to 9999-12-31'
+                          example: '2022-01-31'
+                        portfolio:
+                          type:
+                          - object
+                          - 'null'
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                              - Account
+                              - AccountComposite
+                              - Forbidden
+                              - Returns
+                              - ReturnsComposite
+                              - Vendor
+                              description: Metadata file type formatted for consistency with the REST api
+                            id:
+                              type: string
+                              description: Unique identifier for this metadata file.
+                              example: BENCH:SP50
+                            display:
+                              type: string
+                              description: String suitable for display in a UI.
+                              example: Client:EXAMPLE.CSTM
+                          description: 'A reference to the portfolio or vendor benchmark that contains the data this
+
+                            account should be benchmarked against'
+              description: 'Contains references to benchmarks used in this account and settings related to
+
+                interpretting them correctly.'
+            publisher:
+              type: object
+              properties:
+                benchmarks:
+                  type: object
+                  properties:
+                    holdings:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          display:
+                            type: string
+                            description: String suitable for display in a UI.
+                            example: Client:EXAMPLE.ACCT
+                          portfolio:
+                            type:
+                            - object
+                            - 'null'
+                            properties:
+                              type:
+                                type: string
+                                enum:
+                                - Account
+                                - AccountComposite
+                                - Forbidden
+                                - Holdings
+                                - HoldingsComposite
+                                - Vendor
+                                description: Metadata file type formatted for consistency with the REST api
+                              id:
+                                type: string
+                                description: Unique identifier for this metadata file.
+                                example: BENCH:SP50
+                              display:
+                                type: string
+                                description: String suitable for display in a UI.
+                                example: Client:EXAMPLE.CSTM
+                    returns:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          display:
+                            type: string
+                            description: String suitable for display in a UI.
+                            example: Client:EXAMPLE.ACCT
+                          portfolio:
+                            type:
+                            - object
+                            - 'null'
+                            properties:
+                              type:
+                                type: string
+                                enum:
+                                - Account
+                                - AccountComposite
+                                - Forbidden
+                                - Holdings
+                                - HoldingsComposite
+                                - Vendor
+                                description: Metadata file type formatted for consistency with the REST api
+                              id:
+                                type: string
+                                description: Unique identifier for this metadata file.
+                                example: BENCH:SP50
+                              display:
+                                type: string
+                                description: String suitable for display in a UI.
+                                example: Client:EXAMPLE.CSTM
+                  description: Contains references to benchmarks used in Publisher.
+              description: Contains default settings for this account when used within the Publisher application.
+            analytics:
+              type: object
+              properties:
+                currency:
+                  type: object
+                  properties:
+                    iso:
+                      type: string
+                      description: ISO 4217 Currency code.
+                      example: USD
+                    display:
+                      type: string
+                      description: ISO 4217 Currency name
+                      example: US Dollar
+                userDefinedValues:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            enum:
+                            - UserDefinedField
+                          id:
+                            type: string
+                            example: b1c36b19-1417-4e8c-8d0a-416cf6a92a6a
+                          display:
+                            type: string
+                            description: String suitable for display in a UI.
+                            example: MY_VALUE
+                          group:
+                            type: object
+                            properties:
+                              type:
+                                type: string
+                                enum:
+                                - UserDefinedFieldGroup
+                              id:
+                                type: string
+                                example: MDpEZWZhdWx0IEdyb3Vw
+                              display:
+                                type: string
+                                description: String suitable for display in a UI.
+                                example: MY_GROUP
+                      value:
+                        type: string
+                        example: A user defined value
+              description: Contains default settings used when running analytics on this account.
+            risk:
+              type: object
+              properties:
+                model:
+                  type:
+                  - object
+                  - 'null'
+                  properties:
+                    id:
+                      type: string
+                      example: AXIOMA:AP21_MH_FUND
+              description: Contains default settings used when running risk analytics on this account.
+          description: Read a metadata file by its id.
     updateAccountCompositeResponse:
-      type: object
+      type:
+      - object
+      - 'null'
       properties:
         data:
           type: object
@@ -2031,30 +1938,97 @@ components:
               type: string
               enum:
               - AccountComposite
-              nullable: false
               description: Metadata file type formatted for consistency with the REST api
             id:
               type: string
-              nullable: false
               description: Unique identifier for this metadata file.
               example: 9a030822-d1ee-4fc0-a598-75e65d1512fd
             display:
               type: string
-              nullable: false
               description: The GUI path of this file, including the name and extension.
               example: Client:EXAMPLE.ACTM
             path:
               type: string
-              nullable: false
               description: The GUI path to this object.
               example: 'Client:'
             name:
               type: string
-              nullable: false
               description: Name of this file object including the extension.
               example: EXAMPLE.ACTM
-          nullable: false
-      nullable: true
+    createAccountCompositeResponse:
+      type:
+      - object
+      - 'null'
+      properties:
+        data:
+          type: object
+          properties:
+            type:
+              type: string
+              enum:
+              - AccountComposite
+              description: Metadata file type formatted for consistency with the REST api
+            id:
+              type: string
+              description: Unique identifier for this metadata file.
+              example: 9a030822-d1ee-4fc0-a598-75e65d1512fd
+            display:
+              type: string
+              description: The GUI path of this file, including the name and extension.
+              example: Client:EXAMPLE.ACTM
+            path:
+              type: string
+              description: The GUI path to this object.
+              example: 'Client:'
+            name:
+              type: string
+              description: Name of this file object including the extension.
+              example: EXAMPLE.ACTM
+    Errors:
+      type: object
+      description: Information about one or more errors
+      properties:
+        errors:
+          type: array
+          description: List of errors
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Unique identifier for this error instance.  Used to reference this error in logging.
+                example: 270c2fa8-9110-444b-9101-17e10132fe0a
+              code:
+                type: string
+                description: Error code for this error
+                enum:
+                - BadRequestError
+                - UnauthorizedError
+                - ForbiddenError
+                - NotFoundError
+                - NotAcceptableError
+                - ConflictError
+                - UnsupportedMediaTypeError
+                - InternalServerError
+                - NotImplementedError
+              title:
+                type: string
+                description: HTTP reason phrase associcated with this error
+                enum:
+                - Bad Request
+                - Unauthorized
+                - Forbidden
+                - Not Found
+                - Not Acceptable
+                - Conflict
+                - Unsupported Media Type
+                - Internal Server Error
+                - Not Implemented
+              detail:
+                type: string
+                description: Detailed description of the error that occurred
+      required:
+      - errors
     createAccountCompositeRequest:
       type: object
       properties:
@@ -2900,130 +2874,9 @@ components:
                 iso: USD
       required:
       - data
-    Errors:
-      type: object
-      description: Information about one or more errors
-      properties:
-        errors:
-          type: array
-          description: List of errors
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-                description: Unique identifier for this error instance.  Used to reference this error in logging.
-                example: 270c2fa8-9110-444b-9101-17e10132fe0a
-              code:
-                type: string
-                description: Error code for this error
-                enum:
-                - BadRequestError
-                - UnauthorizedError
-                - ForbiddenError
-                - NotFoundError
-                - NotAcceptableError
-                - ConflictError
-                - UnsupportedMediaTypeError
-                - InternalServerError
-                - NotImplementedError
-              title:
-                type: string
-                description: HTTP reason phrase associcated with this error
-                enum:
-                - Bad Request
-                - Unauthorized
-                - Forbidden
-                - Not Found
-                - Not Acceptable
-                - Conflict
-                - Unsupported Media Type
-                - Internal Server Error
-                - Not Implemented
-              detail:
-                type: string
-                description: Detailed description of the error that occurred
-      required:
-      - errors
-    createAccountCompositeResponse:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            type:
-              type: string
-              enum:
-              - AccountComposite
-              nullable: false
-              description: Metadata file type formatted for consistency with the REST api
-            id:
-              type: string
-              nullable: false
-              description: Unique identifier for this metadata file.
-              example: 9a030822-d1ee-4fc0-a598-75e65d1512fd
-            display:
-              type: string
-              nullable: false
-              description: The GUI path of this file, including the name and extension.
-              example: Client:EXAMPLE.ACTM
-            path:
-              type: string
-              nullable: false
-              description: The GUI path to this object.
-              example: 'Client:'
-            name:
-              type: string
-              nullable: false
-              description: Name of this file object including the extension.
-              example: EXAMPLE.ACTM
-          nullable: false
-      nullable: true
   responses:
-    UnauthorizedErrorResponse:
-      description: Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    UnsupportedMediaTypeErrorResponse:
-      description: The request entity has a media type which the server or resource does not support.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    ForbiddenErrorResponse:
-      description: The request contained valid data and was understood by the server, but the server is refusing action. This may be due to the user not having the necessary permissions for a resource or needing an account of some sort, or attempting a prohibited action.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    ConflictErrorResponse:
-      description: Indicates that the request could not be processed because of conflict in the current state of the resource, such as an edit conflict between multiple simultaneous updates.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    NotFoundErrorResponse:
-      description: The requested resource could not be found but may be available in the future. Subsequent requests by the client are permissible.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
     NotImplementedErrorResponse:
       description: ''
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    InternalServerErrorResponse:
-      description: ''
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    BadRequestErrorResponse:
-      description: The server cannot or will not process the request due to an apparent client error (e.g., malformed request syntax, size too large, invalid request message framing, or deceptive request routing).
       content:
         application/json:
           schema:
@@ -3034,10 +2887,58 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Errors'
+    BadRequestErrorResponse:
+      description: The server cannot or will not process the request due to an apparent client error (e.g., malformed request syntax, size too large, invalid request message framing, or deceptive request routing).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    UnauthorizedErrorResponse:
+      description: Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    NotFoundErrorResponse:
+      description: The requested resource could not be found but may be available in the future. Subsequent requests by the client are permissible.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    UnsupportedMediaTypeErrorResponse:
+      description: The request entity has a media type which the server or resource does not support.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    ConflictErrorResponse:
+      description: Indicates that the request could not be processed because of conflict in the current state of the resource, such as an edit conflict between multiple simultaneous updates.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    ForbiddenErrorResponse:
+      description: The request contained valid data and was understood by the server, but the server is refusing action. This may be due to the user not having the necessary permissions for a resource or needing an account of some sort, or attempting a prohibited action.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    InternalServerErrorResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
   securitySchemes:
-    basicAuth:
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
+    FactSetApiKey:
       type: http
       scheme: basic
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
   description: API Documentation
+  url: https://developer.factset.com/api-catalog/portfolio-metadata-api

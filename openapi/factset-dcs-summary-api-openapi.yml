@@ -1,20 +1,13 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Dcs Summary API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
-  contact:
-    name: FactSet Research Systems
-    url: https://developer.factset.com/contact
-    email: api@factset.com
+  title: FactSet Capital Structure Report Builder Dcs Summary API
+  description: ''
   license:
-    name: Apache License, Version 2.0
+    name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
   version: 1.0.0
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.factset.com/report/capital/v1
 security:
 - basicAuth: []
 tags:
@@ -69,20 +62,6 @@ paths:
           $ref: '#/components/responses/503ServiceUnavailable'
 components:
   schemas:
-    Meta:
-      type: object
-      additionalProperties:
-        type: string
-        nullable: true
-    ErrorResponse:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorObject'
-        meta:
-          $ref: '#/components/schemas/Meta'
     Response:
       type: object
       properties:
@@ -112,6 +91,21 @@ components:
           properties:
             parameter:
               type: string
+    Meta:
+      type: object
+      additionalProperties:
+        type:
+        - string
+        - 'null'
+    ErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorObject'
+        meta:
+          $ref: '#/components/schemas/Meta'
   responses:
     401Unauthorized:
       description: Missing or invalid authentication. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For further assistance, file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
@@ -120,41 +114,6 @@ components:
           schema:
             type: string
           description: FactSet request ID
-    429TooManyRequests:
-      description: Too many requests - this API is rate-limited to 20 requests per second. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-    404NotFound:
-      description: Not found. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            endpointNotFound:
-              $ref: '#/components/examples/endpointNotFound'
-    403Forbidden:
-      description: User is forbidden access with current credentials. Reach out to your local FactSet Account Manager for assistance, or file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            notAuthorized:
-              $ref: '#/components/examples/notAuthorized'
     200OKStachDcsSummary:
       description: Expected response; returns JSON data containing STACH 2.0 row organized package format
       headers:
@@ -179,13 +138,34 @@ components:
               $ref: '#/components/examples/groupLevelResponseDcsSummary'
             parentChildColumnsResponse:
               $ref: '#/components/examples/parentChildColumnsResponseDcsSummary'
-    503ServiceUnavailable:
-      description: Service unavailable. Typically a timeout, or result of a rejected request to prevent service overload. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+    404NotFound:
+      description: Not found. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
       headers:
         X-DataDirect-Request-Key:
           schema:
             type: string
           description: FactSet request ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            endpointNotFound:
+              $ref: '#/components/examples/endpointNotFound'
+    500InternalServerError:
+      description: Server error. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            genericServerError:
+              $ref: '#/components/examples/genericServerError'
     400BadRequest:
       description: Bad Request. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
       headers:
@@ -212,8 +192,15 @@ components:
               $ref: '#/components/examples/idInvalidParameterError'
             schemaInvalidParameterError:
               $ref: '#/components/examples/schemaInvalidParameterError'
-    500InternalServerError:
-      description: Server error. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+    503ServiceUnavailable:
+      description: Service unavailable. Typically a timeout, or result of a rejected request to prevent service overload. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    403Forbidden:
+      description: User is forbidden access with current credentials. Reach out to your local FactSet Account Manager for assistance, or file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
       headers:
         X-DataDirect-Request-Key:
           schema:
@@ -224,23 +211,16 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
           examples:
-            genericServerError:
-              $ref: '#/components/examples/genericServerError'
+            notAuthorized:
+              $ref: '#/components/examples/notAuthorized'
+    429TooManyRequests:
+      description: Too many requests - this API is rate-limited to 20 requests per second. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
   examples:
-    notAuthorized:
-      summary: not authorized
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: notAuthorized
-          title: User is forbidden access with current credentials. For access, contact your FactSet sales representative
-    idInvalidParameterError:
-      summary: generic parameter error (invalid parameter)
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: parameterError
-          title: 'Invalid parameter(s): ''id'''
     parentChildColumnsResponseDcsSummary:
       summary: (sample table parent child columns response)
       description: Subset of rows and columns for an example STACH 2.0 row organized table with parent-child columns
@@ -462,13 +442,6 @@ components:
           requestId: FDS
           fsymId: SQFMK3-R
           schema: table_parent_child_columns
-    endpointNotFound:
-      summary: endpoint not found
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: endpointNotFound
-          title: The requested endpoint does not exist.
     genericServerError:
       summary: generic server error
       value:
@@ -842,6 +815,13 @@ components:
           requestId: FDS
           fsymId: SQFMK3-R
           schema: table_group_level
+    endpointNotFound:
+      summary: endpoint not found
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: endpointNotFound
+          title: The requested endpoint does not exist.
     idRequiredParameterError:
       summary: generic parameter error (missing parameter)
       value:
@@ -849,6 +829,13 @@ components:
         - id: 39314614-e607-465a-ba95-5bb79c362e23
           code: parameterError
           title: 'Missing required parameter(s): ''id'''
+    idInvalidParameterError:
+      summary: generic parameter error (invalid parameter)
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Invalid parameter(s): ''id'''
     schemaInvalidParameterError:
       summary: generic parameter error (invalid parameter)
       value:
@@ -856,10 +843,17 @@ components:
         - id: 39314614-e607-465a-ba95-5bb79c362e23
           code: parameterError
           title: 'Invalid parameter(s): ''schema'''
+    notAuthorized:
+      summary: not authorized
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: notAuthorized
+          title: User is forbidden access with current credentials. For access, contact your FactSet sales representative
   securitySchemes:
     basicAuth:
       type: http
       scheme: basic
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
-  description: API Documentation
+  description: Read more about STACH 2.0's row organized schema
+  url: https://factset.github.io/stachschema/#/v2/RowOrganized

@@ -1,22 +1,20 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Key Stats API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  title: FactSet Overview Report Builder Key Stats API
+  description: Get relevant industry-specific data for high level analysis of public and private companies
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.2.0
   contact:
     name: FactSet Research Systems
     url: https://developer.factset.com/contact
     email: api@factset.com
-  license:
-    name: Apache License, Version 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.factset.com/report/overview/v1
 security:
-- basicAuth: []
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Key Stats
 paths:
@@ -50,53 +48,261 @@ paths:
         '503':
           $ref: '#/components/responses/503ServiceUnavailable'
 components:
-  schemas:
-    Meta:
-      type: object
-      additionalProperties:
-        type: string
-    ErrorResponse:
-      type: object
-      properties:
+  examples:
+    parameterErrorActual:
+      summary: actual periods parameter error
+      value:
         errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorObject'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    ErrorObject:
-      type: object
-      properties:
-        id:
-          type: string
-        code:
-          type: string
-        title:
-          type: string
-        links:
-          type: object
-          properties:
-            about:
-              type: string
-        detail:
-          type: string
-        source:
-          type: object
-          properties:
-            parameter:
-              type: string
-    KeyStatsResponse:
-      type: object
-      description: Key statistics data for the requested id
-      properties:
+        - id: 35a62bd5-c4aa-4e6b-9357-0f1b5688e2db
+          code: parameterError
+          title: 'Invalid parameter: ''actual''. Accepted values include nonzero integers'
+    parameterErrorEstimate:
+      summary: estimate periods parameter error
+      value:
+        errors:
+        - id: 372a28d1-53ac-49cd-9be5-beb714cd62a8
+          code: parameterError
+          title: 'Invalid parameter: ''estimate''. Accepted values include nonzero integers'
+    endpointNotFound:
+      summary: endpoint not found
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: endpointNotFound
+          title: The requested endpoint does not exist.
+    unsupportedEntityParameterError:
+      summary: unsupported entity type
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: Unsupported entity type
+    idRequiredParameterError:
+      summary: generic parameter error (missing parameter)
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Missing required parameter(s): ''id'''
+    default200KeyStatsResponse:
+      summary: sample response
+      value:
         data:
-          $ref: '#/components/schemas/KeyStatsObject'
+          range52Week:
+            value:
+              value: $317.55 - 495.39
+            label:
+              value: 52 Week Range
+          averageDailyVol:
+            value:
+              value: 300330.25
+            label:
+              value: Avg Daily Vol (3 Mo)
+          basicShares:
+            value:
+              value: 37896.579
+            label:
+              value: Basic Shares (000)
+          marketCap:
+            value:
+              value: 14179.383999
+            label:
+              value: Market Cap (M)
+          dividendYield:
+            value:
+              value: 0.983615616279391
+            label:
+              value: Dividend Yield
+          firstDate:
+            value:
+              value: '1996-06-28'
+            label:
+              value: IPO Date
+          dilutedShares:
+            value:
+              value: 39266.127
+            label:
+              value: FD Shares Out (000)
+          dilutedMarketCap:
+            value:
+              value: 14691.814201
+            label:
+              value: FD Mkt Cap (M)
+          enterpriseValue:
+            value:
+              value: 14458.443201
+            label:
+              value: EV (M)
+          wacc:
+            value:
+              value: 6.76303
+            label:
+              value: WACC
+          float:
+            value:
+              value: 99.9248
+            label:
+              value: Float
+          institutional:
+            value:
+              value: 91.3343
+            label:
+              value: Institutional
+          top10InstitutionalHolders:
+            value:
+              value: 48.76016379
+            label:
+              value: Top 10 Inst Hldrs
+          brokerContributors:
+            value:
+              value: 18
+            label:
+              value: Broker Contributors
+          averageRating:
+            value:
+              value: Hold (2.11)
+            label:
+              value: Avg Rating
+          targetPrice:
+            value:
+              value: $462.41
+            label:
+              value: Target Price
+          ltGrowthRate:
+            value:
+              value: 10
+            label:
+              value: LT Growth Rate
+          meta:
+            sources:
+              value:
+              - FactSet Fundamentals
+              - FactSet Estimates
+              - FactSet Capital Structure
+              - FactSet Ownership
         meta:
-          $ref: '#/components/schemas/Meta'
-    KeyStatsObject:
-      oneOf:
-      - $ref: '#/components/schemas/KeyStatsEntityObject'
-      - $ref: '#/components/schemas/KeyStatsFundObject'
+          requestId: FDS-US
+          fsymId: SQFMK3-R
+    noData200KeyStatsResponse:
+      summary: no data response
+      value:
+        data: null
+        meta:
+          requestId: 0N57YY-E
+          fsymId: null
+          noData: true
+          message: There is no data for this request.
+    idInvalidParameterError:
+      summary: generic parameter error (invalid parameter)
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Invalid parameter(s): ''id'''
+    parameterErrorView:
+      summary: view parameter error
+      value:
+        errors:
+        - id: 3838f112-ed5a-4d9d-b0c7-3594d8eab0ed
+          code: parameterError
+          title: 'Invalid parameter: ''view''. Accepted values include: ''FINANCIAL'', ''VALUATION'', ''CAPITALIZATION'', ''MARGINS'' or ''PERFORMANCE'''
+    parameterErrorTopn:
+      summary: topn parameter error
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Invalid parameter: ''topn'''
+  responses:
+    401Unauthorized:
+      description: Missing or invalid authentication. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For further assistance, file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    404NotFound:
+      description: Not found. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            endpointNotFound:
+              $ref: '#/components/examples/endpointNotFound'
+    500InternalServerError:
+      description: Server error. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    400BadRequest:
+      description: Bad Request. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          $ref: '#/components/headers/xDataDirectRequestKey'
+        Api-Supported-Versions:
+          $ref: '#/components/headers/apiSupportedVersions'
+        Api-Version:
+          $ref: '#/components/headers/apiVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            idRequiredParameterError:
+              $ref: '#/components/examples/idRequiredParameterError'
+            idInvalidParameterError:
+              $ref: '#/components/examples/idInvalidParameterError'
+            unsupportedEntityParameterError:
+              $ref: '#/components/examples/unsupportedEntityParameterError'
+            parameterErrorActual:
+              $ref: '#/components/examples/parameterErrorActual'
+            parameterErrorEstimate:
+              $ref: '#/components/examples/parameterErrorEstimate'
+            parameterErrorTopn:
+              $ref: '#/components/examples/parameterErrorTopn'
+            parameterErrorView:
+              $ref: '#/components/examples/parameterErrorView'
+    200OKKeyStats:
+      description: Expected response; returns the JSON in a simple key-value format
+      headers:
+        X-DataDirect-Request-Key:
+          $ref: '#/components/headers/xDataDirectRequestKey'
+        Api-Supported-Versions:
+          $ref: '#/components/headers/apiSupportedVersions'
+        Api-Version:
+          $ref: '#/components/headers/apiVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/KeyStatsResponse'
+          examples:
+            default200ResponseExample:
+              $ref: '#/components/examples/default200KeyStatsResponse'
+            noDataResponse:
+              $ref: '#/components/examples/noData200KeyStatsResponse'
+    503ServiceUnavailable:
+      description: Service unavailable. Typically a timeout, or result of a rejected request to prevent service overload. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    429TooManyRequests:
+      description: Too many requests - this API is rate-limited to 20 requests per second. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+  schemas:
     KeyStatsEntityObject:
       type: object
       description: Key Statistics for the provided entity
@@ -814,6 +1020,43 @@ components:
                   items:
                     type: string
               description: Where the data is sourced from
+    KeyStatsResponse:
+      type: object
+      description: Key statistics data for the requested id
+      properties:
+        data:
+          $ref: '#/components/schemas/KeyStatsObject'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    KeyStatsObject:
+      oneOf:
+      - $ref: '#/components/schemas/KeyStatsEntityObject'
+      - $ref: '#/components/schemas/KeyStatsFundObject'
+    ErrorObject:
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        title:
+          type: string
+        links:
+          type: object
+          properties:
+            about:
+              type: string
+        detail:
+          type: string
+        source:
+          type: object
+          properties:
+            parameter:
+              type: string
+    Meta:
+      type: object
+      additionalProperties:
+        type: string
     KeyStatsFundObject:
       description: Key Statistics for the provided fund
       type: object
@@ -830,8 +1073,9 @@ components:
               - value
               properties:
                 value:
-                  type: number
-                  nullable: true
+                  type:
+                  - number
+                  - 'null'
             label:
               type: object
               required:
@@ -852,8 +1096,9 @@ components:
               - value
               properties:
                 value:
-                  type: number
-                  nullable: true
+                  type:
+                  - number
+                  - 'null'
             label:
               type: object
               required:
@@ -1002,8 +1247,9 @@ components:
               - value
               properties:
                 value:
-                  type: number
-                  nullable: true
+                  type:
+                  - number
+                  - 'null'
             label:
               type: object
               required:
@@ -1162,261 +1408,20 @@ components:
                     type: string
                     format: date
               description: Data as of date
-  examples:
-    noData200KeyStatsResponse:
-      summary: no data response
-      value:
-        data: null
+    ErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorObject'
         meta:
-          requestId: 0N57YY-E
-          fsymId: null
-          noData: true
-          message: There is no data for this request.
-    parameterErrorTopn:
-      summary: topn parameter error
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: parameterError
-          title: 'Invalid parameter: ''topn'''
-    unsupportedEntityParameterError:
-      summary: unsupported entity type
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: parameterError
-          title: Unsupported entity type
-    parameterErrorView:
-      summary: view parameter error
-      value:
-        errors:
-        - id: 3838f112-ed5a-4d9d-b0c7-3594d8eab0ed
-          code: parameterError
-          title: 'Invalid parameter: ''view''. Accepted values include: ''FINANCIAL'', ''VALUATION'', ''CAPITALIZATION'', ''MARGINS'' or ''PERFORMANCE'''
-    parameterErrorActual:
-      summary: actual periods parameter error
-      value:
-        errors:
-        - id: 35a62bd5-c4aa-4e6b-9357-0f1b5688e2db
-          code: parameterError
-          title: 'Invalid parameter: ''actual''. Accepted values include nonzero integers'
-    idInvalidParameterError:
-      summary: generic parameter error (invalid parameter)
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: parameterError
-          title: 'Invalid parameter(s): ''id'''
-    parameterErrorEstimate:
-      summary: estimate periods parameter error
-      value:
-        errors:
-        - id: 372a28d1-53ac-49cd-9be5-beb714cd62a8
-          code: parameterError
-          title: 'Invalid parameter: ''estimate''. Accepted values include nonzero integers'
-    endpointNotFound:
-      summary: endpoint not found
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: endpointNotFound
-          title: The requested endpoint does not exist.
-    idRequiredParameterError:
-      summary: generic parameter error (missing parameter)
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: parameterError
-          title: 'Missing required parameter(s): ''id'''
-    default200KeyStatsResponse:
-      summary: sample response
-      value:
-        data:
-          range52Week:
-            value:
-              value: $317.55 - 495.39
-            label:
-              value: 52 Week Range
-          averageDailyVol:
-            value:
-              value: 300330.25
-            label:
-              value: Avg Daily Vol (3 Mo)
-          basicShares:
-            value:
-              value: 37896.579
-            label:
-              value: Basic Shares (000)
-          marketCap:
-            value:
-              value: 14179.383999
-            label:
-              value: Market Cap (M)
-          dividendYield:
-            value:
-              value: 0.983615616279391
-            label:
-              value: Dividend Yield
-          firstDate:
-            value:
-              value: '1996-06-28'
-            label:
-              value: IPO Date
-          dilutedShares:
-            value:
-              value: 39266.127
-            label:
-              value: FD Shares Out (000)
-          dilutedMarketCap:
-            value:
-              value: 14691.814201
-            label:
-              value: FD Mkt Cap (M)
-          enterpriseValue:
-            value:
-              value: 14458.443201
-            label:
-              value: EV (M)
-          wacc:
-            value:
-              value: 6.76303
-            label:
-              value: WACC
-          float:
-            value:
-              value: 99.9248
-            label:
-              value: Float
-          institutional:
-            value:
-              value: 91.3343
-            label:
-              value: Institutional
-          top10InstitutionalHolders:
-            value:
-              value: 48.76016379
-            label:
-              value: Top 10 Inst Hldrs
-          brokerContributors:
-            value:
-              value: 18
-            label:
-              value: Broker Contributors
-          averageRating:
-            value:
-              value: Hold (2.11)
-            label:
-              value: Avg Rating
-          targetPrice:
-            value:
-              value: $462.41
-            label:
-              value: Target Price
-          ltGrowthRate:
-            value:
-              value: 10
-            label:
-              value: LT Growth Rate
-          meta:
-            sources:
-              value:
-              - FactSet Fundamentals
-              - FactSet Estimates
-              - FactSet Capital Structure
-              - FactSet Ownership
-        meta:
-          requestId: FDS-US
-          fsymId: SQFMK3-R
-  responses:
-    401Unauthorized:
-      description: Missing or invalid authentication. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For further assistance, file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-    429TooManyRequests:
-      description: Too many requests - this API is rate-limited to 20 requests per second. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-    404NotFound:
-      description: Not found. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            endpointNotFound:
-              $ref: '#/components/examples/endpointNotFound'
-    200OKKeyStats:
-      description: Expected response; returns the JSON in a simple key-value format
-      headers:
-        X-DataDirect-Request-Key:
-          $ref: '#/components/headers/xDataDirectRequestKey'
-        Api-Supported-Versions:
-          $ref: '#/components/headers/apiSupportedVersions'
-        Api-Version:
-          $ref: '#/components/headers/apiVersion'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/KeyStatsResponse'
-          examples:
-            default200ResponseExample:
-              $ref: '#/components/examples/default200KeyStatsResponse'
-            noDataResponse:
-              $ref: '#/components/examples/noData200KeyStatsResponse'
-    503ServiceUnavailable:
-      description: Service unavailable. Typically a timeout, or result of a rejected request to prevent service overload. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-    400BadRequest:
-      description: Bad Request. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          $ref: '#/components/headers/xDataDirectRequestKey'
-        Api-Supported-Versions:
-          $ref: '#/components/headers/apiSupportedVersions'
-        Api-Version:
-          $ref: '#/components/headers/apiVersion'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            idRequiredParameterError:
-              $ref: '#/components/examples/idRequiredParameterError'
-            idInvalidParameterError:
-              $ref: '#/components/examples/idInvalidParameterError'
-            unsupportedEntityParameterError:
-              $ref: '#/components/examples/unsupportedEntityParameterError'
-            parameterErrorActual:
-              $ref: '#/components/examples/parameterErrorActual'
-            parameterErrorEstimate:
-              $ref: '#/components/examples/parameterErrorEstimate'
-            parameterErrorTopn:
-              $ref: '#/components/examples/parameterErrorTopn'
-            parameterErrorView:
-              $ref: '#/components/examples/parameterErrorView'
-    500InternalServerError:
-      description: Server error. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
+          $ref: '#/components/schemas/Meta'
   headers:
+    apiSupportedVersions:
+      description: Supported API versions (semantic versioning)
+      schema:
+        type: string
     xDataDirectRequestKey:
       description: FactSet request ID
       schema:
@@ -1425,14 +1430,16 @@ components:
       description: API version (semantic versioning)
       schema:
         type: string
-    apiSupportedVersions:
-      description: Supported API versions (semantic versioning)
-      schema:
-        type: string
   securitySchemes:
-    basicAuth:
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
+    FactSetApiKey:
       type: http
       scheme: basic
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
   description: API Documentation
+  url: https://developer.factset.com/api-catalog/overview-report-builder-api

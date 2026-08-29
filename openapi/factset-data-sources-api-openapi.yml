@@ -1,22 +1,18 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Data Sources API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  version: 1.0.0
+  title: Factset VRS API documentation Data Sources API
   contact:
     name: FactSet Research Systems
-    url: https://developer.factset.com/contact
     email: api@factset.com
+    url: https://developer.factset.com/contact
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
-servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+  description: Documentation on all available end points in the VRSAPI
 security:
-- basicAuth: []
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Data Sources
 paths:
@@ -315,6 +311,52 @@ paths:
                   title: Unsupported Accept header. Header needs to be set to application/json
 components:
   schemas:
+    RecordSetFields:
+      type: object
+      properties:
+        fieldType:
+          type: string
+          enum:
+          - BOOLEAN
+          - DATETIME
+          - DECIMAL
+          - HTML
+          - INTEGER
+          - TEXT
+        format:
+          type: string
+        id:
+          type: integer
+        hide:
+          type: string
+        name:
+          type: string
+    DataSourceData:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DataSourceDTO'
+    DataSourceList:
+      type: object
+      properties:
+        meta:
+          type: object
+          properties:
+            pagination:
+              type: object
+              properties:
+                total:
+                  type: integer
+                isEstimatedTotal:
+                  type: boolean
+            sort:
+              type: array
+              items:
+                type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataSourceDTO'
     EntityDTO:
       type: object
       properties:
@@ -325,6 +367,45 @@ components:
           type: string
         code:
           type: string
+    DataSourceInstance:
+      type: object
+      properties:
+        dstInstanceId:
+          type: integer
+        dstInstanceType:
+          type: integer
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataSourceInstanceRows'
+    DataSourceDataInstance:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DataSourceAllData'
+    RecordSetFieldValues:
+      type: object
+      properties:
+        fieldId:
+          type: integer
+        fieldType:
+          type: string
+          enum:
+          - BOOLEAN
+          - DATETIME
+          - DECIMAL
+          - HTML
+          - INTEGER
+          - TEXT
+        fieldValue:
+          type: string
+    ErrorList:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
     DataSourceDTO:
       type: object
       properties:
@@ -357,27 +438,6 @@ components:
           type: string
         lastUpdated:
           type: number
-    DataSourceDataInstance:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/DataSourceAllData'
-    DataSourceAllData:
-      type: object
-      properties:
-        fields:
-          type: array
-          items:
-            $ref: '#/components/schemas/RecordSetFields'
-        dstInstance:
-          $ref: '#/components/schemas/DataSourceInstance'
-    ErrorList:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/Error'
     Error:
       type: object
       properties:
@@ -387,43 +447,15 @@ components:
           type: string
         title:
           type: string
-    DataSourceList:
+    DataSourceAllData:
       type: object
       properties:
-        meta:
-          type: object
-          properties:
-            pagination:
-              type: object
-              properties:
-                total:
-                  type: integer
-                isEstimatedTotal:
-                  type: boolean
-            sort:
-              type: array
-              items:
-                type: string
-        data:
+        fields:
           type: array
           items:
-            $ref: '#/components/schemas/DataSourceDTO'
-    DataSourceInstance:
-      type: object
-      properties:
-        dstInstanceId:
-          type: integer
-        dstInstanceType:
-          type: integer
-        rows:
-          type: array
-          items:
-            $ref: '#/components/schemas/DataSourceInstanceRows'
-    DataSourceData:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/DataSourceDTO'
+            $ref: '#/components/schemas/RecordSetFields'
+        dstInstance:
+          $ref: '#/components/schemas/DataSourceInstance'
     DataSourceInstanceRows:
       type: object
       properties:
@@ -435,46 +467,16 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RecordSetFieldValues'
-    RecordSetFields:
-      type: object
-      properties:
-        fieldType:
-          type: string
-          enum:
-          - BOOLEAN
-          - DATETIME
-          - DECIMAL
-          - HTML
-          - INTEGER
-          - TEXT
-        format:
-          type: string
-        id:
-          type: integer
-        hide:
-          type: string
-        name:
-          type: string
-    RecordSetFieldValues:
-      type: object
-      properties:
-        fieldId:
-          type: integer
-        fieldType:
-          type: string
-          enum:
-          - BOOLEAN
-          - DATETIME
-          - DECIMAL
-          - HTML
-          - INTEGER
-          - TEXT
-        fieldValue:
-          type: string
   securitySchemes:
-    basicAuth:
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
+    FactSetApiKey:
       type: http
       scheme: basic
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
   description: API Documentation
+  url: https://developer.factset.com/api-catalog/vermilion-api

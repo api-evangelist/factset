@@ -1,22 +1,29 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Count API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  title: Factset Global Filings Count API
+  version: 0.0.0
   contact:
     name: FactSet Research Systems
-    url: https://developer.factset.com/contact
     email: api@factset.com
+    url: https://developer.factset.com/contact
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+  description: 'The Filings API provides a comprehensive set of functionalities for searching and retrieving filing documents from various sources.
+
+
+    This API is designed to expose document search and document retrieval functionality. A document search will allow a request to query FactSet’s document databases based on certain search criteria specified in the request.
+
+
+    In addition, a document count request will provide information on the number of stories available for a particular security.
+
+
+    Helper endpoint will provide dynamic information on the parameters of a document request. .'
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.factset.com/global-filings/v0
 security:
-- basicAuth: []
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Count
 paths:
@@ -25,7 +32,7 @@ paths:
       tags:
       - Count
       operationId: getCount
-      summary: Factset Returns the Count of Filings for Specified Source
+      summary: Factset Returns the count of filings for specified source
       description: Returns the count of filings documents along with other response fields.
       parameters:
       - $ref: '#/components/parameters/report2'
@@ -79,121 +86,7 @@ paths:
               examples:
                 default500ResponseExample:
                   $ref: '#/components/examples/ServerErrorDetails'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-  /instrument/coupon/dayCountConvention/type/list:
-    get:
-      tags:
-      - Count
-      operationId: get/instrument/coupon/dayCountConvention/type/list
-      x-supportsOffsetBasedPaging: false
-      x-supportsOffsetBasedPagingWithoutTotal: false
-      x-supportsCursorBasedPaging: false
-      x-supportsCursorBasedPagingWithoutTotal: false
-      x-supportsPush: false
-      x-requiresUser: false
-      x-requiresInternalClient: false
-      x-disallowUser: false
-      x-no-merge: false
-      x-maxSortParameterCount: 10
-      x-supportsPermissionDeniedResponse: false
-      summary: Factset List of Day Count Convention Types.
-      description: List of day count convention types.
-      responses:
-        '200':
-          $ref: '#/components/responses/GetInstrumentCouponDayCountConventionTypeList200Response'
-      parameters:
-      - name: _attributes
-        in: query
-        schema:
-          type: array
-          items:
-            type: string
-            maxLength: 100
-            exclusiveMaximum: false
-          uniqueItems: true
-          maxItems: 50
-        style: form
-        explode: false
-        description: Limit the attributes returned in the response to the specified set.
-      - name: _language
-        in: query
-        schema:
-          type: string
-          format: isoLanguage
-          description: ISO 639-1 code of the language.
-          maxLength: 2
-          minLength: 2
-          exclusiveMinimum: false
-          exclusiveMaximum: false
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
 components:
-  schemas:
-    responseCountObject:
-      type: object
-      properties:
-        id:
-          type: string
-          description: id
-          example: IBM-US
-        source:
-          type: string
-          description: source
-          example: FFR
-        count:
-          type: string
-          description: source value
-          example: '8000'
-    responseCount:
-      description: Filings Response Object
-      type: object
-      properties:
-        data:
-          type: array
-          description: Data Array Object
-          items:
-            $ref: '#/components/schemas/responseCountObject'
-          example: []
-    ErrorResponse:
-      type: object
-      description: Error Response Object
-      properties:
-        errors:
-          type: array
-          description: Errors Array Object
-          items:
-            $ref: '#/components/schemas/ErrorExample'
-          example: []
-    ErrorExample:
-      type: object
-      description: Error Example Object
-      properties:
-        code:
-          description: Specifies the error code.
-          type: string
-          example: example_value
-        title:
-          description: ' Specifies the error message.'
-          type: string
-          example: Example Title
-        id:
-          description: Specifies the id.
-          type: string
-          example: abc123
-    StatusObject:
-      type: object
-      properties:
-        code:
-          type: number
-          format: int32
-          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
-          example: 42.5
-      description: The status member contains the status code of the response.
-      required:
-      - code
   examples:
     ErrorDetails:
       summary: Sample Error Response
@@ -202,6 +95,16 @@ components:
         - code: Bad Request
           title: parameterError:['_paginationLimit'] is not a valid parameter(s).
           id: 7af3d86ca5954503b9244f2620fcf5eb
+    sampleResponseCount:
+      summary: Sample Response
+      value:
+        data:
+        - id: IBM-US
+          source: FFR
+          count: '8000'
+        - id: IBM-US
+          source: EDG
+          count: '10000'
     ServerErrorDetails:
       summary: Sample Error Response
       value:
@@ -223,17 +126,51 @@ components:
         - code: Not Authenticated
           title: Unauthenticated USERNAME-SERIAL.
           id: fd5a51ff-02cf-48ec-b9b1-913d64863b0
-    sampleResponseCount:
-      summary: Sample Response
-      value:
-        data:
-        - id: IBM-US
-          source: FFR
-          count: '8000'
-        - id: IBM-US
-          source: EDG
-          count: '10000'
   parameters:
+    report2:
+      schema:
+        type: string
+        enum:
+        - count
+      in: query
+      name: report
+      required: true
+      description: retrives count of source.
+    ids:
+      schema:
+        type: array
+        items:
+          type: string
+      in: query
+      name: ids
+      examples:
+        oneId:
+          summary: One identifier
+          value:
+          - MODN-US
+        multipleIds:
+          summary: Multiple Identifiers
+          value:
+          - MODN-US
+          - OSIS-US
+      description: Requested symbols or securities.  This is a comma-separated list with a maximum limit of 1000.  Each symbol can be a FactSet exchange symbol, CUSIP, or SEDOL.
+      explode: false
+    startDate:
+      schema:
+        type: string
+        default: '0'
+      in: query
+      name: startDate
+      example: '20231222'
+      description: Start Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
+    endDate:
+      schema:
+        type: string
+        default: '0'
+      in: query
+      name: endDate
+      example: '20231223'
+      description: End Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
     sources:
       schema:
         type: array
@@ -254,101 +191,63 @@ components:
           - EDG
           - FFR
       description: "Code for document source to include.This is a comma-separated list. Use the ```/helper``` endpoint to get the list of available sources.\n "
-    report2:
-      schema:
-        type: string
-        enum:
-        - count
-      in: query
-      name: report
-      required: true
-      description: retrives count of source.
-    startDate:
-      schema:
-        type: string
-        default: '0'
-      in: query
-      name: startDate
-      example: '20231222'
-      description: Start Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
-    endDate:
-      schema:
-        type: string
-        default: '0'
-      in: query
-      name: endDate
-      example: '20231223'
-      description: End Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
-    ids:
-      schema:
-        type: array
-        items:
+  schemas:
+    responseCountObject:
+      type: object
+      properties:
+        id:
           type: string
-      in: query
-      name: ids
-      examples:
-        oneId:
-          summary: One identifier
-          value:
-          - MODN-US
-        multipleIds:
-          summary: Multiple Identifiers
-          value:
-          - MODN-US
-          - OSIS-US
-      description: Requested symbols or securities.  This is a comma-separated list with a maximum limit of 1000.  Each symbol can be a FactSet exchange symbol, CUSIP, or SEDOL.
-      explode: false
-  responses:
-    GetInstrumentCouponDayCountConventionTypeList200Response:
-      description: Successful Response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: array
-                nullable: false
-                items:
-                  type: object
-                  nullable: false
-                  x-property-sort:
-                  - id
-                  - name
-                  - description
-                  properties:
-                    id:
-                      nullable: true
-                      type: number
-                      format: id32
-                      x-positive: true
-                      description: Identifier of the type.
-                    name:
-                      nullable: true
-                      type: string
-                      format: localizedString
-                      description: Name of the type.
-                    description:
-                      nullable: true
-                      type: string
-                      format: localizedString
-                      description: Description of the type.
-                description: List of day count convention types.
-              meta:
-                type: object
-                description: The meta member contains the meta information of the response.
-                properties:
-                  status:
-                    $ref: '#/components/schemas/StatusObject'
-                x-property-sort:
-                - status
-            x-property-sort:
-            - data
-            - meta
+          description: id
+          example: IBM-US
+        source:
+          type: string
+          description: source
+          example: FFR
+        count:
+          type: string
+          description: source value
+          example: '8000'
+    ErrorExample:
+      type: object
+      description: Error Example Object
+      properties:
+        code:
+          description: Specifies the error code.
+          type: string
+        title:
+          description: ' Specifies the error message.'
+          type: string
+        id:
+          description: Specifies the id.
+          type: string
+    ErrorResponse:
+      type: object
+      description: Error Response Object
+      properties:
+        errors:
+          type: array
+          description: Errors Array Object
+          items:
+            $ref: '#/components/schemas/ErrorExample'
+    responseCount:
+      description: Filings Response Object
+      type: object
+      properties:
+        data:
+          type: array
+          description: Data Array Object
+          items:
+            $ref: '#/components/schemas/responseCountObject'
   securitySchemes:
-    basicAuth:
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
+    FactSetApiKey:
       type: http
       scheme: basic
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
   description: API Documentation
+  url: https://developer.factset.com/api-catalog/global-filings-api

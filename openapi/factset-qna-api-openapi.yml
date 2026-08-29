@@ -1,22 +1,20 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Qna API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  title: Factset Natural Language Processing Qna API
+  description: APIs that leverage Natural Language Processing to help extract meaningful data from unstructured text
   contact:
     name: FactSet Research Systems
     url: https://developer.factset.com/contact
     email: api@factset.com
+  version: 1.3.0
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.factset.com/cognitive/nlp/v1
 security:
-- basicAuth: []
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Qna
 paths:
@@ -175,17 +173,6 @@ paths:
       - Qna
 components:
   schemas:
-    QnAAnswerParametersRoot:
-      description: Schema that envelopes the `QnAAnswerParameters` and include additional `meta` (if available).
-      properties:
-        data:
-          $ref: '#/components/schemas/QnAAnswerParameters'
-        meta:
-          description: Any associated metadata
-          type: object
-      required:
-      - data
-      type: object
     QnAAnswerRoot:
       description: Schema that envelopes the `QnAAnswer` and include additional `meta` (if available).
       properties:
@@ -198,6 +185,53 @@ components:
           type: object
       required:
       - data
+      type: object
+    Task:
+      description: Schema that represents a long-running process/task.
+      properties:
+        id:
+          description: The task identifier
+          example: ca509a4a-2ec9-4770-817a-f1caac18c95c
+          format: uuid
+          type: string
+        startedAt:
+          description: The date time the task started (UTC).
+          example: '2022-10-31T16:31:30.423086'
+          format: date-time
+          type: string
+        status:
+          description: '
+
+            Completion status of the task.
+
+
+            The detailed description of each of the statuses is as follows:
+
+            |Status|Description|
+
+            |--|--|
+
+            |queued|The task did not start yet.|
+
+            |created|The task is completed and the underlying resource is created.|
+
+            |failed|The task has failed and consequently the creation of the resource failed.|
+
+            |executing|The task is executing.|
+
+            |cancelled|The task is cancelled and the creation of the underlying resource was cancelled before it could finish.|'
+          enum:
+          - queued
+          - created
+          - failed
+          - executing
+          - cancelled
+          example: queued
+          type: string
+      required:
+      - id
+      - startedAt
+      - status
       type: object
     QnAAnswerParameters:
       description: Schema that defines the parameters needed to be supplied for generating answer(s).
@@ -272,52 +306,50 @@ components:
       - input
       - question
       type: object
-    Task:
-      description: Schema that represents a long-running process/task.
+    HTTPError:
+      description: Schema that defines HTTP error(s).
       properties:
+        code:
+          description: HTTP Status Code
+          type: string
+        detail:
+          description: Error detail (if any)
+          type: string
         id:
-          description: The task identifier
-          example: ca509a4a-2ec9-4770-817a-f1caac18c95c
+          description: The unique identifier detailing the error(s)
           format: uuid
           type: string
-        startedAt:
-          description: The date time the task started (UTC).
-          example: '2022-10-31T16:31:30.423086'
-          format: date-time
-          type: string
-        status:
-          description: '
-
-            Completion status of the task.
-
-
-            The detailed description of each of the statuses is as follows:
-
-            |Status|Description|
-
-            |--|--|
-
-            |queued|The task did not start yet.|
-
-            |created|The task is completed and the underlying resource is created.|
-
-            |failed|The task has failed and consequently the creation of the resource failed.|
-
-            |executing|The task is executing.|
-
-            |cancelled|The task is cancelled and the creation of the underlying resource was cancelled before it could finish.|'
-          enum:
-          - queued
-          - created
-          - failed
-          - executing
-          - cancelled
-          example: queued
+        source:
+          $ref: '#/components/schemas/ErrorSource'
+        title:
+          description: Error title
           type: string
       required:
+      - code
       - id
-      - startedAt
-      - status
+      - title
+      type: object
+    HTTPErrorRoot:
+      description: Schema that defines HTTP error(s).
+      properties:
+        errors:
+          description: List of errors
+          items:
+            $ref: '#/components/schemas/HTTPError'
+          type: array
+      required:
+      - errors
+      type: object
+    TaskRoot:
+      description: Schema that envelopes `Task` and include additional `meta` (if available).
+      properties:
+        data:
+          $ref: '#/components/schemas/Task'
+        meta:
+          description: Any associated metadata
+          type: object
+      required:
+      - data
       type: object
     ErrorSource:
       description: Schema that defines the source of the error.
@@ -347,55 +379,24 @@ components:
       - answer
       - score
       type: object
-    TaskRoot:
-      description: Schema that envelopes `Task` and include additional `meta` (if available).
+    QnAAnswerParametersRoot:
+      description: Schema that envelopes the `QnAAnswerParameters` and include additional `meta` (if available).
       properties:
         data:
-          $ref: '#/components/schemas/Task'
+          $ref: '#/components/schemas/QnAAnswerParameters'
         meta:
           description: Any associated metadata
           type: object
       required:
       - data
       type: object
-    HTTPErrorRoot:
-      description: Schema that defines HTTP error(s).
-      properties:
-        errors:
-          description: List of errors
-          items:
-            $ref: '#/components/schemas/HTTPError'
-          type: array
-      required:
-      - errors
-      type: object
-    HTTPError:
-      description: Schema that defines HTTP error(s).
-      properties:
-        code:
-          description: HTTP Status Code
-          type: string
-        detail:
-          description: Error detail (if any)
-          type: string
-        id:
-          description: The unique identifier detailing the error(s)
-          format: uuid
-          type: string
-        source:
-          $ref: '#/components/schemas/ErrorSource'
-        title:
-          description: Error title
-          type: string
-      required:
-      - code
-      - id
-      - title
-      type: object
   securitySchemes:
-    basicAuth:
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
+    FactSetApiKey:
       type: http
       scheme: basic
-externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
-  description: API Documentation

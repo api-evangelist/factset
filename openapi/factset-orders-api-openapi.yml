@@ -1,7 +1,7 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Orders API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  title: Factset EMS Orders API
+  description: Allow clients to trade orders.
   contact:
     name: FactSet Research Systems
     url: https://developer.factset.com/contact
@@ -9,14 +9,15 @@ info:
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+  version: 0.3.0
 servers:
-- url: https://api.factset.com
+- url: https://api.factset.com/trading/ems/v0
   description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.uat.factset.com/trading/ems/v0
+  description: UAT
 security:
-- basicAuth: []
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Orders
   description: These endpoints relate to Order Entry.
@@ -283,46 +284,106 @@ paths:
           description: Request timed out. Retry the request in sometime.
 components:
   schemas:
-    EMSCancelOrders:
+    EMSCancelOrder:
+      required:
+      - originalClientOrderId
+      type: object
+      properties:
+        originalClientOrderId:
+          type: string
+          description: Unique identifier of the original order, generated in Create.
+        inboundDestination:
+          type:
+          - string
+          - 'null'
+          description: To facilitate integration with translators that transform orders into a format compatible with the internal order routing and execution infrastructure.
+      description: EMS Cancel Order
+    EMSReplaceOrder:
+      required:
+      - order
+      - originalClientOrderId
+      type: object
+      properties:
+        originalClientOrderId:
+          type: string
+          description: Unique identifier of the original order, generated in Create.
+        order:
+          $ref: '#/components/schemas/EMSOrder'
+      description: EMS Replace Order
+    EMSOrderMetadata:
+      type: object
+      properties:
+        symbol:
+          type:
+          - string
+          - 'null'
+          description: Ticker symbol
+        side:
+          enum:
+          - buy
+          - sell
+          - sellShort
+          - sellShortExempt
+          type:
+          - string
+          - 'null'
+          description: Side of the order
+        orderType:
+          enum:
+          - market
+          - limit
+          - stop
+          - stopLimit
+          - marketOnClose
+          - limitOrBetter
+          type:
+          - string
+          - 'null'
+          description: Type of the order
+        orderQuantity:
+          type:
+          - number
+          - 'null'
+          description: Number of shares/Quantity.
+          format: double
+        error:
+          type:
+          - string
+          - 'null'
+          description: Error message
+        info:
+          type:
+          - string
+          - 'null'
+          description: Information
+        clientOrderId:
+          type:
+          - string
+          - 'null'
+          description: Client Order Id
+        warning:
+          type:
+          - string
+          - 'null'
+          description: Warning
+      description: EMS Order Metadata
+    EMSOrders:
+      required:
+      - orders
       type: object
       properties:
         investorId:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Investor Id
-          nullable: true
           example: DEMO-12345
         orders:
           type: array
           items:
-            $ref: '#/components/schemas/EMSCancelOrder'
-          description: List of orders to cancel
-          nullable: true
-      description: EMS Cancel Orders
-    ClientErrorResponse:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/Error'
-          description: List of errors
-          nullable: true
-      description: Client Error Response
-    EMSReplaceOrders:
-      type: object
-      properties:
-        investorId:
-          type: string
-          description: Investor Id
-          nullable: true
-          example: DEMO-12345
-        orders:
-          type: array
-          items:
-            $ref: '#/components/schemas/EMSReplaceOrder'
-          description: List of orders to replace
-          nullable: true
-      description: EMS Replace Orders
+            $ref: '#/components/schemas/EMSOrder'
+          description: List of orders
+      description: EMS Orders
     TimeInForce:
       type: object
       properties:
@@ -339,14 +400,16 @@ components:
           type: string
           description: 'Time in force: if goodTillDate, then Expire Time or Expire Date is a required field'
         expireDate:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Expire date in YYYYMMDD format expressed in UTC
-          nullable: true
           example: '20230823'
         expireTime:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Expire time in YYYYMMDD-HH:MM:SS format expressed in UTC
-          nullable: true
           example: 20230823-12:20:25
       description: Time in Force
     Instrument:
@@ -360,67 +423,172 @@ components:
           description: Ticker symbol
           example: TATAMOTORS
         securityType:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Indicates type of security.
-          nullable: true
         cfiCode:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Classification of Financial Instruments. Indicates the type of security using ISO 0962 standard.
-          nullable: true
         securityExchange:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Market used to help identify a security.
-          nullable: true
         issuer:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Company name of security issuer.
-          nullable: true
         securityDescription:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Security Description
-          nullable: true
         maturityMonthYear:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Month and Year of the maturity.
-          nullable: true
         maturityDay:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Day of month used in conjunction with maturityMonthYear to specify the maturity date
-          nullable: true
         putOrCall:
           enum:
           - put
           - call
-          type: string
+          type:
+          - string
+          - 'null'
           description: Indicates whether an Option is for a put or call.
-          nullable: true
         underlyingSecurityType:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Underlying security’s SecurityType.
-          nullable: true
       description: Instrument
-    EMSOrdersRoot:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/EMSOrders'
-    ErrorSource:
-      type: object
-      properties:
-        pointer:
-          type: string
-          description: Pointer to the associated entity in the request body
-          nullable: true
-        parameter:
-          type: string
-          description: Indicates which path or URI query parameter caused the error
-          nullable: true
-      description: Error Source
     EMSReplaceOrdersRoot:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/EMSReplaceOrders'
+    EMSCancelOrders:
+      type: object
+      properties:
+        investorId:
+          type:
+          - string
+          - 'null'
+          description: Investor Id
+          example: DEMO-12345
+        orders:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/EMSCancelOrder'
+          description: List of orders to cancel
+      description: EMS Cancel Orders
+    EMSOrdersResponse:
+      type: object
+      properties:
+        accepted:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            $ref: '#/components/schemas/EMSOrderMetadata'
+          description: Accepted Orders
+        rejected:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            $ref: '#/components/schemas/EMSOrderMetadata'
+          description: Rejected Orders
+      description: EMS Orders Response
+    EMSOrdersRoot:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/EMSOrders'
+    EMSReplaceOrders:
+      type: object
+      properties:
+        investorId:
+          type:
+          - string
+          - 'null'
+          description: Investor Id
+          example: DEMO-12345
+        orders:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/EMSReplaceOrder'
+          description: List of orders to replace
+      description: EMS Replace Orders
+    EMSCancelOrdersRoot:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/EMSCancelOrders'
+    Error:
+      type: object
+      properties:
+        id:
+          type:
+          - string
+          - 'null'
+          description: Identifier for the error
+        code:
+          type:
+          - string
+          - 'null'
+          description: Code
+        title:
+          type:
+          - string
+          - 'null'
+          description: Title
+        detail:
+          type:
+          - string
+          - 'null'
+          description: Explanation specific to the occurrence of the error
+        source:
+          $ref: '#/components/schemas/ErrorSource'
+      description: Error
+    ErrorSource:
+      type: object
+      properties:
+        pointer:
+          type:
+          - string
+          - 'null'
+          description: Pointer to the associated entity in the request body
+        parameter:
+          type:
+          - string
+          - 'null'
+          description: Indicates which path or URI query parameter caused the error
+      description: Error Source
+    ClientErrorResponse:
+      type: object
+      properties:
+        errors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Error'
+          description: List of errors
+      description: Client Error Response
     EMSOrder:
       required:
       - instrument
@@ -429,9 +597,10 @@ components:
       type: object
       properties:
         clientOrderId:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Unique id for the order
-          nullable: true
           example: '12322123'
         instrument:
           $ref: '#/components/schemas/Instrument'
@@ -462,50 +631,58 @@ components:
           format: double
           example: 350
         price:
-          type: number
+          type:
+          - number
+          - 'null'
           description: Order price per share
           format: double
-          nullable: true
           example: 800
         stopPrice:
-          type: number
+          type:
+          - number
+          - 'null'
           description: Stop-loss price to buy/sell stock at market.
           format: double
-          nullable: true
           example: 800
         strikePrice:
-          type: number
+          type:
+          - number
+          - 'null'
           description: Strike Price for an Option.
           format: double
-          nullable: true
           example: 400
         currency:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Currency used for price in ISO format.
-          nullable: true
           example: USD
         isCovered:
-          type: boolean
+          type:
+          - boolean
+          - 'null'
           description: Signifies if a specific order is a covered order. A covered order is one that involves an investment strategy with the capability to limit the potential loss of the order.
-          nullable: true
           example: false
         maxShow:
-          type: number
+          type:
+          - number
+          - 'null'
           description: Maximum number of shares within an order to be shown to other customers.
           format: double
-          nullable: true
           example: 100
         maxFloor:
-          type: number
+          type:
+          - number
+          - 'null'
           description: Maximum number of shares within an order to be shown on the exchange floor at any given time.
           format: double
-          nullable: true
           example: 100
         prevClosePrice:
-          type: number
+          type:
+          - number
+          - 'null'
           description: Previous closing price of security.
           format: double
-          nullable: true
           example: 100
         settlementType:
           enum:
@@ -519,23 +696,26 @@ components:
           - whenIssued
           - sellersOption
           - tPlus5
-          type: string
+          type:
+          - string
+          - 'null'
           description: Order settlement period.
-          nullable: true
           example: regular
         settlementDate:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Settlement date of trade settlement in YYYYMMDD format
-          nullable: true
           example: '20210622'
         handlingInstructions:
           enum:
           - autoOrderPrivate
           - autoOrderPublic
           - bestExecution
-          type: string
+          type:
+          - string
+          - 'null'
           description: Instructions for order handling on Broker trading floor.
-          nullable: true
           example: autoOrderPublic
         executionInstructions:
           enum:
@@ -586,139 +766,44 @@ components:
           - imbalanceOnly
           - singleExecutionRequestedForBlockTrade
           - bestExecution
-          type: string
+          type:
+          - string
+          - 'null'
           description: Instructions for order handling on exchange trading floor.
-          nullable: true
           example: notHeld
         locateRequired:
-          type: boolean
+          type:
+          - boolean
+          - 'null'
           description: Indicates whether the broker is to locate the stock in conjunction with a short sell order.
-          nullable: true
           example: false
         effectiveTime:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Effective time in YYYYMMDD-HH:MM:SS format expressed in UTC
-          nullable: true
           example: 20210622-12:15:30
         account:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Account for the basket, parent basket or position.
-          nullable: true
           example: Test.ACCT
         timeInForce:
           $ref: '#/components/schemas/TimeInForce'
         inboundDestination:
-          type: string
+          type:
+          - string
+          - 'null'
           description: To facilitate integration with translators that transform orders into a format compatible with the internal order routing and execution infrastructure.
-          nullable: true
         userDefinedFields:
-          type: object
+          type:
+          - object
+          - 'null'
           additionalProperties:
             type: string
           description: User defined fields
-          nullable: true
       description: EMS Order
-    EMSCancelOrdersRoot:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/EMSCancelOrders'
-    EMSCancelOrder:
-      required:
-      - originalClientOrderId
-      type: object
-      properties:
-        originalClientOrderId:
-          type: string
-          description: Unique identifier of the original order, generated in Create.
-        inboundDestination:
-          type: string
-          description: To facilitate integration with translators that transform orders into a format compatible with the internal order routing and execution infrastructure.
-          nullable: true
-      description: EMS Cancel Order
-    Error:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Identifier for the error
-          nullable: true
-        code:
-          type: string
-          description: Code
-          nullable: true
-        title:
-          type: string
-          description: Title
-          nullable: true
-        detail:
-          type: string
-          description: Explanation specific to the occurrence of the error
-          nullable: true
-        source:
-          $ref: '#/components/schemas/ErrorSource'
-      description: Error
-    EMSReplaceOrder:
-      required:
-      - order
-      - originalClientOrderId
-      type: object
-      properties:
-        originalClientOrderId:
-          type: string
-          description: Unique identifier of the original order, generated in Create.
-        order:
-          $ref: '#/components/schemas/EMSOrder'
-      description: EMS Replace Order
-    EMSOrderMetadata:
-      type: object
-      properties:
-        symbol:
-          type: string
-          description: Ticker symbol
-          nullable: true
-        side:
-          enum:
-          - buy
-          - sell
-          - sellShort
-          - sellShortExempt
-          type: string
-          description: Side of the order
-          nullable: true
-        orderType:
-          enum:
-          - market
-          - limit
-          - stop
-          - stopLimit
-          - marketOnClose
-          - limitOrBetter
-          type: string
-          description: Type of the order
-          nullable: true
-        orderQuantity:
-          type: number
-          description: Number of shares/Quantity.
-          format: double
-          nullable: true
-        error:
-          type: string
-          description: Error message
-          nullable: true
-        info:
-          type: string
-          description: Information
-          nullable: true
-        clientOrderId:
-          type: string
-          description: Client Order Id
-          nullable: true
-        warning:
-          type: string
-          description: Warning
-          nullable: true
-      description: EMS Order Metadata
     EMSOrdersResponseRoot:
       required:
       - data
@@ -727,42 +812,16 @@ components:
         data:
           $ref: '#/components/schemas/EMSOrdersResponse'
       description: EMS Response
-    EMSOrdersResponse:
-      type: object
-      properties:
-        accepted:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/EMSOrderMetadata'
-          description: Accepted Orders
-          nullable: true
-        rejected:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/EMSOrderMetadata'
-          description: Rejected Orders
-          nullable: true
-      description: EMS Orders Response
-    EMSOrders:
-      required:
-      - orders
-      type: object
-      properties:
-        investorId:
-          type: string
-          description: Investor Id
-          nullable: true
-          example: DEMO-12345
-        orders:
-          type: array
-          items:
-            $ref: '#/components/schemas/EMSOrder'
-          description: List of orders
-      description: EMS Orders
   securitySchemes:
-    basicAuth:
+    FactSetApiKey:
       type: http
       scheme: basic
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
   description: API Documentation
+  url: https://developer.factset.com/api-catalog/factset-trading-api

@@ -1,22 +1,29 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Helper API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  title: Factset Global Filings Helper API
+  version: 0.0.0
   contact:
     name: FactSet Research Systems
-    url: https://developer.factset.com/contact
     email: api@factset.com
+    url: https://developer.factset.com/contact
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+  description: 'The Filings API provides a comprehensive set of functionalities for searching and retrieving filing documents from various sources.
+
+
+    This API is designed to expose document search and document retrieval functionality. A document search will allow a request to query FactSet’s document databases based on certain search criteria specified in the request.
+
+
+    In addition, a document count request will provide information on the number of stories available for a particular security.
+
+
+    Helper endpoint will provide dynamic information on the parameters of a document request. .'
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.factset.com/global-filings/v0
 security:
-- basicAuth: []
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Helper
 paths:
@@ -25,7 +32,7 @@ paths:
       tags:
       - Helper
       operationId: getHelper
-      summary: Factset Returns the Static Values for Various Parameters
+      summary: Factset Returns the static values for various parameters
       description: Returns the static values for sources,formTypes,timeZones,categories based on the specified parameter
       parameters:
       - $ref: '#/components/parameters/report1'
@@ -119,102 +126,7 @@ paths:
               examples:
                 default500ResponseExample:
                   $ref: '#/components/examples/ServerErrorDetails'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
 components:
-  schemas:
-    responseHelperObject:
-      type: object
-      properties:
-        sourcesObject:
-          type: object
-          properties:
-            source:
-              type: string
-              description: source value
-              example: EDG
-            description:
-              type: string
-              description: source description
-              example: EDGAR
-          example: example_value
-        formtypesObject:
-          type: object
-          properties:
-            source:
-              type: string
-              description: source
-              example: EDG
-            formType:
-              type: string
-              description: formType
-              example: 8-K
-            description:
-              type: string
-              description: source description
-              example: Edgar
-          example: example_value
-        timeZonesObject:
-          type: object
-          properties:
-            timezone:
-              type: string
-              description: timezone
-              example: Africa/Malabo
-          example: example_value
-        categoriesObject:
-          type: object
-          properties:
-            subject:
-              type: string
-              description: subject code
-              example: SB
-            category:
-              type: string
-              description: category
-              example: SB:ANLCH
-            description:
-              type: string
-              description: description
-              example: Analysts Revisions
-          example: example_value
-    ErrorResponse:
-      type: object
-      description: Error Response Object
-      properties:
-        errors:
-          type: array
-          description: Errors Array Object
-          items:
-            $ref: '#/components/schemas/ErrorExample'
-          example: []
-    ErrorExample:
-      type: object
-      description: Error Example Object
-      properties:
-        code:
-          description: Specifies the error code.
-          type: string
-          example: example_value
-        title:
-          description: ' Specifies the error message.'
-          type: string
-          example: Example Title
-        id:
-          description: Specifies the id.
-          type: string
-          example: abc123
-    responseHelper:
-      description: Filings Response Object
-      type: object
-      properties:
-        data:
-          type: array
-          description: Data Array Object
-          items:
-            $ref: '#/components/schemas/responseHelperObject'
-          example: []
   examples:
     ErrorDetails:
       summary: Sample Error Response
@@ -244,6 +156,89 @@ components:
         - code: Not Authenticated
           title: Unauthenticated USERNAME-SERIAL.
           id: fd5a51ff-02cf-48ec-b9b1-913d64863b0
+  schemas:
+    ErrorExample:
+      type: object
+      description: Error Example Object
+      properties:
+        code:
+          description: Specifies the error code.
+          type: string
+        title:
+          description: ' Specifies the error message.'
+          type: string
+        id:
+          description: Specifies the id.
+          type: string
+    ErrorResponse:
+      type: object
+      description: Error Response Object
+      properties:
+        errors:
+          type: array
+          description: Errors Array Object
+          items:
+            $ref: '#/components/schemas/ErrorExample'
+    responseHelper:
+      description: Filings Response Object
+      type: object
+      properties:
+        data:
+          type: array
+          description: Data Array Object
+          items:
+            $ref: '#/components/schemas/responseHelperObject'
+    responseHelperObject:
+      type: object
+      properties:
+        sourcesObject:
+          type: object
+          properties:
+            source:
+              type: string
+              description: source value
+              example: EDG
+            description:
+              type: string
+              description: source description
+              example: EDGAR
+        formtypesObject:
+          type: object
+          properties:
+            source:
+              type: string
+              description: source
+              example: EDG
+            formType:
+              type: string
+              description: formType
+              example: 8-K
+            description:
+              type: string
+              description: source description
+              example: Edgar
+        timeZonesObject:
+          type: object
+          properties:
+            timezone:
+              type: string
+              description: timezone
+              example: Africa/Malabo
+        categoriesObject:
+          type: object
+          properties:
+            subject:
+              type: string
+              description: subject code
+              example: SB
+            category:
+              type: string
+              description: category
+              example: SB:ANLCH
+            description:
+              type: string
+              description: description
+              example: Analysts Revisions
   parameters:
     report1:
       schema:
@@ -257,9 +252,15 @@ components:
       name: fields
       description: Request data for given field.
   securitySchemes:
-    basicAuth:
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
+    FactSetApiKey:
       type: http
       scheme: basic
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
   description: API Documentation
+  url: https://developer.factset.com/api-catalog/global-filings-api

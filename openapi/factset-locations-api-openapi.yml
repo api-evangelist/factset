@@ -1,22 +1,13 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Locations API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
-  contact:
-    name: FactSet Research Systems
-    url: https://developer.factset.com/contact
-    email: api@factset.com
-  license:
-    name: Apache License, Version 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+  title: Factset Locations API
+  version: 2.0.0
+  description: 'Operations tagged Locations across 2 of this provider''s published API definitions: factset-procure-to-pay-scim-openapi.yml, procure-to-pay-api-scim-openapi-original.yml. Each path carries the servers of the definition it was published in.'
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
-security:
-- basicAuth: []
+- url: https://api.factset.com/scim/v2/
+  description: Production environment
+- url: https://api.uat.factset.com/scim/v2/
+  description: UAT environment
 tags:
 - name: Locations
 paths:
@@ -47,6 +38,11 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
+    servers:
+    - url: https://api.factset.com/scim/v2/
+      description: Production environment
+    - url: https://api.uat.factset.com/scim/v2/
+      description: UAT environment
   /Locations/{id}:
     get:
       tags:
@@ -120,6 +116,11 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
+    servers:
+    - url: https://api.factset.com/scim/v2/
+      description: Production environment
+    - url: https://api.uat.factset.com/scim/v2/
+      description: UAT environment
 components:
   schemas:
     LocationResource:
@@ -210,6 +211,26 @@ components:
               example: https://api.factset.com/scim/v2/Locations/1598276
           readOnly: true
           example: example_value
+    Patch:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example: []
+        Operations:
+          type: array
+          items:
+            type: object
+            properties:
+              op:
+                type: string
+              path:
+                type: string
+              value:
+                type: string
+          example: []
     LocationResourceReference:
       type: object
       properties:
@@ -244,14 +265,96 @@ components:
           items:
             $ref: '#/components/schemas/LocationResource'
           example: []
-    Patch:
+    LocationResource_2:
       type: object
       properties:
         schemas:
           type: array
           items:
             type: string
-          example: []
+          example:
+          - urn:scim:schemas:extension:FactSet:Core:1.0:Location
+        id:
+          type: string
+          example: '1598276'
+          readOnly: true
+        externalId:
+          type: string
+          example: '1598276'
+        name:
+          type: string
+          description: Name of the location.
+          readOnly: true
+          example: FIN Wealth Management
+        description:
+          type: string
+          description: Description of the location.
+          readOnly: true
+        address1:
+          type: string
+          description: First line of location's address.
+          readOnly: true
+          example: 601 Main Avenue
+        address2:
+          type: string
+          description: Second line of location's address.
+          readOnly: true
+          example: Factset - First Floor
+        address3:
+          type: string
+          description: Third line of location's address.
+          readOnly: true
+        locality:
+          type: string
+          description: City of location.
+          readOnly: true
+          example: Norwalk
+        region:
+          type: string
+          description: State or province of location.
+          readOnly: true
+          example: Connecticut
+        postalCode:
+          type: string
+          description: Postal code of location.
+          readOnly: true
+          example: 06850
+        country:
+          type: string
+          description: Country of location.
+          readOnly: true
+          example: United States
+        phoneNumber:
+          type: string
+          description: Phone number of location.
+          readOnly: true
+        mainLocation:
+          allOf:
+          - $ref: '#/components/schemas/LocationResourceReference'
+          - readOnly: true
+        meta:
+          type: object
+          properties:
+            resourceType:
+              type: string
+              example: Location
+            created:
+              type: string
+              example: '2019-02-11T08:44:19+00:00'
+            lastModified:
+              type: string
+              example: '2021-01-12T03:11:13+00:00'
+            location:
+              type: string
+              example: https://api.factset.com/scim/v2/Locations/1598276
+          readOnly: true
+    Patch_2:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
         Operations:
           type: array
           items:
@@ -263,10 +366,25 @@ components:
                 type: string
               value:
                 type: string
-          example: []
+    LocationResourceList_2:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example:
+          - urn:ietf:params:scim:api:messages:2.0:ListResponse
+        totalResults:
+          type: integer
+          example: 1
+        Resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/LocationResource_2'
   responses:
-    invalidResourceProvidedError:
-      description: Provided resource contains invalid data.
+    invalidPatchRequestError:
+      description: Patch request invalid.
       content:
         application/scim+json:
           schema:
@@ -277,6 +395,18 @@ components:
             scimType: invalidValue
             detail: Provided resource contains invalid data.
             status: '400'
+    internalServerError:
+      description: Internal server error.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    locationSuccess:
+      description: Success.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/LocationResource'
     forbiddenError:
       description: User is not authorized to use this API.
       content:
@@ -294,18 +424,6 @@ components:
         application/scim+json:
           schema:
             $ref: '#/components/schemas/LocationResourceList'
-    invalidPatchRequestError:
-      description: Patch request invalid.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            schemas:
-            - urn:ietf:params:scim:api:messages:2.0:Error
-            scimType: invalidValue
-            detail: Provided resource contains invalid data.
-            status: '400'
     locationNotFoundError:
       description: Location not found.
       content:
@@ -317,12 +435,17 @@ components:
             - urn:ietf:params:scim:api:messages:2.0:Error
             detail: Location 1598276 was not found.
             status: '404'
-    locationSuccess:
-      description: Success.
+    unauthorizedError:
+      description: User has not been authenticated.
       content:
         application/scim+json:
           schema:
-            $ref: '#/components/schemas/LocationResource'
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: FactSet.net credentials are missing or invalid.
+            status: '401'
     invalidFilterError:
       description: Invalid filter value provided.
       content:
@@ -335,14 +458,8 @@ components:
             scimType: invalidFilter
             detail: Invalid filter value.
             status: '400'
-    internalServerError:
-      description: Internal server error.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    unauthorizedError:
-      description: User has not been authenticated.
+    invalidResourceProvidedError:
+      description: Provided resource contains invalid data.
       content:
         application/scim+json:
           schema:
@@ -350,36 +467,16 @@ components:
           example:
             schemas:
             - urn:ietf:params:scim:api:messages:2.0:Error
-            detail: FactSet.net credentials are missing or invalid.
-            status: '401'
+            scimType: invalidValue
+            detail: Provided resource contains invalid data.
+            status: '400'
   parameters:
-    resourceId:
-      name: id
-      description: ID of resource.
-      in: path
-      schema:
-        type: string
-      required: true
-    filter:
-      name: filter
-      description: Resource filter string. See [RFC 7644 section 3.4.2.2](https://tools.ietf.org/html/rfc7644#section-3.4.2.2) for syntax. Note this API implementation also supports a non-standard "re" operator for regular expression matching against strings.
-      in: query
-      schema:
-        type: string
-      required: false
     startIndex:
       name: startIndex
       description: Result start index. The one-based index of the first result to be returned in the list of resources. For example, to exclude the first two resources, use a *startIndex* value of 3. This parameter has a default value of 1. This index applies *after* any resource filtration has been applied as specified by the *filter* argument.
       in: query
       schema:
         type: integer
-      required: false
-    attributes:
-      name: attributes
-      description: Attribute whitelist filter string. A comma-separated list of resource attribute names to be returned in the response, overriding the set of attributes that would be returned by default. Attribute names must be specified in standard attribute notation (see [RFC 7644 section 3.10](https://datatracker.ietf.org/doc/html/rfc7644#section-3.10).) This parameter cannot be used with the *excludedAttributes* parameter.
-      in: query
-      schema:
-        type: string
       required: false
     excludedAttributes:
       name: excludedAttributes
@@ -394,6 +491,27 @@ components:
       in: query
       schema:
         type: integer
+      required: false
+    resourceId:
+      name: id
+      description: ID of resource.
+      in: path
+      schema:
+        type: string
+      required: true
+    filter:
+      name: filter
+      description: Resource filter string. See [RFC 7644 section 3.4.2.2](https://tools.ietf.org/html/rfc7644#section-3.4.2.2) for syntax. Note this API implementation also supports a non-standard "re" operator for regular expression matching against strings.
+      in: query
+      schema:
+        type: string
+      required: false
+    attributes:
+      name: attributes
+      description: Attribute whitelist filter string. A comma-separated list of resource attribute names to be returned in the response, overriding the set of attributes that would be returned by default. Attribute names must be specified in standard attribute notation (see [RFC 7644 section 3.10](https://datatracker.ietf.org/doc/html/rfc7644#section-3.10).) This parameter cannot be used with the *excludedAttributes* parameter.
+      in: query
+      schema:
+        type: string
       required: false
   requestBodies:
     locationResource:
@@ -420,6 +538,6 @@ components:
     basicAuth:
       type: http
       scheme: basic
-externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
-  description: API Documentation
+x-refined-from:
+- factset-procure-to-pay-scim-openapi.yml
+- procure-to-pay-api-scim-openapi-original.yml

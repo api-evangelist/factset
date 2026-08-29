@@ -1,22 +1,19 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Answers API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  version: 1.1.0
+  title: FactSet Search Answers API
   contact:
-    name: FactSet Research Systems
-    url: https://developer.factset.com/contact
-    email: api@factset.com
-  license:
-    name: Apache License, Version 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+    name: FactSet Search Team
+    email: FactSearch.Team@factset.com
+  description: '
+
+    The FactSet Search Answers API provides answers to search queries,
+
+    reflecting the data shown within FactSet Search Answers.'
 servers:
 - url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
 security:
-- basicAuth: []
+- Basic: []
 tags:
 - name: Answers
 paths:
@@ -58,109 +55,38 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
-  /search/answers/v1/adaptive-card:
-    get:
-      summary: Fetch Factset Answer in Adaptive Card Format
-      tags:
-      - Answers
-      description: Returns an answer to the specified query (if valid answer exists) in the Adaptive Card format (https://adaptivecards.io/).
-      operationId: searchForAdaptiveCardAnswer
-      parameters:
-      - $ref: '#/components/parameters/Query'
-      - $ref: '#/components/parameters/IncludeThumbnail'
-      - $ref: '#/components/parameters/DisableNoAnswerResponses'
-      - $ref: '#/components/parameters/Theme'
-      responses:
-        '200':
-          description: Request was successful.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdaptiveCardAnswerSuccessResponse'
-        '400':
-          description: Missing or empty query.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AnswerFailureResponse'
-        '401':
-          description: Missing or invalid authentication.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AnswerFailureResponse'
-        '500':
-          description: Unhandled error occurred while processing the request.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AnswerFailureResponse'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
 components:
   schemas:
-    ChangeColor:
-      type: string
-      enum:
-      - colorNeutral
-      - colorPositive
-      - colorNegative
-    ValueLabelTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          value:
-            type: string
-          label:
-            type: string
-    ValueLabelDateDataPairListTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          value:
-            type: string
-          label:
-            type: string
-          date:
-            type: string
-          list:
-            type: array
-            items:
-              $ref: '#/components/schemas/DataPair'
-    DataPair:
+    ValueChange:
       type: object
-      required:
-      - value
-      - label
       properties:
-        value:
+        absoluteChange:
           type: string
           example: example_value
-        label:
+        percentageChange:
+          type: string
+          example: example_value
+        color:
+          $ref: '#/components/schemas/ChangeColor'
+    AnswerFailureResponse:
+      type: object
+      required:
+      - errors
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+          example: []
+    RankedTableEntity:
+      type: object
+      properties:
+        name:
           type: string
           example: Example Title
-    DataAnswer:
-      type: object
-      required:
-      - template
-      properties:
-        template:
+        identifier:
           type: string
           example: example_value
-    NoAnswersFound:
-      allOf:
-      - $ref: '#/components/schemas/NoAnswersBase'
-      - type: object
-        required:
-        - querySuggestions
-        properties:
-          querySuggestions:
-            type: array
-            items:
-              type: string
     LabelValueChangeLabelValueChangeTemplateData:
       allOf:
       - $ref: '#/components/schemas/TemplateWithLinks'
@@ -176,129 +102,6 @@ components:
             type: string
           label2:
             type: string
-    PercentChangeLabelTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          percentChange:
-            $ref: '#/components/schemas/PercentChange'
-          label:
-            type: string
-    AdaptiveCardAnswerSuccessResponse:
-      type: object
-      required:
-      - data
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/AdaptiveCardDataItem'
-          example: []
-    ValueLabelDateTextBlockAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/ValueLabelDateTextBlockTemplateData'
-    Template:
-      type: object
-      required:
-      - headline
-      properties:
-        headline:
-          type: string
-          example: example_value
-        footer:
-          type: string
-          example: example_value
-        fdc3Context:
-          $ref: '#/components/schemas/Fdc3Context'
-    CountryID:
-      type: object
-      properties:
-        ISOALPHA2:
-          type: string
-          example: example_value
-    TableTableAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/TableTableTemplateData'
-    ColoredValue:
-      type: object
-      properties:
-        text:
-          type: string
-          example: example_value
-        color:
-          $ref: '#/components/schemas/ValueColor'
-    RankedTableTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/Template'
-      - type: object
-        properties:
-          table:
-            $ref: '#/components/schemas/RankedTable'
-    ThumbnailCard:
-      type: object
-      description: JSON that matches [Thumbnail Card](https://docs.microsoft.com/en-us/microsoftteams/platform/task-modules-and-cards/cards/cards-reference#thumbnail-card) format.
-      nullable: true
-    LinkTextBlockTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          link:
-            type: string
-          text:
-            type: string
-    PercentChange:
-      type: object
-      properties:
-        change:
-          type: string
-          example: example_value
-        color:
-          $ref: '#/components/schemas/ChangeColor'
-    RankedTable:
-      type: object
-      required:
-      - rows
-      properties:
-        headers:
-          type: array
-          items:
-            type: string
-          example: []
-        rows:
-          type: array
-          items:
-            $ref: '#/components/schemas/RankedTableRow'
-          example: []
-    DataAnswerSuccessResponse:
-      type: object
-      required:
-      - data
-      properties:
-        data:
-          $ref: '#/components/schemas/DataAnswerData'
-    TextBlockFootingTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          body:
-            type: string
-          footing:
-            $ref: '#/components/schemas/TitledTextBlock'
     ValueChangeDateLabelAnswer:
       allOf:
       - $ref: '#/components/schemas/AnswerWithTitle'
@@ -308,155 +111,14 @@ components:
         properties:
           templateData:
             $ref: '#/components/schemas/ValueChangeDateLabelTemplateData'
-    RankedTableAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/RankedTableTemplateData'
-    TitledTextBlock:
+    PercentChange:
       type: object
       properties:
-        title:
-          type: string
-          example: Example Title
-        content:
+        change:
           type: string
           example: example_value
-    Table:
-      type: object
-      required:
-      - tableRows
-      properties:
-        tableHeaders:
-          type: array
-          items:
-            type: string
-          example: []
-        tableRows:
-          type: array
-          items:
-            type: array
-            items:
-              type: string
-          example: []
-        tableFooters:
-          type: array
-          items:
-            type: string
-          example: []
-    AdaptiveCardDataItem:
-      oneOf:
-      - $ref: '#/components/schemas/AdaptiveCard'
-      - $ref: '#/components/schemas/AdaptiveCardWithThumbnail'
-    ColoredValueLabelDateAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/ColoredValueLabelDateTemplateData'
-    TableTableTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          table1:
-            $ref: '#/components/schemas/Table'
-          table2:
-            $ref: '#/components/schemas/Table'
-    ValueLabelDateTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          value:
-            type: string
-          label:
-            type: string
-          date:
-            type: string
-    Fdc3Instrument:
-      type: object
-      required:
-      - type
-      - name
-      properties:
-        type:
-          type: string
-          example: example_value
-        name:
-          type: string
-          example: Example Title
-        exchangeMic:
-          type: string
-          example: example_value
-        exchangeMicFds:
-          type: string
-          example: example_value
-        id:
-          $ref: '#/components/schemas/InstrumentID'
-    ColoredValueLabelDateTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          value:
-            $ref: '#/components/schemas/ColoredValue'
-          label:
-            type: string
-          date:
-            type: string
-    ValueChangeDateLabelTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          value:
-            type: string
-          valueChange:
-            $ref: '#/components/schemas/ValueChange'
-          date:
-            type: string
-          label:
-            type: string
-    Error:
-      type: object
-      required:
-      - id
-      - code
-      - title
-      properties:
-        id:
-          type: string
-          example: abc123
-        code:
-          type: string
-          example: example_value
-        title:
-          type: string
-          example: Example Title
-        links:
-          $ref: '#/components/schemas/ErrorLink'
-        detail:
-          type: string
-          example: example_value
-        source:
-          $ref: '#/components/schemas/ErrorSource'
-    AnswerWithTitle:
-      allOf:
-      - $ref: '#/components/schemas/DataAnswer'
-      - type: object
-        required:
-        - title
-        properties:
-          title:
-            type: string
+        color:
+          $ref: '#/components/schemas/ChangeColor'
     InstrumentID:
       type: object
       properties:
@@ -493,21 +155,55 @@ components:
         ticker:
           type: string
           example: example_value
-    AnswerWithoutData:
+    TableTableTemplateData:
       allOf:
-      - $ref: '#/components/schemas/NoAnswersBase'
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          table1:
+            $ref: '#/components/schemas/Table'
+          table2:
+            $ref: '#/components/schemas/Table'
+    ValueColor:
+      type: string
+      enum:
+      - colorNone
+      - colorBuy
+      - colorHold
+      - colorSell
+      - colorOverweight
+      - colorUnderweight
+    TextBlockFootingAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
       - type: object
         required:
-        - title
         - templateData
         properties:
-          title:
-            type: string
           templateData:
-            type: object
-            properties:
-              fdc3Context:
-                $ref: '#/components/schemas/Fdc3Context'
+            $ref: '#/components/schemas/TextBlockFootingTemplateData'
+    ColoredValueLabelDateTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          value:
+            $ref: '#/components/schemas/ColoredValue'
+          label:
+            type: string
+          date:
+            type: string
+    TemplateWithLinks:
+      allOf:
+      - $ref: '#/components/schemas/Template'
+      - type: object
+        required:
+        - headline
+        properties:
+          applicationLinks:
+            type: array
+            items:
+              $ref: '#/components/schemas/ApplicationLink'
     ErrorSource:
       type: object
       properties:
@@ -517,30 +213,6 @@ components:
         parameter:
           type: string
           example: example_value
-    ApplicationLink:
-      type: object
-      required:
-      - name
-      - webLink
-      properties:
-        name:
-          type: string
-          example: Example Title
-        workstationLink:
-          type: string
-          example: example_value
-        webLink:
-          type: string
-          example: example_value
-    TableAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/TableTemplateData'
     DataAnswerData:
       oneOf:
       - $ref: '#/components/schemas/LinkTextBlockAnswer'
@@ -576,64 +248,16 @@ components:
           LabelValueChangeLabelValueChangeTemplate: '#/components/schemas/LabelValueChangeLabelValueChangeAnswer'
           AnswerWithoutDataTemplate: '#/components/schemas/AnswerWithoutData'
           NoAnswerTemplate: '#/components/schemas/NoAnswersFound'
-    AdaptiveCard:
-      type: object
-      description: JSON that matches [Adaptive Card](https://adaptivecards.io/explorer/) format.
-    TableTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          table:
-            $ref: '#/components/schemas/Table'
-    TemplateWithLinks:
-      allOf:
-      - $ref: '#/components/schemas/Template'
-      - type: object
-        required:
-        - headline
-        properties:
-          applicationLinks:
-            type: array
-            items:
-              $ref: '#/components/schemas/ApplicationLink'
-    RankedTableEntity:
+    TitledTextBlock:
       type: object
       properties:
-        name:
+        title:
           type: string
           example: Example Title
-        identifier:
+        content:
           type: string
           example: example_value
-    TextBlockFootingAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/TextBlockFootingTemplateData'
-    ValueLabelAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/ValueLabelTemplateData'
-    ValueLabelDateDataPairListAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/ValueLabelDateDataPairListTemplateData'
-    ValueLabelDateTextBlockTemplateData:
+    ValueLabelDateDataPairListTemplateData:
       allOf:
       - $ref: '#/components/schemas/TemplateWithLinks'
       - type: object
@@ -644,8 +268,92 @@ components:
             type: string
           date:
             type: string
-          text:
+          list:
+            type: array
+            items:
+              $ref: '#/components/schemas/DataPair'
+    RankedTableTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/Template'
+      - type: object
+        properties:
+          table:
+            $ref: '#/components/schemas/RankedTable'
+    LabelValueChangeLabelValueChangeAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
+      - type: object
+        required:
+        - templateData
+        properties:
+          templateData:
+            $ref: '#/components/schemas/LabelValueChangeLabelValueChangeTemplateData'
+    RankedTableAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
+      - type: object
+        required:
+        - templateData
+        properties:
+          templateData:
+            $ref: '#/components/schemas/RankedTableTemplateData'
+    NoAnswersBase:
+      allOf:
+      - $ref: '#/components/schemas/DataAnswer'
+      - type: object
+        required:
+        - message
+        properties:
+          message:
             type: string
+    Template:
+      type: object
+      required:
+      - headline
+      properties:
+        headline:
+          type: string
+          example: example_value
+        footer:
+          type: string
+          example: example_value
+        fdc3Context:
+          $ref: '#/components/schemas/Fdc3Context'
+    TextBlockFootingTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          body:
+            type: string
+          footing:
+            $ref: '#/components/schemas/TitledTextBlock'
+    LinkTextBlockAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
+      - type: object
+        required:
+        - templateData
+        properties:
+          templateData:
+            $ref: '#/components/schemas/LinkTextBlockTemplateData'
+    AnswerWithTitle:
+      allOf:
+      - $ref: '#/components/schemas/DataAnswer'
+      - type: object
+        required:
+        - title
+        properties:
+          title:
+            type: string
+    ColoredValue:
+      type: object
+      properties:
+        text:
+          type: string
+          example: example_value
+        color:
+          $ref: '#/components/schemas/ValueColor'
     Fdc3Country:
       type: object
       required:
@@ -660,14 +368,84 @@ components:
           example: Example Title
         id:
           $ref: '#/components/schemas/CountryID'
-    AdaptiveCardWithThumbnail:
+    ValueLabelDateTextBlockTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          value:
+            type: string
+          label:
+            type: string
+          date:
+            type: string
+          text:
+            type: string
+    TableTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          table:
+            $ref: '#/components/schemas/Table'
+    ErrorLink:
       type: object
+      required:
+      - about
       properties:
-        adaptiveCard:
-          $ref: '#/components/schemas/AdaptiveCard'
-        thumbnail:
-          $ref: '#/components/schemas/ThumbnailCard'
-    LabelValueChangeLabelValueChangeAnswer:
+        about:
+          type: string
+          example: example_value
+    ChangeColor:
+      type: string
+      enum:
+      - colorNeutral
+      - colorPositive
+      - colorNegative
+    DataAnswerSuccessResponse:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/DataAnswerData'
+    RankedTable:
+      type: object
+      required:
+      - rows
+      properties:
+        headers:
+          type: array
+          items:
+            type: string
+          example: []
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/RankedTableRow'
+          example: []
+    ValueChangeDateLabelTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          value:
+            type: string
+          valueChange:
+            $ref: '#/components/schemas/ValueChange'
+          date:
+            type: string
+          label:
+            type: string
+    DataAnswer:
+      type: object
+      required:
+      - template
+      properties:
+        template:
+          type: string
+          example: example_value
+    TableTableAnswer:
       allOf:
       - $ref: '#/components/schemas/AnswerWithTitle'
       - type: object
@@ -675,7 +453,48 @@ components:
         - templateData
         properties:
           templateData:
-            $ref: '#/components/schemas/LabelValueChangeLabelValueChangeTemplateData'
+            $ref: '#/components/schemas/TableTableTemplateData'
+    PercentChangeLabelTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          percentChange:
+            $ref: '#/components/schemas/PercentChange'
+          label:
+            type: string
+    Error:
+      type: object
+      required:
+      - id
+      - code
+      - title
+      properties:
+        id:
+          type: string
+          example: abc123
+        code:
+          type: string
+          example: example_value
+        title:
+          type: string
+          example: Example Title
+        links:
+          $ref: '#/components/schemas/ErrorLink'
+        detail:
+          type: string
+          example: example_value
+        source:
+          $ref: '#/components/schemas/ErrorSource'
+    ValueLabelDateDataPairListAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
+      - type: object
+        required:
+        - templateData
+        properties:
+          templateData:
+            $ref: '#/components/schemas/ValueLabelDateDataPairListTemplateData'
     PercentChangeLabelAnswer:
       allOf:
       - $ref: '#/components/schemas/AnswerWithTitle'
@@ -685,18 +504,37 @@ components:
         properties:
           templateData:
             $ref: '#/components/schemas/PercentChangeLabelTemplateData'
-    ValueChange:
+    DataPair:
       type: object
+      required:
+      - value
+      - label
       properties:
-        absoluteChange:
+        value:
           type: string
           example: example_value
-        percentageChange:
+        label:
           type: string
-          example: example_value
-        color:
-          $ref: '#/components/schemas/ChangeColor'
-    LinkTextBlockAnswer:
+          example: Example Title
+    LinkTextBlockTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          link:
+            type: string
+          text:
+            type: string
+    ValueLabelTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          value:
+            type: string
+          label:
+            type: string
+    TableAnswer:
       allOf:
       - $ref: '#/components/schemas/AnswerWithTitle'
       - type: object
@@ -704,16 +542,49 @@ components:
         - templateData
         properties:
           templateData:
-            $ref: '#/components/schemas/LinkTextBlockTemplateData'
-    Fdc3Context:
-      oneOf:
-      - $ref: '#/components/schemas/Fdc3Instrument'
-      - $ref: '#/components/schemas/Fdc3Country'
-      discriminator:
-        propertyName: type
-        mapping:
-          fdc3.instrument: '#/components/schemas/Fdc3Instrument'
-          fdc3.country: '#/components/schemas/Fdc3Country'
+            $ref: '#/components/schemas/TableTemplateData'
+    Table:
+      type: object
+      required:
+      - tableRows
+      properties:
+        tableHeaders:
+          type: array
+          items:
+            type: string
+          example: []
+        tableRows:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+          example: []
+        tableFooters:
+          type: array
+          items:
+            type: string
+          example: []
+    Fdc3Instrument:
+      type: object
+      required:
+      - type
+      - name
+      properties:
+        type:
+          type: string
+          example: example_value
+        name:
+          type: string
+          example: Example Title
+        exchangeMic:
+          type: string
+          example: example_value
+        exchangeMicFds:
+          type: string
+          example: example_value
+        id:
+          $ref: '#/components/schemas/InstrumentID'
     RankedTableRow:
       type: object
       required:
@@ -731,42 +602,47 @@ components:
           items:
             type: string
           example: []
-    NoAnswersBase:
-      allOf:
-      - $ref: '#/components/schemas/DataAnswer'
-      - type: object
-        required:
-        - message
-        properties:
-          message:
-            type: string
-    ErrorLink:
+    CountryID:
       type: object
-      required:
-      - about
       properties:
-        about:
+        ISOALPHA2:
           type: string
           example: example_value
-    ValueColor:
-      type: string
-      enum:
-      - colorNone
-      - colorBuy
-      - colorHold
-      - colorSell
-      - colorOverweight
-      - colorUnderweight
-    AnswerFailureResponse:
+    NoAnswersFound:
+      allOf:
+      - $ref: '#/components/schemas/NoAnswersBase'
+      - type: object
+        required:
+        - querySuggestions
+        properties:
+          querySuggestions:
+            type: array
+            items:
+              type: string
+    ApplicationLink:
       type: object
       required:
-      - errors
+      - name
+      - webLink
       properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/Error'
-          example: []
+        name:
+          type: string
+          example: Example Title
+        workstationLink:
+          type: string
+          example: example_value
+        webLink:
+          type: string
+          example: example_value
+    Fdc3Context:
+      oneOf:
+      - $ref: '#/components/schemas/Fdc3Instrument'
+      - $ref: '#/components/schemas/Fdc3Country'
+      discriminator:
+        propertyName: type
+        mapping:
+          fdc3.instrument: '#/components/schemas/Fdc3Instrument'
+          fdc3.country: '#/components/schemas/Fdc3Country'
     ValueLabelDateAnswer:
       allOf:
       - $ref: '#/components/schemas/AnswerWithTitle'
@@ -776,22 +652,60 @@ components:
         properties:
           templateData:
             $ref: '#/components/schemas/ValueLabelDateTemplateData'
+    ValueLabelAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
+      - type: object
+        required:
+        - templateData
+        properties:
+          templateData:
+            $ref: '#/components/schemas/ValueLabelTemplateData'
+    ValueLabelDateTextBlockAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
+      - type: object
+        required:
+        - templateData
+        properties:
+          templateData:
+            $ref: '#/components/schemas/ValueLabelDateTextBlockTemplateData'
+    ColoredValueLabelDateAnswer:
+      allOf:
+      - $ref: '#/components/schemas/AnswerWithTitle'
+      - type: object
+        required:
+        - templateData
+        properties:
+          templateData:
+            $ref: '#/components/schemas/ColoredValueLabelDateTemplateData'
+    ValueLabelDateTemplateData:
+      allOf:
+      - $ref: '#/components/schemas/TemplateWithLinks'
+      - type: object
+        properties:
+          value:
+            type: string
+          label:
+            type: string
+          date:
+            type: string
+    AnswerWithoutData:
+      allOf:
+      - $ref: '#/components/schemas/NoAnswersBase'
+      - type: object
+        required:
+        - title
+        - templateData
+        properties:
+          title:
+            type: string
+          templateData:
+            type: object
+            properties:
+              fdc3Context:
+                $ref: '#/components/schemas/Fdc3Context'
   parameters:
-    Theme:
-      name: theme
-      in: query
-      description: Theme for desired answer (e.g., "Light", "Dark")
-      required: false
-      schema:
-        type: string
-        default: Light
-    Query:
-      name: query
-      in: query
-      description: Query for desired answer (e.g., "fds price")
-      required: true
-      schema:
-        type: string
     ConsumingApplication:
       name: consumingApplication
       in: query
@@ -800,26 +714,14 @@ components:
       schema:
         type: string
         default: Developer Portal
-    DisableNoAnswerResponses:
-      name: disableNoAnswerResponses
+    Query:
+      name: query
       in: query
-      description: Disables no-result answer responses (no-results and answer without data)
-      required: false
+      description: Query for desired answer (e.g., "fds price")
+      required: true
       schema:
-        type: boolean
-        default: true
-    IncludeThumbnail:
-      name: includeThumbnail
-      in: query
-      description: Includes thumbnail of Adaptive Card in response
-      required: false
-      schema:
-        type: boolean
-        default: false
+        type: string
   securitySchemes:
-    basicAuth:
+    Basic:
       type: http
       scheme: basic
-externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
-  description: API Documentation

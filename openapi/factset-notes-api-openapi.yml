@@ -1,22 +1,16 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Notes API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
-  contact:
-    name: FactSet Research Systems
-    url: https://developer.factset.com/contact
-    email: api@factset.com
-  license:
-    name: Apache License, Version 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+  title: Factset Notes API
+  version: '1'
+  description: 'Operations tagged Notes across 2 of this provider''s published API definitions: factset-irn-notes-api-openapi.yml, irn-notes-openapi-original.yml. Each path carries the servers of the definition it was published in.'
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
+- url: https://api.factset.com/research/irn
+  description: Production Server
+- url: https://api-sandbox.factset.com/research/irn
   description: Sandbox
 security:
-- basicAuth: []
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Notes
 paths:
@@ -185,6 +179,11 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
+    servers:
+    - url: https://api.factset.com/research/irn
+      description: Production Server
+    - url: https://api-sandbox.factset.com/research/irn
+      description: Sandbox
   /v1/notes/{noteId}:
     get:
       tags:
@@ -303,11 +302,107 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
+    servers:
+    - url: https://api.factset.com/research/irn
+      description: Production Server
+    - url: https://api-sandbox.factset.com/research/irn
+      description: Sandbox
+  /v1/notes/{noteId}/events:
+    get:
+      tags:
+      - Notes
+      summary: Factset Get All the Record Events That Belong to a Note
+      operationId: GetEvents
+      parameters:
+      - name: noteId
+        in: path
+        description: Note Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecordEventSummaryDto'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    servers:
+    - url: https://api.factset.com/research/irn
+      description: Production Server
+    - url: https://api-sandbox.factset.com/research/irn
+      description: Sandbox
+  /v1/notes/{noteId}/events/{recordEventId}:
+    get:
+      tags:
+      - Notes
+      summary: Factset Get Details of a Record Event of a Note
+      operationId: GetRecordEvent
+      parameters:
+      - name: noteId
+        in: path
+        description: Note Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: recordEventId
+        in: path
+        description: Record Event Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoteEventDto'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      x-microcks-operation:
+        delay: 0
+        dispatcher: FALLBACK
+    servers:
+    - url: https://api.factset.com/research/irn
+      description: Production Server
+    - url: https://api-sandbox.factset.com/research/irn
+      description: Sandbox
   /v1/notes/{noteId}/attachments:
     get:
       tags:
       - Notes
-      summary: Factset Get All the Attachments Belonging to a Note
+      summary: Factset Get all the attachments belonging to a note
       operationId: GetAttachments
       parameters:
       - name: noteId
@@ -331,20 +426,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         default:
           description: Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
+                $ref: '#/components/schemas/ProblemDetails_2'
     post:
       tags:
       - Notes
-      summary: Factset Create an Attachment for an Existing Note
+      summary: Factset Create an attachment for an existing note
       operationId: CreateAttachment
       parameters:
       - name: noteId
@@ -370,27 +462,29 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NewItemDto'
+                $ref: '#/components/schemas/NewItemDto_2'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         default:
           description: Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
+                $ref: '#/components/schemas/ProblemDetails_2'
+    servers:
+    - url: https://api.factset.com/research/irn
+      description: Production Server
+    - url: https://api-sandbox.factset.com/research/irn
+      description: Sandbox
   /v1/notes/{noteId}/attachments/{attachmentId}/download:
     get:
       tags:
       - Notes
-      summary: Factset Download an Attachment From a Note
+      summary: Factset Download an attachment from a Note
       operationId: DownloadAttachment
       parameters:
       - name: noteId
@@ -413,27 +507,29 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '403':
           description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '404':
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
+                $ref: '#/components/schemas/ProblemDetails_2'
+    servers:
+    - url: https://api.factset.com/research/irn
+      description: Production Server
+    - url: https://api-sandbox.factset.com/research/irn
+      description: Sandbox
   /v1/notes/{noteId}/comments:
     get:
       tags:
       - Notes
-      summary: Factset Get All Comments for a Note
+      summary: Factset Get all comments for a note
       operationId: GetComments
       parameters:
       - name: noteId
@@ -456,26 +552,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '403':
           description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '404':
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
+                $ref: '#/components/schemas/ProblemDetails_2'
     post:
       tags:
       - Notes
-      summary: Factset Create a Comment to a Note
+      summary: Factset Create a comment to a Note
       operationId: CreateComment
       parameters:
       - name: noteId
@@ -504,35 +597,37 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NewItemDto'
+                $ref: '#/components/schemas/NewItemDto_2'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '403':
           description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '404':
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '500':
           description: Server Error
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
+    servers:
+    - url: https://api.factset.com/research/irn
+      description: Production Server
+    - url: https://api-sandbox.factset.com/research/irn
+      description: Sandbox
   /v1/notes/{noteId}/comments/{commentId}:
     get:
       tags:
       - Notes
-      summary: Factset Get Details of a Comment Belonging to a Note
+      summary: Factset Get details of a comment belonging to a note
       operationId: GetComment
       parameters:
       - name: noteId
@@ -559,26 +654,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '403':
           description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '404':
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
+                $ref: '#/components/schemas/ProblemDetails_2'
     patch:
       tags:
       - Notes
-      summary: Factset Edit a Comment for a Note
+      summary: Factset Edit a comment for a note
       operationId: PatchComment
       parameters:
       - name: noteId
@@ -623,26 +715,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '403':
           description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '404':
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
+                $ref: '#/components/schemas/ProblemDetails_2'
     delete:
       tags:
       - Notes
-      summary: Factset Delete a Comment From a Note
+      summary: Factset Delete a Comment from a Note
       operationId: DeleteComment
       parameters:
       - name: noteId
@@ -665,23 +754,25 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '404':
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '500':
           description: Server Error
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
+    servers:
+    - url: https://api.factset.com/research/irn
+      description: Production Server
+    - url: https://api-sandbox.factset.com/research/irn
+      description: Sandbox
   /v1/notes/{noteId}/comments/{commentId}/attachments:
     get:
       tags:
       - Notes
-      summary: Factset Get Attachments Summary of a Comment Belonging to a Note
+      summary: Factset Get attachments summary of a comment belonging to a note
       operationId: GetCommentAttachments
       parameters:
       - name: noteId
@@ -710,26 +801,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '403':
           description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '404':
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
+                $ref: '#/components/schemas/ProblemDetails_2'
     post:
       tags:
       - Notes
-      summary: Factset Create a Comment Attachment to a Note
+      summary: Factset Create a comment attachment to a Note
       operationId: CreateCommentAttachment
       parameters:
       - name: noteId
@@ -761,35 +849,37 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NewItemDto'
+                $ref: '#/components/schemas/NewItemDto_2'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '403':
           description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '404':
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '500':
           description: Server Error
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
+    servers:
+    - url: https://api.factset.com/research/irn
+      description: Production Server
+    - url: https://api-sandbox.factset.com/research/irn
+      description: Sandbox
   /v1/notes/{noteId}/comments/{commentId}/attachments/{attachmentId}/download:
     get:
       tags:
       - Notes
-      summary: Factset Download Single Attachment Detail of a Comment Belonging to a Note
+      summary: Factset Download single attachment detail of a comment belonging to a note
       operationId: DownloadCommentAttachmentForComment
       parameters:
       - name: noteId
@@ -818,108 +908,29 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '403':
           description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '404':
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-  /v1/notes/{noteId}/events:
-    get:
-      tags:
-      - Notes
-      summary: Factset Get All the Record Events That Belong to a Note
-      operationId: GetEvents
-      parameters:
-      - name: noteId
-        in: path
-        description: Note Id
-        required: true
-        schema:
-          type: string
-          format: uuid
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/RecordEventSummaryDto'
-        '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        default:
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-  /v1/notes/{noteId}/events/{recordEventId}:
-    get:
-      tags:
-      - Notes
-      summary: Factset Get Details of a Record Event of a Note
-      operationId: GetRecordEvent
-      parameters:
-      - name: noteId
-        in: path
-        description: Note Id
-        required: true
-        schema:
-          type: string
-          format: uuid
-      - name: recordEventId
-        in: path
-        description: Record Event Id
-        required: true
-        schema:
-          type: string
-          format: uuid
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NoteEventDto'
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
+                $ref: '#/components/schemas/ProblemDetails_2'
+    servers:
+    - url: https://api.factset.com/research/irn
+      description: Production Server
+    - url: https://api-sandbox.factset.com/research/irn
+      description: Sandbox
   /v1/notes/{noteId}/attachments/{attachmentId}:
     delete:
       tags:
       - Notes
-      summary: Factset Delete Attachment From Note
+      summary: Factset Delete attachment from note
       operationId: SoftDeleteNoteAttachment
       parameters:
       - name: noteId
@@ -944,25 +955,206 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '403':
           description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                $ref: '#/components/schemas/ProblemDetails_2'
         '404':
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
+                $ref: '#/components/schemas/ProblemDetails_2'
+    servers:
+    - url: https://api.factset.com/research/irn
+      description: Production Server
+    - url: https://api-sandbox.factset.com/research/irn
+      description: Sandbox
 components:
   schemas:
-    NoteSummaryDto:
+    CreateBodyDto:
+      type: object
+      properties:
+        content:
+          type:
+          - string
+          - 'null'
+          example: example_value
+      additionalProperties: false
+    NewItemDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: abc123
+      additionalProperties: false
+    NoteEventDto:
+      type: object
+      properties:
+        createdAt:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        type:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        user:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        comment:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        changeList:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/RecordChangeDto'
+          example: []
+      additionalProperties: false
+    CreateCustomFieldValueDto:
+      required:
+      - code
+      type: object
+      properties:
+        code:
+          type: string
+          example: example_value
+        integerValue:
+          type:
+          - integer
+          - 'null'
+          format: int32
+          example: 10
+        textValue:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        filePathValue:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        numericValue:
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 42.5
+        dateValue:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        extendedTextValue:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        contactLookupValues:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+            format: uuid
+          example: []
+        optionValue:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        optionValues:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          example: []
+      additionalProperties: false
+      description: 'Set a value or values for a custom field identified by the field ''Code''. Only one of the fields (IntegerValue / TextValue / FilePathValue etc) will be used,
+
+        depending on the data type of the custom field corresponding to the ''Code'' provided'
+    RecordChangeDto:
+      type: object
+      properties:
+        field:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        operation:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        oldValue:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        newValue:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        oldList:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          example: []
+        newList:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          example: []
+      additionalProperties: false
+    CustomFieldValueDto:
+      type: object
+      properties:
+        code:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        value:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        options:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          example: []
+        contactValues:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+            format: uuid
+          example: []
+      additionalProperties: false
+    NoteDto:
       type: object
       properties:
         id:
@@ -970,12 +1162,14 @@ components:
           format: uuid
           example: abc123
         date:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           example: example_value
         createdAt:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           example: example_value
         authorId:
           type: string
@@ -986,12 +1180,209 @@ components:
           format: uuid
           example: '500123'
         title:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           example: Example Title
         identifier:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        relatedSymbols:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          example: []
+        subjectId:
           type: string
-          nullable: true
+          format: uuid
+          example: '500123'
+        recommendationId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          example: '500123'
+        sentimentId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          example: '500123'
+        source:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        link:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        body:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        isPersonal:
+          type: boolean
+          example: true
+        state:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        approvalStatus:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        averageRating:
+          type:
+          - integer
+          - 'null'
+          format: int32
+          example: 10
+        relatedRecords:
+          $ref: '#/components/schemas/RelatedRecordsDto'
+        relatedContacts:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+            format: uuid
+          example: []
+        customFields:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/CustomFieldValueDto'
+          example: []
+      additionalProperties: false
+    CreateNoteDto:
+      required:
+      - author
+      - date
+      type: object
+      properties:
+        author:
+          $ref: '#/components/schemas/UserSerialDto'
+        title:
+          maxLength: 255
+          minLength: 0
+          type:
+          - string
+          - 'null'
+          example: Example Title
+        identifier:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        date:
+          type: string
+          example: example_value
+        subjectId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          example: '500123'
+        recommendationId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          example: '500123'
+        sentimentId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          example: '500123'
+        body:
+          $ref: '#/components/schemas/CreateBodyDto'
+        source:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        link:
+          maxLength: 255
+          minLength: 0
+          type:
+          - string
+          - 'null'
+          example: example_value
+        relatedSymbols:
+          maxItems: 100
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          example: []
+        relatedContacts:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+            format: uuid
+          example: []
+        relatedRecords:
+          $ref: '#/components/schemas/RelatedRecordsDto'
+        customFieldValues:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/CreateCustomFieldValueDto'
+          example: []
+        isPersonal:
+          type: boolean
+          default: false
+          example: true
+      additionalProperties: false
+    NoteSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: abc123
+        date:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        createdAt:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        authorId:
+          type: string
+          format: uuid
+          example: '500123'
+        contributorId:
+          type: string
+          format: uuid
+          example: '500123'
+        title:
+          type:
+          - string
+          - 'null'
+          example: Example Title
+        identifier:
+          type:
+          - string
+          - 'null'
           example: example_value
         subjectId:
           type: string
@@ -1001,25 +1392,29 @@ components:
           type: boolean
           example: true
         state:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           example: example_value
         approvalStatus:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           example: example_value
         attachmentIds:
-          type: array
+          type:
+          - array
+          - 'null'
           items:
             type: string
             format: uuid
-          nullable: true
           example: []
         relatedSymbols:
-          type: array
+          type:
+          - array
+          - 'null'
           items:
             type: string
-          nullable: true
           example: []
         recommendationId:
           type: string
@@ -1030,19 +1425,32 @@ components:
           format: uuid
           example: '500123'
         customFields:
-          type: array
+          type:
+          - array
+          - 'null'
           items:
             $ref: '#/components/schemas/CustomFieldValueDto'
-          nullable: true
           example: []
       additionalProperties: false
-    CreateBodyDto:
+    RelatedRecordsDto:
       type: object
       properties:
-        content:
-          type: string
-          nullable: true
-          example: example_value
+        noteIds:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+            format: uuid
+          example: []
+        meetingIds:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+            format: uuid
+          example: []
       additionalProperties: false
     UpdateNoteDto:
       type: object
@@ -1052,175 +1460,129 @@ components:
         title:
           maxLength: 255
           minLength: 0
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           example: Example Title
         subjectId:
           type: string
           format: uuid
           example: '500123'
         noteDate:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           example: example_value
         recommendationId:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uuid
-          nullable: true
           example: '500123'
         sentimentId:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uuid
-          nullable: true
           example: '500123'
         body:
           $ref: '#/components/schemas/CreateBodyDto'
         source:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           example: example_value
         link:
           maxLength: 255
           minLength: 0
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           example: example_value
         relatedSymbols:
           maxItems: 100
-          type: array
+          type:
+          - array
+          - 'null'
           items:
             type: string
-          nullable: true
           example: []
         relatedContacts:
-          type: array
+          type:
+          - array
+          - 'null'
           items:
             type: string
             format: uuid
-          nullable: true
           example: []
         relatedRecords:
           $ref: '#/components/schemas/RelatedRecordsDto'
         customFieldValues:
-          type: array
+          type:
+          - array
+          - 'null'
           items:
             $ref: '#/components/schemas/CreateCustomFieldValueDto'
-          nullable: true
           example: []
         isPersonal:
-          type: boolean
-          nullable: true
+          type:
+          - boolean
+          - 'null'
           example: true
         identifier:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           example: example_value
       additionalProperties: false
-    Operation:
-      type: object
-      properties:
-        operationType:
-          $ref: '#/components/schemas/OperationType'
-        path:
-          type: string
-          nullable: true
-          example: example_value
-        op:
-          type: string
-          nullable: true
-          example: example_value
-        from:
-          type: string
-          nullable: true
-          example: example_value
-        value:
-          nullable: true
-          example: example_value
-      additionalProperties: false
-    CommentDto:
+    RecordEventSummaryDto:
       type: object
       properties:
         id:
           type: string
           format: uuid
           example: abc123
-        authorId:
-          type: string
-          format: uuid
-          example: '500123'
-        parentCommentId:
-          type: string
-          format: uuid
-          nullable: true
-          example: '500123'
-        body:
-          type: string
-          nullable: true
+        type:
+          type:
+          - string
+          - 'null'
           example: example_value
         createdAt:
-          type: string
-          nullable: true
-          example: example_value
-        attachments:
-          type: array
-          items:
-            $ref: '#/components/schemas/AttachmentSummaryDto'
-          nullable: true
-          example: []
-        subcomments:
-          type: array
-          items:
-            $ref: '#/components/schemas/SubcommentSummaryDto'
-          nullable: true
-          example: []
-      additionalProperties: false
-    CreateCommentDto:
-      type: object
-      properties:
-        authorId:
-          type: string
-          format: uuid
-          example: '500123'
-        parentCommentId:
-          type: string
-          format: uuid
-          nullable: true
-          example: '500123'
-        body:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           example: example_value
       additionalProperties: false
-    CommentSummaryDto:
+    ProblemDetails:
       type: object
       properties:
-        id:
-          type: string
-          format: uuid
-          example: abc123
-        userId:
-          type: string
-          format: uuid
-          example: '500123'
-        createdAt:
-          type: string
-          nullable: true
+        type:
+          type:
+          - string
+          - 'null'
           example: example_value
-        subcomments:
-          type: array
-          items:
-            $ref: '#/components/schemas/SubcommentSummaryDto'
-          nullable: true
-          example: []
-      additionalProperties: false
-    NewItemDto:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          example: abc123
-      additionalProperties: false
+        title:
+          type:
+          - string
+          - 'null'
+          example: Example Title
+        status:
+          type:
+          - integer
+          - 'null'
+          format: int32
+          example: 10
+        detail:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        instance:
+          type:
+          - string
+          - 'null'
+          example: example_value
+      additionalProperties: {}
     UserSerialDto:
       required:
       - serialNumber
@@ -1238,199 +1600,193 @@ components:
           type: string
           example: example_value
       additionalProperties: false
-    NoteDto:
+    CreateBodyDto_2:
+      type: object
+      properties:
+        content:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+    SubcommentSummaryDto:
       type: object
       properties:
         id:
           type: string
           format: uuid
-          example: abc123
-        date:
+        userId:
           type: string
-          nullable: true
-          example: example_value
+          format: uuid
         createdAt:
-          type: string
-          nullable: true
-          example: example_value
-        authorId:
-          type: string
-          format: uuid
-          example: '500123'
-        contributorId:
-          type: string
-          format: uuid
-          example: '500123'
-        title:
-          type: string
-          nullable: true
-          example: Example Title
-        identifier:
-          type: string
-          nullable: true
-          example: example_value
-        relatedSymbols:
-          type: array
-          items:
-            type: string
-          nullable: true
-          example: []
-        subjectId:
-          type: string
-          format: uuid
-          example: '500123'
-        recommendationId:
-          type: string
-          format: uuid
-          nullable: true
-          example: '500123'
-        sentimentId:
-          type: string
-          format: uuid
-          nullable: true
-          example: '500123'
-        source:
-          type: string
-          nullable: true
-          example: example_value
-        link:
-          type: string
-          nullable: true
-          example: example_value
-        body:
-          type: string
-          nullable: true
-          example: example_value
-        isPersonal:
-          type: boolean
-          example: true
-        state:
-          type: string
-          nullable: true
-          example: example_value
-        approvalStatus:
-          type: string
-          nullable: true
-          example: example_value
-        averageRating:
-          type: integer
-          format: int32
-          nullable: true
-          example: 10
-        relatedRecords:
-          $ref: '#/components/schemas/RelatedRecordsDto'
-        relatedContacts:
-          type: array
-          items:
-            type: string
-            format: uuid
-          nullable: true
-          example: []
-        customFields:
-          type: array
-          items:
-            $ref: '#/components/schemas/CustomFieldValueDto'
-          nullable: true
-          example: []
+          type:
+          - string
+          - 'null'
       additionalProperties: false
-    CustomFieldValueDto:
+    NewItemDto_2:
       type: object
       properties:
-        code:
+        id:
           type: string
-          nullable: true
-          example: example_value
-        value:
-          type: string
-          nullable: true
-          example: example_value
-        options:
-          type: array
-          items:
-            type: string
-          nullable: true
-          example: []
-        contactValues:
-          type: array
-          items:
-            type: string
-            format: uuid
-          nullable: true
-          example: []
+          format: uuid
       additionalProperties: false
-    CreateCustomFieldValueDto:
+    CreateCustomFieldValueDto_2:
       required:
       - code
       type: object
       properties:
         code:
           type: string
-          example: example_value
         integerValue:
-          type: integer
+          type:
+          - integer
+          - 'null'
           format: int32
-          nullable: true
-          example: 10
         textValue:
-          type: string
-          nullable: true
-          example: example_value
+          type:
+          - string
+          - 'null'
         filePathValue:
-          type: string
-          nullable: true
-          example: example_value
+          type:
+          - string
+          - 'null'
         numericValue:
-          type: number
+          type:
+          - number
+          - 'null'
           format: double
-          nullable: true
-          example: 42.5
         dateValue:
-          type: string
-          nullable: true
-          example: example_value
+          type:
+          - string
+          - 'null'
         extendedTextValue:
-          type: string
-          nullable: true
-          example: example_value
+          type:
+          - string
+          - 'null'
         contactLookupValues:
-          type: array
+          type:
+          - array
+          - 'null'
           items:
             type: string
             format: uuid
-          nullable: true
-          example: []
         optionValue:
-          type: string
-          nullable: true
-          example: example_value
+          type:
+          - string
+          - 'null'
         optionValues:
-          type: array
+          type:
+          - array
+          - 'null'
           items:
             type: string
-          nullable: true
-          example: []
       additionalProperties: false
-      description: "Set a value or values for a custom field identified by the field 'Code'. Only one of the fields (IntegerValue / TextValue / FilePathValue etc) will be used,\r\ndepending on the data type of the custom field corresponding to the 'Code' provided"
+      description: 'Set a value or values for a custom field identified by the field ''Code''. Only one of the fields (IntegerValue / TextValue / FilePathValue etc) will be used,
+
+        depending on the data type of the custom field corresponding to the ''Code'' provided'
+    Operation:
+      type: object
+      properties:
+        operationType:
+          $ref: '#/components/schemas/OperationType'
+        path:
+          type:
+          - string
+          - 'null'
+        op:
+          type:
+          - string
+          - 'null'
+        from:
+          type:
+          - string
+          - 'null'
+        value: {}
+      additionalProperties: false
+    CreateCommentDto:
+      type: object
+      properties:
+        authorId:
+          type: string
+          format: uuid
+        parentCommentId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        body:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
     AttachmentSummaryDto:
       type: object
       properties:
         id:
           type: string
           format: uuid
-          example: abc123
         fileName:
-          type: string
-          nullable: true
-          example: example_value
+          type:
+          - string
+          - 'null'
         mimeType:
-          type: string
-          nullable: true
-          example: example_value
+          type:
+          - string
+          - 'null'
         size:
-          type: integer
+          type:
+          - integer
+          - 'null'
           format: int64
-          nullable: true
-          example: 10
+      additionalProperties: false
+    RecordEventSummaryDto_2:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type:
+          - string
+          - 'null'
+        createdAt:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+    UserSerialDto_2:
+      required:
+      - serialNumber
+      - username
+      type: object
+      properties:
+        username:
+          maxLength: 30
+          minLength: 0
+          type: string
+        serialNumber:
+          maxLength: 8
+          minLength: 0
+          type: string
+      additionalProperties: false
+    CommentSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        createdAt:
+          type:
+          - string
+          - 'null'
+        subcomments:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/SubcommentSummaryDto'
       additionalProperties: false
     OperationType:
       enum:
@@ -1443,218 +1799,481 @@ components:
       - 6
       type: integer
       format: int32
-    NoteEventDto:
+    CustomFieldValueDto_2:
       type: object
       properties:
-        createdAt:
-          type: string
-          nullable: true
-          example: example_value
-        type:
-          type: string
-          nullable: true
-          example: example_value
-        user:
-          type: string
-          nullable: true
-          example: example_value
-        comment:
-          type: string
-          nullable: true
-          example: example_value
-        changeList:
-          type: array
+        code:
+          type:
+          - string
+          - 'null'
+        value:
+          type:
+          - string
+          - 'null'
+        options:
+          type:
+          - array
+          - 'null'
           items:
-            $ref: '#/components/schemas/RecordChangeDto'
-          nullable: true
-          example: []
+            type: string
+        contactValues:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+            format: uuid
       additionalProperties: false
-    SubcommentSummaryDto:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          example: abc123
-        userId:
-          type: string
-          format: uuid
-          example: '500123'
-        createdAt:
-          type: string
-          nullable: true
-          example: example_value
-      additionalProperties: false
-    CreateNoteDto:
+    CreateNoteDto_2:
       required:
       - author
       - date
       type: object
       properties:
         author:
-          $ref: '#/components/schemas/UserSerialDto'
+          $ref: '#/components/schemas/UserSerialDto_2'
         title:
           maxLength: 255
           minLength: 0
-          type: string
-          nullable: true
-          example: Example Title
+          type:
+          - string
+          - 'null'
         identifier:
-          type: string
-          nullable: true
-          example: example_value
+          type:
+          - string
+          - 'null'
         date:
           type: string
-          example: example_value
         subjectId:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uuid
-          nullable: true
-          example: '500123'
         recommendationId:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uuid
-          nullable: true
-          example: '500123'
         sentimentId:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uuid
-          nullable: true
-          example: '500123'
         body:
-          $ref: '#/components/schemas/CreateBodyDto'
+          $ref: '#/components/schemas/CreateBodyDto_2'
         source:
-          type: string
-          nullable: true
-          example: example_value
+          type:
+          - string
+          - 'null'
         link:
           maxLength: 255
           minLength: 0
-          type: string
-          nullable: true
-          example: example_value
+          type:
+          - string
+          - 'null'
         relatedSymbols:
           maxItems: 100
-          type: array
+          type:
+          - array
+          - 'null'
           items:
             type: string
-          nullable: true
-          example: []
         relatedContacts:
-          type: array
+          type:
+          - array
+          - 'null'
           items:
             type: string
             format: uuid
-          nullable: true
-          example: []
         relatedRecords:
-          $ref: '#/components/schemas/RelatedRecordsDto'
+          $ref: '#/components/schemas/RelatedRecordsDto_2'
         customFieldValues:
-          type: array
+          type:
+          - array
+          - 'null'
           items:
-            $ref: '#/components/schemas/CreateCustomFieldValueDto'
-          nullable: true
-          example: []
+            $ref: '#/components/schemas/CreateCustomFieldValueDto_2'
         isPersonal:
           type: boolean
           default: false
-          example: true
       additionalProperties: false
-    RelatedRecordsDto:
+    RelatedRecordsDto_2:
       type: object
       properties:
         noteIds:
-          type: array
+          type:
+          - array
+          - 'null'
           items:
             type: string
             format: uuid
-          nullable: true
-          example: []
         meetingIds:
-          type: array
+          type:
+          - array
+          - 'null'
           items:
             type: string
             format: uuid
-          nullable: true
-          example: []
       additionalProperties: false
-    ProblemDetails:
+    RecordChangeDto_2:
+      type: object
+      properties:
+        field:
+          type:
+          - string
+          - 'null'
+        operation:
+          type:
+          - string
+          - 'null'
+        oldValue:
+          type:
+          - string
+          - 'null'
+        newValue:
+          type:
+          - string
+          - 'null'
+        oldList:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+        newList:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+      additionalProperties: false
+    ProblemDetails_2:
       type: object
       properties:
         type:
-          type: string
-          nullable: true
-          example: example_value
+          type:
+          - string
+          - 'null'
         title:
-          type: string
-          nullable: true
-          example: Example Title
+          type:
+          - string
+          - 'null'
         status:
-          type: integer
+          type:
+          - integer
+          - 'null'
           format: int32
-          nullable: true
-          example: 10
         detail:
-          type: string
-          nullable: true
-          example: example_value
+          type:
+          - string
+          - 'null'
         instance:
-          type: string
-          nullable: true
-          example: example_value
+          type:
+          - string
+          - 'null'
       additionalProperties: {}
-    RecordEventSummaryDto:
+    NoteEventDto_2:
+      type: object
+      properties:
+        createdAt:
+          type:
+          - string
+          - 'null'
+        type:
+          type:
+          - string
+          - 'null'
+        user:
+          type:
+          - string
+          - 'null'
+        comment:
+          type:
+          - string
+          - 'null'
+        changeList:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/RecordChangeDto_2'
+      additionalProperties: false
+    NoteDto_2:
       type: object
       properties:
         id:
           type: string
           format: uuid
-          example: abc123
-        type:
-          type: string
-          nullable: true
-          example: example_value
+        date:
+          type:
+          - string
+          - 'null'
         createdAt:
+          type:
+          - string
+          - 'null'
+        authorId:
           type: string
-          nullable: true
-          example: example_value
+          format: uuid
+        contributorId:
+          type: string
+          format: uuid
+        title:
+          type:
+          - string
+          - 'null'
+        identifier:
+          type:
+          - string
+          - 'null'
+        relatedSymbols:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+        subjectId:
+          type: string
+          format: uuid
+        recommendationId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        sentimentId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        source:
+          type:
+          - string
+          - 'null'
+        link:
+          type:
+          - string
+          - 'null'
+        body:
+          type:
+          - string
+          - 'null'
+        isPersonal:
+          type: boolean
+        state:
+          type:
+          - string
+          - 'null'
+        approvalStatus:
+          type:
+          - string
+          - 'null'
+        averageRating:
+          type:
+          - integer
+          - 'null'
+          format: int32
+        relatedRecords:
+          $ref: '#/components/schemas/RelatedRecordsDto_2'
+        relatedContacts:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+            format: uuid
+        customFields:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/CustomFieldValueDto_2'
       additionalProperties: false
-    RecordChangeDto:
+    NoteSummaryDto_2:
       type: object
       properties:
-        field:
+        id:
           type: string
-          nullable: true
-          example: example_value
-        operation:
+          format: uuid
+        date:
+          type:
+          - string
+          - 'null'
+        createdAt:
+          type:
+          - string
+          - 'null'
+        authorId:
           type: string
-          nullable: true
-          example: example_value
-        oldValue:
+          format: uuid
+        contributorId:
           type: string
-          nullable: true
-          example: example_value
-        newValue:
+          format: uuid
+        title:
+          type:
+          - string
+          - 'null'
+        identifier:
+          type:
+          - string
+          - 'null'
+        subjectId:
           type: string
-          nullable: true
-          example: example_value
-        oldList:
-          type: array
+          format: uuid
+        isPersonal:
+          type: boolean
+        state:
+          type:
+          - string
+          - 'null'
+        approvalStatus:
+          type:
+          - string
+          - 'null'
+        attachmentIds:
+          type:
+          - array
+          - 'null'
           items:
             type: string
-          nullable: true
-          example: []
-        newList:
-          type: array
+            format: uuid
+        relatedSymbols:
+          type:
+          - array
+          - 'null'
           items:
             type: string
-          nullable: true
-          example: []
+        recommendationId:
+          type: string
+          format: uuid
+        sentimentId:
+          type: string
+          format: uuid
+        customFields:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/CustomFieldValueDto_2'
+      additionalProperties: false
+    UpdateNoteDto_2:
+      type: object
+      properties:
+        author:
+          $ref: '#/components/schemas/UserSerialDto_2'
+        title:
+          maxLength: 255
+          minLength: 0
+          type:
+          - string
+          - 'null'
+        subjectId:
+          type: string
+          format: uuid
+        noteDate:
+          type:
+          - string
+          - 'null'
+        recommendationId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        sentimentId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        body:
+          $ref: '#/components/schemas/CreateBodyDto_2'
+        source:
+          type:
+          - string
+          - 'null'
+        link:
+          maxLength: 255
+          minLength: 0
+          type:
+          - string
+          - 'null'
+        relatedSymbols:
+          maxItems: 100
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+        relatedContacts:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+            format: uuid
+        relatedRecords:
+          $ref: '#/components/schemas/RelatedRecordsDto_2'
+        customFieldValues:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/CreateCustomFieldValueDto_2'
+        isPersonal:
+          type:
+          - boolean
+          - 'null'
+        identifier:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+    CommentDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        authorId:
+          type: string
+          format: uuid
+        parentCommentId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        body:
+          type:
+          - string
+          - 'null'
+        createdAt:
+          type:
+          - string
+          - 'null'
+        attachments:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/AttachmentSummaryDto'
+        subcomments:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/SubcommentSummaryDto'
       additionalProperties: false
   securitySchemes:
-    basicAuth:
+    FactSetApiKey:
       type: http
       scheme: basic
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
   description: API Documentation
+  url: https://developer.factset.com/api-catalog/irn-notes-api#apiDocumentation
+x-refined-from:
+- factset-irn-notes-api-openapi.yml
+- irn-notes-openapi-original.yml

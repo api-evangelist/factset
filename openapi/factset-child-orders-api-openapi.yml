@@ -1,7 +1,7 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Child Orders API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  title: Factset EMS Child Orders API
+  description: Allow clients to trade orders.
   contact:
     name: FactSet Research Systems
     url: https://developer.factset.com/contact
@@ -9,14 +9,15 @@ info:
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+  version: 0.3.0
 servers:
-- url: https://api.factset.com
+- url: https://api.factset.com/trading/ems/v0
   description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.uat.factset.com/trading/ems/v0
+  description: UAT
 security:
-- basicAuth: []
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Child Orders
 paths:
@@ -172,41 +173,300 @@ components:
       type: object
       properties:
         message:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Reason for rejection
-          nullable: true
           example: 'Ticket does not exist for ticketid: null'
         basketId:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Unique identifier assigned to basket order
-          nullable: true
           example: FACTSET_OMS-100823_12345
         ticketId:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Ticket Id for the child order
-          nullable: true
           example: RKPW.3280015
         symbol:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Ticker symbol
-          nullable: true
           example: FDS-USA
-    ParentId:
-      required:
-      - basketId
-      - symbol
+    EMSReplaceChildOrdersRoot:
       type: object
       properties:
+        data:
+          $ref: '#/components/schemas/EMSReplaceChildOrders'
+    EMSChildOrdersResponseRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/EMSChildOrdersResponse'
+      description: EMS Response
+    EMSChildOrderInfo:
+      type: object
+      properties:
+        ticketId:
+          type:
+          - string
+          - 'null'
+          description: Ticket Id for the child order
+          example: RKPW.3280015
         symbol:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Ticker symbol
           example: FDS-USA
-        basketId:
+      description: EMS Child Order Info
+    EMSCreateChildOrdersResponse:
+      type: object
+      properties:
+        accepted:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            $ref: '#/components/schemas/EMSCreateChildOrderInfo'
+          description: Accepted Orders. Key is the clientOrderId of the request.
+        rejected:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            $ref: '#/components/schemas/EMSCreateChildOrderRejectedInfo'
+          description: Rejected Orders. Key is the clientOrderId of the request.
+    EMSChildOrdersRoot:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/EMSChildOrders'
+    EMSCancelChildOrdersRoot:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/EMSCancelChildOrders'
+    TimeInForce:
+      type: object
+      properties:
+        tif:
+          enum:
+          - day
+          - goodTillCancel
+          - atTheOpening
+          - immediateOrCancel
+          - fillOrKill
+          - goodTillCrossing
+          - goodTillDate
+          - atc
           type: string
-          description: Unique identifier assigned to basket order. Can be fetched from the WebSocket Order Update API.
-          example: FACTSET_OMS-100823_12345
-      description: Unique identifier to identify the parent order.
-    EMSReplaceChildOrders:
+          description: 'Time in force: if goodTillDate, then Expire Time or Expire Date is a required field'
+        expireDate:
+          type:
+          - string
+          - 'null'
+          description: Expire date in YYYYMMDD format expressed in UTC
+          example: '20230823'
+        expireTime:
+          type:
+          - string
+          - 'null'
+          description: Expire time in YYYYMMDD-HH:MM:SS format expressed in UTC
+          example: 20230823-12:20:25
+      description: Time in Force
+    EMSChildOrdersResponse:
+      type: object
+      properties:
+        accepted:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            $ref: '#/components/schemas/EMSChildOrderInfo'
+          description: Accepted Orders. Key is the clientOrderId of the request.
+        rejected:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            $ref: '#/components/schemas/EMSChildOrderRejectedInfo'
+          description: Rejected Orders. Key is the clientOrderId of the request.
+      description: EMS Child Orders Response
+    ReplaceChildOrder:
+      required:
+      - ticketId
+      type: object
+      properties:
+        ticketId:
+          type: string
+          description: Ticket Id for the child order to be replaced
+          example: RKPW.3280015
+        orderType:
+          enum:
+          - market
+          - limit
+          - stop
+          - stopLimit
+          - marketOnClose
+          - limitOrBetter
+          type:
+          - string
+          - 'null'
+          description: Type of the order
+          example: market
+        orderQuantity:
+          minimum: 0
+          type:
+          - number
+          - 'null'
+          description: Number of shares/Quantity to be routed. Must be less than or equal to the orderQuantity of the parent order.
+          format: double
+          example: 100
+        price:
+          type:
+          - number
+          - 'null'
+          description: Order price per share.
+          format: double
+          example: 450
+        timeInForce:
+          $ref: '#/components/schemas/TimeInForce'
+        handlingInstructions:
+          enum:
+          - autoOrderPrivate
+          - autoOrderPublic
+          - bestExecution
+          type:
+          - string
+          - 'null'
+          description: Instructions for order handling on Broker trading floor.
+          example: autoOrderPublic
+        stopPrice:
+          type:
+          - number
+          - 'null'
+          description: Stop-loss price to buy/sell stock at market.
+          format: double
+          example: 120
+        maxFloor:
+          type:
+          - number
+          - 'null'
+          description: Maximum number of shares within an order to be shown on the exchange floor at any given time.
+          format: double
+          example: 200
+        minQuantity:
+          type:
+          - number
+          - 'null'
+          description: Minimum quantity of an order to be executed.
+          format: double
+          example: 120
+        settlementType:
+          enum:
+          - regular
+          - cash
+          - nextDay
+          - tPlus2
+          - tPlus3
+          - tPlus4
+          - future
+          - whenIssued
+          - sellersOption
+          - tPlus5
+          type:
+          - string
+          - 'null'
+          description: Order settlement period
+          example: regular
+        settlementDate:
+          type:
+          - string
+          - 'null'
+          description: Specific date of trade settlement in YYYYMMDD format.
+          example: '20230823'
+        executionInstructions:
+          enum:
+          - notHeld
+          - work
+          - goAlong
+          - overTheDay
+          - held
+          - participateDoNotInitiate
+          - strictScale
+          - tryToScale
+          - stayOnBidSide
+          - stayOnOfferSide
+          - noCross
+          - okToCross
+          - callFirst
+          - percentOfVolume
+          - doNotIncrease
+          - doNotReduce
+          - allOrNone
+          - reinstateOnSystemFailure
+          - institutionsOnly
+          - reinstateOnTradingHalt
+          - cancelOnTradingHalt
+          - lastPeg
+          - midPricePeg
+          - nonNegotiable
+          - openingPeg
+          - marketPeg
+          - cancelOnSystemFailure
+          - primaryPeg
+          - suspend
+          - fixedPegToLocalBestBid
+          - customerDisplayInstruction
+          - netting
+          - pegToVWAP
+          - tradeAlong
+          - tryToStop
+          - cancelIfNotBest
+          - trailingStopPeg
+          - strictLimit
+          - ignorePriceValidityChecks
+          - pegToLimitPrice
+          - workToTargetStrategy
+          - intermarketSweep
+          - externalRoutingAllowed
+          - externalRoutingNotAllowed
+          - imbalanceOnly
+          - singleExecutionRequestedForBlockTrade
+          - bestExecution
+          type:
+          - string
+          - 'null'
+          description: Instructions for order handling on exchange trading floor.
+          example: notHeld
+        locateRequired:
+          type:
+          - boolean
+          - 'null'
+          description: Indicates whether the broker is to locate the stock in conjunction with a short sell order.
+          example: false
+        text:
+          maxLength: 250
+          type:
+          - string
+          - 'null'
+          description: Free format text string.
+          example: Replacing price to 300 for 50 orders
+        userDefinedFields:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            type: string
+          description: User defined fields
+      description: EMS Replace Child Orders
+    EMSCancelChildOrders:
       required:
       - childOrders
       type: object
@@ -216,76 +476,57 @@ components:
           minItems: 1
           type: array
           items:
-            $ref: '#/components/schemas/ReplaceChildOrder'
-    EMSChildOrderInfo:
+            $ref: '#/components/schemas/EMSCancelChildOrder'
+      description: EMS Cancel Child Orders
+    ClientErrorResponse:
+      type: object
+      properties:
+        errors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Error'
+          description: List of errors
+      description: Client Error Response
+    EMSCancelChildOrder:
+      required:
+      - ticketId
       type: object
       properties:
         ticketId:
           type: string
-          description: Ticket Id for the child order
-          nullable: true
+          description: Ticket Id for the child order to be cancelled
           example: RKPW.3280015
-        symbol:
-          type: string
-          description: Ticker symbol
-          nullable: true
-          example: FDS-USA
-      description: EMS Child Order Info
+        reason:
+          type:
+          - string
+          - 'null'
+          description: Reason for cancelling the child order
+          example: mistyped order quantity to be routed
+      description: EMS Cancel Child Order
     EMSChildOrderRejectedInfo:
       type: object
       properties:
         message:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Reason for rejection
-          nullable: true
           example: 'Ticket does not exist for ticketid: null'
         ticketId:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Ticket Id for the child order
-          nullable: true
           example: RKPW.3280015
         symbol:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Ticker symbol
-          nullable: true
           example: FDS-USA
       description: EMS Child Order Rejected Info
-    EMSChildOrdersRoot:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/EMSChildOrders'
-    EMSCreateChildOrdersResponse:
-      type: object
-      properties:
-        accepted:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/EMSCreateChildOrderInfo'
-          description: Accepted Orders. Key is the clientOrderId of the request.
-          nullable: true
-        rejected:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/EMSCreateChildOrderRejectedInfo'
-          description: Rejected Orders. Key is the clientOrderId of the request.
-          nullable: true
-    EMSChildOrdersResponse:
-      type: object
-      properties:
-        accepted:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/EMSChildOrderInfo'
-          description: Accepted Orders. Key is the clientOrderId of the request.
-          nullable: true
-        rejected:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/EMSChildOrderRejectedInfo'
-          description: Rejected Orders. Key is the clientOrderId of the request.
-          nullable: true
-      description: EMS Child Orders Response
     EMSChildOrder:
       required:
       - destination
@@ -304,9 +545,10 @@ components:
           - sellPlus
           - sellShort
           - sellShortExempt
-          type: string
+          type:
+          - string
+          - 'null'
           description: Side of the order.If the parent order side is 'buy', valid values are 'buy' or 'buyMinus'. If the parent order side is 'sell', valid values are 'sell' or 'sellPlus'
-          nullable: true
           example: buy
         orderType:
           enum:
@@ -326,10 +568,11 @@ components:
           format: double
           example: 250
         price:
-          type: number
+          type:
+          - number
+          - 'null'
           description: Order price per share.
           format: double
-          nullable: true
           example: 450
         timeInForce:
           $ref: '#/components/schemas/TimeInForce'
@@ -338,37 +581,42 @@ components:
           - autoOrderPrivate
           - autoOrderPublic
           - bestExecution
-          type: string
+          type:
+          - string
+          - 'null'
           description: Instructions for order handling on Broker trading floor.
-          nullable: true
           example: autoOrderPublic
         exDestination:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Execution destination as defined by institution when order is entered.
           default: America Stock Exchange
-          nullable: true
           example: America Stock Exchange
         destination:
           type: string
           description: Represents the designated venue or location to which an order is intended to be routed.
           example: PAPER
         stopPrice:
-          type: number
+          type:
+          - number
+          - 'null'
           description: Stop-loss price to buy/sell stock at market.
           format: double
-          nullable: true
           example: 250
         maxFloor:
-          type: number
+          type:
+          - number
+          - 'null'
           description: Maximum number of shares within an order to be shown on the exchange floor at any given time.
           format: double
-          nullable: true
           example: 100
         minQuantity:
-          type: number
+          type:
+          - number
+          - 'null'
           description: Minimum quantity of an order to be executed.
           format: double
-          nullable: true
           example: 120
         settlementType:
           enum:
@@ -382,14 +630,16 @@ components:
           - whenIssued
           - sellersOption
           - tPlus5
-          type: string
+          type:
+          - string
+          - 'null'
           description: Order settlement period
-          nullable: true
           example: regular
         settlementDate:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Specific date of trade settlement in YYYYMMDD format.
-          nullable: true
           example: '20230823'
         executionInstructions:
           enum:
@@ -440,224 +690,117 @@ components:
           - imbalanceOnly
           - singleExecutionRequestedForBlockTrade
           - bestExecution
-          type: string
+          type:
+          - string
+          - 'null'
           description: Instructions for order handling on exchange trading floor.
-          nullable: true
           example: notHeld
         locateRequired:
-          type: boolean
+          type:
+          - boolean
+          - 'null'
           description: Indicates whether the broker is to locate the stock in conjunction with a short sell order.
-          nullable: true
           example: false
         text:
           maxLength: 250
-          type: string
+          type:
+          - string
+          - 'null'
           description: Free format text string.
-          nullable: true
           example: routing 10 orders to PAPER destination
         profile:
-          type: string
+          type:
+          - string
+          - 'null'
           description: A name given to broker algo
-          nullable: true
         userDefinedFields:
-          type: object
+          type:
+          - object
+          - 'null'
           additionalProperties:
             type: string
           description: User defined fields
-          nullable: true
       description: EMS Child Orders
-    EMSCancelChildOrder:
+    EMSCreateChildOrdersResponseRoot:
       required:
-      - ticketId
+      - data
       type: object
       properties:
+        data:
+          $ref: '#/components/schemas/EMSCreateChildOrdersResponse'
+      description: EMS Response
+    EMSCreateChildOrderInfo:
+      type: object
+      properties:
+        basketId:
+          type:
+          - string
+          - 'null'
+          description: Unique identifier assigned to basket order
+          example: FACTSET_OMS-100823_12345
         ticketId:
-          type: string
-          description: Ticket Id for the child order to be cancelled
+          type:
+          - string
+          - 'null'
+          description: Ticket Id for the child order
           example: RKPW.3280015
-        reason:
-          type: string
-          description: Reason for cancelling the child order
-          nullable: true
-          example: mistyped order quantity to be routed
-      description: EMS Cancel Child Order
+        symbol:
+          type:
+          - string
+          - 'null'
+          description: Ticker symbol
+          example: FDS-USA
+    EMSReplaceChildOrders:
+      required:
+      - childOrders
+      type: object
+      properties:
+        childOrders:
+          maxItems: 1
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/ReplaceChildOrder'
     Error:
       type: object
       properties:
         id:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Identifier for the error
-          nullable: true
         code:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Code
-          nullable: true
         title:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Title
-          nullable: true
         detail:
-          type: string
+          type:
+          - string
+          - 'null'
           description: Explanation specific to the occurrence of the error
-          nullable: true
         source:
           $ref: '#/components/schemas/ErrorSource'
       description: Error
-    ReplaceChildOrder:
-      required:
-      - ticketId
+    ErrorSource:
       type: object
       properties:
-        ticketId:
-          type: string
-          description: Ticket Id for the child order to be replaced
-          example: RKPW.3280015
-        orderType:
-          enum:
-          - market
-          - limit
-          - stop
-          - stopLimit
-          - marketOnClose
-          - limitOrBetter
-          type: string
-          description: Type of the order
-          nullable: true
-          example: market
-        orderQuantity:
-          minimum: 0
-          type: number
-          description: Number of shares/Quantity to be routed. Must be less than or equal to the orderQuantity of the parent order.
-          format: double
-          nullable: true
-          example: 100
-        price:
-          type: number
-          description: Order price per share.
-          format: double
-          nullable: true
-          example: 450
-        timeInForce:
-          $ref: '#/components/schemas/TimeInForce'
-        handlingInstructions:
-          enum:
-          - autoOrderPrivate
-          - autoOrderPublic
-          - bestExecution
-          type: string
-          description: Instructions for order handling on Broker trading floor.
-          nullable: true
-          example: autoOrderPublic
-        stopPrice:
-          type: number
-          description: Stop-loss price to buy/sell stock at market.
-          format: double
-          nullable: true
-          example: 120
-        maxFloor:
-          type: number
-          description: Maximum number of shares within an order to be shown on the exchange floor at any given time.
-          format: double
-          nullable: true
-          example: 200
-        minQuantity:
-          type: number
-          description: Minimum quantity of an order to be executed.
-          format: double
-          nullable: true
-          example: 120
-        settlementType:
-          enum:
-          - regular
-          - cash
-          - nextDay
-          - tPlus2
-          - tPlus3
-          - tPlus4
-          - future
-          - whenIssued
-          - sellersOption
-          - tPlus5
-          type: string
-          description: Order settlement period
-          nullable: true
-          example: regular
-        settlementDate:
-          type: string
-          description: Specific date of trade settlement in YYYYMMDD format.
-          nullable: true
-          example: '20230823'
-        executionInstructions:
-          enum:
-          - notHeld
-          - work
-          - goAlong
-          - overTheDay
-          - held
-          - participateDoNotInitiate
-          - strictScale
-          - tryToScale
-          - stayOnBidSide
-          - stayOnOfferSide
-          - noCross
-          - okToCross
-          - callFirst
-          - percentOfVolume
-          - doNotIncrease
-          - doNotReduce
-          - allOrNone
-          - reinstateOnSystemFailure
-          - institutionsOnly
-          - reinstateOnTradingHalt
-          - cancelOnTradingHalt
-          - lastPeg
-          - midPricePeg
-          - nonNegotiable
-          - openingPeg
-          - marketPeg
-          - cancelOnSystemFailure
-          - primaryPeg
-          - suspend
-          - fixedPegToLocalBestBid
-          - customerDisplayInstruction
-          - netting
-          - pegToVWAP
-          - tradeAlong
-          - tryToStop
-          - cancelIfNotBest
-          - trailingStopPeg
-          - strictLimit
-          - ignorePriceValidityChecks
-          - pegToLimitPrice
-          - workToTargetStrategy
-          - intermarketSweep
-          - externalRoutingAllowed
-          - externalRoutingNotAllowed
-          - imbalanceOnly
-          - singleExecutionRequestedForBlockTrade
-          - bestExecution
-          type: string
-          description: Instructions for order handling on exchange trading floor.
-          nullable: true
-          example: notHeld
-        locateRequired:
-          type: boolean
-          description: Indicates whether the broker is to locate the stock in conjunction with a short sell order.
-          nullable: true
-          example: false
-        text:
-          maxLength: 250
-          type: string
-          description: Free format text string.
-          nullable: true
-          example: Replacing price to 300 for 50 orders
-        userDefinedFields:
-          type: object
-          additionalProperties:
-            type: string
-          description: User defined fields
-          nullable: true
-      description: EMS Replace Child Orders
+        pointer:
+          type:
+          - string
+          - 'null'
+          description: Pointer to the associated entity in the request body
+        parameter:
+          type:
+          - string
+          - 'null'
+          description: Indicates which path or URI query parameter caused the error
+      description: Error Source
     EMSChildOrders:
       required:
       - childOrders
@@ -669,114 +812,31 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/EMSChildOrder'
-    EMSReplaceChildOrdersRoot:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/EMSReplaceChildOrders'
-    ClientErrorResponse:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/Error'
-          description: List of errors
-          nullable: true
-      description: Client Error Response
-    EMSCancelChildOrders:
+    ParentId:
       required:
-      - childOrders
+      - basketId
+      - symbol
       type: object
       properties:
-        childOrders:
-          maxItems: 1
-          minItems: 1
-          type: array
-          items:
-            $ref: '#/components/schemas/EMSCancelChildOrder'
-      description: EMS Cancel Child Orders
-    EMSCreateChildOrdersResponseRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/EMSCreateChildOrdersResponse'
-      description: EMS Response
-    ErrorSource:
-      type: object
-      properties:
-        pointer:
-          type: string
-          description: Pointer to the associated entity in the request body
-          nullable: true
-        parameter:
-          type: string
-          description: Indicates which path or URI query parameter caused the error
-          nullable: true
-      description: Error Source
-    EMSCreateChildOrderInfo:
-      type: object
-      properties:
-        basketId:
-          type: string
-          description: Unique identifier assigned to basket order
-          nullable: true
-          example: FACTSET_OMS-100823_12345
-        ticketId:
-          type: string
-          description: Ticket Id for the child order
-          nullable: true
-          example: RKPW.3280015
         symbol:
           type: string
           description: Ticker symbol
-          nullable: true
           example: FDS-USA
-    EMSChildOrdersResponseRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/EMSChildOrdersResponse'
-      description: EMS Response
-    TimeInForce:
-      type: object
-      properties:
-        tif:
-          enum:
-          - day
-          - goodTillCancel
-          - atTheOpening
-          - immediateOrCancel
-          - fillOrKill
-          - goodTillCrossing
-          - goodTillDate
-          - atc
+        basketId:
           type: string
-          description: 'Time in force: if goodTillDate, then Expire Time or Expire Date is a required field'
-        expireDate:
-          type: string
-          description: Expire date in YYYYMMDD format expressed in UTC
-          nullable: true
-          example: '20230823'
-        expireTime:
-          type: string
-          description: Expire time in YYYYMMDD-HH:MM:SS format expressed in UTC
-          nullable: true
-          example: 20230823-12:20:25
-      description: Time in Force
-    EMSCancelChildOrdersRoot:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/EMSCancelChildOrders'
+          description: Unique identifier assigned to basket order. Can be fetched from the WebSocket Order Update API.
+          example: FACTSET_OMS-100823_12345
+      description: Unique identifier to identify the parent order.
   securitySchemes:
-    basicAuth:
+    FactSetApiKey:
       type: http
       scheme: basic
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
   description: API Documentation
+  url: https://developer.factset.com/api-catalog/factset-trading-api

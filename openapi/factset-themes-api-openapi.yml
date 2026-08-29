@@ -1,22 +1,12 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Themes API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
-  contact:
-    name: FactSet Research Systems
-    url: https://developer.factset.com/contact
-    email: api@factset.com
-  license:
-    name: Apache License, Version 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+  title: Factset Themes API
+  version: '1.0'
+  description: 'Operations tagged Themes across 3 of this provider''s published API definitions: factset-signals-api-openapi.yml, natural-language-processing-openapi-original.yml, signals-openapi-original.yml. Each path carries the servers of the definition it was published in.'
 servers:
-- url: https://api.factset.com
+- url: https://api.factset.com/signals/v2
   description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
-security:
-- basicAuth: []
+- url: https://api.factset.com/cognitive/nlp/v1
 tags:
 - name: Themes
 paths:
@@ -59,6 +49,8 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
+      security:
+      - basicAuth: []
     post:
       description: Endpoint to extract themes from provided text. Optionally, can include sentiment for each theme extracted. Please check the schema(s) for each of the status codes for more details.
       operationId: themesExtractThemes
@@ -80,6 +72,11 @@ paths:
       summary: Factset Endpoint to begin theme extraction job
       tags:
       - Themes
+      security:
+      - basicAuth: []
+    servers:
+    - url: https://api.factset.com/signals/v2
+      description: Production
   /themes/{id}:
     get:
       description: Endpoint to obtain the results from the original themes task request. The `id` parameter represents the identifier of the task generated from the POST request which created the task. Once the task is complete, the result can be fetched with this endpoint.
@@ -102,6 +99,11 @@ paths:
       summary: Factset Endpoint to get a theme (and sentiments if requested) job result
       tags:
       - Themes
+      security:
+      - FactSetApiKey: []
+      - FactSetOAuth2: []
+    servers:
+    - url: https://api.factset.com/cognitive/nlp/v1
   /themes/{id}/status:
     get:
       description: Endpoint to obtain the completion status of the themes task request. The `id` parameter represents the task.
@@ -127,19 +129,86 @@ paths:
       summary: Factset Endpoint to get the completion status of a themes job
       tags:
       - Themes
+      security:
+      - FactSetApiKey: []
+      - FactSetOAuth2: []
+    servers:
+    - url: https://api.factset.com/cognitive/nlp/v1
 components:
+  headers:
+    Api-Supported-Versions:
+      description: Comma-separated list of supported major versions.
+      schema:
+        type: string
+        example: '1'
+    RateLimit-Reset:
+      description: Time remaining (in seconds) until the quota is reset.
+      schema:
+        type: integer
+        example: 1000
+    Api-Version:
+      description: Full semantic version of the API.
+      schema:
+        type: string
+        example: 1.0.0
+    RateLimit-Limit:
+      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
+      schema:
+        type: integer
+        example: 5
+    RateLimit-Remaining:
+      description: Remaining number of requests in the current time window.
+      schema:
+        type: integer
+        example: 4
+    Location:
+      description: The `Location` response header indicates the URL to redirect a page to.
+      schema:
+        type: string
   schemas:
-    ThemesParametersRoot:
-      description: Schema that envelopes the `ThemesParameters` and include additional `meta` (if available).
-      properties:
-        data:
-          $ref: '#/components/schemas/ThemesParameters'
-        meta:
-          description: Any associated metadata
-          type: object
+    signalMetaData:
+      type: object
       required:
       - data
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            required:
+            - id
+            - name
+            - description
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              description:
+                type: string
+          example: []
+    rateLimitResponse:
+      title: Rate Limit Error Object
+      description: Error returned if any of the user's rate limit have been reached.
+      properties:
+        message:
+          type: string
+          example: API rate limit exceeded
+    errorResponse:
       type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+          description: A short description of the error.
+          example: There was an error processing your request. Please try again later.
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errorItem'
+          description: Optional list of errors. e.g. Validation errors for multiple parameters
+          example: []
     errorItem:
       type: object
       required:
@@ -166,88 +235,6 @@ components:
             parameter:
               type: string
           example: example_value
-    TaskRoot:
-      description: Schema that envelopes `Task` and include additional `meta` (if available).
-      properties:
-        data:
-          $ref: '#/components/schemas/Task'
-        meta:
-          description: Any associated metadata
-          type: object
-      required:
-      - data
-      type: object
-    rateLimitResponse:
-      title: Rate Limit Error Object
-      description: Error returned if any of the user's rate limit have been reached.
-      properties:
-        message:
-          type: string
-          example: API rate limit exceeded
-    errorResponse:
-      type: object
-      required:
-      - message
-      properties:
-        message:
-          type: string
-          description: A short description of the error.
-          example: There was an error processing your request. Please try again later.
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/errorItem'
-          description: Optional list of errors. e.g. Validation errors for multiple parameters
-          example: []
-    HTTPErrorRoot:
-      description: Schema that defines HTTP error(s).
-      properties:
-        errors:
-          description: List of errors
-          items:
-            $ref: '#/components/schemas/HTTPError'
-          type: array
-      required:
-      - errors
-      type: object
-    signalMetaData:
-      type: object
-      required:
-      - data
-      properties:
-        data:
-          type: array
-          items:
-            type: object
-            required:
-            - id
-            - name
-            - description
-            properties:
-              id:
-                type: string
-              name:
-                type: string
-              description:
-                type: string
-          example: []
-    ThemesParameters:
-      description: Schema that defines the parameters needed to extract themes.
-      properties:
-        includeSentiments:
-          description: Boolean flag indicating inclusion of sentiment for each theme.
-          example: false
-          type: boolean
-        text:
-          description: The text input that provides the context
-          example: 'Studio Entertainment: At Studio Entertainment, operating income decreased in the quarter due to lower theatrical distribution and home entertainment results. Worldwide theatrical results continued to be adversely impacted by COVID-19, as theaters were closed in many key markets both domestically and internationally. With no significant worldwide theatrical releases in the quarter, we faced a difficult comparison against the strong performance of The Lion King and Toy Story 4 in the prior-year quarter. Operating Results: On our last earnings call, we said that we expected Q4 operating results of our DTC businesses to improve by approximately $100mm relative to the prior-year quarter. Our results came in better than that guidance, with operating income at our DTC businesses improving by approximately $300mm vs. the prior year due to better-than-expected performance across all three of our streaming services. I will note that we do not plan to further update any of our subscriber numbers until our Investor Day on December 10 At our International Channels, lower results were due to lower affiliate and advertising revenues, partially offset by a decrease in cost.'
-          maxLength: 10000
-          minLength: 1
-          type: string
-      required:
-      - includeSentiments
-      - text
-      type: object
     ThemeSentimentsRoot:
       description: Schema that envelopes the `ThemeSentiment` and include additional `meta` (if available).
       properties:
@@ -261,46 +248,6 @@ components:
           type: object
       required:
       - data
-      type: object
-    ErrorSource:
-      description: Schema that defines the source of the error.
-      properties:
-        parameter:
-          description: A string indicating which path or URI query parameter caused the error.
-          type: string
-        pointer:
-          description: More details pointing to the error.
-          type: string
-      required:
-      - parameter
-      - pointer
-      type: object
-    ThemeSentiment:
-      description: Schema that defines the extracted theme and the corresponding sentiments
-      properties:
-        sentiment:
-          description: The sentiment of the theme.
-          enum:
-          - positive
-          - negative
-          - neutral
-          example: positive
-          type: string
-        sentimentScore:
-          description: Confidence score of the sentiment
-          example: 0.9900231957
-          type: number
-        themeScore:
-          description: The confidence score associated to the theme
-          example: 0.88
-          type: number
-        themeText:
-          description: The extracted theme as text
-          example: home entertainment results
-          type: string
-      required:
-      - themeScore
-      - themeText
       type: object
     Task:
       description: Schema that represents a long-running process/task.
@@ -372,6 +319,154 @@ components:
       - id
       - title
       type: object
+    ThemesParameters:
+      description: Schema that defines the parameters needed to extract themes.
+      properties:
+        includeSentiments:
+          description: Boolean flag indicating inclusion of sentiment for each theme.
+          example: false
+          type: boolean
+        text:
+          description: The text input that provides the context
+          example: 'Studio Entertainment: At Studio Entertainment, operating income decreased in the quarter due to lower theatrical distribution and home entertainment results. Worldwide theatrical results continued to be adversely impacted by COVID-19, as theaters were closed in many key markets both domestically and internationally. With no significant worldwide theatrical releases in the quarter, we faced a difficult comparison against the strong performance of The Lion King and Toy Story 4 in the prior-year quarter. Operating Results: On our last earnings call, we said that we expected Q4 operating results of our DTC businesses to improve by approximately $100mm relative to the prior-year quarter. Our results came in better than that guidance, with operating income at our DTC businesses improving by approximately $300mm vs. the prior year due to better-than-expected performance across all three of our streaming services. I will note that we do not plan to further update any of our subscriber numbers until our Investor Day on December 10 At our International Channels, lower results were due to lower affiliate and advertising revenues, partially offset by a decrease in cost.'
+          maxLength: 10000
+          minLength: 1
+          type: string
+      required:
+      - includeSentiments
+      - text
+      type: object
+    TaskRoot:
+      description: Schema that envelopes `Task` and include additional `meta` (if available).
+      properties:
+        data:
+          $ref: '#/components/schemas/Task'
+        meta:
+          description: Any associated metadata
+          type: object
+      required:
+      - data
+      type: object
+    HTTPErrorRoot:
+      description: Schema that defines HTTP error(s).
+      properties:
+        errors:
+          description: List of errors
+          items:
+            $ref: '#/components/schemas/HTTPError'
+          type: array
+      required:
+      - errors
+      type: object
+    ThemeSentiment:
+      description: Schema that defines the extracted theme and the corresponding sentiments
+      properties:
+        sentiment:
+          description: The sentiment of the theme.
+          enum:
+          - positive
+          - negative
+          - neutral
+          example: positive
+          type: string
+        sentimentScore:
+          description: Confidence score of the sentiment
+          example: 0.9900231957
+          type: number
+        themeScore:
+          description: The confidence score associated to the theme
+          example: 0.88
+          type: number
+        themeText:
+          description: The extracted theme as text
+          example: home entertainment results
+          type: string
+      required:
+      - themeScore
+      - themeText
+      type: object
+    ThemesParametersRoot:
+      description: Schema that envelopes the `ThemesParameters` and include additional `meta` (if available).
+      properties:
+        data:
+          $ref: '#/components/schemas/ThemesParameters'
+        meta:
+          description: Any associated metadata
+          type: object
+      required:
+      - data
+      type: object
+    ErrorSource:
+      description: Schema that defines the source of the error.
+      properties:
+        parameter:
+          description: A string indicating which path or URI query parameter caused the error.
+          type: string
+        pointer:
+          description: More details pointing to the error.
+          type: string
+      required:
+      - parameter
+      - pointer
+      type: object
+    signalMetaData_2:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            required:
+            - id
+            - name
+            - description
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              description:
+                type: string
+    errorResponse_2:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+          description: A short description of the error.
+          example: There was an error processing your request. Please try again later.
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errorItem_2'
+          description: Optional list of errors. e.g. Validation errors for multiple parameters
+    errorItem_2:
+      type: object
+      required:
+      - id
+      - code
+      - title
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          example: parameterError
+        title:
+          type: string
+          example: Invalid type/value
+        detail:
+          type: string
+          example: Value must be a valid UTC date/time that conforms to ISO 8601 format
+        source:
+          type: object
+          properties:
+            parameter:
+              type: string
   responses:
     '401':
       content:
@@ -388,54 +483,24 @@ components:
       headers:
         Location:
           $ref: '#/components/headers/Location'
-    '500':
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/HTTPErrorRoot'
-      description: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
     '404':
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/HTTPErrorRoot'
       description: 'description: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.'
+    '500':
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPErrorRoot'
+      description: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
     '400':
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/HTTPErrorRoot'
       description: The browser (or proxy) sent a request that this server could not understand.
-  headers:
-    RateLimit-Limit:
-      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
-      schema:
-        type: integer
-        example: 5
-    RateLimit-Reset:
-      description: Time remaining (in seconds) until the quota is reset.
-      schema:
-        type: integer
-        example: 1000
-    Location:
-      description: The `Location` response header indicates the URL to redirect a page to.
-      schema:
-        type: string
-    RateLimit-Remaining:
-      description: Remaining number of requests in the current time window.
-      schema:
-        type: integer
-        example: 4
-    Api-Version:
-      description: Full semantic version of the API.
-      schema:
-        type: string
-        example: 1.0.0
-    Api-Supported-Versions:
-      description: Comma-separated list of supported major versions.
-      schema:
-        type: string
-        example: '1'
   parameters:
     id:
       description: Long running task identifier
@@ -448,6 +513,16 @@ components:
     basicAuth:
       type: http
       scheme: basic
-externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
-  description: API Documentation
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
+    FactSetApiKey:
+      type: http
+      scheme: basic
+x-refined-from:
+- factset-signals-api-openapi.yml
+- natural-language-processing-openapi-original.yml
+- signals-openapi-original.yml

@@ -1,22 +1,15 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Contact Custom Fields API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
-  contact:
-    name: FactSet Research Systems
-    url: https://developer.factset.com/contact
-    email: api@factset.com
-  license:
-    name: Apache License, Version 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+  title: Factset IRN API v1 Contact Custom Fields API
+  description: Allows users to extract, create, update and configure IRN data.
+  version: '1'
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
+- url: https://api.factset.com/research/irn
+  description: Production Server
+- url: https://api-sandbox.factset.com/research/irn
   description: Sandbox
 security:
-- basicAuth: []
+- basicScheme: []
 tags:
 - name: Contact Custom Fields
 paths:
@@ -200,16 +193,6 @@ paths:
                 $ref: '#/components/schemas/ProblemDetails'
 components:
   schemas:
-    FormulaConfigDto:
-      type: object
-      properties:
-        formula:
-          type: string
-          nullable: true
-        formulaType:
-          type: string
-          nullable: true
-      additionalProperties: false
     NewItemDto:
       type: object
       properties:
@@ -217,6 +200,47 @@ components:
           type: string
           format: uuid
       additionalProperties: false
+    ContactCustomFieldOptionDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type:
+          - string
+          - 'null'
+        order:
+          type: integer
+          format: int32
+      additionalProperties: false
+    ContactCustomFieldFormulaDto:
+      type: object
+      properties:
+        formula:
+          maxLength: 2040
+          type:
+          - string
+          - 'null'
+        isScreening:
+          type: boolean
+          default: false
+        symbol:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+    OperationType:
+      enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      type: integer
+      format: int32
     ContactCustomFieldSaveDto:
       required:
       - code
@@ -243,61 +267,42 @@ components:
         fieldFormula:
           $ref: '#/components/schemas/ContactCustomFieldFormulaDto'
         contactCustomFieldOptions:
-          type: array
+          type:
+          - array
+          - 'null'
           items:
             $ref: '#/components/schemas/ContactCustomFieldOptionSaveDto'
-          nullable: true
       additionalProperties: false
-    ContactCustomFieldOptionDto:
+    FormulaConfigDto:
       type: object
       properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-          nullable: true
-        order:
-          type: integer
-          format: int32
+        formula:
+          type:
+          - string
+          - 'null'
+        formulaType:
+          type:
+          - string
+          - 'null'
       additionalProperties: false
-    OperationType:
-      enum:
-      - 0
-      - 1
-      - 2
-      - 3
-      - 4
-      - 5
-      - 6
-      type: integer
-      format: int32
-    ContactCustomFieldDto:
+    Operation:
       type: object
       properties:
-        id:
-          type: string
-          format: uuid
-        code:
-          type: string
-          nullable: true
-        name:
-          type: string
-          nullable: true
-        type:
-          type: string
-          nullable: true
-        isHidden:
-          type: boolean
-        isMandatory:
-          type: boolean
-        formulaConfig:
-          $ref: '#/components/schemas/FormulaConfigDto'
-        contactCustomFieldOptions:
-          type: array
-          items:
-            $ref: '#/components/schemas/ContactCustomFieldOptionDto'
-          nullable: true
+        operationType:
+          $ref: '#/components/schemas/OperationType'
+        path:
+          type:
+          - string
+          - 'null'
+        op:
+          type:
+          - string
+          - 'null'
+        from:
+          type:
+          - string
+          - 'null'
+        value: {}
       additionalProperties: false
     ContactCustomFieldOptionSaveDto:
       required:
@@ -308,37 +313,62 @@ components:
           maxLength: 255
           type: string
       additionalProperties: false
-    ContactCustomFieldFormulaDto:
+    ContactCustomFieldDto:
       type: object
       properties:
-        formula:
-          maxLength: 2040
+        id:
           type: string
-          nullable: true
-        isScreening:
+          format: uuid
+        code:
+          type:
+          - string
+          - 'null'
+        name:
+          type:
+          - string
+          - 'null'
+        type:
+          type:
+          - string
+          - 'null'
+        isHidden:
           type: boolean
-          default: false
-        symbol:
-          type: string
-          nullable: true
+        isMandatory:
+          type: boolean
+        formulaConfig:
+          $ref: '#/components/schemas/FormulaConfigDto'
+        contactCustomFieldOptions:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/ContactCustomFieldOptionDto'
       additionalProperties: false
-    Operation:
+    ProblemDetails:
       type: object
       properties:
-        operationType:
-          $ref: '#/components/schemas/OperationType'
-        path:
-          type: string
-          nullable: true
-        op:
-          type: string
-          nullable: true
-        from:
-          type: string
-          nullable: true
-        value:
-          nullable: true
-      additionalProperties: false
+        type:
+          type:
+          - string
+          - 'null'
+        title:
+          type:
+          - string
+          - 'null'
+        status:
+          type:
+          - integer
+          - 'null'
+          format: int32
+        detail:
+          type:
+          - string
+          - 'null'
+        instance:
+          type:
+          - string
+          - 'null'
+      additionalProperties: {}
     ContactCustomFieldType:
       enum:
       - 0
@@ -351,30 +381,7 @@ components:
       - 7
       type: integer
       format: int32
-    ProblemDetails:
-      type: object
-      properties:
-        type:
-          type: string
-          nullable: true
-        title:
-          type: string
-          nullable: true
-        status:
-          type: integer
-          format: int32
-          nullable: true
-        detail:
-          type: string
-          nullable: true
-        instance:
-          type: string
-          nullable: true
-      additionalProperties: {}
   securitySchemes:
-    basicAuth:
+    basicScheme:
       type: http
       scheme: basic
-externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
-  description: API Documentation

@@ -1,22 +1,20 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Scripts Asia API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  title: Factset Open:FactSet - Partners Scripts Asia API
+  description: This service provides the capability to search and download unstructured content provided by <a href="https://open.factset.com/catalog/en-us">Open:FactSet Partners</a>.
+  version: 2.0.0
   contact:
     name: FactSet Research Systems
-    url: https://developer.factset.com/contact
     email: api@factset.com
+    url: https://developer.factset.com/contact
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.factset.com/bulk-documents/ofm/v2
 security:
-- basicAuth: []
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Scripts Asia
   description: Scripts Asia API provides access to Asia Pacific regional collected transcripts.
@@ -93,6 +91,20 @@ paths:
                   $ref: '#/components/examples/serverErrorDetails'
 components:
   examples:
+    ErrorDetails:
+      summary: sample error response
+      value:
+        errors:
+        - code: Bad Request
+          title: parameterError:['_paginationLimit'] is not a valid parameter(s)
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    serverErrorDetails:
+      summary: sample error response
+      value:
+        errors:
+        - code: Internal server error
+          title: An unexpected error happened
+          id: 7af3d86ca5954503b9244f2620fcf5eb
     scriptsAsiaResponses:
       summary: Sample Response
       description: Single record for c017c490-b73b-11ed-9332-a376adde0fbe trackingId.
@@ -112,12 +124,12 @@ components:
           pagination:
             total: 50
             isEstimatedTotal: false
-    ErrorDetails:
+    AuthorizationErrorDetails:
       summary: sample error response
       value:
         errors:
-        - code: Bad Request
-          title: parameterError:['_paginationLimit'] is not a valid parameter(s)
+        - code: Forbidden
+          title: USERNAME-SERIAL does not have permission
           id: 7af3d86ca5954503b9244f2620fcf5eb
     AuthErrorDetails:
       summary: sample error response
@@ -126,21 +138,17 @@ components:
         - code: Not Authenticated
           title: Unauthenticated USERNAME-SERIAL
           id: fd5a51ff-02cf-48ec-b9b1-913d64863b0
-    AuthorizationErrorDetails:
-      summary: sample error response
-      value:
-        errors:
-        - code: Forbidden
-          title: USERNAME-SERIAL does not have permission
-          id: 7af3d86ca5954503b9244f2620fcf5eb
-    serverErrorDetails:
-      summary: sample error response
-      value:
-        errors:
-        - code: Internal server error
-          title: An unexpected error happened
-          id: 7af3d86ca5954503b9244f2620fcf5eb
   parameters:
+    saId:
+      name: saId
+      in: query
+      required: false
+      schema:
+        type: string
+      description: 'This parameter filters the results based on saId of the Transcript.
+
+        '
+      example: SA002220_2023Mar27_a_02
     _paginationLimit:
       name: _paginationLimit
       in: query
@@ -151,6 +159,17 @@ components:
         maximum: 500
         minimum: 1
         default: 20
+    _sort:
+      name: _sort
+      in: query
+      description: Enables to get the data in ascending or descending order based on startTime. Results are in reverse chronological order if this parameter is not used.
+      required: false
+      schema:
+        type: string
+        enum:
+        - startDate
+        - -startDate
+        default: -startDate
     _paginationOffset:
       name: _paginationOffset
       in: query
@@ -160,6 +179,45 @@ components:
         type: integer
         minimum: 0
         default: 0
+    endDateScriptsAsia:
+      name: endDate
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+      description: "The latest date of the Scripts Asia file the API should return based on date.         \n"
+      example: '2023-03-28'
+    startDateScriptsAsia:
+      name: startDate
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+      description: 'The earliest date of the Scripts Asia file the API should return based on date.
+
+        '
+      example: '2023-03-20'
+    typeScriptsAsia:
+      name: type
+      in: query
+      description: Specifies the type of the file.
+      required: false
+      schema:
+        type: string
+        enum:
+        - full
+        - delta
+        default: delta
+    fileNameScriptsAsia:
+      name: fileName
+      in: query
+      description: This parameter is used to filters the results based on file name.
+      required: false
+      schema:
+        type: string
+      example: SA002220_2023Mar27_a_02_fds_xml_local.xml
     languageType:
       name: languageType
       in: query
@@ -202,35 +260,6 @@ components:
         * 06 = Investor Conference
 
         '
-    trackingId:
-      name: trackingId
-      in: query
-      required: false
-      schema:
-        type: string
-      description: 'Unique Scripts Asia identifier assigned to an event.
-
-        '
-      example: 431eb8d0-cc45-11ed-8609-0f67251fe7a4
-    _sort:
-      name: _sort
-      in: query
-      description: Enables to get the data in ascending or descending order based on startTime. Results are in reverse chronological order if this parameter is not used.
-      required: false
-      schema:
-        type: string
-        enum:
-        - startDate
-        - -startDate
-        default: -startDate
-    fileNameScriptsAsia:
-      name: fileName
-      in: query
-      description: This parameter is used to filters the results based on file name.
-      required: false
-      schema:
-        type: string
-      example: SA002220_2023Mar27_a_02_fds_xml_local.xml
     companyName:
       name: companyName
       in: query
@@ -241,55 +270,17 @@ components:
 
         '
       example: Beijing Shunxin Agriculture Co Ltd
-    typeScriptsAsia:
-      name: type
-      in: query
-      description: Specifies the type of the file.
-      required: false
-      schema:
-        type: string
-        enum:
-        - full
-        - delta
-        default: delta
-    endDateScriptsAsia:
-      name: endDate
+    trackingId:
+      name: trackingId
       in: query
       required: false
       schema:
         type: string
-        format: date
-      description: "The latest date of the Scripts Asia file the API should return based on date.         \n"
-      example: '2023-03-28'
-    startDateScriptsAsia:
-      name: startDate
-      in: query
-      required: false
-      schema:
-        type: string
-        format: date
-      description: 'The earliest date of the Scripts Asia file the API should return based on date.
+      description: 'Unique Scripts Asia identifier assigned to an event.
 
         '
-      example: '2023-03-20'
-    saId:
-      name: saId
-      in: query
-      required: false
-      schema:
-        type: string
-      description: 'This parameter filters the results based on saId of the Transcript.
-
-        '
-      example: SA002220_2023Mar27_a_02
+      example: 431eb8d0-cc45-11ed-8609-0f67251fe7a4
   schemas:
-    meta:
-      title: Meta
-      description: Array of metadata objects.
-      type: object
-      properties:
-        pagination:
-          $ref: '#/components/schemas/pagination'
     errorExample:
       type: object
       description: Specifies the fields in the error message
@@ -303,27 +294,6 @@ components:
         id:
           description: Specifies the id
           type: string
-    AuthStatus:
-      type: object
-      description: specifies the error message fields in the response
-      properties:
-        errors:
-          type: array
-          description: An array containing errors
-          items:
-            $ref: '#/components/schemas/errorExample'
-    scriptsAsiaResponse:
-      type: object
-      title: Scrips Asia Response
-      description: Returns Transcripts Response
-      properties:
-        data:
-          description: Returns Transcripts Response
-          type: array
-          items:
-            $ref: '#/components/schemas/transcripts'
-        meta:
-          $ref: '#/components/schemas/meta'
     pagination:
       title: PaginationItems
       description: List of pagination objects
@@ -335,6 +305,15 @@ components:
         isEstimatedTotal:
           description: Boolean value that represents whether the total count of files returned is exact or an estimate. This is defaulted to “False” as the API should always return the exact count.
           type: boolean
+    AuthStatus:
+      type: object
+      description: specifies the error message fields in the response
+      properties:
+        errors:
+          type: array
+          description: An array containing errors
+          items:
+            $ref: '#/components/schemas/errorExample'
     transcripts:
       title: Scripts Asia Object
       type: object
@@ -381,10 +360,35 @@ components:
           description: Download link for the Scripts Asia API provided by the Scripts Asia.
           type: string
           example: https://fdss3-scripts-asia.s3.amazonaws.com/scripts_asia_processed_data/scra_events/xml_files/059180b0-b728-11ed-89e6-1b2cff4f6d2b/SA002591_2023Mar01_a_03_xml_eng.xml?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA4NAFRGHDIIPCUVPG%2F20230301%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20230301T100743Z&X-Amz-Expires=28800&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOL%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJIMEYCIQCvZLHP1v0WWI3ii6DEK9fVvGfi%2BfCxexxx%2B6mzcWcHLwIhAPTldtEfTdZYezHAO92eK8%2B6Yu6DYBV2KVd5HLDQzo4PKvcCCIv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQAhoMODUyNTYyNjIwODcwIgxJYY0THhy%2FGYck2aQqywLfzjVGrxormOYhOXiSObA%2FTJSYcNtawuzKczgrcaIvQw5pXTp0Ea%2BFsxbFd9K8Dnx5gA%2Ft7bQdCiZrF4qEss2l2SClG9WW5IMf1E5OEFup%2FIVmkZrANZrA0nOg8i9oFe4cBJZpqcBt04AVzA%2F%2BKiDSxSLECParvdQ%2FNNbX79c%2F2pj4zR%2BPt93HgMrPwgFrarpZwd6RtrX6BLJ2GGfNPePyT2Uk7Z4mJERzls7v6I9izlSm%2FbbMRHgq4a8wPGxvwuDcZtb4qBiYHoxcVBL5Z9iwF7H4HlUiPdtQpTjLfaVh9PEUoPu%2FlpCqxVBtQ0Ub9Fv%2FXM4vufl04hdJXvZKqjgqtzi7tp3KsdUNeE7%2BwOEWHiuDoXwna2Aou92%2BjHK9XS8VwXHGqrLA%2Bj%2B%2Bq7I35pJe4ZJ6UzVcsy3w1qUfDIM5EQGCIhK9Am4pA0SNMKzF%2FJ8GOp0B5bmv%2B3S4%2B60Hxgv%2BucGDuYbSO9K19C0UVmHqmvmFiVnNU%2FnDU%2FSfyUpWFz5c0eMH1ctrD1Tn68ObDXflcgMYTS6VeDbqqFBlzE6hYw7JPO2WUeEtbmAvwAx1yyqS1o0FtPvN3mHdcbsGZKYUZsudouMLd0KxvlViIfTUp8Uj%2Bx18vf9sWpHpEIkt3%2Bo4wkOO5XyH3KeFfXKuJWDOrw%3D%3D&X-Amz-Signature=5110653d7932edcf295bac211e88498319fe493cd2bb2b2af776d775a4fe71f1
+    meta:
+      title: Meta
+      description: Array of metadata objects.
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/pagination'
+    scriptsAsiaResponse:
+      type: object
+      title: Scrips Asia Response
+      description: Returns Transcripts Response
+      properties:
+        data:
+          description: Returns Transcripts Response
+          type: array
+          items:
+            $ref: '#/components/schemas/transcripts'
+        meta:
+          $ref: '#/components/schemas/meta'
   securitySchemes:
-    basicAuth:
+    FactSetOAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.factset.com/as/token.oauth2
+          scopes: {}
+    FactSetApiKey:
       type: http
       scheme: basic
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
   description: API Documentation
+  url: https://developer.factset.com/api-catalog/openfactset-partners-documents

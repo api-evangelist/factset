@@ -1,22 +1,12 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Asynch API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
-  contact:
-    name: FactSet Research Systems
-    url: https://developer.factset.com/contact
-    email: api@factset.com
-  license:
-    name: Apache License, Version 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
+  title: Factset Documents Distributor - Documents Asynch API
   version: 1.0.0
+  description: "Documents APIs that provide filings such as Global Filings and XML files such as StreetAccount\n\n  Global Filings API provides the capability to search and download filings documents from various exchanges around the world. This API will provide access to the full history and the ability to search by date and dataset(source). It does not provide real-time updates to the filings documents. Filings providers currently include EDGAR \n  \n  Note: The real-time updates to the filing documents will be available within week to ten days and per request able to query up to 8 days of data\n        \n  \n  StreetAccount XML API provides access to historical StreetAccount (SA) news. SA provides a summary for various corporate and market news written by journalist with background in financial markets.\n\n  The API delivers SA stories in XML format based on user-specified date input parameters. When the API request is completed, output files will be made available back to the users through a secure URL. This API has three endpoints (1) Request Files (2) Check Status (3) Get Files.\n  \n  This API only supports adhoc requests to retrieve historical files and does not support real-time files and if require real-time push should consider the other three methods (pushed via SFTP, to QNT account, or users Azure Storage)\n\n Both historical and real-time Street Account news is also delivered via SFTP, to users QNT account, or users Azure Storage.\n\nFiles delivered contain both metadata and content body in each file. This eliminates the need to make multiple requests through multiple services to get all the information.\n\nNews API provides access to historical news. This provides a summary for various corporate and market news written by journalist with background in financial markets.\n\nThe API delivers  stories in different format based on user-specified date input parameters. When the API request is completed, output files will be made available back to the users through a secure URL. This API has three endpoints (1) Request Files (2) Check Status (3) Get Files  \n "
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.factset.com/bulk-documents
 security:
-- basicAuth: []
+- BasicAuth: []
 tags:
 - name: Asynch
 paths:
@@ -310,68 +300,6 @@ paths:
                   $ref: '#/components/examples/NewsExample'
 components:
   schemas:
-    requestfilesResponse:
-      type: object
-      properties:
-        jobID:
-          description: Unique id to get the xml files for the requested date
-          type: string
-        status:
-          description: Returns the value as submitted. Tells the request has been submitted
-          type: string
-    newscheckstatusResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/checkstatusone'
-        meta:
-          $ref: '#/components/schemas/metaOne'
-    checkstatusResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/checkstatus'
-        meta:
-          $ref: '#/components/schemas/metaOne'
-    getfiles:
-      type: object
-      properties:
-        product:
-          description: Defines the name of the product
-          type: string
-        startDate:
-          description: The startDate from which the data is required in YYYY-MM-DDTHH:MM:SSZ format
-          type: string
-          format: date
-        endDate:
-          description: The endDate until which the data is fetched in YYYY-MM-DDTHH:MM:SSZ format
-          type: string
-          format: date
-        jobID:
-          description: Unique id to get the xml files for the requested date
-          type: string
-        status:
-          description: Defines the status of the request
-          type: string
-        url:
-          description: Link to download the zip file which contains xml files
-          type: string
-        part:
-          description: Returns the part number of the jobID
-          type: integer
-    newsrequestfilesResponse:
-      type: object
-      properties:
-        jobID:
-          description: Unique id to get the xml files for the requested date
-          type: string
-        status:
-          description: Returns the value as submitted. Tells the request has been submitted
-          type: string
     checkstatus:
       type: object
       properties:
@@ -398,31 +326,16 @@ components:
         part:
           description: Returns the part number of the jobID
           type: integer
-    paginationOne:
-      title: PaginationItems
-      description: List of pagination objects
+    metaOne:
+      title: Meta
+      description: Array of metadata objects
       type: object
       properties:
-        total:
-          description: Total number of files the API returns for a particular query
-          type: integer
-        isEstimatedTotal:
-          description: Boolean value that represents whether the total count of files returned is exact or an estimate. This is defaulted to “False” as the API should always return the exact count
-          type: boolean
-        limit:
-          description: Number of results returned per page
-          type: integer
-        offset:
-          description: The flag indicating the position in the results array if additional results are available beyond the default value or the value in paginationLimit parameter (if used). This value is passed in the _paginationOffset parameter to retreieve subsequent results
-          type: integer
-    isPartialOne:
-      title: IsPartialItems
-      description: If the value is true, it indicates additional results are available. False represents that this is the last set of results for this request.
-      type: object
-      properties:
-        isPartial:
-          type: boolean
-    getfilesone:
+        pagination:
+          $ref: '#/components/schemas/paginationOne'
+        partial:
+          $ref: '#/components/schemas/isPartialOne'
+    getfiles:
       type: object
       properties:
         product:
@@ -448,15 +361,41 @@ components:
         part:
           description: Returns the part number of the jobID
           type: integer
-    newsStatus:
-      title: Response Status of News
+    paginationOne:
+      title: PaginationItems
+      description: List of pagination objects
       type: object
       properties:
-        id:
+        total:
+          description: Total number of files the API returns for a particular query
+          type: integer
+        isEstimatedTotal:
+          description: Boolean value that represents whether the total count of files returned is exact or an estimate. This is defaulted to “False” as the API should always return the exact count
+          type: boolean
+        limit:
+          description: Number of results returned per page
+          type: integer
+        offset:
+          description: The flag indicating the position in the results array if additional results are available beyond the default value or the value in paginationLimit parameter (if used). This value is passed in the _paginationOffset parameter to retreieve subsequent results
+          type: integer
+    newsrequestfilesResponse:
+      type: object
+      properties:
+        jobID:
+          description: Unique id to get the xml files for the requested date
           type: string
-        error_message:
-          description: Textual error message
+        status:
+          description: Returns the value as submitted. Tells the request has been submitted
           type: string
+    getfilesResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/getfiles'
+        meta:
+          $ref: '#/components/schemas/metaOne'
     checkstatusone:
       type: object
       properties:
@@ -483,26 +422,26 @@ components:
         part:
           description: Returns the part number of the jobID
           type: integer
-    getfilesResponse:
+    requestfilesResponse:
+      type: object
+      properties:
+        jobID:
+          description: Unique id to get the xml files for the requested date
+          type: string
+        status:
+          description: Returns the value as submitted. Tells the request has been submitted
+          type: string
+    newscheckstatusResponse:
       type: object
       properties:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/getfiles'
+            $ref: '#/components/schemas/checkstatusone'
         meta:
           $ref: '#/components/schemas/metaOne'
-    metaOne:
-      title: Meta
-      description: Array of metadata objects
-      type: object
-      properties:
-        pagination:
-          $ref: '#/components/schemas/paginationOne'
-        partial:
-          $ref: '#/components/schemas/isPartialOne'
-    StreetAccountStatus:
-      title: Response Status of SA
+    newsStatus:
+      title: Response Status of News
       type: object
       properties:
         id:
@@ -510,6 +449,41 @@ components:
         error_message:
           description: Textual error message
           type: string
+    checkstatusResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/checkstatus'
+        meta:
+          $ref: '#/components/schemas/metaOne'
+    getfilesone:
+      type: object
+      properties:
+        product:
+          description: Defines the name of the product
+          type: string
+        startDate:
+          description: The startDate from which the data is required in YYYY-MM-DDTHH:MM:SSZ format
+          type: string
+          format: date
+        endDate:
+          description: The endDate until which the data is fetched in YYYY-MM-DDTHH:MM:SSZ format
+          type: string
+          format: date
+        jobID:
+          description: Unique id to get the xml files for the requested date
+          type: string
+        status:
+          description: Defines the status of the request
+          type: string
+        url:
+          description: Link to download the zip file which contains xml files
+          type: string
+        part:
+          description: Returns the part number of the jobID
+          type: integer
     newsgetfilesResponse:
       type: object
       properties:
@@ -519,17 +493,33 @@ components:
             $ref: '#/components/schemas/getfilesone'
         meta:
           $ref: '#/components/schemas/metaOne'
+    StreetAccountStatus:
+      title: Response Status of SA
+      type: object
+      properties:
+        id:
+          type: string
+        error_message:
+          description: Textual error message
+          type: string
+    isPartialOne:
+      title: IsPartialItems
+      description: If the value is true, it indicates additional results are available. False represents that this is the last set of results for this request.
+      type: object
+      properties:
+        isPartial:
+          type: boolean
   examples:
-    NewsExample:
-      summary: Sample error Response
+    200RequestFilesExample:
+      summary: Sample Response
       value:
-        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
-        error_message: parameterError:Missing required parameter jobID
-    200CheckStatusExample:
+        jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
+        status: submitted
+    news200CheckStatusExample:
       summary: Sample Response
       value:
         data:
-        - product: SA
+        - product: news_ukwd
           jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
           status: completed
           percentDone: '100'
@@ -544,11 +534,11 @@ components:
             offset: 105
           partial:
             isPartial: false
-    StreetAccountExample:
-      summary: Sample error Response
+    200newsRequestFilesExample:
+      summary: Sample Response
       value:
-        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
-        error_message: parameterError:Missing required parameter jobID
+        jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
+        status: submitted
     news200GetFilesExample:
       summary: Sample Response
       value:
@@ -587,21 +577,16 @@ components:
             offset: 105
           partial:
             isPartial: false
-    200RequestFilesExample:
-      summary: Sample Response
+    NewsExample:
+      summary: Sample error Response
       value:
-        jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
-        status: submitted
-    200newsRequestFilesExample:
-      summary: Sample Response
-      value:
-        jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
-        status: submitted
-    news200CheckStatusExample:
+        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
+        error_message: parameterError:Missing required parameter jobID
+    200CheckStatusExample:
       summary: Sample Response
       value:
         data:
-        - product: news_ukwd
+        - product: SA
           jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
           status: completed
           percentDone: '100'
@@ -616,10 +601,12 @@ components:
             offset: 105
           partial:
             isPartial: false
+    StreetAccountExample:
+      summary: Sample error Response
+      value:
+        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
+        error_message: parameterError:Missing required parameter jobID
   securitySchemes:
-    basicAuth:
+    BasicAuth:
       type: http
       scheme: basic
-externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
-  description: API Documentation

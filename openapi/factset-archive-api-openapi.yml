@@ -1,22 +1,18 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About Archive API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
-  contact:
-    name: FactSet Research Systems
-    url: https://developer.factset.com/contact
-    email: api@factset.com
-  license:
-    name: Apache License, Version 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+  description: '
+
+    Use the Universal Screening API to calculate your saved screens and then
+
+    output the results in a convenient JSON format or archive the results to
+
+    an Open FactSet Database (OFDB) file'
+  title: FactSet Universal Screening Archive API
+  version: 2.0.2
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.factset.com/universal-screening
 security:
-- basicAuth: []
+- FactSetApiKey: []
 tags:
 - name: Archive
 paths:
@@ -43,21 +39,23 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
-  requestBodies:
-    submitArchiveOFDBRequest:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ScreenArchiveOFDBParameters'
-      description: Data required for an archive to OFDB request
   schemas:
-    ErrorObjectSource:
+    ErrorObject:
       properties:
-        parameter:
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+        id:
+          description: A unique ID for the occurrence of the error. It is advised to log this code and include it if you contact FactSet support desk.
           type: string
-          example: example_value
-      description: For errors and warnings found in screens, contains the paramID the error/warning belongs to
+          example: abc123
+        source:
+          $ref: '#/components/schemas/ErrorObjectSource'
+        title:
+          description: a description of the error
+          type: string
+          example: Example Title
       type: object
+      description: Associated Error Objects
     ErrorArray:
       description: An array of errors
       properties:
@@ -82,38 +80,6 @@ components:
       - universal_screening_parameterError
       - universal_screening_parameterWarning
       type: string
-    ErrorObject:
-      properties:
-        code:
-          $ref: '#/components/schemas/ErrorCode'
-        id:
-          description: A unique ID for the occurrence of the error. It is advised to log this code and include it if you contact FactSet support desk.
-          type: string
-          example: abc123
-        source:
-          $ref: '#/components/schemas/ErrorObjectSource'
-        title:
-          description: a description of the error
-          type: string
-          example: Example Title
-      type: object
-      description: Associated Error Objects
-    ResourceStatusResponse:
-      description: ResourceStatusResponse contains information regarding the status of a calculation job
-      properties:
-        data:
-          properties:
-            error:
-              $ref: '#/components/schemas/ErrorObject'
-            id:
-              description: ID of the submitted calculation job
-              type: string
-            status:
-              description: Current status of the calculation job
-              type: string
-          type: object
-          example: example_value
-      type: object
     ScreenArchiveOFDBParameters:
       properties:
         data:
@@ -181,20 +147,30 @@ components:
       required:
       - data
       type: object
+    ResourceStatusResponse:
+      description: ResourceStatusResponse contains information regarding the status of a calculation job
+      properties:
+        data:
+          properties:
+            error:
+              $ref: '#/components/schemas/ErrorObject'
+            id:
+              description: ID of the submitted calculation job
+              type: string
+            status:
+              description: Current status of the calculation job
+              type: string
+          type: object
+          example: example_value
+      type: object
+    ErrorObjectSource:
+      properties:
+        parameter:
+          type: string
+          example: example_value
+      description: For errors and warnings found in screens, contains the paramID the error/warning belongs to
+      type: object
   responses:
-    Generic500ErrorResponse:
-      description: Internal Server Error
-      headers:
-        Request-Key:
-          description: Provide this key when reporting this issue
-          schema:
-            type: string
-    Error401Response:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorArray'
-      description: Invalid or missing authentication.
     Error429Response:
       content:
         application/json:
@@ -208,6 +184,13 @@ components:
             type: string
         X-FactSet-Api-Units-Remaining:
           description: Number of available jobs.
+          schema:
+            type: string
+    Generic500ErrorResponse:
+      description: Internal Server Error
+      headers:
+        Request-Key:
+          description: Provide this key when reporting this issue
           schema:
             type: string
     SubmitArchiveOFDBResponse:
@@ -247,10 +230,23 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorArray'
       description: Invalid request body.
+    Error401Response:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorArray'
+      description: Invalid or missing authentication.
+  requestBodies:
+    submitArchiveOFDBRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ScreenArchiveOFDBParameters'
+      description: Data required for an archive to OFDB request
   securitySchemes:
-    basicAuth:
+    FactSetApiKey:
       type: http
       scheme: basic
 externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
-  description: API Documentation
+  description: Read more about STACH 2.0's column organized schema
+  url: https://factset.github.io/stachschema/#/v2/ColumnOrganized

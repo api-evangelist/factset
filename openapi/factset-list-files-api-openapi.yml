@@ -1,20 +1,14 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Factset Analytics Datastore About List Files API
-  description: Allow clients to fetch precalculated Analytics through predeterministic URLs.
+  title: Factset List Files API
   contact:
-    name: FactSet Research Systems
-    url: https://developer.factset.com/contact
-    email: api@factset.com
-  license:
-    name: Apache License, Version 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
-  version: 1.0.0
+    name: Team Mustang
+    email: teammustang@factset.com
+  version: '1.0'
+  description: 'Operations tagged List Files across 2 of this provider''s published API definitions: exchange-datafeed-snapshot-api-entire-exchange-openapi-original.yml, standard-datafeed-openapi-original.yml. Each path carries the servers of the definition it was published in.'
 servers:
-- url: https://api.factset.com
-  description: Production
-- url: https://api-sandbox.factset.com
-  description: Sandbox
+- url: https://api.factset.com/bulk-documents/exchange-snapshot
+- url: https://api.factset.com/bulk-documents/sdf/v1
 security:
 - basicAuth: []
 tags:
@@ -120,6 +114,8 @@ paths:
         name: access
         required: false
         description: Option to select from static, DL or RT data
+    servers:
+    - url: https://api.factset.com/bulk-documents/exchange-snapshot
   /list-files:
     get:
       tags:
@@ -154,149 +150,9 @@ paths:
               examples:
                 default400ReponseExample:
                   $ref: '#/components/examples/list-files_400ResponseExample'
+    servers:
+    - url: https://api.factset.com/bulk-documents/sdf/v1
 components:
-  parameters:
-    bundle:
-      name: bundle
-      in: query
-      description: 'bundle name</p> If this parameter is not passed in the request, all the bundles a client is subscribed to are returned.
-
-
-        QFL:-
-
-        - For QFL its the factor group name
-
-        - If this parameter is not passed in the request, all the the factor families & factor groups subscribed to by the user are returned. - Supports comma separated list of multiple factor groups'
-      required: false
-      schema:
-        type: string
-    _sort:
-      name: _sort
-      in: query
-      description: Enables to get the data in ascending or descending order based on startTime. Results are in reverse chronological order if this parameter is not used
-      required: false
-      schema:
-        type: string
-        enum:
-        - startDate
-    type:
-      name: type
-      in: query
-      description: 'file type = Full or Delta</p> Full files are weekly files generated every weekend (Saturday). **The date range should include weekend dates if requesting for "Full" files**
-
-
-        QFL:- In case of QFL we have
-
-        - Historical files (1995 to previous year)- Always "Full" . A "Full" file is generated for each year
-
-        - For YTD (Current year)- "Full" files are weekly files generated every weekend (Saturday). The date range should include weekend dates if requesting for "Full" files'
-      required: false
-      schema:
-        type: string
-        enum:
-        - full
-        - delta
-    _paginationLimit:
-      name: _paginationLimit
-      in: query
-      description: Specifies the number of results to return per page. Default is 20 & Maximum is 500 results per page
-      required: false
-      schema:
-        type: integer
-        default: 20
-        maximum: 500
-    _paginationOffset:
-      name: _paginationOffset
-      in: query
-      description: Specifies the starting point for pagination. This parameter is used to identify the beginning of next set of results
-      required: false
-      schema:
-        type: integer
-        default: 0
-    startDate:
-      name: startDate
-      in: query
-      description: 'The earliest date of the feed file the API should fetch for based on the fileTimestamp.</p>
-
-
-
-        - If schema parameter is not specified in the request, then data requested should be in batches of 10days or less**(Date range should be less than or equal to 10)**
-
-        - If the schema parameter is specified in the request, date range can be greater than 10 days
-
-        - If startDate and endDate parameters are not specified in the request, this endpoint returns past 10 days data by default.
-
-        - startDate can be absolute- YYYY-MM-DD or relative:-  -1 for yesterday
-
-
-        QFL:- In case of QFL
-
-        - Historical files available from 1995-01-01 to 2021-12-31. YTD files are current year files.'
-      required: false
-      schema:
-        type: string
-    schema:
-      name: schema
-      in: query
-      description: 'schema name</p> </p> **Example: acta_v1, fgp_v1, yn_v1**
-
-
-        QFL:- To query QFL data, please use value:   **qfl_v1** '
-      required: false
-      schema:
-        type: string
-    endDate:
-      name: endDate
-      in: query
-      description: 'The latest date of the feed file the API should fetch for based on the fileTimestamp
-
-
-        If startDate and endDate parameters are not specified in the request, this endpoint returns past 10 days data by default.
-
-
-        endDate can be in absolute- YYYY-MM-DD or relative date:- 0 for today'
-      required: false
-      schema:
-        type: string
-  examples:
-    list-files_200ResponseExample:
-      summary: Sample Response
-      value:
-        data:
-        - type: delta
-          bundle: fgp_ca_events_am_v1
-          schema: fgp_v1
-          sequence: '555'
-          related_bundles:
-          - bundle: fgp_ca_events_ap_v1
-            sequence: '523'
-          - bundle: fgp_ca_events_eu_v1
-            sequence: '576'
-          timestamp: '2021-04-22T19:59:53Z'
-          url: https://fdss3-sdf-publish-prod.s3.amazonaws.com/prod/04/22/22A8B666-A3A5-11EB-94AA-8CA2536ACF03?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA4NAFRGHDJ4GMEZEZ%2F20210512%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20210512T172835Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEDoaCXVzLWVhc3QtMSJHMEUCIQCU337Iqg7hGI84ohliykGkMwyuxkv5ZepMXlOkjFuT0gIgAUfMuxk0Ue7nbo7WdhclIUaUe6dlwHso2lDHKXzbUQkq2QEIw%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARABGgw4NTI1NjI2MjA4NzAiDFL7Kj2AKk4MnRzXJiqtAXmh3NCgz9Z%2F%2FgI6ARqtFaKmP%2BpWfojZI6c%2FSLDceZE4q0qRKVU5Nh%2Fk5cH%2FC4E8acrjupEmeaLIsUEm%2F%2F7W1kla6nJ%2B%2Bwx9ViaOBfbP1wjG6dDY%2BMwalM3lq1bCpZbDFvOt1uUMBSUgJd5UJbdvMVtivXkkzKh%2B2dvt0fMHIgIMUnJzsSbFcLgKnS3lYEp5y%2B0622wrK90RIfw7Q8rN6W9OoFJ4UiCJJpE9OH5ZMNGd8IQGOuABNzZAf%2FHtTM9NmNIQwLpMSivjlhLl6chrPWvt4T6OQMN%2B6yaBz%2F%2BOig3Zc29HuR45dZ35QPd30mswAX0Md637pBkB7vjkakp70fbvIlGwsJ0vPq01a3SVfS0wsW6MRgGNdxJbItuZ9XKrV2SRSZFHntOH1BHHHtbR5hpSUg5HTpasOT%2BWNXHJKjTXVjjWmt3t3ATOUOcFluxt6UL5eg2hBY8UsAbgs2zxzRlzeEJU%2Bnq9%2BQc9TSE9Ia%2BOqKWSVUs6qQ0zyZ5G9OL8hs%2B9pdgQemrquBKXZ9FBHiEyr38OY0c%3D&X-Amz-Signature=e76cf34978304834e809144f126830c2fe65cb8301e67659fb281eb4734de3b8
-          fileSize: 25.5MB
-        meta:
-          pagination:
-            total: 256
-            isEstimatedTotal: false
-            limit: 20
-            offset: 20
-          partial:
-            isPartial: true
-    list-files_400ResponseExample:
-      summary: Sample Response
-      value:
-        data:
-          id: xxx
-          error_message: parameterError:sequence must be an int and be within specified limits
-        meta:
-          pagination:
-            total: 0
-            isEstimatedTotal: false
-            limit: 20
-            offset: 20
-          partial:
-            isPartial: false
   schemas:
     Error-Messages:
       title: Error-Messages
@@ -320,6 +176,19 @@ components:
           Param Error: Missing or Wrong product parameter
           startDate: Missing or Wrong date parameter
           endDate: Missing or Wrong date parameter
+    list-files_200Response:
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/dataresponseitems'
+        meta:
+          type: object
+          properties:
+            pagination:
+              $ref: '#/components/schemas/pagination'
+            partial:
+              $ref: '#/components/schemas/partial'
     pagination:
       title: paginationobjects
       description: List of pagination objects
@@ -345,26 +214,6 @@ components:
         error_message:
           description: message describing the error
           type: string
-    list-files_200Response:
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/dataresponseitems'
-        meta:
-          type: object
-          properties:
-            pagination:
-              $ref: '#/components/schemas/pagination'
-            partial:
-              $ref: '#/components/schemas/partial'
-    partial:
-      title: isPartialobject
-      description: If the value is true, it indicates additional results are available. False represents that this is the last set of results for this request.
-      type: object
-      properties:
-        isPartial:
-          type: boolean
     dataresponseitems:
       description: Array of data objects
       type: object
@@ -406,10 +255,159 @@ components:
         fileSize:
           description: file size of the particular bundle
           type: string
+    partial:
+      title: isPartialobject
+      description: If the value is true, it indicates additional results are available. False represents that this is the last set of results for this request.
+      type: object
+      properties:
+        isPartial:
+          type: boolean
+  parameters:
+    schema:
+      name: schema
+      in: query
+      description: 'schema name</p> </p> **Example: acta_v1, fgp_v1, yn_v1**
+
+
+        QFL:- To query QFL data, please use value:   **qfl_v1** '
+      required: false
+      schema:
+        type: string
+    _paginationOffset:
+      name: _paginationOffset
+      in: query
+      description: Specifies the starting point for pagination. This parameter is used to identify the beginning of next set of results
+      required: false
+      schema:
+        type: integer
+        default: 0
+    type:
+      name: type
+      in: query
+      description: 'file type = Full or Delta</p> Full files are weekly files generated every weekend (Saturday). **The date range should include weekend dates if requesting for "Full" files**
+
+
+        QFL:- In case of QFL we have
+
+        - Historical files (1995 to previous year)- Always "Full" . A "Full" file is generated for each year
+
+        - For YTD (Current year)- "Full" files are weekly files generated every weekend (Saturday). The date range should include weekend dates if requesting for "Full" files'
+      required: false
+      schema:
+        type: string
+        enum:
+        - full
+        - delta
+    startDate:
+      name: startDate
+      in: query
+      description: 'The earliest date of the feed file the API should fetch for based on the fileTimestamp.</p>
+
+
+
+        - If schema parameter is not specified in the request, then data requested should be in batches of 10days or less**(Date range should be less than or equal to 10)**
+
+        - If the schema parameter is specified in the request, date range can be greater than 10 days
+
+        - If startDate and endDate parameters are not specified in the request, this endpoint returns past 10 days data by default.
+
+        - startDate can be absolute- YYYY-MM-DD or relative:-  -1 for yesterday
+
+
+        QFL:- In case of QFL
+
+        - Historical files available from 1995-01-01 to 2021-12-31. YTD files are current year files.'
+      required: false
+      schema:
+        type: string
+    _paginationLimit:
+      name: _paginationLimit
+      in: query
+      description: Specifies the number of results to return per page. Default is 20 & Maximum is 500 results per page
+      required: false
+      schema:
+        type: integer
+        default: 20
+        maximum: 500
+    endDate:
+      name: endDate
+      in: query
+      description: 'The latest date of the feed file the API should fetch for based on the fileTimestamp
+
+
+        If startDate and endDate parameters are not specified in the request, this endpoint returns past 10 days data by default.
+
+
+        endDate can be in absolute- YYYY-MM-DD or relative date:- 0 for today'
+      required: false
+      schema:
+        type: string
+    bundle:
+      name: bundle
+      in: query
+      description: 'bundle name</p> If this parameter is not passed in the request, all the bundles a client is subscribed to are returned.
+
+
+        QFL:-
+
+        - For QFL its the factor group name
+
+        - If this parameter is not passed in the request, all the the factor families & factor groups subscribed to by the user are returned. - Supports comma separated list of multiple factor groups'
+      required: false
+      schema:
+        type: string
+    _sort:
+      name: _sort
+      in: query
+      description: Enables to get the data in ascending or descending order based on startTime. Results are in reverse chronological order if this parameter is not used
+      required: false
+      schema:
+        type: string
+        enum:
+        - startDate
+  examples:
+    list-files_200ResponseExample:
+      summary: Sample Response
+      value:
+        data:
+        - type: delta
+          bundle: fgp_ca_events_am_v1
+          schema: fgp_v1
+          sequence: '555'
+          related_bundles:
+          - bundle: fgp_ca_events_ap_v1
+            sequence: '523'
+          - bundle: fgp_ca_events_eu_v1
+            sequence: '576'
+          timestamp: '2021-04-22T19:59:53Z'
+          url: https://fdss3-sdf-publish-prod.s3.amazonaws.com/prod/04/22/22A8B666-A3A5-11EB-94AA-8CA2536ACF03?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA4NAFRGHDJ4GMEZEZ%2F20210512%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20210512T172835Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEDoaCXVzLWVhc3QtMSJHMEUCIQCU337Iqg7hGI84ohliykGkMwyuxkv5ZepMXlOkjFuT0gIgAUfMuxk0Ue7nbo7WdhclIUaUe6dlwHso2lDHKXzbUQkq2QEIw%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARABGgw4NTI1NjI2MjA4NzAiDFL7Kj2AKk4MnRzXJiqtAXmh3NCgz9Z%2F%2FgI6ARqtFaKmP%2BpWfojZI6c%2FSLDceZE4q0qRKVU5Nh%2Fk5cH%2FC4E8acrjupEmeaLIsUEm%2F%2F7W1kla6nJ%2B%2Bwx9ViaOBfbP1wjG6dDY%2BMwalM3lq1bCpZbDFvOt1uUMBSUgJd5UJbdvMVtivXkkzKh%2B2dvt0fMHIgIMUnJzsSbFcLgKnS3lYEp5y%2B0622wrK90RIfw7Q8rN6W9OoFJ4UiCJJpE9OH5ZMNGd8IQGOuABNzZAf%2FHtTM9NmNIQwLpMSivjlhLl6chrPWvt4T6OQMN%2B6yaBz%2F%2BOig3Zc29HuR45dZ35QPd30mswAX0Md637pBkB7vjkakp70fbvIlGwsJ0vPq01a3SVfS0wsW6MRgGNdxJbItuZ9XKrV2SRSZFHntOH1BHHHtbR5hpSUg5HTpasOT%2BWNXHJKjTXVjjWmt3t3ATOUOcFluxt6UL5eg2hBY8UsAbgs2zxzRlzeEJU%2Bnq9%2BQc9TSE9Ia%2BOqKWSVUs6qQ0zyZ5G9OL8hs%2B9pdgQemrquBKXZ9FBHiEyr38OY0c%3D&X-Amz-Signature=e76cf34978304834e809144f126830c2fe65cb8301e67659fb281eb4734de3b8
+          fileSize: 25.5MB
+        meta:
+          pagination:
+            total: 256
+            isEstimatedTotal: false
+            limit: 20
+            offset: 20
+          partial:
+            isPartial: true
+    list-files_400ResponseExample:
+      summary: Sample Response
+      value:
+        data:
+          id: xxx
+          error_message: parameterError:sequence must be an int and be within specified limits
+        meta:
+          pagination:
+            total: 0
+            isEstimatedTotal: false
+            limit: 20
+            offset: 20
+          partial:
+            isPartial: false
   securitySchemes:
     basicAuth:
       type: http
       scheme: basic
-externalDocs:
-  url: https://developer.factset.com/api-catalog/analytics-datastore-api
-  description: API Documentation
+x-refined-from:
+- exchange-datafeed-snapshot-api-entire-exchange-openapi-original.yml
+- standard-datafeed-openapi-original.yml
