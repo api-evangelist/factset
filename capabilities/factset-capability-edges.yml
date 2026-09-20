@@ -11,8 +11,30 @@ capability_model:
   attribution: Turbo EA Capabilities by Vincent Verdet — Turbo EA, https://github.com/vincentmakes/turbo-ea-capabilities,
     CC BY 4.0
   notice: NOTICE
-edge_count: 5
+edge_count: 11
 edges:
+- tag: Orders
+  spec_file: factset-orders-api-openapi.yml
+  capability_id: BC-1370.30
+  capability_id_l1: BC-1370
+  capability_name: Trading Order Management
+  confidence: 0.95
+  evidence: POST /orders/create  Send orders to EMS for execution. / POST /orders/cancel  Cancel the orders
+    on EMS system.
+  reason: Create, replace and cancel trade orders routed to an execution management system, with EMSOrder/TimeInForce/Instrument
+    schemas. This is unambiguously trading order capture and execution management.
+  recovered_from: capability-edges-sweep.json
+- tag: Child Orders
+  spec_file: factset-child-orders-api-openapi.yml
+  capability_id: BC-1370.30
+  capability_id_l1: BC-1370
+  capability_name: Trading Order Management
+  confidence: 0.9
+  evidence: POST /child-orders/create Create Child Orders; "Replace the Child Orders on EMS system"; schema
+    TimeInForce, EMSCancelChildOrder
+  reason: Create/replace/cancel child orders on an execution management system with TimeInForce semantics
+    — clearly trading order management.
+  recovered_from: capability-edges-sweep.json
 - tag: Groups
   spec_file: factset-groups-api-openapi.yml
   capability_id: BC-620.20
@@ -23,6 +45,17 @@ edges:
     a Group; schemas ScimGroup, ScimGroupMember
   reason: SCIM 2.0 role/group management — provisioning of roles and group membership is identity and
     access management.
+- tag: Actions
+  spec_file: factset-actions-api-openapi.yml
+  capability_id: BC-1380.60
+  capability_id_l1: BC-1380
+  capability_name: Corporate Actions Management
+  confidence: 0.8
+  evidence: GET /factset-global-prices/v1/corporate-actions  getGPDCorporateActions  Factset Gets Corporate
+    Actions Information
+  reason: Operations and schemas (corporateAction, eventCategory, cancelledDividend) plainly deliver corporate
+    actions data, though as a data feed rather than processing engine.
+  recovered_from: capability-edges-sweep.json
 - tag: Scim
   spec_file: factset-scim-api-openapi.yml
   capability_id: BC-620.20
@@ -33,6 +66,18 @@ edges:
     a user to/from a group'
   reason: SCIM user and group/role provisioning operations are identity lifecycle and access management,
     matching Identity & Access Management.
+- tag: Contacts
+  spec_file: factset-contacts-api-openapi.yml
+  capability_id: BC-420.10
+  capability_id_l1: BC-420
+  capability_name: Customer Data Management
+  confidence: 0.7
+  evidence: GET /v1/contacts "Get List of All Contacts in Your Group Along With Some of Their Standard
+    Field Data"; PATCH /v1/contacts/{contactId} "Edit a Contacts Standard Field and Custom Field Data"
+  reason: Full lifecycle CRUD over contact records with standard fields, custom fields, phones, emails
+    and notes — a contact/customer master record store. This is customer data management, not market data,
+    despite the misleading concatenated title.
+  recovered_from: capability-edges-sweep.json
 - tag: Group
   spec_file: factset-group-api-openapi.yml
   capability_id: BC-620.20
@@ -43,6 +88,31 @@ edges:
     Patch a group (add, replace, or remove attributes of a group.)
   reason: SCIM group provisioning endpoints plus configuration DTOs — identity/access group administration.
     Mixed with app configuration settings, hence moderate confidence.
+- tag: Linear
+  spec_file: factset-linear-api-openapi.yml
+  capability_id: BC-1410.20
+  capability_id_l1: BC-1410
+  capability_name: Market Risk Management
+  confidence: 0.7
+  evidence: GET /linear/{version}/riskmodels — Get available risk models; POST /linear/{version}/calculate/from-holdings
+    — Calculate risk statistics
+  reason: Operations expose linear factor risk models and compute risk statistics/exposures from portfolio
+    holdings (schemas FactorGroupNodes, RiskModelCode, RemoveCurrencyRiskBoolean), which is market/factor
+    risk analytics. Some ambiguity between market risk management and portfolio performance analytics,
+    hence moderate confidence.
+  recovered_from: capability-edges-sweep.json
+- tag: Symbology
+  spec_file: factset-symbology-api-openapi.yml
+  capability_id: BC-610.20
+  capability_id_l1: BC-610
+  capability_name: Master Data Management
+  confidence: 0.7
+  evidence: '"Returns the Specified Output Identifiers for the Specified Input Identifier."; "historicalIdentifierResolution"'
+  reason: Identifier resolution mapping input security identifiers to output identifier types, including
+    point-in-time history — the classic security cross-reference/master data function that underpins instrument
+    master maintenance. Cross-industry Master Data Management is the honest fit for a data-vendor resolution
+    API.
+  recovered_from: capability-edges-sweep.json
 - tag: User
   spec_file: factset-user-api-openapi.yml
   capability_id: BC-620.20
