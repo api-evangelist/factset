@@ -61,6 +61,8 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
+      summary: Read holdings composite
+      x-summary-source: derived
     servers:
     - description: production
       url: https://api.factset.com/analytics/portfolio-metadata/v1
@@ -105,6 +107,8 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
+      summary: Read returns composite
+      x-summary-source: derived
     servers:
     - description: production
       url: https://api.factset.com/analytics/portfolio-metadata/v1
@@ -124,7 +128,7 @@ paths:
       x-no-merge: false
       x-maxSortParameterCount: 10
       x-supportsPermissionDeniedResponse: false
-      summary: Factset Composite Instrument and Its Components.
+      summary: Factset Composite Instrument and Its Components
       description: Composite instrument and its components.
       parameters:
       - name: identifier
@@ -197,21 +201,167 @@ paths:
     servers:
     - url: https://api.factset.com/wealth/v3
 components:
+  schemas:
+    readReturnsCompositeResponse:
+      type:
+      - object
+      - 'null'
+      properties:
+        data:
+          type:
+          - object
+          - 'null'
+          properties:
+            type:
+              type: string
+              enum:
+              - Account
+              - AccountComposite
+              - ExchangeRate
+              - GlobalAccountProperties
+              - Holdings
+              - HoldingsComposite
+              - PortfolioGroup
+              - Returns
+              - ReturnsComposite
+              - SecurityMaster
+              - TradeData
+              - VendorReturnSeries
+              description: Metadata file type formatted for consistency with the REST api
+            id:
+              type: string
+              description: Unique identifier for this metadata file.
+              example: f132625b-1506-4cc3-b2e8-2c75de39c79c
+            display:
+              type: string
+              description: The GUI path of this file, including the name and extension.
+              example: SP50
+            path:
+              type: string
+              description: The GUI path to this object.
+              example: 'Client:'
+            name:
+              type: string
+              description: Name of this file object including the extension.
+              example: SP50
+            description:
+              type:
+              - string
+              - 'null'
+              description: User provided description of this file.
+              example: Meaningful description of vendor returns
+          description: Read a metadata file by its id.
+          example: example_value
+    Errors:
+      type: object
+      description: Information about one or more errors
+      properties:
+        errors:
+          type: array
+          description: List of errors
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Unique identifier for this error instance.  Used to reference this error in logging.
+                example: 270c2fa8-9110-444b-9101-17e10132fe0a
+              code:
+                type: string
+                description: Error code for this error
+                enum:
+                - BadRequestError
+                - UnauthorizedError
+                - ForbiddenError
+                - NotFoundError
+                - NotAcceptableError
+                - ConflictError
+                - UnsupportedMediaTypeError
+                - InternalServerError
+                - NotImplementedError
+              title:
+                type: string
+                description: HTTP reason phrase associcated with this error
+                enum:
+                - Bad Request
+                - Unauthorized
+                - Forbidden
+                - Not Found
+                - Not Acceptable
+                - Conflict
+                - Unsupported Media Type
+                - Internal Server Error
+                - Not Implemented
+              detail:
+                type: string
+                description: Detailed description of the error that occurred
+          example: []
+      required:
+      - errors
+    readHoldingsCompositeResponse:
+      type:
+      - object
+      - 'null'
+      properties:
+        data:
+          type:
+          - object
+          - 'null'
+          properties:
+            type:
+              type: string
+              enum:
+              - Account
+              - AccountComposite
+              - ExchangeRate
+              - GlobalAccountProperties
+              - Holdings
+              - HoldingsComposite
+              - PortfolioGroup
+              - Returns
+              - ReturnsComposite
+              - SecurityMaster
+              - TradeData
+              - VendorReturnSeries
+              description: Metadata file type formatted for consistency with the REST api
+            id:
+              type: string
+              description: Unique identifier for this metadata file.
+              example: f132625b-1506-4cc3-b2e8-2c75de39c79c
+            display:
+              type: string
+              description: The GUI path of this file, including the name and extension.
+              example: SP50
+            path:
+              type: string
+              description: The GUI path to this object.
+              example: 'Client:'
+            name:
+              type: string
+              description: Name of this file object including the extension.
+              example: SP50
+            description:
+              type:
+              - string
+              - 'null'
+              description: User provided description of this file.
+              example: Meaningful description of vendor returns
+          description: Read a metadata file by its id.
+          example: example_value
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
   responses:
-    NotImplementedErrorResponse:
-      description: ''
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    UnauthorizedErrorResponse:
-      description: Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    NotAcceptableErrorResponse:
-      description: The requested resource is capable of generating only content not acceptable according to the Accept headers sent in the request.
+    UnsupportedMediaTypeErrorResponse:
+      description: The request entity has a media type which the server or resource does not support.
       content:
         application/json:
           schema:
@@ -222,14 +372,8 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Errors'
-    NotFoundErrorResponse:
-      description: The requested resource could not be found but may be available in the future. Subsequent requests by the client are permissible.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    UnsupportedMediaTypeErrorResponse:
-      description: The request entity has a media type which the server or resource does not support.
+    NotAcceptableErrorResponse:
+      description: The requested resource is capable of generating only content not acceptable according to the Accept headers sent in the request.
       content:
         application/json:
           schema:
@@ -242,6 +386,24 @@ components:
             $ref: '#/components/schemas/Errors'
     InternalServerErrorResponse:
       description: ''
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    NotImplementedErrorResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    UnauthorizedErrorResponse:
+      description: Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    NotFoundErrorResponse:
+      description: The requested resource could not be found but may be available in the future. Subsequent requests by the client are permissible.
       content:
         application/json:
           schema:
@@ -522,164 +684,6 @@ components:
             x-property-sort:
             - data
             - meta
-  schemas:
-    readHoldingsCompositeResponse:
-      type:
-      - object
-      - 'null'
-      properties:
-        data:
-          type:
-          - object
-          - 'null'
-          properties:
-            type:
-              type: string
-              enum:
-              - Account
-              - AccountComposite
-              - ExchangeRate
-              - GlobalAccountProperties
-              - Holdings
-              - HoldingsComposite
-              - PortfolioGroup
-              - Returns
-              - ReturnsComposite
-              - SecurityMaster
-              - TradeData
-              - VendorReturnSeries
-              description: Metadata file type formatted for consistency with the REST api
-            id:
-              type: string
-              description: Unique identifier for this metadata file.
-              example: f132625b-1506-4cc3-b2e8-2c75de39c79c
-            display:
-              type: string
-              description: The GUI path of this file, including the name and extension.
-              example: SP50
-            path:
-              type: string
-              description: The GUI path to this object.
-              example: 'Client:'
-            name:
-              type: string
-              description: Name of this file object including the extension.
-              example: SP50
-            description:
-              type:
-              - string
-              - 'null'
-              description: User provided description of this file.
-              example: Meaningful description of vendor returns
-          description: Read a metadata file by its id.
-          example: example_value
-    Errors:
-      type: object
-      description: Information about one or more errors
-      properties:
-        errors:
-          type: array
-          description: List of errors
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-                description: Unique identifier for this error instance.  Used to reference this error in logging.
-                example: 270c2fa8-9110-444b-9101-17e10132fe0a
-              code:
-                type: string
-                description: Error code for this error
-                enum:
-                - BadRequestError
-                - UnauthorizedError
-                - ForbiddenError
-                - NotFoundError
-                - NotAcceptableError
-                - ConflictError
-                - UnsupportedMediaTypeError
-                - InternalServerError
-                - NotImplementedError
-              title:
-                type: string
-                description: HTTP reason phrase associcated with this error
-                enum:
-                - Bad Request
-                - Unauthorized
-                - Forbidden
-                - Not Found
-                - Not Acceptable
-                - Conflict
-                - Unsupported Media Type
-                - Internal Server Error
-                - Not Implemented
-              detail:
-                type: string
-                description: Detailed description of the error that occurred
-          example: []
-      required:
-      - errors
-    readReturnsCompositeResponse:
-      type:
-      - object
-      - 'null'
-      properties:
-        data:
-          type:
-          - object
-          - 'null'
-          properties:
-            type:
-              type: string
-              enum:
-              - Account
-              - AccountComposite
-              - ExchangeRate
-              - GlobalAccountProperties
-              - Holdings
-              - HoldingsComposite
-              - PortfolioGroup
-              - Returns
-              - ReturnsComposite
-              - SecurityMaster
-              - TradeData
-              - VendorReturnSeries
-              description: Metadata file type formatted for consistency with the REST api
-            id:
-              type: string
-              description: Unique identifier for this metadata file.
-              example: f132625b-1506-4cc3-b2e8-2c75de39c79c
-            display:
-              type: string
-              description: The GUI path of this file, including the name and extension.
-              example: SP50
-            path:
-              type: string
-              description: The GUI path to this object.
-              example: 'Client:'
-            name:
-              type: string
-              description: Name of this file object including the extension.
-              example: SP50
-            description:
-              type:
-              - string
-              - 'null'
-              description: User provided description of this file.
-              example: Meaningful description of vendor returns
-          description: Read a metadata file by its id.
-          example: example_value
-    StatusObject:
-      type: object
-      properties:
-        code:
-          type: number
-          format: int32
-          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
-          example: 42.5
-      description: The status member contains the status code of the response.
-      required:
-      - code
   securitySchemes:
     FactSetOAuth2:
       type: oauth2

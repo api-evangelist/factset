@@ -2,7 +2,7 @@ openapi: 3.2.0
 info:
   title: Factset Recommendations API
   version: '1.0'
-  description: 'Operations tagged Recommendations across 3 of this provider''s published API definitions: factset-irn-configuration-api-openapi.yml, factset-recommendation-list-api-for-digital-portals-openapi.yml, irn-configuration-openapi-original.yml. Each path carries the servers of the definition it was published in.'
+  description: 'Operations tagged Recommendations across 2 of this provider''s published API definitions: factset-irn-configuration-api-openapi.yml, factset-recommendation-list-api-for-digital-portals-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
 - url: https://api.factset.com/research/irn
   description: Production Server
@@ -53,7 +53,7 @@ paths:
       x-no-merge: false
       x-maxSortParameterCount: 10
       x-supportsPermissionDeniedResponse: false
-      summary: Factset Attributes of a Single List.
+      summary: Factset Attributes of a Single List
       description: Attributes of a single list, including data about its active revision.
       parameters:
       - name: id
@@ -110,7 +110,7 @@ paths:
       x-no-merge: false
       x-maxSortParameterCount: 10
       x-supportsPermissionDeniedResponse: false
-      summary: Factset Search for Recommendation Lists.
+      summary: Factset Search for Recommendation Lists
       description: Search for recommendation lists, delivering an array of recommendation lists matching the specified filter criteria. The data provided for each recommendation list includes the currently active revision (or null in case no active revision exists).
       parameters:
       - name: name
@@ -171,7 +171,7 @@ paths:
       x-no-merge: false
       x-maxSortParameterCount: 10
       x-supportsPermissionDeniedResponse: false
-      summary: Factset Search for Revisions of a Recommendation List.
+      summary: Factset Search for Revisions of a Recommendation List
       description: Search for revisions of a recommendation list.
       parameters:
       - name: idNotation
@@ -253,23 +253,240 @@ components:
       description: The status member contains the status code of the response.
       required:
       - code
-    RecommendationConfigDto_2:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type:
-          - string
-          - 'null'
-        code:
-          type: integer
-          format: int32
-        isHidden:
-          type: boolean
-      additionalProperties: false
   responses:
+    GetRecommendationListGet200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: Details about the recommendation list.
+                type: object
+                x-property-sort:
+                - id
+                - name
+                - activeRange
+                - numberRevisions
+                - activeRevision
+                properties:
+                  id:
+                    type:
+                    - number
+                    - 'null'
+                    format: id32
+                    x-positive: true
+                    description: Identifier of the recommendation list.
+                  name:
+                    type:
+                    - string
+                    - 'null'
+                    description: Name of the recommendation list.
+                  activeRange:
+                    type:
+                    - object
+                    - 'null'
+                    format: timeRange
+                    properties:
+                      start:
+                        type:
+                        - string
+                        - 'null'
+                        format: datetime
+                        description: The starting point of the time range (inclusive), or `null` to indicate that the time range extends indefinitely into the past.
+                      end:
+                        type:
+                        - string
+                        - 'null'
+                        format: datetime
+                        description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
+                    x-property-sort:
+                    - start
+                    - end
+                    required:
+                    - start
+                    - end
+                    description: Time range during which the recommendation list is, was, or will be active.
+                  numberRevisions:
+                    type:
+                    - number
+                    - 'null'
+                    format: int32
+                    x-positive: true
+                    description: Number of all revisions of this recommendation list.
+                  activeRevision:
+                    type: object
+                    x-property-sort:
+                    - id
+                    - title
+                    - activeRange
+                    description: Information on the active revision of this recommendation list, or null.
+                    properties:
+                      id:
+                        type:
+                        - number
+                        - 'null'
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the currently active revision.
+                      title:
+                        type:
+                        - string
+                        - 'null'
+                        format: localizedString
+                        description: The language specific name assigned to the recommendation list as of the given revision.
+                      activeRange:
+                        type:
+                        - object
+                        - 'null'
+                        format: timeRange
+                        properties:
+                          start:
+                            type:
+                            - string
+                            - 'null'
+                            format: datetime
+                            description: The starting point of the time range (inclusive), or `null` to indicate that the time range extends indefinitely into the past.
+                          end:
+                            type:
+                            - string
+                            - 'null'
+                            format: datetime
+                            description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
+                        x-property-sort:
+                        - start
+                        - end
+                        required:
+                        - start
+                        - end
+                        description: Time range during which the revision is, was, or will be active.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+    GetRecommendationListSearch200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: List of recommendation lists.
+                type: array
+                items:
+                  type: object
+                  x-property-sort:
+                  - id
+                  - name
+                  - activeRange
+                  - numberRevisions
+                  - activeRevision
+                  description: Recommendation list.
+                  properties:
+                    id:
+                      type:
+                      - number
+                      - 'null'
+                      format: id32
+                      x-positive: true
+                      description: Identifier of the recommendation list.
+                    name:
+                      type:
+                      - string
+                      - 'null'
+                      description: Name of the recommendation list.
+                    activeRange:
+                      type:
+                      - object
+                      - 'null'
+                      format: timeRange
+                      properties:
+                        start:
+                          type:
+                          - string
+                          - 'null'
+                          format: datetime
+                          description: The starting point of the time range (inclusive), or `null` to indicate that the time range extends indefinitely into the past.
+                        end:
+                          type:
+                          - string
+                          - 'null'
+                          format: datetime
+                          description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
+                      x-property-sort:
+                      - start
+                      - end
+                      required:
+                      - start
+                      - end
+                      description: Time range during which the recommendation list is active or has been active.
+                    numberRevisions:
+                      type:
+                      - number
+                      - 'null'
+                      format: int32
+                      x-positive: true
+                      description: Number of all revisions of this recommendation list.
+                    activeRevision:
+                      type: object
+                      x-property-sort:
+                      - id
+                      - title
+                      - activeRange
+                      description: Information on the active revision of this recommendation list, or null.
+                      properties:
+                        id:
+                          type:
+                          - number
+                          - 'null'
+                          format: id32
+                          x-positive: true
+                          description: Identifier of the currently active revision.
+                        title:
+                          type:
+                          - string
+                          - 'null'
+                          format: localizedString
+                          description: The language specific name assigned to the recommendation list as of the given revision.
+                        activeRange:
+                          type:
+                          - object
+                          - 'null'
+                          format: timeRange
+                          properties:
+                            start:
+                              type:
+                              - string
+                              - 'null'
+                              format: datetime
+                              description: The starting point of the time range (inclusive), or `null` to indicate that the time range extends indefinitely into the past.
+                            end:
+                              type:
+                              - string
+                              - 'null'
+                              format: datetime
+                              description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
+                          x-property-sort:
+                          - start
+                          - end
+                          required:
+                          - start
+                          - end
+                          description: Time range during which the revision is, was, or will be active.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
     GetRecommendationListRevisionSearch200Response:
       description: Successful Response
       content:
@@ -398,239 +615,6 @@ components:
                     $ref: '#/components/schemas/StatusObject'
                 x-property-sort:
                 - status
-    GetRecommendationListSearch200Response:
-      description: Successful Response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                description: List of recommendation lists.
-                type: array
-                items:
-                  type: object
-                  x-property-sort:
-                  - id
-                  - name
-                  - activeRange
-                  - numberRevisions
-                  - activeRevision
-                  description: Recommendation list.
-                  properties:
-                    id:
-                      type:
-                      - number
-                      - 'null'
-                      format: id32
-                      x-positive: true
-                      description: Identifier of the recommendation list.
-                    name:
-                      type:
-                      - string
-                      - 'null'
-                      description: Name of the recommendation list.
-                    activeRange:
-                      type:
-                      - object
-                      - 'null'
-                      format: timeRange
-                      properties:
-                        start:
-                          type:
-                          - string
-                          - 'null'
-                          format: datetime
-                          description: The starting point of the time range (inclusive), or `null` to indicate that the time range extends indefinitely into the past.
-                        end:
-                          type:
-                          - string
-                          - 'null'
-                          format: datetime
-                          description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
-                      x-property-sort:
-                      - start
-                      - end
-                      required:
-                      - start
-                      - end
-                      description: Time range during which the recommendation list is active or has been active.
-                    numberRevisions:
-                      type:
-                      - number
-                      - 'null'
-                      format: int32
-                      x-positive: true
-                      description: Number of all revisions of this recommendation list.
-                    activeRevision:
-                      type: object
-                      x-property-sort:
-                      - id
-                      - title
-                      - activeRange
-                      description: Information on the active revision of this recommendation list, or null.
-                      properties:
-                        id:
-                          type:
-                          - number
-                          - 'null'
-                          format: id32
-                          x-positive: true
-                          description: Identifier of the currently active revision.
-                        title:
-                          type:
-                          - string
-                          - 'null'
-                          format: localizedString
-                          description: The language specific name assigned to the recommendation list as of the given revision.
-                        activeRange:
-                          type:
-                          - object
-                          - 'null'
-                          format: timeRange
-                          properties:
-                            start:
-                              type:
-                              - string
-                              - 'null'
-                              format: datetime
-                              description: The starting point of the time range (inclusive), or `null` to indicate that the time range extends indefinitely into the past.
-                            end:
-                              type:
-                              - string
-                              - 'null'
-                              format: datetime
-                              description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
-                          x-property-sort:
-                          - start
-                          - end
-                          required:
-                          - start
-                          - end
-                          description: Time range during which the revision is, was, or will be active.
-              meta:
-                type: object
-                description: The meta member contains the meta information of the response.
-                properties:
-                  status:
-                    $ref: '#/components/schemas/StatusObject'
-                x-property-sort:
-                - status
-    GetRecommendationListGet200Response:
-      description: Successful Response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                description: Details about the recommendation list.
-                type: object
-                x-property-sort:
-                - id
-                - name
-                - activeRange
-                - numberRevisions
-                - activeRevision
-                properties:
-                  id:
-                    type:
-                    - number
-                    - 'null'
-                    format: id32
-                    x-positive: true
-                    description: Identifier of the recommendation list.
-                  name:
-                    type:
-                    - string
-                    - 'null'
-                    description: Name of the recommendation list.
-                  activeRange:
-                    type:
-                    - object
-                    - 'null'
-                    format: timeRange
-                    properties:
-                      start:
-                        type:
-                        - string
-                        - 'null'
-                        format: datetime
-                        description: The starting point of the time range (inclusive), or `null` to indicate that the time range extends indefinitely into the past.
-                      end:
-                        type:
-                        - string
-                        - 'null'
-                        format: datetime
-                        description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
-                    x-property-sort:
-                    - start
-                    - end
-                    required:
-                    - start
-                    - end
-                    description: Time range during which the recommendation list is, was, or will be active.
-                  numberRevisions:
-                    type:
-                    - number
-                    - 'null'
-                    format: int32
-                    x-positive: true
-                    description: Number of all revisions of this recommendation list.
-                  activeRevision:
-                    type: object
-                    x-property-sort:
-                    - id
-                    - title
-                    - activeRange
-                    description: Information on the active revision of this recommendation list, or null.
-                    properties:
-                      id:
-                        type:
-                        - number
-                        - 'null'
-                        format: id32
-                        x-positive: true
-                        description: Identifier of the currently active revision.
-                      title:
-                        type:
-                        - string
-                        - 'null'
-                        format: localizedString
-                        description: The language specific name assigned to the recommendation list as of the given revision.
-                      activeRange:
-                        type:
-                        - object
-                        - 'null'
-                        format: timeRange
-                        properties:
-                          start:
-                            type:
-                            - string
-                            - 'null'
-                            format: datetime
-                            description: The starting point of the time range (inclusive), or `null` to indicate that the time range extends indefinitely into the past.
-                          end:
-                            type:
-                            - string
-                            - 'null'
-                            format: datetime
-                            description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
-                        x-property-sort:
-                        - start
-                        - end
-                        required:
-                        - start
-                        - end
-                        description: Time range during which the revision is, was, or will be active.
-              meta:
-                type: object
-                description: The meta member contains the meta information of the response.
-                properties:
-                  status:
-                    $ref: '#/components/schemas/StatusObject'
-                x-property-sort:
-                - status
   securitySchemes:
     basicScheme:
       type: http
@@ -645,4 +629,3 @@ externalDocs:
 x-refined-from:
 - factset-irn-configuration-api-openapi.yml
 - factset-recommendation-list-api-for-digital-portals-openapi.yml
-- irn-configuration-openapi-original.yml

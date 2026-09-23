@@ -5,7 +5,7 @@ info:
   contact:
     name: Team Mustang
     email: teammustang@factset.com
-  description: "The Standard DataFeed (SDF) Download API provides an alternative method for users to request and retrieve SDF packages (schemas & bundles). This service is not a direct replacement and does not have 100% feature parity with the Loader Application. This API provides an alternative for users who are unable to utilize the Loader application due to following reasons:\n  - Inability to install 3rd party executables due to Corporate Security policies  \n  - Inability to utilize the Loader application due to limitations or restrictions with the environment used to consume Standard Datafeed\n  - Clients who are utilizing existing delivery method like FTP, who may want to use a more secured & modern solution  \n\n This API allows users to retrieve\n - SDF packages(excluding Quant Factor Library) they have subscriptions for, going back to August 31, 2021,\n - QFL - Quant Factor Library (Factor Family & Factor Groups) packages they have subscriptions for, going back to January 01, 1995.\n \n Additional parameters are available to filter requests to get the exact files users are looking for.\n \n QFL data is delivered through Content API & Bulk Data API (SDF API)\n - Content API : Provides direct access to FactSet-hosted QFL data.  Suitable for interactive, ad hoc QFL requests.  Constraints on large extracts.  Costs are based on consumption, i.e. more calls can result in more costs.\n - Bulk Data API : Provides access to download locations of zip files for client download. Suitable for production processes within a client environment. Cost is based on the use case and fixed unless scope changes (same as other SDFs)."
+  description: The Standard DataFeed (SDF) Download API provides an alternative method for users to request and retrieve SDF packages (schemas & bundles).
 servers:
 - url: https://api.factset.com/bulk-documents/sdf/v1
 security:
@@ -19,7 +19,10 @@ paths:
       tags:
       - List Schemas
       operationId: get-v1-list-schemas
-      description: "<a href=https://api.factset.com/bulk-documents/sdf/v1/list-schemas>List-Schemas</a> helper end point provides the list of schemas subscribed by the client and their corresponding sequences if no query parameters are passed in the request.\n\n If schema & sequence number (version number of schema) are passed in the request, this endpoint provides a downloadable presigned url containing the schema information."
+      description: 'List-Schemas helper end point provides the list of schemas subscribed by the client and their corresponding sequences if no query parameters are passed in the request.
+
+
+        If schema & sequence number (version number of schema) are passed in the request, this endpoint provides a downloadable presigned url containing the schema information.'
       parameters:
       - $ref: '#/components/parameters/schema'
       - $ref: '#/components/parameters/sequence'
@@ -45,6 +48,67 @@ paths:
                 list_schema400ResponseExample:
                   $ref: '#/components/examples/list-schema_400ResponseExample'
 components:
+  schemas:
+    SchemaList:
+      title: SchemaList
+      description: Schema List Object
+      type: object
+      additionalProperties:
+        description: Name of schema with the sequence number (version number) in the value.
+        type: array
+        items:
+          type: string
+    list-schema_400Response:
+      properties:
+        id:
+          description: request id
+          type: string
+        error_message:
+          description: message describing the error
+          type: string
+    ListSchemas:
+      title: ListSchemas
+      description: List Of Schemas
+      anyOf:
+      - $ref: '#/components/schemas/SchemaList'
+      - $ref: '#/components/schemas/SchemaDetails'
+    SchemaDetails:
+      type: object
+      properties:
+        schema:
+          description: schema name
+          type: string
+        sequence:
+          description: version number of the schema
+          type: integer
+        url:
+          description: pre-signed downloadable url containing the information of the schema
+          type: string
+        timestamp:
+          description: time stamp of when the schema sequence was last updated
+          type: string
+  examples:
+    list-schema_200ResponseExample:
+      summary: Sample Response
+      value:
+        schema: acta_v1
+        sequence: 8
+        url: https://fdss3-bulk-data-delivery-sdf.s3.amazonaws.com/schema/acta_v1/8/2020-05-28_14_18_33.txt?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=REDACTED_AWS_ACCESS_KEY_ID%2F20210511%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20210511T170435Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjECIaCXVzLWVhc3QtMSJIMEYCIQD1He0st1G1qElczFiEEG0DVpLHRkTfIyCgA9pUbHmT4wIhAPyz46DpoaSZDfmk%2FZqbG7xUZjZjDyCbr5uBRw5jlz1JKtkBCKr%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQARoMODUyNTYyNjIwODcwIgzHhlGrM5TOWg50o9IqrQGOySsSusfChhxaGUj7dfJDMdnJBOJtm6O5pAnVMnzuHhyr%2FLg69QHy%2BmxSO6SdqykHRjuLMnUeNgQ34n75gaLQDe7B%2Bsw9jSZV3NI6O6B2G4Gjga4X7%2Fm1OlKbStb0CgTVjYTjSI4vIMMn1jKmGZvosl9ZSJgpEbeYk5kKG4Kmr%2FXDGbn4C0ZKXbdnWY4yZCaZitNAkJ74hQSxlk7DWBrTKY1QZUT7WBvd3hRXRTCY8uqEBjrfAdcXYNIJmuyJRel22QcGZ24xPyUXJyW9%2B3vbmDQx3QHLyyHZq%2BbKGKt0sphxhfna%2Bu9qdApKhkBbk1N1%2Bv%2FXLvItRG5Y38ZPpy4gj6hgs6h5%2Buay1Esb32f4083L8uBL26NuUDg09odjE6sBpuqkJoTiBMXaKdlHbU0GfrOli2dK46rhDmY6m1jbF2Najd1v5rbDW%2FPRzYnpM638paqbwUev%2FcLgGvRI%2FXuWoNH%2FfhXFCZf9G20BGWWyhuOoq0%2BSL0a4BQkZXHNjiCXQrysuQtonI4NF%2BD%2FfwZtPuD%2BEsJg%3D&X-Amz-Signature=58517963bbb5b77b481ce68df391c7e29166ac330c552c79f4df68cfdd0585ab
+        timestamp: '2020-05-28 14:18:33'
+    list-schema_400ResponseExample:
+      summary: Sample Response
+      value:
+        id: xxxx-xxxx-xxxx-xxxx                     **Example**
+        error_message: 'parameterError:schema_name : Not a valid schema.'
+    list-schema_200ResponseExample2:
+      summary: No Parameters Response
+      value:
+        acta_v1:
+        - '8'
+        actr_v1:
+        - '2'
+        qfl_v1:
+        - '2'
   parameters:
     schema:
       name: schema
@@ -63,67 +127,6 @@ components:
       required: false
       schema:
         type: integer
-  schemas:
-    SchemaDetails:
-      type: object
-      properties:
-        schema:
-          description: schema name
-          type: string
-        sequence:
-          description: version number of the schema
-          type: integer
-        url:
-          description: pre-signed downloadable url containing the information of the schema
-          type: string
-        timestamp:
-          description: time stamp of when the schema sequence was last updated
-          type: string
-    SchemaList:
-      title: SchemaList
-      description: Schema List Object
-      type: object
-      additionalProperties:
-        description: Name of schema with the sequence number (version number) in the value.
-        type: array
-        items:
-          type: string
-    ListSchemas:
-      title: ListSchemas
-      description: List Of Schemas
-      anyOf:
-      - $ref: '#/components/schemas/SchemaList'
-      - $ref: '#/components/schemas/SchemaDetails'
-    list-schema_400Response:
-      properties:
-        id:
-          description: request id
-          type: string
-        error_message:
-          description: message describing the error
-          type: string
-  examples:
-    list-schema_200ResponseExample2:
-      summary: No Parameters Response
-      value:
-        acta_v1:
-        - '8'
-        actr_v1:
-        - '2'
-        qfl_v1:
-        - '2'
-    list-schema_200ResponseExample:
-      summary: Sample Response
-      value:
-        schema: acta_v1
-        sequence: 8
-        url: https://fdss3-bulk-data-delivery-sdf.s3.amazonaws.com/schema/acta_v1/8/2020-05-28_14_18_33.txt?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA4NAFRGHDMSAGCE52%2F20210511%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20210511T170435Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjECIaCXVzLWVhc3QtMSJIMEYCIQD1He0st1G1qElczFiEEG0DVpLHRkTfIyCgA9pUbHmT4wIhAPyz46DpoaSZDfmk%2FZqbG7xUZjZjDyCbr5uBRw5jlz1JKtkBCKr%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQARoMODUyNTYyNjIwODcwIgzHhlGrM5TOWg50o9IqrQGOySsSusfChhxaGUj7dfJDMdnJBOJtm6O5pAnVMnzuHhyr%2FLg69QHy%2BmxSO6SdqykHRjuLMnUeNgQ34n75gaLQDe7B%2Bsw9jSZV3NI6O6B2G4Gjga4X7%2Fm1OlKbStb0CgTVjYTjSI4vIMMn1jKmGZvosl9ZSJgpEbeYk5kKG4Kmr%2FXDGbn4C0ZKXbdnWY4yZCaZitNAkJ74hQSxlk7DWBrTKY1QZUT7WBvd3hRXRTCY8uqEBjrfAdcXYNIJmuyJRel22QcGZ24xPyUXJyW9%2B3vbmDQx3QHLyyHZq%2BbKGKt0sphxhfna%2Bu9qdApKhkBbk1N1%2Bv%2FXLvItRG5Y38ZPpy4gj6hgs6h5%2Buay1Esb32f4083L8uBL26NuUDg09odjE6sBpuqkJoTiBMXaKdlHbU0GfrOli2dK46rhDmY6m1jbF2Najd1v5rbDW%2FPRzYnpM638paqbwUev%2FcLgGvRI%2FXuWoNH%2FfhXFCZf9G20BGWWyhuOoq0%2BSL0a4BQkZXHNjiCXQrysuQtonI4NF%2BD%2FfwZtPuD%2BEsJg%3D&X-Amz-Signature=58517963bbb5b77b481ce68df391c7e29166ac330c552c79f4df68cfdd0585ab
-        timestamp: '2020-05-28 14:18:33'
-    list-schema_400ResponseExample:
-      summary: Sample Response
-      value:
-        id: xxxx-xxxx-xxxx-xxxx                     **Example**
-        error_message: 'parameterError:schema_name : Not a valid schema.'
   securitySchemes:
     basicAuth:
       type: http

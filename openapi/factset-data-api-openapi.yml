@@ -2,10 +2,8 @@ openapi: 3.2.0
 info:
   title: Factset Data API
   version: '1.0'
-  description: 'Operations tagged Data across 4 of this provider''s published API definitions: factset-content-feeds-data-dictionary-openapi.yml, factset-portfolio-metadata-api-openapi.yml, factset-signals-api-openapi.yml, factset-vermilion-api-openapi.yml. Each path carries the servers of the definition it was published in.'
+  description: 'Operations tagged Data across 3 of this provider''s published API definitions: factset-portfolio-metadata-api-openapi.yml, factset-signals-api-openapi.yml, factset-vermilion-api-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
-- url: https://api.factset.com/data-dictionary
-  description: Production
 - description: production
   url: https://api.factset.com/analytics/portfolio-metadata/v1
 - url: https://api.factset.com/signals/v2
@@ -13,43 +11,6 @@ servers:
 tags:
 - name: Data
 paths:
-  /navigator/sources/{DataItem_id}:
-    get:
-      tags:
-      - Data
-      summary: Factset Get a List of Sources Where the Specified Data Item Can Be Found, for Each Delivery Method, Filtered to the Appearances of the Given Data Item Within the Specified Product.
-      parameters:
-      - in: path
-        required: true
-        name: DataItem_id
-        description: The id for the DataItem to fetch the sources for.
-        schema:
-          type: string
-      - in: query
-        required: true
-        name: Product_id
-        description: The id for the Product to filter down the sources returned on.
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Successful operation.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NavigatorSourcesResponse'
-        '401':
-          description: You are not authorized to view this page.
-        '404':
-          description: The specified DataItem_id was not found.
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-      security:
-      - basicAuth: []
-    servers:
-    - url: https://api.factset.com/data-dictionary
-      description: Production
   /trade-data/{id}:
     get:
       operationId: readTradeData
@@ -94,6 +55,8 @@ paths:
       security:
       - FactSetApiKey: []
       - FactSetOAuth2: []
+      summary: Read trade data
+      x-summary-source: derived
     servers:
     - description: production
       url: https://api.factset.com/analytics/portfolio-metadata/v1
@@ -138,6 +101,8 @@ paths:
         dispatcher: FALLBACK
       security:
       - basicAuth: []
+      summary: Get data dictionary
+      x-summary-source: derived
     servers:
     - url: https://api.factset.com/signals/v2
       description: Production
@@ -190,6 +155,8 @@ paths:
         dispatcher: FALLBACK
       security:
       - basicAuth: []
+      summary: Get data dictionary by id
+      x-summary-source: derived
     servers:
     - url: https://api.factset.com/signals/v2
       description: Production
@@ -313,88 +280,6 @@ paths:
       - FactSetOAuth2: []
 components:
   schemas:
-    NavigatorSourcesResponse:
-      type: object
-      properties:
-        sdf:
-          type: array
-          items:
-            $ref: '#/components/schemas/Table'
-          example: []
-        contentApi:
-          type: array
-          items:
-            $ref: '#/components/schemas/ApiEndpoint'
-          example: []
-        reference:
-          type: array
-          items:
-            $ref: '#/components/schemas/ReferenceGroup'
-          example: []
-      required:
-      - sdf
-    ReferenceGroup:
-      properties:
-        id:
-          type: string
-          example: 180443
-          description: Unique identifier for the api endpoint
-        name:
-          type: string
-          example: /symbology/v1/bloomberg
-          description: API endpoint path
-        description:
-          type: string
-          example: Translate FactSet symbols into Bloomberg Identifiers.
-          description: A description of the endpoint
-        entitled:
-          type: string
-          example: true
-          description: Flag indicating if the user is entitled to access the data in their subscriptions
-    Table:
-      properties:
-        id:
-          type: string
-          example: '123'
-          description: Unique identifier for the table
-        dbSchema:
-          type: string
-          example: gr_v2
-          description: Schema prefix for Standard DataFeeds
-        name:
-          type: string
-          example: gr_coverage
-          description: Name of the table
-        description:
-          type: string
-          example: This table contains coverage information for each entity that has a report in the Geographic Revenue Exposure package.
-          description: A description of the table
-        entitled:
-          type: boolean
-          example: true
-          description: Flag indicating if the user is entitled to access the data in their subscriptions
-    ApiEndpoint:
-      properties:
-        id:
-          type: string
-          example: 180443
-          description: Unique identifier for the api endpoint
-        name:
-          type: string
-          example: /symbology/v1/bloomberg
-          description: API endpoint path
-        description:
-          type: string
-          example: Translate FactSet symbols into Bloomberg Identifiers.
-          description: A description of the endpoint
-        developerPortalLink:
-          type: string
-          example: https://developer.factset.com/api-catalog/symbology-api
-          description: Developer Portal URL of the endpoint
-        entitled:
-          type: string
-          example: true
-          description: Flag indicating if the user is entitled to access the data in their subscriptions
     readTradeDataResponse:
       type:
       - object
@@ -512,86 +397,30 @@ components:
               description:
                 type: string
           example: []
-    rateLimitResponse:
-      title: Rate Limit Error Object
-      description: Error returned if any of the user's rate limit have been reached.
-      properties:
-        message:
-          type: string
-          example: API rate limit exceeded
-    contract:
+    contractFields:
       type: object
       required:
-      - fields
-      - version
+      - summary
+      - eventDate
       properties:
-        fields:
-          $ref: '#/components/schemas/contractFields'
-        version:
-          type: string
-          example: example_value
-    contractProperty:
-      type: object
-      required:
-      - description
-      - type
-      properties:
-        description:
-          type: string
-          example: A sample description.
-        type:
-          type: string
-          example: example_value
-        optional:
-          type: boolean
-          example: true
-        items:
+        summary:
           type: object
-          required:
-          - type
           properties:
+            description:
+              type: string
             type:
               type: string
           example: example_value
-    errorResponse:
-      type: object
-      required:
-      - message
-      properties:
-        message:
-          type: string
-          description: A short description of the error.
-          example: There was an error processing your request. Please try again later.
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/errorItem'
-          description: Optional list of errors. e.g. Validation errors for multiple parameters
-          example: []
-    signalDefinition:
-      type: object
-      required:
-      - data
-      properties:
-        data:
+        eventDate:
           type: object
-          required:
-          - signalId
-          - theme
-          - categories
-          - contract
           properties:
-            signalId:
+            description:
               type: string
-            theme:
+            type:
               type: string
-            categories:
-              type: array
-              items:
-                type: string
-            contract:
-              $ref: '#/components/schemas/contract'
           example: example_value
+        additionalProperties:
+          $ref: '#/components/schemas/contractProperty'
     errorItem:
       type: object
       required:
@@ -618,30 +447,94 @@ components:
             parameter:
               type: string
           example: example_value
-    contractFields:
+    contract:
       type: object
       required:
-      - summary
-      - eventDate
+      - fields
+      - version
       properties:
-        summary:
+        fields:
+          $ref: '#/components/schemas/contractFields'
+        version:
+          type: string
+          example: example_value
+    errorResponse:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+          description: A short description of the error.
+          example: There was an error processing your request. Please try again later.
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errorItem'
+          description: Optional list of errors. e.g. Validation errors for multiple parameters
+          example: []
+    contractProperty:
+      type: object
+      required:
+      - description
+      - type
+      properties:
+        description:
+          type: string
+          example: A sample description.
+        type:
+          type: string
+          example: example_value
+        optional:
+          type: boolean
+          example: true
+        items:
           type: object
+          required:
+          - type
           properties:
-            description:
-              type: string
             type:
               type: string
           example: example_value
-        eventDate:
+    rateLimitResponse:
+      title: Rate Limit Error Object
+      description: Error returned if any of the user's rate limit have been reached.
+      properties:
+        message:
+          type: string
+          example: API rate limit exceeded
+    signalDefinition:
+      type: object
+      required:
+      - data
+      properties:
+        data:
           type: object
+          required:
+          - signalId
+          - theme
+          - categories
+          - contract
           properties:
-            description:
+            signalId:
               type: string
-            type:
+            theme:
               type: string
+            categories:
+              type: array
+              items:
+                type: string
+            contract:
+              $ref: '#/components/schemas/contract'
           example: example_value
-        additionalProperties:
-          $ref: '#/components/schemas/contractProperty'
+    ErrorList:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+          example: []
     DataSourceList:
       type: object
       properties:
@@ -664,27 +557,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DataSourceDTO'
-          example: []
-    EntityDTO:
-      type: object
-      properties:
-        entityId:
-          type: integer
-          format: int32
-          example: '500123'
-        name:
-          type: string
-          example: Example Title
-        code:
-          type: string
-          example: example_value
-    ErrorList:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/Error'
           example: []
     DataSourceDTO:
       type: object
@@ -741,39 +613,28 @@ components:
         title:
           type: string
           example: Example Title
+    EntityDTO:
+      type: object
+      properties:
+        entityId:
+          type: integer
+          format: int32
+          example: '500123'
+        name:
+          type: string
+          example: Example Title
+        code:
+          type: string
+          example: example_value
   responses:
-    NotImplementedErrorResponse:
-      description: ''
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    UnauthorizedErrorResponse:
-      description: Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided.
+    UnsupportedMediaTypeErrorResponse:
+      description: The request entity has a media type which the server or resource does not support.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Errors'
     NotAcceptableErrorResponse:
       description: The requested resource is capable of generating only content not acceptable according to the Accept headers sent in the request.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    BadRequestErrorResponse:
-      description: The server cannot or will not process the request due to an apparent client error (e.g., malformed request syntax, size too large, invalid request message framing, or deceptive request routing).
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    NotFoundErrorResponse:
-      description: The requested resource could not be found but may be available in the future. Subsequent requests by the client are permissible.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    UnsupportedMediaTypeErrorResponse:
-      description: The request entity has a media type which the server or resource does not support.
       content:
         application/json:
           schema:
@@ -790,27 +651,51 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Errors'
+    NotImplementedErrorResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    BadRequestErrorResponse:
+      description: The server cannot or will not process the request due to an apparent client error (e.g., malformed request syntax, size too large, invalid request message framing, or deceptive request routing).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    UnauthorizedErrorResponse:
+      description: Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    NotFoundErrorResponse:
+      description: The requested resource could not be found but may be available in the future. Subsequent requests by the client are permissible.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
   headers:
-    Api-Supported-Versions:
-      description: Comma-separated list of supported major versions.
-      schema:
-        type: string
-        example: '1'
-    RateLimit-Reset:
-      description: Time remaining (in seconds) until the quota is reset.
-      schema:
-        type: integer
-        example: 1000
-    Api-Version:
-      description: Full semantic version of the API.
-      schema:
-        type: string
-        example: 1.0.0
     RateLimit-Limit:
       description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
       schema:
         type: integer
         example: 5
+    Api-Supported-Versions:
+      description: Comma-separated list of supported major versions.
+      schema:
+        type: string
+        example: '1'
+    Api-Version:
+      description: Full semantic version of the API.
+      schema:
+        type: string
+        example: 1.0.0
+    RateLimit-Reset:
+      description: Time remaining (in seconds) until the quota is reset.
+      schema:
+        type: integer
+        example: 1000
     RateLimit-Remaining:
       description: Remaining number of requests in the current time window.
       schema:
@@ -826,9 +711,6 @@ components:
         description: A single signalId.
       example: dilutionTrigger
   securitySchemes:
-    basicAuth:
-      type: http
-      scheme: basic
     FactSetOAuth2:
       type: oauth2
       flows:
@@ -838,8 +720,10 @@ components:
     FactSetApiKey:
       type: http
       scheme: basic
+    basicAuth:
+      type: http
+      scheme: basic
 x-refined-from:
-- factset-content-feeds-data-dictionary-openapi.yml
 - factset-portfolio-metadata-api-openapi.yml
 - factset-signals-api-openapi.yml
 - factset-vermilion-api-openapi.yml

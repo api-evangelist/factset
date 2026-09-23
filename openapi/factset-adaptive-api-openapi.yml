@@ -113,6 +113,8 @@ paths:
         dispatcher: FALLBACK
       security:
       - basicAuth: []
+      summary: Get event adaptive cards
+      x-summary-source: derived
     post:
       tags:
       - Adaptive
@@ -165,6 +167,8 @@ paths:
         dispatcher: FALLBACK
       security:
       - basicAuth: []
+      summary: Post event adaptive cards
+      x-summary-source: derived
     servers:
     - url: https://api.factset.com/signals/v2
       description: Production
@@ -217,150 +221,12 @@ paths:
         dispatcher: FALLBACK
       security:
       - basicAuth: []
+      summary: Get event adaptive card by id
+      x-summary-source: derived
     servers:
     - url: https://api.factset.com/signals/v2
       description: Production
 components:
-  parameters:
-    DisableNoAnswerResponses:
-      name: disableNoAnswerResponses
-      in: query
-      description: Disables no-result answer responses (no-results and answer without data)
-      required: false
-      schema:
-        type: boolean
-        default: true
-    Query:
-      name: query
-      in: query
-      description: Query for desired answer (e.g., "fds price")
-      required: true
-      schema:
-        type: string
-    Theme:
-      name: theme
-      in: query
-      description: Theme for desired answer (e.g., "Light", "Dark")
-      required: false
-      schema:
-        type: string
-        default: Light
-    IncludeThumbnail:
-      name: includeThumbnail
-      in: query
-      description: Includes thumbnail of Adaptive Card in response
-      required: false
-      schema:
-        type: boolean
-        default: false
-    signalIdsParam:
-      name: signalIds
-      in: query
-      schema:
-        type: string
-        description: Comma delimited string of signalIds
-      example: dilutionTrigger,freeCashFlow
-    eventIdParam:
-      name: eventId
-      in: path
-      required: true
-      description: The UUID of the event to return.
-      schema:
-        type: string
-        format: uuid
-        minimum: 1
-    themesParam:
-      name: themes
-      in: query
-      schema:
-        type: string
-      description: Comma delimited string of theme ids. Full list of signal themes can be viewed at /themes.
-    resolveIdentifiersParam:
-      name: resolveIdentifiers
-      in: query
-      schema:
-        type: boolean
-      description: The api will return resolved identifiers in the meta section of the response by default (true). If the parameter is false, the api will not attempt to resolve the identifiers.
-      example: true
-    sortParam:
-      name: sort
-      in: query
-      schema:
-        type: string
-      description: Comma delimited string of sortable attributes. The sort order for each sort attribute is ascending unless it is prefixed with a minus sign, in which case it is descending. If sort is not provided, the default sort applied is -userRelevanceScore (userRelevanceScore in descending order).
-      example: -userRelevanceScore,-eventDate
-    idsParam:
-      name: ids
-      in: query
-      schema:
-        type: string
-      description: Comma delimited string of identifiers. An identifier can be a ticker, FactSet entity id, CUSIP or ISIN. You must provide a list of identifiers either via a ids or a portfolios parameter. If both are provided, only ids filter is used. Users with limited access can use only the ids filter and provide at most 10 ids.
-      example: FDS-US,AMZN-US
-    createdParam:
-      name: created
-      in: query
-      schema:
-        $ref: '#/components/schemas/DateTimeInterval'
-      style: deepObject
-      explode: true
-      description: A date/time (UTC) interval for filtering signal events based on their creation date. Defaults to NOW - 7 days if omitted. Users with limited access can only provide the default or a smaller date window.
-      examples:
-        default:
-          value: {}
-        lowerBound:
-          $ref: '#/components/examples/lowerBound'
-        upperBound:
-          $ref: '#/components/examples/upperBound'
-        bothBounds:
-          $ref: '#/components/examples/bothBounds'
-    categoriesParam:
-      name: categories
-      in: query
-      schema:
-        type: string
-      description: Comma delimited string of category ids. Full list of signal categories can be viewed at /categories.
-    updatedParam:
-      name: updated
-      in: query
-      schema:
-        $ref: '#/components/schemas/DateTimeInterval'
-      style: deepObject
-      explode: true
-      description: A date/time (UTC) interval for filtering signal events based on their last updated date. Defaults to NOW - 7 days if omitted. Users with limited access can only provide the default or a smaller date window.
-      examples:
-        default:
-          value: {}
-        lowerBound:
-          $ref: '#/components/examples/lowerBound'
-        upperBound:
-          $ref: '#/components/examples/upperBound'
-        bothBounds:
-          $ref: '#/components/examples/bothBounds'
-    relevanceScoreParam:
-      name: userRelevanceScore
-      in: query
-      schema:
-        $ref: '#/components/schemas/RelevanceScoreRange'
-      style: deepObject
-      explode: true
-      description: A range for filtering signal events based on their relevancy score.
-      examples:
-        lowerBound:
-          value:
-            gte: 0
-        upperBound:
-          value:
-            lt: 1
-        bothBounds:
-          value:
-            gt: 0
-            lt: 1
-    portfoliosParam:
-      name: portfolios
-      in: query
-      schema:
-        type: string
-      description: Name of a portfolio file stored by FactSet. If the portfolio contains more than 1,000 ids, only the first 1,000 ids are processed (e.g. client:techstocks.ofdb). Please note that using this parameter requires full subscription to Signals API.
   schemas:
     AnswerFailureResponse:
       type: object
@@ -372,9 +238,6 @@ components:
           items:
             $ref: '#/components/schemas/Error'
           example: []
-    AdaptiveCard:
-      type: object
-      description: JSON that matches [Adaptive Card](https://adaptivecards.io/explorer/) format.
     AdaptiveCardWithThumbnail:
       type: object
       properties:
@@ -382,10 +245,9 @@ components:
           $ref: '#/components/schemas/AdaptiveCard'
         thumbnail:
           $ref: '#/components/schemas/ThumbnailCard'
-    AdaptiveCardDataItem:
-      oneOf:
-      - $ref: '#/components/schemas/AdaptiveCard'
-      - $ref: '#/components/schemas/AdaptiveCardWithThumbnail'
+    AdaptiveCard:
+      type: object
+      description: JSON that matches [Adaptive Card](https://adaptivecards.io/explorer/) format.
     Error:
       type: object
       required:
@@ -409,11 +271,14 @@ components:
           example: example_value
         source:
           $ref: '#/components/schemas/ErrorSource'
-    ThumbnailCard:
-      type:
-      - object
-      - 'null'
-      description: JSON that matches [Thumbnail Card](https://docs.microsoft.com/en-us/microsoftteams/platform/task-modules-and-cards/cards/cards-reference#thumbnail-card) format.
+    ErrorLink:
+      type: object
+      required:
+      - about
+      properties:
+        about:
+          type: string
+          example: example_value
     AdaptiveCardAnswerSuccessResponse:
       type: object
       required:
@@ -424,6 +289,11 @@ components:
           items:
             $ref: '#/components/schemas/AdaptiveCardDataItem'
           example: []
+    ThumbnailCard:
+      type:
+      - object
+      - 'null'
+      description: JSON that matches [Thumbnail Card](https://docs.microsoft.com/en-us/microsoftteams/platform/task-modules-and-cards/cards/cards-reference#thumbnail-card) format.
     ErrorSource:
       type: object
       properties:
@@ -433,14 +303,22 @@ components:
         parameter:
           type: string
           example: example_value
-    ErrorLink:
+    AdaptiveCardDataItem:
+      oneOf:
+      - $ref: '#/components/schemas/AdaptiveCard'
+      - $ref: '#/components/schemas/AdaptiveCardWithThumbnail'
+    eventMeta:
       type: object
       required:
-      - about
+      - signalRequestId
+      - idResolutions
       properties:
-        about:
+        signalRequestId:
           type: string
-          example: example_value
+          format: uuid
+          example: '500123'
+        idResolutions:
+          $ref: '#/components/schemas/idResolutionsMeta'
     eventAdaptiveCards:
       type: object
       required:
@@ -459,21 +337,49 @@ components:
           items:
             $ref: '#/components/schemas/errorItem'
           example: []
-    errorResponse:
+    DateTime:
+      type: string
+      format: date-time
+      description: A date/time string in ISO 8601 format.
+      example: '2021-01-01T00:00:00Z'
+    eventAdaptiveCard:
       type: object
       required:
-      - message
+      - data
+      - meta
       properties:
-        message:
-          type: string
-          description: A short description of the error.
-          example: There was an error processing your request. Please try again later.
+        data:
+          $ref: '#/components/schemas/eventAdaptiveDataItem'
+        meta:
+          $ref: '#/components/schemas/eventMeta'
         errors:
           type: array
           items:
             $ref: '#/components/schemas/errorItem'
-          description: Optional list of errors. e.g. Validation errors for multiple parameters
           example: []
+    RelevanceScoreRange:
+      type: object
+      description: 'Represents a valid range for user relevancy score for signal events. The upper bound of the range is represented by the attribute **gt** or **gte**. The lower bound of the range is presented by **lt** or **lte** The range can contain either of the bounds or both. e.g. { "gt": 0.4, "lt": 0.8 }
+
+        '
+      minProperties: 1
+      properties:
+        gt:
+          type: number
+          format: float
+          example: 42.5
+        gte:
+          type: number
+          format: float
+          example: 42.5
+        lt:
+          type: number
+          format: float
+          example: 42.5
+        lte:
+          type: number
+          format: float
+          example: 42.5
     idResolutionsMeta:
       type: object
       properties:
@@ -491,11 +397,89 @@ components:
             - string
             - 'null'
           example: '500123'
-    DateTime:
-      type: string
-      format: date-time
-      description: A date/time string in ISO 8601 format.
-      example: '2021-01-01T00:00:00Z'
+    DateTimeInterval:
+      type: object
+      description: 'Represents a valid date/time (UTC) interval. The upper bound of the interval is represented by the attribute **gt** or **gte**. The lower bound of the interval is presented by **lt** or **lte** The interval can contain either of the bounds or both. e.g. { "gt": "2021-05-01T00:00:00.000Z", "lt": "2021-05-08T00:00:00.000Z" }
+
+        '
+      minProperties: 1
+      properties:
+        gt:
+          $ref: '#/components/schemas/DateTime'
+        gte:
+          $ref: '#/components/schemas/DateTime'
+        lt:
+          $ref: '#/components/schemas/DateTime'
+        lte:
+          $ref: '#/components/schemas/DateTime'
+    errorResponse:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+          description: A short description of the error.
+          example: There was an error processing your request. Please try again later.
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errorItem'
+          description: Optional list of errors. e.g. Validation errors for multiple parameters
+          example: []
+    rateLimitResponse:
+      title: Rate Limit Error Object
+      description: Error returned if any of the user's rate limit have been reached.
+      properties:
+        message:
+          type: string
+          example: API rate limit exceeded
+    eventAdaptiveDataItem:
+      type: object
+      required:
+      - requestId
+      - signalId
+      - adaptiveCard
+      properties:
+        requestId:
+          type: string
+          description: The id that was requested, ticker, cusip, factset entity id etc.
+          example: FDS-US
+        signalId:
+          type: string
+          description: Signal Id for this event.
+          example: dilutionTrigger
+        adaptiveCard:
+          type: object
+          description: A JSON object that's compliant with MS adaptive card schema.
+          additionalProperties: true
+          example: example_value
+    errorItem:
+      type: object
+      required:
+      - id
+      - code
+      - title
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: abc123
+        code:
+          type: string
+          example: parameterError
+        title:
+          type: string
+          example: Invalid type/value
+        detail:
+          type: string
+          example: Value must be a valid UTC date/time that conforms to ISO 8601 format
+        source:
+          type: object
+          properties:
+            parameter:
+              type: string
+          example: example_value
     eventRequestBody:
       type: object
       properties:
@@ -542,130 +526,162 @@ components:
           type: boolean
           description: The api will return resolved identifiers in the meta section of the response by default (true). If the parameter is false, the api will not attempt to resolve the identifiers.
           example: true
-    eventAdaptiveCard:
-      type: object
-      required:
-      - data
-      - meta
-      properties:
-        data:
-          $ref: '#/components/schemas/eventAdaptiveDataItem'
-        meta:
-          $ref: '#/components/schemas/eventMeta'
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/errorItem'
-          example: []
-    DateTimeInterval:
-      type: object
-      description: 'Represents a valid date/time (UTC) interval. The upper bound of the interval is represented by the attribute **gt** or **gte**. The lower bound of the interval is presented by **lt** or **lte** The interval can contain either of the bounds or both. e.g. { "gt": "2021-05-01T00:00:00.000Z", "lt": "2021-05-08T00:00:00.000Z" }
-
-        '
-      minProperties: 1
-      properties:
-        gt:
-          $ref: '#/components/schemas/DateTime'
-        gte:
-          $ref: '#/components/schemas/DateTime'
-        lt:
-          $ref: '#/components/schemas/DateTime'
-        lte:
-          $ref: '#/components/schemas/DateTime'
-    RelevanceScoreRange:
-      type: object
-      description: 'Represents a valid range for user relevancy score for signal events. The upper bound of the range is represented by the attribute **gt** or **gte**. The lower bound of the range is presented by **lt** or **lte** The range can contain either of the bounds or both. e.g. { "gt": 0.4, "lt": 0.8 }
-
-        '
-      minProperties: 1
-      properties:
-        gt:
-          type: number
-          format: float
-          example: 42.5
-        gte:
-          type: number
-          format: float
-          example: 42.5
-        lt:
-          type: number
-          format: float
-          example: 42.5
-        lte:
-          type: number
-          format: float
-          example: 42.5
-    errorItem:
-      type: object
-      required:
-      - id
-      - code
-      - title
-      properties:
-        id:
-          type: string
-          format: uuid
-          example: abc123
-        code:
-          type: string
-          example: parameterError
-        title:
-          type: string
-          example: Invalid type/value
-        detail:
-          type: string
-          example: Value must be a valid UTC date/time that conforms to ISO 8601 format
-        source:
-          type: object
-          properties:
-            parameter:
-              type: string
-          example: example_value
-    eventMeta:
-      type: object
-      required:
-      - signalRequestId
-      - idResolutions
-      properties:
-        signalRequestId:
-          type: string
-          format: uuid
-          example: '500123'
-        idResolutions:
-          $ref: '#/components/schemas/idResolutionsMeta'
-    eventAdaptiveDataItem:
-      type: object
-      required:
-      - requestId
-      - signalId
-      - adaptiveCard
-      properties:
-        requestId:
-          type: string
-          description: The id that was requested, ticker, cusip, factset entity id etc.
-          example: FDS-US
-        signalId:
-          type: string
-          description: Signal Id for this event.
-          example: dilutionTrigger
-        adaptiveCard:
-          type: object
-          description: A JSON object that's compliant with MS adaptive card schema.
-          additionalProperties: true
-          example: example_value
-    rateLimitResponse:
-      title: Rate Limit Error Object
-      description: Error returned if any of the user's rate limit have been reached.
-      properties:
-        message:
-          type: string
-          example: API rate limit exceeded
+  parameters:
+    DisableNoAnswerResponses:
+      name: disableNoAnswerResponses
+      in: query
+      description: Disables no-result answer responses (no-results and answer without data)
+      required: false
+      schema:
+        type: boolean
+        default: true
+    IncludeThumbnail:
+      name: includeThumbnail
+      in: query
+      description: Includes thumbnail of Adaptive Card in response
+      required: false
+      schema:
+        type: boolean
+        default: false
+    Theme:
+      name: theme
+      in: query
+      description: Theme for desired answer (e.g., "Light", "Dark")
+      required: false
+      schema:
+        type: string
+        default: Light
+    Query:
+      name: query
+      in: query
+      description: Query for desired answer (e.g., "fds price")
+      required: true
+      schema:
+        type: string
+    resolveIdentifiersParam:
+      name: resolveIdentifiers
+      in: query
+      schema:
+        type: boolean
+      description: The api will return resolved identifiers in the meta section of the response by default (true). If the parameter is false, the api will not attempt to resolve the identifiers.
+      example: true
+    createdParam:
+      name: created
+      in: query
+      schema:
+        $ref: '#/components/schemas/DateTimeInterval'
+      style: deepObject
+      explode: true
+      description: A date/time (UTC) interval for filtering signal events based on their creation date. Defaults to NOW - 7 days if omitted. Users with limited access can only provide the default or a smaller date window.
+      examples:
+        default:
+          value: {}
+        lowerBound:
+          $ref: '#/components/examples/lowerBound'
+        upperBound:
+          $ref: '#/components/examples/upperBound'
+        bothBounds:
+          $ref: '#/components/examples/bothBounds'
+    signalIdsParam:
+      name: signalIds
+      in: query
+      schema:
+        type: string
+        description: Comma delimited string of signalIds
+      example: dilutionTrigger,freeCashFlow
+    relevanceScoreParam:
+      name: userRelevanceScore
+      in: query
+      schema:
+        $ref: '#/components/schemas/RelevanceScoreRange'
+      style: deepObject
+      explode: true
+      description: A range for filtering signal events based on their relevancy score.
+      examples:
+        lowerBound:
+          value:
+            gte: 0
+        upperBound:
+          value:
+            lt: 1
+        bothBounds:
+          value:
+            gt: 0
+            lt: 1
+    updatedParam:
+      name: updated
+      in: query
+      schema:
+        $ref: '#/components/schemas/DateTimeInterval'
+      style: deepObject
+      explode: true
+      description: A date/time (UTC) interval for filtering signal events based on their last updated date. Defaults to NOW - 7 days if omitted. Users with limited access can only provide the default or a smaller date window.
+      examples:
+        default:
+          value: {}
+        lowerBound:
+          $ref: '#/components/examples/lowerBound'
+        upperBound:
+          $ref: '#/components/examples/upperBound'
+        bothBounds:
+          $ref: '#/components/examples/bothBounds'
+    sortParam:
+      name: sort
+      in: query
+      schema:
+        type: string
+      description: Comma delimited string of sortable attributes. The sort order for each sort attribute is ascending unless it is prefixed with a minus sign, in which case it is descending. If sort is not provided, the default sort applied is -userRelevanceScore (userRelevanceScore in descending order).
+      example: -userRelevanceScore,-eventDate
+    portfoliosParam:
+      name: portfolios
+      in: query
+      schema:
+        type: string
+      description: Name of a portfolio file stored by FactSet. If the portfolio contains more than 1,000 ids, only the first 1,000 ids are processed (e.g. client:techstocks.ofdb). Please note that using this parameter requires full subscription to Signals API.
+    eventIdParam:
+      name: eventId
+      in: path
+      required: true
+      description: The UUID of the event to return.
+      schema:
+        type: string
+        format: uuid
+        minimum: 1
+    themesParam:
+      name: themes
+      in: query
+      schema:
+        type: string
+      description: Comma delimited string of theme ids. Full list of signal themes can be viewed at /themes.
+    categoriesParam:
+      name: categories
+      in: query
+      schema:
+        type: string
+      description: Comma delimited string of category ids. Full list of signal categories can be viewed at /categories.
+    idsParam:
+      name: ids
+      in: query
+      schema:
+        type: string
+      description: Comma delimited string of identifiers. An identifier can be a ticker, FactSet entity id, CUSIP or ISIN. You must provide a list of identifiers either via a ids or a portfolios parameter. If both are provided, only ids filter is used. Users with limited access can use only the ids filter and provide at most 10 ids.
+      example: FDS-US,AMZN-US
   headers:
+    RateLimit-Limit:
+      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
+      schema:
+        type: integer
+        example: 5
     Api-Supported-Versions:
       description: Comma-separated list of supported major versions.
       schema:
         type: string
         example: '1'
+    RateLimit-Remaining:
+      description: Remaining number of requests in the current time window.
+      schema:
+        type: integer
+        example: 4
     RateLimit-Reset:
       description: Time remaining (in seconds) until the quota is reset.
       schema:
@@ -676,20 +692,7 @@ components:
       schema:
         type: string
         example: 1.0.0
-    RateLimit-Remaining:
-      description: Remaining number of requests in the current time window.
-      schema:
-        type: integer
-        example: 4
-    RateLimit-Limit:
-      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
-      schema:
-        type: integer
-        example: 5
   examples:
-    upperBound:
-      value:
-        lt: '2022-01-02T00:00:00.000Z'
     bothBounds:
       value:
         gt: '2022-01-01T00:00:00.000Z'
@@ -697,6 +700,9 @@ components:
     lowerBound:
       value:
         gt: '2022-01-01T00:00:00.000Z'
+    upperBound:
+      value:
+        lt: '2022-01-02T00:00:00.000Z'
   securitySchemes:
     Basic:
       type: http

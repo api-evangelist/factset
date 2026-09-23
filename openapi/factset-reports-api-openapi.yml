@@ -1,7 +1,7 @@
 openapi: 3.2.0
 info:
-  title: Factset Reports API
   version: 1.0.0
+  title: FactSet Vermilion Reports API
   contact:
     name: FactSet Research Systems
     email: api@factset.com
@@ -9,7 +9,13 @@ info:
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  description: 'Operations tagged Reports across 2 of this provider''s published API definitions: factset-vermilion-api-openapi.yml, vermilion-openapi-original.yml. Each path carries the servers of the definition it was published in.'
+  description: 'The Vermilion API, enables users to programmatically access FactSet''s
+
+    Vermilion Reporting Suite (VRS) and seamlessly integrate into customer''s
+
+    3rd party applications. The API is referred to as two key product
+
+    initiatives, the REST API and the SCIM API.'
 security:
 - FactSetApiKey: []
 - FactSetOAuth2: []
@@ -138,90 +144,16 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
-  /v1/{tenant}/reports/{reportDefinitionCode}:
-    get:
-      operationId: getReportDefinitionByCode
-      tags:
-      - Reports
-      summary: Factset Gets a report definition
-      description: Gets a report defintion based on the code specified
-      parameters:
-      - in: path
-        name: tenant
-        description: The code of the tenancy
-        schema:
-          type: string
-        required: true
-      - in: path
-        name: reportDefinitionCode
-        description: The code of the report definition
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ReportDefinitionData'
-        '400':
-          description: The supplied report definition code was either missing or invalid, or the report definition was not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList_2'
-              example:
-                errors:
-                - id: ID of the error
-                  code: parameterError
-                  title: The report definition code passed was invalid
-        '401':
-          description: Unauthorised
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList_2'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAuthenticated
-                  title: User is not authenticated
-        '403':
-          description: No permissions to view reports in VRS
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList_2'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAuthorized
-                  title: No permissions to view this item
-        '404':
-          description: The supplied report definition code was was not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList_2'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notFound
-                  title: The report definition code passed was not found
-        '406':
-          description: Unsupported Accept header. Header needs to be set to application/json.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList_2'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAcceptable
-                  title: Unsupported Accept header. Header needs to be set to application/json
 components:
   schemas:
+    ErrorList:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+          example: []
     ReportDefinitionList:
       type: object
       properties:
@@ -240,27 +172,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ReportDefinitionDTO'
-          example: []
-    EntityDTO:
-      type: object
-      properties:
-        entityId:
-          type: integer
-          format: int32
-          example: '500123'
-        name:
-          type: string
-          example: Example Title
-        code:
-          type: string
-          example: example_value
-    ErrorList:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/Error'
           example: []
     Error:
       type: object
@@ -291,67 +202,19 @@ components:
           items:
             $ref: '#/components/schemas/EntityDTO'
           example: []
-    ReportDefinitionList_2:
-      type: object
-      properties:
-        meta:
-          type: object
-          properties:
-            pagination:
-              type: object
-              properties:
-                total:
-                  type: integer
-                isEstimatedTotal:
-                  type: boolean
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/ReportDefinitionDTO_2'
-    EntityDTO_2:
+    EntityDTO:
       type: object
       properties:
         entityId:
           type: integer
           format: int32
+          example: '500123'
         name:
           type: string
+          example: Example Title
         code:
           type: string
-    ReportDefinitionData:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/ReportDefinitionDTO_2'
-    ErrorList_2:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/Error_2'
-    Error_2:
-      type: object
-      properties:
-        id:
-          type: string
-        code:
-          type: string
-        title:
-          type: string
-    ReportDefinitionDTO_2:
-      type: object
-      properties:
-        name:
-          type: string
-        code:
-          type: string
-        releaseTag:
-          type: string
-        entities:
-          type: array
-          items:
-            $ref: '#/components/schemas/EntityDTO_2'
+          example: example_value
   securitySchemes:
     FactSetOAuth2:
       type: oauth2
@@ -365,6 +228,3 @@ components:
 externalDocs:
   description: API Documentation
   url: https://developer.factset.com/api-catalog/vermilion-api
-x-refined-from:
-- factset-vermilion-api-openapi.yml
-- vermilion-openapi-original.yml

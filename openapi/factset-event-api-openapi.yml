@@ -1,13 +1,11 @@
 openapi: 3.2.0
 info:
   title: FactSet Signals Event API
-  description: '
+  description: 'Leverage Signals to identify material events for a company. Signals are
 
-    Leverage Signals to identify material events for a company. Signals are
+    derived from FactSet''s core data, cognitive computing technology, and our
 
-    derived from FactSet''s core data,  cognitive computing technology, and our
-
-    3rd party partners. '
+    3rd party partners.'
   version: 2.6.0
   contact:
     name: Signals API Support
@@ -67,51 +65,36 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
+      summary: Get event detail by id
+      x-summary-source: derived
 components:
-  parameters:
-    eventIdParam:
-      name: eventId
-      in: path
-      required: true
-      description: The UUID of the event to return.
-      schema:
-        type: string
-        format: uuid
-        minimum: 1
-  headers:
-    Api-Supported-Versions:
-      description: Comma-separated list of supported major versions.
-      schema:
-        type: string
-        example: '1'
-    RateLimit-Reset:
-      description: Time remaining (in seconds) until the quota is reset.
-      schema:
-        type: integer
-        example: 1000
-    Api-Version:
-      description: Full semantic version of the API.
-      schema:
-        type: string
-        example: 1.0.0
-    RateLimit-Limit:
-      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
-      schema:
-        type: integer
-        example: 5
-    RateLimit-Remaining:
-      description: Remaining number of requests in the current time window.
-      schema:
-        type: integer
-        example: 4
   schemas:
-    rateLimitResponse:
-      title: Rate Limit Error Object
-      description: Error returned if any of the user's rate limit have been reached.
+    errorItem:
+      type: object
+      required:
+      - id
+      - code
+      - title
       properties:
-        message:
+        id:
           type: string
-          example: API rate limit exceeded
+          format: uuid
+          example: abc123
+        code:
+          type: string
+          example: parameterError
+        title:
+          type: string
+          example: Invalid type/value
+        detail:
+          type: string
+          example: Value must be a valid UTC date/time that conforms to ISO 8601 format
+        source:
+          type: object
+          properties:
+            parameter:
+              type: string
+          example: example_value
     eventHeadlineDataItem:
       type: object
       required:
@@ -173,62 +156,6 @@ components:
           format: date-time
           description: Date/Time in UTC the event was first recorded in our data store.
           example: '2021-04-26T06:39:40.094Z'
-    errorResponse:
-      type: object
-      required:
-      - message
-      properties:
-        message:
-          type: string
-          description: A short description of the error.
-          example: There was an error processing your request. Please try again later.
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/errorItem'
-          description: Optional list of errors. e.g. Validation errors for multiple parameters
-          example: []
-    errorItem:
-      type: object
-      required:
-      - id
-      - code
-      - title
-      properties:
-        id:
-          type: string
-          format: uuid
-          example: abc123
-        code:
-          type: string
-          example: parameterError
-        title:
-          type: string
-          example: Invalid type/value
-        detail:
-          type: string
-          example: Value must be a valid UTC date/time that conforms to ISO 8601 format
-        source:
-          type: object
-          properties:
-            parameter:
-              type: string
-          example: example_value
-    eventDetail:
-      type: object
-      required:
-      - data
-      - meta
-      properties:
-        data:
-          $ref: '#/components/schemas/eventDetailDataItem'
-        meta:
-          $ref: '#/components/schemas/eventMeta'
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/errorItem'
-          example: []
     eventMeta:
       type: object
       required:
@@ -258,6 +185,43 @@ components:
             - string
             - 'null'
           example: '500123'
+    errorResponse:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+          description: A short description of the error.
+          example: There was an error processing your request. Please try again later.
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errorItem'
+          description: Optional list of errors. e.g. Validation errors for multiple parameters
+          example: []
+    rateLimitResponse:
+      title: Rate Limit Error Object
+      description: Error returned if any of the user's rate limit have been reached.
+      properties:
+        message:
+          type: string
+          example: API rate limit exceeded
+    eventDetail:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/eventDetailDataItem'
+        meta:
+          $ref: '#/components/schemas/eventMeta'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errorItem'
+          example: []
     eventDetailDataItem:
       allOf:
       - $ref: '#/components/schemas/eventHeadlineDataItem'
@@ -281,6 +245,42 @@ components:
             type: object
             description: Signal specific event properties.
             additionalProperties: true
+  headers:
+    RateLimit-Limit:
+      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
+      schema:
+        type: integer
+        example: 5
+    Api-Supported-Versions:
+      description: Comma-separated list of supported major versions.
+      schema:
+        type: string
+        example: '1'
+    Api-Version:
+      description: Full semantic version of the API.
+      schema:
+        type: string
+        example: 1.0.0
+    RateLimit-Reset:
+      description: Time remaining (in seconds) until the quota is reset.
+      schema:
+        type: integer
+        example: 1000
+    RateLimit-Remaining:
+      description: Remaining number of requests in the current time window.
+      schema:
+        type: integer
+        example: 4
+  parameters:
+    eventIdParam:
+      name: eventId
+      in: path
+      required: true
+      description: The UUID of the event to return.
+      schema:
+        type: string
+        format: uuid
+        minimum: 1
   securitySchemes:
     basicAuth:
       type: http

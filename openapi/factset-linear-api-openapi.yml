@@ -388,35 +388,162 @@ paths:
           $ref: '#/components/responses/InternalServerErrorJsonOnly'
 components:
   schemas:
-    CompositeAssetDefinitions:
-      description: IDs to be defined as composite assets with their constituents' IDs and market values. The typical use case is for risk look-through of ETF or Funds' constituents. When defining composite assets and creating portfolios which hold them, the IDs provided must be an exact match.
+    StatResultValueScalar:
+      type:
+      - number
+      - 'null'
+      format: double
+    ErrorResponse:
+      description: Response schema for HTTP error responses. Data should never be expected in the response body.
       type: object
-      additionalProperties:
-        $ref: '#/components/schemas/IDsAndMarketValues'
-      example:
-        CA1_to_IBM_and_CA2:
-          ids:
-          - IBM
-          - CA2
-          marketValues:
-          - 0.45
-          - 0.55
-        CA2:
-          ids:
-          - VZ
-          - cfd_FDS
-          marketValues:
-          - 0.6
-          - 0.4
+      required:
+      - errors
+      properties:
+        errors:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ErrorItem'
+    RiskModelFactor:
+      description: Individual factor from the risk model
+      type: object
+      required:
+      - id
+      properties:
+        id:
+          description: Factor ID from the risk model
+          type: string
+          minLength: 1
     StatResultValueDenseMatrix:
       type: array
       minItems: 1
       items:
         $ref: '#/components/schemas/StatResultValueVector'
+    GroupsLabels:
+      description: Tree of input group name and calculated data results index for relevant group calculation-level
+      type: object
+      properties:
+        index:
+          description: 0-based index into the results array dimension for the corresponding calculation-levels
+          type: integer
+        name:
+          description: Name that was provided for this group
+          type: string
+          minLength: 1
+        groups:
+          description: Recursively defined elements; base case array (i.e., lowest group) contains objects with 'name' and 'index' only and not 'groups'
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/GroupsLabels'
+    CalculateFromHoldingsRequestData:
+      type: object
+      required:
+      - riskModel
+      - date
+      - stats
+      - holdings
+      properties:
+        additionalCalcInputs:
+          $ref: '#/components/schemas/AdditionalCalculationInputs'
+        allowForcedRisklessAssets:
+          $ref: '#/components/schemas/AllowForcedRisklessAssets'
+        assetTypes:
+          $ref: '#/components/schemas/AssetTypes'
+        calendar:
+          $ref: '#/components/schemas/CalendarCode'
+        compositeAssets:
+          $ref: '#/components/schemas/CompositeAssetDefinitions'
+        currency:
+          $ref: '#/components/schemas/CurrencyISOCode'
+        date:
+          $ref: '#/components/schemas/Date'
+        factorGrouping:
+          $ref: '#/components/schemas/FactorGroup'
+        factorsVisible:
+          $ref: '#/components/schemas/FactorsVisible'
+        holdings:
+          $ref: '#/components/schemas/Holdings'
+        indexMapping:
+          $ref: '#/components/schemas/SecurityIndexMapping'
+        laggingDates:
+          $ref: '#/components/schemas/LaggingDates'
+        removeCurrencyRisk:
+          $ref: '#/components/schemas/RemoveCurrencyRisk'
+        requiresFactorReturns:
+          $ref: '#/components/schemas/RequiresFactorReturns'
+        riskModel:
+          $ref: '#/components/schemas/RiskModelCode'
+        riskModelAppendData:
+          $ref: '#/components/schemas/RiskModelAppendData'
+        stats:
+          $ref: '#/components/schemas/Stats'
+        underlyingIds:
+          $ref: '#/components/schemas/UnderlyingIDs'
+    Stats:
+      description: List of risk stats and settings to calculate
+      type: array
+      minItems: 1
+      maxItems: 1000
+      items:
+        $ref: '#/components/schemas/Stat'
+    ResolvedDates:
+      description: '**(since 1.11.0)** Absolute actual dates used adjusted according to calendar and lagging'
+      type: object
+      required:
+      - universeDate
+      - covarianceDate
+      - ssrDate
+      properties:
+        universeDate:
+          $ref: '#/components/schemas/StandardDate'
+        covarianceDate:
+          $ref: '#/components/schemas/StandardDate'
+        ssrDate:
+          $ref: '#/components/schemas/StandardDate'
+    FactorGroup:
+      description: Factor grouping definition to use for calculations and results. This field impacts the calculation only when any 'FactorGroup' level statistics are requested, e.g. 'FactorGroup', 'FactorGroupSecurity'.
+      type: object
+      required:
+      - nodes
+      properties:
+        name:
+          description: Name of this factor group
+          type: string
+          minLength: 1
+        nodes:
+          description: Recursively defined elements; base case array (i.e., lowest factor group) contains 'RiskModelFactor' objects only and no 'FactorGroup' objects
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/FactorGroupNodes'
+    RiskModelAppendDataValue:
+      description: Value for field at respective integer key index
+      oneOf:
+      - type: string
+        minLength: 1
+      - type: number
     FactorGroupNodes:
       oneOf:
       - $ref: '#/components/schemas/FactorGroup'
       - $ref: '#/components/schemas/RiskModelFactor'
+    RiskMappingEntry:
+      description: Either risk model covered security resolution or uncovered security reason
+      oneOf:
+      - $ref: '#/components/schemas/MappedSecurityInfo'
+      - $ref: '#/components/schemas/RiskExclusionInfo'
+    SuccessResponseMeta:
+      description: The 'meta' object in HTTP 200 success responses
+      type: object
+      required:
+      - resolvedDates
+      properties:
+        labels:
+          $ref: '#/components/schemas/Labels'
+        resolvedDates:
+          $ref: '#/components/schemas/ResolvedDates'
+        warnings:
+          $ref: '#/components/schemas/Warnings'
     MappedSecurityInfo:
       description: Risk model covered security resolution
       type: object
@@ -507,108 +634,58 @@ components:
           - VixOption
           - VixUnderlyingSecurity
           - ZeroExposureSecurity
-    StatCalculationLevel:
-      description: Stat levels available for calculation
+    CurrencyISOCode:
+      description: ISO-4217 currency code for risk model and holdings data to fetch and use. Ignored only for composite asset definitions provided as inputs via 'compositeAssets' field.
+      type: string
+      minLength: 1
+      example: EUR
+    Date:
+      description: Date of risk model and holdings data to fetch and use. For the use of Relative Date argument, refer to [OA:1964](https://my.apps.factset.com/oa/pages/1964#rel). Ignored only for composite asset definitions provided as inputs via 'compositeAssets' field.
+      oneOf:
+      - $ref: '#/components/schemas/StringDate'
+      - $ref: '#/components/schemas/StandardDate'
+    RemoveCurrencyRiskIDs:
+      description: 'Security IDs from which the contribution of currency to risk should be removed or not. Typical use includes asset types such as Contract for Difference (CFD), equity futures, and index futures. This will override the automatic currency removal based on assetTypes when provided. If this input type is provided, all assets that do not have explicit specification will have currency risk, because the default value is false. '
+      type: object
+      additionalProperties:
+        type: boolean
+      example:
+        CFD_IBM: true
+        cfd_FDS: false
+    StatResultValue:
+      description: Floating point double(s) in a dimension corresponding to the calculation-level. Data is guaranteed to be present and non-empty if the HTTP status code is 200 Success
+      oneOf:
+      - $ref: '#/components/schemas/StatResultValueScalar'
+      - $ref: '#/components/schemas/StatResultValueVector'
+      - $ref: '#/components/schemas/StatResultValueDenseMatrix'
+      - $ref: '#/components/schemas/StatResultValueSparseMatrix'
+    ExposureDateFormatConvention:
+      description: Factor exposure matrix date.
+      oneOf:
+      - $ref: '#/components/schemas/StringDate'
+      - $ref: '#/components/schemas/StandardDate'
+    LaggingDates:
+      description: Risk model lagging dates for data items to fetch and use. This field can be utilized to isolate each data item's impact on risk calculation. A typical use case is to analyze the risk change from one day to the other by fixing the risk model data date to one date while moving the portfolio holdings data.
+      type: object
+      properties:
+        exposureDate:
+          $ref: '#/components/schemas/ExposureDateFormatConvention'
+        covarianceDate:
+          $ref: '#/components/schemas/CovarianceDateFormatConvention'
+        ssrDateIs:
+          description: Stock specific risk (SSR) date can take one of the other lagging dates
+          type: string
+          minLength: 1
+          enum:
+          - ExposureDate
+          - CovarianceDate
+    SecurityIndexMapping:
+      description: Indicates security lot index mappings per input Holding should be provided in the response, and in which direction those indices should map. Security Labels will contain either 'indicesInputToResult' or 'indicesResultToInput' for the respective selection.
       type: string
       minLength: 1
       enum:
-      - Portfolio
-      - Security
-      - SecurityGroup
-      - SecuritySecurity
-      - Factor
-      - FactorGroup
-      - FactorFactor
-      - FactorSecurity
-      - FactorGroupSecurity
-      - FactorSecurityGroup
-      - FactorGroupSecurityGroup
-    IDsAndMarketValues:
-      description: Security IDs and market values; the arrays must have the same number of items. Public security IDs such as SEDOL, CUSIP, ISIN, and Ticker are supported. If proprietary IDs are provided, they need to be mapped via composite assets. Market values are used to calculate weights and do not have to be normalized, but need to be denominated in the single same currency ISO.
-      type: object
-      required:
-      - ids
-      - marketValues
-      properties:
-        ids:
-          type: array
-          minItems: 0
-          items:
-            type: string
-            minLength: 1
-        marketValues:
-          type: array
-          minItems: 0
-          items:
-            type: number
-            format: double
-    CalculateFromHoldingsRequestBody:
-      type: object
-      required:
-      - data
-      properties:
-        data:
-          $ref: '#/components/schemas/CalculateFromHoldingsRequestData'
-    RiskModelFactor:
-      description: Individual factor from the risk model
-      type: object
-      required:
-      - id
-      properties:
-        id:
-          description: Factor ID from the risk model
-          type: string
-          minLength: 1
-    SecurityOnlySuccessResponseMeta:
-      description: The 'meta' object in HTTP 200 success responses
-      type: object
-      required:
-      - labels
-      - resolvedDates
-      properties:
-        labels:
-          $ref: '#/components/schemas/SecurityOnlyLabels'
-        resolvedDates:
-          $ref: '#/components/schemas/ResolvedDates'
-        warnings:
-          $ref: '#/components/schemas/Warnings'
-    RiskModelAppendData:
-      description: '**(since 1.17.0)** Inline append data. This field can be used mainly for two purpose: 1) to supplement the risk model coverage when assets are not natively covered by a model, and 2) to intentionally override asset exposures and/or specific risk whenever there is misaligned view of an asset''s risk profile between a model and a user.'
-      type: object
-      required:
-      - data
-      - fields
-      properties:
-        data:
-          description: List of all rows of the append data.
-          type: array
-          minItems: 1
-          items:
-            description: Contains field, value pairs. The field must be the integer index position of the field in 'fields', but must be as a string. The value will be the data for that field. Values for a single field must have the same data type.
-            type: object
-            additionalProperties:
-              $ref: '#/components/schemas/RiskModelAppendDataValue'
-            example:
-              '1': SYMBOL_2
-              '2': 7.2
-          example:
-          - '0': 2.5
-            '1': SYMBOL_1
-            '2': 23.1
-          - '1': SYMBOL_2
-            '2': 7.2
-        fields:
-          description: List of fields in append data. Must contain 'SYMBOL'. Index location will be used in 'data' elements as keys. The entire set of factor IDs and specific risk are not required. If any inputs of exposures or specific risk are missing, 0 will be inserted for those field.
-          type: array
-          minItems: 1
-          uniqueItems: true
-          items:
-            type: string
-            minLength: 1
-          example:
-          - FACTOR_1
-          - SYMBOL
-          - STDERR
+      - InputToResult
+      - ResultToInput
     AssetTypes:
       description: '**(since 1.4.0)** A mapping of security ID to its asset type as the standard asset type keys. When this input is in a request, it is used to (1) identify assets that use Underlying IDs from ''underlyingIds'' input, and (2) identify asset types compatible with automatic removal of their contribution of currency to risk unless any form of the ''removeCurrencyRisk'' input is also provided. When this input is used in the request, underlying IDs (provided via ''underlyingIds'' input) are only respected for the following standard asset type keys (all other underlying IDs will be discarded): refer to [OA:22019](https://my.apps.factset.com/oa/pages/22019) for compatible asset type keys and more details.'
       type: object
@@ -618,192 +695,67 @@ components:
       additionalProperties:
         type: string
         minLength: 1
-    GroupsLabels:
-      description: Tree of input group name and calculated data results index for relevant group calculation-level
-      type: object
-      properties:
-        index:
-          description: 0-based index into the results array dimension for the corresponding calculation-levels
-          type: integer
-        name:
-          description: Name that was provided for this group
-          type: string
-          minLength: 1
-        groups:
-          description: Recursively defined elements; base case array (i.e., lowest group) contains objects with 'name' and 'index' only and not 'groups'
-          type: array
-          minItems: 1
-          items:
-            $ref: '#/components/schemas/GroupsLabels'
-    StatResultValueSparseMatrix:
-      description: This output representation is for compressed sparse row matrix.
-      type: object
-      properties:
-        rows:
-          type: integer
-          format: int32
-          minimum: 1
-        columns:
-          type: integer
-          format: int32
-          minimum: 1
-        indexPointer:
-          type: array
-          minItems: 2
-          items:
-            type: integer
-            format: int32
-            minimum: 0
-        indices:
-          type: array
-          minItems: 1
-          items:
-            type: integer
-            format: int32
-            minimum: 0
-        value:
-          $ref: '#/components/schemas/StatResultValueVector'
-    SecurityIndexMapping:
-      description: Indicates security lot index mappings per input Holding should be provided in the response, and in which direction those indices should map. Security Labels will contain either 'indicesInputToResult' or 'indicesResultToInput' for the respective selection.
+    AllowForcedRisklessAssets:
+      description: Allow certain assets to be entirely riskless; certain models always override this to be true. Examples of asset types to which this applies includes offset cash.
+      type: boolean
+      default: false
+    StandardDate:
+      description: '**(since 1.12.0)**  Date format YYYY-MM-DD.'
       type: string
-      minLength: 1
-      enum:
-      - InputToResult
-      - ResultToInput
-    InputToResultSecurityIndexMapping:
-      description: For each input holding from the request, a list of indices aligned to the input holding's IDs. These 0-based index values key into the security dimension of the results arrays and the `labels.security.ids` array.
+      format: date
+      example: '2019-01-26'
+    StatsResults:
+      description: Calculation results aligned to the input list of requested risk statistics
+      type: array
+      minItems: 1
+      maxItems: 1000
+      items:
+        type: object
+        required:
+        - stat
+        - level
+        properties:
+          stat:
+            type: string
+            minLength: 1
+          level:
+            $ref: '#/components/schemas/StatCalculationLevel'
+          settings:
+            $ref: '#/components/schemas/StatCalculationSettings'
+          value:
+            $ref: '#/components/schemas/StatResultValue'
+          error:
+            $ref: '#/components/schemas/ErrorItem'
+    RemoveCurrencyRiskBoolean:
+      description: '**(since 1.11.0)** Enables or disables the removal of the contribution of currency to risk based upon asset type (Contract for Difference (CFD), equity futures, and index futures). This single-boolean schema field will have no effect without valid ''assetTypes'' input in the request also.'
+      type: boolean
+      default: true
+    StatResultValueVector:
+      type: array
+      minItems: 1
+      items:
+        type:
+        - number
+        - 'null'
+        format: double
+    Holding:
+      description: Security IDs and market values plus optional security grouping; the arrays must have the same number of items. Public security IDs such as SEDOL, CUSIP, ISIN, and Ticker are supported. If proprietary IDs are provided, they need to be mapped via composite assets. Market values are used to calculate weights and do not have to be normalized, but need to be denominated in the single same currency ISO.
       type: object
-      required:
-      - portfolio
-      properties:
-        portfolio:
-          type: array
-          minItems: 1
-          items:
-            type: integer
-        benchmark:
-          type: array
-          minItems: 1
-          items:
-            type: integer
-        market:
-          type: array
-          minItems: 1
-          items:
-            type: integer
-    GenerateIDMappingRequestData:
-      type: object
-      required:
-      - riskModel
-      - date
-      - holdings
-      properties:
-        allowForcedRisklessAssets:
-          $ref: '#/components/schemas/AllowForcedRisklessAssets'
-        assetTypes:
-          $ref: '#/components/schemas/AssetTypes'
-        calendar:
-          $ref: '#/components/schemas/CalendarCode'
-        compositeAssets:
-          $ref: '#/components/schemas/CompositeAssetDefinitions'
-        currency:
-          $ref: '#/components/schemas/CurrencyISOCode'
-        date:
-          $ref: '#/components/schemas/Date'
-        holdings:
-          $ref: '#/components/schemas/Holdings'
-        indexMapping:
-          $ref: '#/components/schemas/SecurityIndexMapping'
-        laggingDates:
-          $ref: '#/components/schemas/LaggingDates'
-        riskModel:
-          $ref: '#/components/schemas/RiskModelCode'
-        riskModelAppendData:
-          $ref: '#/components/schemas/RiskModelAppendData'
-        underlyingIds:
-          $ref: '#/components/schemas/UnderlyingIDs'
-    CurrencyISOCode:
-      description: ISO-4217 currency code for risk model and holdings data to fetch and use. Ignored only for composite asset definitions provided as inputs via 'compositeAssets' field.
-      type: string
-      minLength: 1
-      example: EUR
-    SecurityOnlyLabels:
-      description: Labeling and index information to be able to reconstruct the calculated data results to the provided inputs from the request. Only contains items relevant to results.
-      type: object
-      required:
-      - security
-      properties:
-        security:
-          description: Security IDs
-          type: object
-          required:
-          - ids
-          properties:
-            ids:
-              description: Security IDs aligned to the calculated output. Often this will merge the individual holdings arrays into a single array.
-              type: array
-              minItems: 1
-              items:
-                type: string
-                minLength: 1
-            indicesInputToResult:
-              $ref: '#/components/schemas/InputToResultSecurityIndexMapping'
-            indicesResultToInput:
-              $ref: '#/components/schemas/ResultToInputSecurityIndexMapping'
-    CalculateFromHoldingsRequestData:
-      type: object
-      required:
-      - riskModel
-      - date
-      - stats
-      - holdings
-      properties:
-        additionalCalcInputs:
-          $ref: '#/components/schemas/AdditionalCalculationInputs'
-        allowForcedRisklessAssets:
-          $ref: '#/components/schemas/AllowForcedRisklessAssets'
-        assetTypes:
-          $ref: '#/components/schemas/AssetTypes'
-        calendar:
-          $ref: '#/components/schemas/CalendarCode'
-        compositeAssets:
-          $ref: '#/components/schemas/CompositeAssetDefinitions'
-        currency:
-          $ref: '#/components/schemas/CurrencyISOCode'
-        date:
-          $ref: '#/components/schemas/Date'
-        factorGrouping:
-          $ref: '#/components/schemas/FactorGroup'
-        factorsVisible:
-          $ref: '#/components/schemas/FactorsVisible'
-        holdings:
-          $ref: '#/components/schemas/Holdings'
-        indexMapping:
-          $ref: '#/components/schemas/SecurityIndexMapping'
-        laggingDates:
-          $ref: '#/components/schemas/LaggingDates'
-        removeCurrencyRisk:
-          $ref: '#/components/schemas/RemoveCurrencyRisk'
-        requiresFactorReturns:
-          $ref: '#/components/schemas/RequiresFactorReturns'
-        riskModel:
-          $ref: '#/components/schemas/RiskModelCode'
-        riskModelAppendData:
-          $ref: '#/components/schemas/RiskModelAppendData'
-        stats:
-          $ref: '#/components/schemas/Stats'
-        underlyingIds:
-          $ref: '#/components/schemas/UnderlyingIDs'
-    CovarianceDateFormatConvention:
-      description: Factor covariance matrix date.
-      oneOf:
-      - $ref: '#/components/schemas/StringDate'
-      - $ref: '#/components/schemas/StandardDate'
-    RiskModelCode:
-      description: Model code
-      type: string
-      minLength: 1
-      example: FDS:GLOBAL_EQUITY_M_V1
+      allOf:
+      - $ref: '#/components/schemas/IDsAndMarketValues'
+      - properties:
+          grouping:
+            $ref: '#/components/schemas/SecurityGroup'
+          uncoveredAssets:
+            description: 'Uncovered asset weight handling. Default values: ''portfolio'' -> ExcludeToGlobalCash, ''benchmark'' -> Normalize, ''market'' -> Normalize. See also [OA:21737](https://my.apps.factset.com/oa/pages/21737#group_normal_mix)'
+            type: string
+            minLength: 1
+            enum:
+            - Normalize
+            - ExcludeToGlobalCash
+            - NormalizeWithGroupCash
+            - ExcludeToCashWithinGroup
+            - NormalizeWithinGroup
     SupportedStatsNamesOnly:
       type: object
       required:
@@ -825,392 +777,6 @@ components:
       example:
         CFD_IBM: IBM
         cfd_FDS: FDS
-    ExposureDateFormatConvention:
-      description: Factor exposure matrix date.
-      oneOf:
-      - $ref: '#/components/schemas/StringDate'
-      - $ref: '#/components/schemas/StandardDate'
-    RequiresFactorReturns:
-      description: Indicates factor returns are required and which frequency from the risk model to fetch and use. The requested factor return frequency must be one that is available from the selected risk model itself. The orientation of factor return is forward-looking. For example, if daily factor return is called, and 'date' is set as '2021-06-30', factor return date range used for calculation is 2021-06-30 to 2021-07-01, assuming no holidays in these two dates.
-      type: string
-      minLength: 1
-      enum:
-      - Daily
-      - Monthly
-    StatResultValueScalar:
-      type:
-      - number
-      - 'null'
-      format: double
-    FactorsVisible:
-      description: Hide risk model factors in the response results; does not affect calculated data values
-      type: object
-      required:
-      - list
-      - type
-      properties:
-        list:
-          description: List of risk model factor IDs
-          type: array
-          minItems: 1
-          items:
-            type: string
-            minLength: 1
-        type:
-          type: string
-          minLength: 1
-          enum:
-          - Whitelist
-          - Blacklist
-    RemoveCurrencyRiskIDs:
-      description: 'Security IDs from which the contribution of currency to risk should be removed or not. Typical use includes asset types such as Contract for Difference (CFD), equity futures, and index futures. This will override the automatic currency removal based on assetTypes when provided. If this input type is provided, all assets that do not have explicit specification will have currency risk, because the default value is false. '
-      type: object
-      additionalProperties:
-        type: boolean
-      example:
-        CFD_IBM: true
-        cfd_FDS: false
-    ResolvedDates:
-      description: '**(since 1.11.0)** Absolute actual dates used adjusted according to calendar and lagging'
-      type: object
-      required:
-      - universeDate
-      - covarianceDate
-      - ssrDate
-      properties:
-        universeDate:
-          $ref: '#/components/schemas/StandardDate'
-        covarianceDate:
-          $ref: '#/components/schemas/StandardDate'
-        ssrDate:
-          $ref: '#/components/schemas/StandardDate'
-    RiskModelAppendDataValue:
-      description: Value for field at respective integer key index
-      oneOf:
-      - type: string
-        minLength: 1
-      - type: number
-    Holdings:
-      type: object
-      required:
-      - portfolio
-      properties:
-        portfolio:
-          $ref: '#/components/schemas/Holding'
-        benchmark:
-          $ref: '#/components/schemas/Holding'
-        market:
-          $ref: '#/components/schemas/Holding'
-    WarningItem:
-      description: Warning information for a particular occurrence of a non-failure problem with human-readable details describing the cause
-      type: object
-      required:
-      - id
-      - code
-      - title
-      properties:
-        id:
-          description: UUID for the particular occurrence of the non-failure problem
-          type: string
-          minLength: 1
-        code:
-          description: Warning code for the non-failure problem type
-          type: string
-          minLength: 1
-          example: requestBodyExtraData
-        title:
-          description: Human-readable summary of the non-failure problem tied to the warning code and not specific to the particular occurrence of the problem
-          type: string
-          minLength: 1
-          example: Factor grouping contains extra factor(s).
-        detail:
-          description: Human-readable explanation of the non-failure problem specific to the particular occurrence
-          type: string
-          minLength: 1
-          example: 'Extra Factors: [*EF2, *EF1, *EF3]'
-    RiskExclusionInfo:
-      description: Risk model uncovered security reason
-      type: object
-      required:
-      - covered
-      - exclusionInfo
-      - modelClass
-      properties:
-        covered:
-          description: Coverage flag. The value will always be false to indicate the security is excluded.
-          type: boolean
-          example: false
-        exclusionInfo:
-          type: object
-          required:
-          - code
-          - details
-          properties:
-            code:
-              description: Exclusion reason
-              type: string
-              minLength: 1
-              enum:
-              - NoRiskModelCoverage
-              - NoRiskModelAccess
-              - CyclicIdentifierResolution
-              - NoValidCompositeAssetConstituents
-              - InvalidCompositeAssetDefinition
-              - InternalError
-              - Unknown
-            details:
-              description: Exclusion reason details if available
-              type: string
-              minLength: 0
-        modelClass:
-          description: '**(since 1.19.0)** Security asset classification according to the risk model, if available and determinable'
-          type: string
-          minLength: 1
-          enum:
-          - Unknown
-          - CompositeAsset
-    StatCalculationSettings:
-      description: Settings to modify an individual statistic's calculation. See also [OA:17698](https://my.apps.factset.com/oa/pages/17698#risk) and [OA:16097](https://my.apps.factset.com/oa/pages/16097#cov2) for cov*2.
-      type: object
-      properties:
-        useAbsoluteWeightsForLotExpansion:
-          type: boolean
-          default: true
-        covarianceTimesTwo:
-          type: boolean
-          default: false
-        covarianceTimesTwoTerm:
-          type: boolean
-          default: false
-        correlatedSpecificRisk:
-          description: When this is set to true, specific risk correlation adjustment will be applied to security level as well as portfolio level. An example case where stock specific correlation is supplied by risk models is the case between parent equity and ADR.
-          type: boolean
-          default: false
-        sparse:
-          description: When this is set to true, the matrix and vector output is in compressed sparse row matrix format. Vector is considered as a matrix with one row for compressed sparse row matrix output. This only applies for matrix and vector output, not for single data points e.g. stats at Portfolio level.
-          type: boolean
-          default: false
-        horizon:
-          type: number
-        daysPerYear:
-          type: number
-        confidenceLevel:
-          type: number
-        lamda:
-          type: number
-        specificToFactorRatio:
-          type: number
-        rapSys:
-          type: number
-        rapUnsys:
-          type: number
-    Stats:
-      description: List of risk stats and settings to calculate
-      type: array
-      minItems: 1
-      maxItems: 1000
-      items:
-        $ref: '#/components/schemas/Stat'
-    RemoveCurrencyRiskBoolean:
-      description: '**(since 1.11.0)** Enables or disables the removal of the contribution of currency to risk based upon asset type (Contract for Difference (CFD), equity futures, and index futures). This single-boolean schema field will have no effect without valid ''assetTypes'' input in the request also.'
-      type: boolean
-      default: true
-    Warnings:
-      type: array
-      minItems: 1
-      items:
-        $ref: '#/components/schemas/WarningItem'
-    RemoveCurrencyRisk:
-      description: Controls removal (or not) of the contribution of currency to risk. **Note:** If this input is not provided in the request, then currency risk will be removed automatically based upon asset type when valid 'assetTypes' are specified in the request.
-      oneOf:
-      - $ref: '#/components/schemas/RemoveCurrencyRiskBoolean'
-      - $ref: '#/components/schemas/RemoveCurrencyRiskIDs'
-    SecurityGroup:
-      description: Security grouping definition to use in calculation and results. Multi-layer security groupings are also suppoted.
-      type: object
-      properties:
-        name:
-          type: string
-          minLength: 1
-        indices:
-          description: List of 0-based indices into the containing holding's security IDs array
-          type: array
-          minItems: 1
-          items:
-            type: integer
-        groups:
-          description: Recursively defined elements; base case array (i.e., lowest security group) contains objects with 'indices' only and not 'groups'
-          type: array
-          minItems: 1
-          items:
-            $ref: '#/components/schemas/SecurityGroup'
-    ErrorItem:
-      description: Error information for a particular occurrence of a problem with human-readable details describing the cause
-      type: object
-      required:
-      - id
-      - code
-      - title
-      properties:
-        id:
-          description: UUID for the particular occurrence of the problem
-          type: string
-          minLength: 1
-        code:
-          description: Error code for the problem type.
-          type: string
-          minLength: 1
-        title:
-          description: Human-readable summary of the problem tied to the error code and not specific to the particular occurrence of the problem
-          type: string
-          minLength: 1
-        detail:
-          description: Human-readable explanation of the problem specific to the particular occurrence
-          type: string
-          minLength: 1
-    RiskMappingEntry:
-      description: Either risk model covered security resolution or uncovered security reason
-      oneOf:
-      - $ref: '#/components/schemas/MappedSecurityInfo'
-      - $ref: '#/components/schemas/RiskExclusionInfo'
-    AdditionalCalculationInputs:
-      description: Additional user-defined calculation input values. For example, some may be required for some Risk-Based Performance Attribution (RBPA) stats, such as 'ResidualFactorReturnsCSR' and 'DeannualizedActiveFactorRisk'.
-      type: object
-      properties:
-        marketExcess:
-          description: User-defined values (all required) to compute the desired arbitrary 'excess return' of the market portfolio (which is usually intended to be defined as a broad market index).
-          type: object
-          required:
-          - return
-          - riskFreeRate
-          - riskPremium
-          - riskPremiumPeriodsPerYear
-          properties:
-            return:
-              description: User-defined arbitrary return value measured from the market portfolio. The value is expected to be a scalar and the return horizon must match that of the factor returns. For example, if the factor returns used are daily-basis, the market return needs to be 1-day market return for the calculation. This number will be one of the inputs to calculate market timing effect.
-              type: number
-            riskFreeRate:
-              description: User-defined risk-free rate of return whose horizon must match that of the factor returns. This number will be one of the inputs to calculate market timing effect.
-              type: number
-            riskPremium:
-              description: Expected return of the market portfolio which is required to be an annualized return. This number will be one of the inputs to calculate market timing effect.
-              type: number
-            riskPremiumPeriodsPerYear:
-              description: Deannualization factor on the Market Risk Premium which can be any user-defined positive integer number. This number will be used to deannualize Market Risk Premium so that the expected market return horizon will match that of the factor returns. For example, if a risk model has daily factor returns, select desired integer such as 365 or 252.
-              type: integer
-              minimum: 1
-              maximum: 365
-        calculationPeriodsPerYear:
-          description: 'Deannualization factor for certain RBPA risk statistics which should match that of desired calculation frequency. Examples: If the risk model is monthly or monthly factor returns are being used, this should be 12. If the risk model is daily, select desired integer such as 365 or 252.'
-          type: integer
-          minimum: 1
-          maximum: 365
-    StatResultValueVector:
-      type: array
-      minItems: 1
-      items:
-        type:
-        - number
-        - 'null'
-        format: double
-    StandardDate:
-      description: '**(since 1.12.0)**  Date format YYYY-MM-DD.'
-      type: string
-      format: date
-      example: '2019-01-26'
-    StatResultValue:
-      description: Floating point double(s) in a dimension corresponding to the calculation-level. Data is guaranteed to be present and non-empty if the HTTP status code is 200 Success
-      oneOf:
-      - $ref: '#/components/schemas/StatResultValueScalar'
-      - $ref: '#/components/schemas/StatResultValueVector'
-      - $ref: '#/components/schemas/StatResultValueDenseMatrix'
-      - $ref: '#/components/schemas/StatResultValueSparseMatrix'
-    Holding:
-      description: Security IDs and market values plus optional security grouping; the arrays must have the same number of items. Public security IDs such as SEDOL, CUSIP, ISIN, and Ticker are supported. If proprietary IDs are provided, they need to be mapped via composite assets. Market values are used to calculate weights and do not have to be normalized, but need to be denominated in the single same currency ISO.
-      type: object
-      allOf:
-      - $ref: '#/components/schemas/IDsAndMarketValues'
-      - properties:
-          grouping:
-            $ref: '#/components/schemas/SecurityGroup'
-          uncoveredAssets:
-            description: 'Uncovered asset weight handling. Default values: ''portfolio'' -> ExcludeToGlobalCash, ''benchmark'' -> Normalize, ''market'' -> Normalize. See also [OA:21737](https://my.apps.factset.com/oa/pages/21737#group_normal_mix)'
-            type: string
-            minLength: 1
-            enum:
-            - Normalize
-            - ExcludeToGlobalCash
-            - NormalizeWithGroupCash
-            - ExcludeToCashWithinGroup
-            - NormalizeWithinGroup
-    CalendarCode:
-      description: Calendar code for risk model and holdings data to fetch and use. Ignored only for composite asset definitions provided as inputs via 'compositeAssets' field. See also [OA:2012](https://my.apps.factset.com/oa/pages/2012#calendar) for global codes, "FIVEDAY" or "SEVENDAY" calendars and see [OA:16610](https://my.apps.factset.com/oa/pages/16610#country) for country codes (cf. 'Calendar Code' column).
-      type: string
-      minLength: 1
-      example: FJH
-    StringDate:
-      description: '**(since 1.1.0)** Any FactSet-accepted string date format, except that "NOW" is not supported by risk analysis. For more, refer to [OA:1964](https://my.apps.factset.com/oa/pages/1964#rel).'
-      type: string
-      minLength: 1
-      example: -3M
-    Date:
-      description: Date of risk model and holdings data to fetch and use. For the use of Relative Date argument, refer to [OA:1964](https://my.apps.factset.com/oa/pages/1964#rel). Ignored only for composite asset definitions provided as inputs via 'compositeAssets' field.
-      oneOf:
-      - $ref: '#/components/schemas/StringDate'
-      - $ref: '#/components/schemas/StandardDate'
-    GenerateIDMappingRequestBody:
-      type: object
-      required:
-      - data
-      properties:
-        data:
-          $ref: '#/components/schemas/GenerateIDMappingRequestData'
-    Labels:
-      description: Labeling and index information to be able to reconstruct the calculated data results to the provided inputs from the request. Only contains items relevant to results; will not be present at all if all calculation-levels are 'Portfolio'.
-      type:
-      - object
-      - 'null'
-      properties:
-        security:
-          description: Labels relevant to calculation-levels with 'Security' in the name
-          type: object
-          required:
-          - ids
-          properties:
-            ids:
-              description: Security IDs aligned to the calculated output. Often this will merge the individual holdings arrays into a single array.
-              type: array
-              minItems: 1
-              items:
-                type: string
-                minLength: 1
-            indicesInputToResult:
-              $ref: '#/components/schemas/InputToResultSecurityIndexMapping'
-            indicesResultToInput:
-              $ref: '#/components/schemas/ResultToInputSecurityIndexMapping'
-        factor:
-          description: Labels relevant to calculation-levels with 'Factor' in the name
-          type: object
-          required:
-          - ids
-          - names
-          properties:
-            ids:
-              type: array
-              minItems: 1
-              items:
-                type: string
-                minLength: 1
-            names:
-              type: array
-              minItems: 1
-              items:
-                type: string
-                minLength: 1
-        securityGroup:
-          $ref: '#/components/schemas/GroupsLabels'
-        factorGroup:
-          $ref: '#/components/schemas/GroupsLabels'
     SupportedStats:
       type: object
       required:
@@ -1333,68 +899,162 @@ components:
                 - ActiveWeights
                 - MarketWeights
                 - FillAll
-    StatsResults:
-      description: Calculation results aligned to the input list of requested risk statistics
-      type: array
-      minItems: 1
-      maxItems: 1000
-      items:
-        type: object
-        required:
-        - stat
-        - level
-        properties:
-          stat:
-            type: string
-            minLength: 1
-          level:
-            $ref: '#/components/schemas/StatCalculationLevel'
-          settings:
-            $ref: '#/components/schemas/StatCalculationSettings'
-          value:
-            $ref: '#/components/schemas/StatResultValue'
-          error:
-            $ref: '#/components/schemas/ErrorItem'
-    Stat:
-      description: Risk statistic name and calculation level plus optional stat settings
+    CompositeAssetDefinitions:
+      description: IDs to be defined as composite assets with their constituents' IDs and market values. The typical use case is for risk look-through of ETF or Funds' constituents. When defining composite assets and creating portfolios which hold them, the IDs provided must be an exact match.
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/IDsAndMarketValues'
+      example:
+        CA1_to_IBM_and_CA2:
+          ids:
+          - IBM
+          - CA2
+          marketValues:
+          - 0.45
+          - 0.55
+        CA2:
+          ids:
+          - VZ
+          - cfd_FDS
+          marketValues:
+          - 0.6
+          - 0.4
+    RiskModelCode:
+      description: Model code
+      type: string
+      minLength: 1
+      example: FDS:GLOBAL_EQUITY_M_V1
+    RiskExclusionInfo:
+      description: Risk model uncovered security reason
       type: object
       required:
-      - name
-      - level
+      - covered
+      - exclusionInfo
+      - modelClass
       properties:
-        name:
-          type: string
-          minLength: 1
-        level:
-          $ref: '#/components/schemas/StatCalculationLevel'
-        settings:
-          $ref: '#/components/schemas/StatCalculationSettings'
-    LaggingDates:
-      description: Risk model lagging dates for data items to fetch and use. This field can be utilized to isolate each data item's impact on risk calculation. A typical use case is to analyze the risk change from one day to the other by fixing the risk model data date to one date while moving the portfolio holdings data.
-      type: object
-      properties:
-        exposureDate:
-          $ref: '#/components/schemas/ExposureDateFormatConvention'
-        covarianceDate:
-          $ref: '#/components/schemas/CovarianceDateFormatConvention'
-        ssrDateIs:
-          description: Stock specific risk (SSR) date can take one of the other lagging dates
+        covered:
+          description: Coverage flag. The value will always be false to indicate the security is excluded.
+          type: boolean
+          example: false
+        exclusionInfo:
+          type: object
+          required:
+          - code
+          - details
+          properties:
+            code:
+              description: Exclusion reason
+              type: string
+              minLength: 1
+              enum:
+              - NoRiskModelCoverage
+              - NoRiskModelAccess
+              - CyclicIdentifierResolution
+              - NoValidCompositeAssetConstituents
+              - InvalidCompositeAssetDefinition
+              - InternalError
+              - Unknown
+            details:
+              description: Exclusion reason details if available
+              type: string
+              minLength: 0
+        modelClass:
+          description: '**(since 1.19.0)** Security asset classification according to the risk model, if available and determinable'
           type: string
           minLength: 1
           enum:
-          - ExposureDate
-          - CovarianceDate
-    ErrorResponse:
-      description: Response schema for HTTP error responses. Data should never be expected in the response body.
+          - Unknown
+          - CompositeAsset
+    WarningItem:
+      description: Warning information for a particular occurrence of a non-failure problem with human-readable details describing the cause
       type: object
       required:
-      - errors
+      - id
+      - code
+      - title
       properties:
-        errors:
+        id:
+          description: UUID for the particular occurrence of the non-failure problem
+          type: string
+          minLength: 1
+        code:
+          description: Warning code for the non-failure problem type
+          type: string
+          minLength: 1
+          example: requestBodyExtraData
+        title:
+          description: Human-readable summary of the non-failure problem tied to the warning code and not specific to the particular occurrence of the problem
+          type: string
+          minLength: 1
+          example: Factor grouping contains extra factor(s).
+        detail:
+          description: Human-readable explanation of the non-failure problem specific to the particular occurrence
+          type: string
+          minLength: 1
+          example: 'Extra Factors: [*EF2, *EF1, *EF3]'
+    FactorsVisible:
+      description: Hide risk model factors in the response results; does not affect calculated data values
+      type: object
+      required:
+      - list
+      - type
+      properties:
+        list:
+          description: List of risk model factor IDs
           type: array
           minItems: 1
           items:
-            $ref: '#/components/schemas/ErrorItem'
+            type: string
+            minLength: 1
+        type:
+          type: string
+          minLength: 1
+          enum:
+          - Whitelist
+          - Blacklist
+    GenerateIDMappingRequestData:
+      type: object
+      required:
+      - riskModel
+      - date
+      - holdings
+      properties:
+        allowForcedRisklessAssets:
+          $ref: '#/components/schemas/AllowForcedRisklessAssets'
+        assetTypes:
+          $ref: '#/components/schemas/AssetTypes'
+        calendar:
+          $ref: '#/components/schemas/CalendarCode'
+        compositeAssets:
+          $ref: '#/components/schemas/CompositeAssetDefinitions'
+        currency:
+          $ref: '#/components/schemas/CurrencyISOCode'
+        date:
+          $ref: '#/components/schemas/Date'
+        holdings:
+          $ref: '#/components/schemas/Holdings'
+        indexMapping:
+          $ref: '#/components/schemas/SecurityIndexMapping'
+        laggingDates:
+          $ref: '#/components/schemas/LaggingDates'
+        riskModel:
+          $ref: '#/components/schemas/RiskModelCode'
+        riskModelAppendData:
+          $ref: '#/components/schemas/RiskModelAppendData'
+        underlyingIds:
+          $ref: '#/components/schemas/UnderlyingIDs'
+    StringDate:
+      description: '**(since 1.1.0)** Any FactSet-accepted string date format, except that "NOW" is not supported by risk analysis. For more, refer to [OA:1964](https://my.apps.factset.com/oa/pages/1964#rel).'
+      type: string
+      minLength: 1
+      example: -3M
+    CalculateFromHoldingsRequestBody:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/CalculateFromHoldingsRequestData'
     ResultToInputSecurityIndexMapping:
       description: For each input holding from the request, a list of indices aligned to the security dimension of the results arrays and the `labels.security.ids` array. These 0-based index values key into the input holding's IDs. Values less than 0 indicate result index not originating from corresponding holding.
       type: object
@@ -1416,72 +1076,956 @@ components:
           minItems: 1
           items:
             type: integer
-    FactorGroup:
-      description: Factor grouping definition to use for calculations and results. This field impacts the calculation only when any 'FactorGroup' level statistics are requested, e.g. 'FactorGroup', 'FactorGroupSecurity'.
+    ErrorItem:
+      description: Error information for a particular occurrence of a problem with human-readable details describing the cause
       type: object
       required:
-      - nodes
+      - id
+      - code
+      - title
       properties:
-        name:
-          description: Name of this factor group
+        id:
+          description: UUID for the particular occurrence of the problem
           type: string
           minLength: 1
-        nodes:
-          description: Recursively defined elements; base case array (i.e., lowest factor group) contains 'RiskModelFactor' objects only and no 'FactorGroup' objects
+        code:
+          description: Error code for the problem type.
+          type: string
+          minLength: 1
+        title:
+          description: Human-readable summary of the problem tied to the error code and not specific to the particular occurrence of the problem
+          type: string
+          minLength: 1
+        detail:
+          description: Human-readable explanation of the problem specific to the particular occurrence
+          type: string
+          minLength: 1
+    AdditionalCalculationInputs:
+      description: Additional user-defined calculation input values. For example, some may be required for some Risk-Based Performance Attribution (RBPA) stats, such as 'ResidualFactorReturnsCSR' and 'DeannualizedActiveFactorRisk'.
+      type: object
+      properties:
+        marketExcess:
+          description: User-defined values (all required) to compute the desired arbitrary 'excess return' of the market portfolio (which is usually intended to be defined as a broad market index).
+          type: object
+          required:
+          - return
+          - riskFreeRate
+          - riskPremium
+          - riskPremiumPeriodsPerYear
+          properties:
+            return:
+              description: User-defined arbitrary return value measured from the market portfolio. The value is expected to be a scalar and the return horizon must match that of the factor returns. For example, if the factor returns used are daily-basis, the market return needs to be 1-day market return for the calculation. This number will be one of the inputs to calculate market timing effect.
+              type: number
+            riskFreeRate:
+              description: User-defined risk-free rate of return whose horizon must match that of the factor returns. This number will be one of the inputs to calculate market timing effect.
+              type: number
+            riskPremium:
+              description: Expected return of the market portfolio which is required to be an annualized return. This number will be one of the inputs to calculate market timing effect.
+              type: number
+            riskPremiumPeriodsPerYear:
+              description: Deannualization factor on the Market Risk Premium which can be any user-defined positive integer number. This number will be used to deannualize Market Risk Premium so that the expected market return horizon will match that of the factor returns. For example, if a risk model has daily factor returns, select desired integer such as 365 or 252.
+              type: integer
+              minimum: 1
+              maximum: 365
+        calculationPeriodsPerYear:
+          description: 'Deannualization factor for certain RBPA risk statistics which should match that of desired calculation frequency. Examples: If the risk model is monthly or monthly factor returns are being used, this should be 12. If the risk model is daily, select desired integer such as 365 or 252.'
+          type: integer
+          minimum: 1
+          maximum: 365
+    RiskModelAppendData:
+      description: '**(since 1.17.0)** Inline append data. This field can be used mainly for two purpose: 1) to supplement the risk model coverage when assets are not natively covered by a model, and 2) to intentionally override asset exposures and/or specific risk whenever there is misaligned view of an asset''s risk profile between a model and a user.'
+      type: object
+      required:
+      - data
+      - fields
+      properties:
+        data:
+          description: List of all rows of the append data.
           type: array
           minItems: 1
           items:
-            $ref: '#/components/schemas/FactorGroupNodes'
-    AllowForcedRisklessAssets:
-      description: Allow certain assets to be entirely riskless; certain models always override this to be true. Examples of asset types to which this applies includes offset cash.
-      type: boolean
-      default: false
-    SuccessResponseMeta:
+            description: Contains field, value pairs. The field must be the integer index position of the field in 'fields', but must be as a string. The value will be the data for that field. Values for a single field must have the same data type.
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/RiskModelAppendDataValue'
+            example:
+              '1': SYMBOL_2
+              '2': 7.2
+          example:
+          - '0': 2.5
+            '1': SYMBOL_1
+            '2': 23.1
+          - '1': SYMBOL_2
+            '2': 7.2
+        fields:
+          description: List of fields in append data. Must contain 'SYMBOL'. Index location will be used in 'data' elements as keys. The entire set of factor IDs and specific risk are not required. If any inputs of exposures or specific risk are missing, 0 will be inserted for those field.
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            minLength: 1
+          example:
+          - FACTOR_1
+          - SYMBOL
+          - STDERR
+    Stat:
+      description: Risk statistic name and calculation level plus optional stat settings
+      type: object
+      required:
+      - name
+      - level
+      properties:
+        name:
+          type: string
+          minLength: 1
+        level:
+          $ref: '#/components/schemas/StatCalculationLevel'
+        settings:
+          $ref: '#/components/schemas/StatCalculationSettings'
+    CovarianceDateFormatConvention:
+      description: Factor covariance matrix date.
+      oneOf:
+      - $ref: '#/components/schemas/StringDate'
+      - $ref: '#/components/schemas/StandardDate'
+    SecurityOnlyLabels:
+      description: Labeling and index information to be able to reconstruct the calculated data results to the provided inputs from the request. Only contains items relevant to results.
+      type: object
+      required:
+      - security
+      properties:
+        security:
+          description: Security IDs
+          type: object
+          required:
+          - ids
+          properties:
+            ids:
+              description: Security IDs aligned to the calculated output. Often this will merge the individual holdings arrays into a single array.
+              type: array
+              minItems: 1
+              items:
+                type: string
+                minLength: 1
+            indicesInputToResult:
+              $ref: '#/components/schemas/InputToResultSecurityIndexMapping'
+            indicesResultToInput:
+              $ref: '#/components/schemas/ResultToInputSecurityIndexMapping'
+    RemoveCurrencyRisk:
+      description: Controls removal (or not) of the contribution of currency to risk. **Note:** If this input is not provided in the request, then currency risk will be removed automatically based upon asset type when valid 'assetTypes' are specified in the request.
+      oneOf:
+      - $ref: '#/components/schemas/RemoveCurrencyRiskBoolean'
+      - $ref: '#/components/schemas/RemoveCurrencyRiskIDs'
+    CalendarCode:
+      description: Calendar code for risk model and holdings data to fetch and use. Ignored only for composite asset definitions provided as inputs via 'compositeAssets' field. See also [OA:2012](https://my.apps.factset.com/oa/pages/2012#calendar) for global codes, "FIVEDAY" or "SEVENDAY" calendars and see [OA:16610](https://my.apps.factset.com/oa/pages/16610#country) for country codes (cf. 'Calendar Code' column).
+      type: string
+      minLength: 1
+      example: FJH
+    Labels:
+      description: Labeling and index information to be able to reconstruct the calculated data results to the provided inputs from the request. Only contains items relevant to results; will not be present at all if all calculation-levels are 'Portfolio'.
+      type:
+      - object
+      - 'null'
+      properties:
+        security:
+          description: Labels relevant to calculation-levels with 'Security' in the name
+          type: object
+          required:
+          - ids
+          properties:
+            ids:
+              description: Security IDs aligned to the calculated output. Often this will merge the individual holdings arrays into a single array.
+              type: array
+              minItems: 1
+              items:
+                type: string
+                minLength: 1
+            indicesInputToResult:
+              $ref: '#/components/schemas/InputToResultSecurityIndexMapping'
+            indicesResultToInput:
+              $ref: '#/components/schemas/ResultToInputSecurityIndexMapping'
+        factor:
+          description: Labels relevant to calculation-levels with 'Factor' in the name
+          type: object
+          required:
+          - ids
+          - names
+          properties:
+            ids:
+              type: array
+              minItems: 1
+              items:
+                type: string
+                minLength: 1
+            names:
+              type: array
+              minItems: 1
+              items:
+                type: string
+                minLength: 1
+        securityGroup:
+          $ref: '#/components/schemas/GroupsLabels'
+        factorGroup:
+          $ref: '#/components/schemas/GroupsLabels'
+    GenerateIDMappingRequestBody:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/GenerateIDMappingRequestData'
+    SecurityOnlySuccessResponseMeta:
       description: The 'meta' object in HTTP 200 success responses
       type: object
       required:
+      - labels
       - resolvedDates
       properties:
         labels:
-          $ref: '#/components/schemas/Labels'
+          $ref: '#/components/schemas/SecurityOnlyLabels'
         resolvedDates:
           $ref: '#/components/schemas/ResolvedDates'
         warnings:
           $ref: '#/components/schemas/Warnings'
-  headers:
-    ApiVersion:
-      description: Full requested semantic version string
-      schema:
-        type: string
-        minLength: 5
-        example: 1.0.1
-    RetryAfter:
-      description: Time to wait in seconds before making a new request as the rate limit has been reached.
-      schema:
-        type: string
-        minLength: 1
-    ApiSupportedVersions:
-      description: Comma-separated list of the major version numbers currently supported by the service.
-      schema:
-        type: string
-        minLength: 1
-        example: 0,1
-    RateLimitRemaining:
-      description: Remaining number of requests allowed to be made for the time window.
-      schema:
-        type: string
-        minLength: 1
-    RateLimitLimit:
-      description: Total number of requests allowed to be made for the time window
-      schema:
-        type: string
-        minLength: 1
-    RateLimitReset:
-      description: Number of seconds remaining until the rate limit time window resets.
-      schema:
-        type: string
-        minLength: 1
+    RequiresFactorReturns:
+      description: Indicates factor returns are required and which frequency from the risk model to fetch and use. The requested factor return frequency must be one that is available from the selected risk model itself. The orientation of factor return is forward-looking. For example, if daily factor return is called, and 'date' is set as '2021-06-30', factor return date range used for calculation is 2021-06-30 to 2021-07-01, assuming no holidays in these two dates.
+      type: string
+      minLength: 1
+      enum:
+      - Daily
+      - Monthly
+    StatCalculationSettings:
+      description: Settings to modify an individual statistic's calculation. See also [OA:17698](https://my.apps.factset.com/oa/pages/17698#risk) and [OA:16097](https://my.apps.factset.com/oa/pages/16097#cov2) for cov*2.
+      type: object
+      properties:
+        useAbsoluteWeightsForLotExpansion:
+          type: boolean
+          default: true
+        covarianceTimesTwo:
+          type: boolean
+          default: false
+        covarianceTimesTwoTerm:
+          type: boolean
+          default: false
+        correlatedSpecificRisk:
+          description: When this is set to true, specific risk correlation adjustment will be applied to security level as well as portfolio level. An example case where stock specific correlation is supplied by risk models is the case between parent equity and ADR.
+          type: boolean
+          default: false
+        sparse:
+          description: When this is set to true, the matrix and vector output is in compressed sparse row matrix format. Vector is considered as a matrix with one row for compressed sparse row matrix output. This only applies for matrix and vector output, not for single data points e.g. stats at Portfolio level.
+          type: boolean
+          default: false
+        horizon:
+          type: number
+        daysPerYear:
+          type: number
+        confidenceLevel:
+          type: number
+        lamda:
+          type: number
+        specificToFactorRatio:
+          type: number
+        rapSys:
+          type: number
+        rapUnsys:
+          type: number
+    IDsAndMarketValues:
+      description: Security IDs and market values; the arrays must have the same number of items. Public security IDs such as SEDOL, CUSIP, ISIN, and Ticker are supported. If proprietary IDs are provided, they need to be mapped via composite assets. Market values are used to calculate weights and do not have to be normalized, but need to be denominated in the single same currency ISO.
+      type: object
+      required:
+      - ids
+      - marketValues
+      properties:
+        ids:
+          type: array
+          minItems: 0
+          items:
+            type: string
+            minLength: 1
+        marketValues:
+          type: array
+          minItems: 0
+          items:
+            type: number
+            format: double
+    StatResultValueSparseMatrix:
+      description: This output representation is for compressed sparse row matrix.
+      type: object
+      properties:
+        rows:
+          type: integer
+          format: int32
+          minimum: 1
+        columns:
+          type: integer
+          format: int32
+          minimum: 1
+        indexPointer:
+          type: array
+          minItems: 2
+          items:
+            type: integer
+            format: int32
+            minimum: 0
+        indices:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+            format: int32
+            minimum: 0
+        value:
+          $ref: '#/components/schemas/StatResultValueVector'
+    Holdings:
+      type: object
+      required:
+      - portfolio
+      properties:
+        portfolio:
+          $ref: '#/components/schemas/Holding'
+        benchmark:
+          $ref: '#/components/schemas/Holding'
+        market:
+          $ref: '#/components/schemas/Holding'
+    SecurityGroup:
+      description: Security grouping definition to use in calculation and results. Multi-layer security groupings are also suppoted.
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        indices:
+          description: List of 0-based indices into the containing holding's security IDs array
+          type: array
+          minItems: 1
+          items:
+            type: integer
+        groups:
+          description: Recursively defined elements; base case array (i.e., lowest security group) contains objects with 'indices' only and not 'groups'
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/SecurityGroup'
+    InputToResultSecurityIndexMapping:
+      description: For each input holding from the request, a list of indices aligned to the input holding's IDs. These 0-based index values key into the security dimension of the results arrays and the `labels.security.ids` array.
+      type: object
+      required:
+      - portfolio
+      properties:
+        portfolio:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+        benchmark:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+        market:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+    Warnings:
+      type: array
+      minItems: 1
+      items:
+        $ref: '#/components/schemas/WarningItem'
+    StatCalculationLevel:
+      description: Stat levels available for calculation
+      type: string
+      minLength: 1
+      enum:
+      - Portfolio
+      - Security
+      - SecurityGroup
+      - SecuritySecurity
+      - Factor
+      - FactorGroup
+      - FactorFactor
+      - FactorSecurity
+      - FactorGroupSecurity
+      - FactorSecurityGroup
+      - FactorGroupSecurityGroup
   responses:
+    BadRequestOrDataUnavailable:
+      description: Request was malformed or the requested data is not available
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-version:
+          $ref: '#/components/headers/ApiVersion'
+        RateLimit-Limit:
+          $ref: '#/components/headers/RateLimitLimit'
+        RateLimit-Remaining:
+          $ref: '#/components/headers/RateLimitRemaining'
+        RateLimit-Reset:
+          $ref: '#/components/headers/RateLimitReset'
+    HealthFailVersionNotFound:
+      description: API version not found
+      content:
+        application/json:
+          schema:
+            description: Response from the health check route in the event of a 'fail' status
+            type: object
+            required:
+            - status
+            - output
+            properties:
+              status:
+                type: string
+                minLength: 4
+                maxLength: 4
+                enum:
+                - fail
+                example: fail
+              output:
+                description: Raw error output describing the failure(s)
+                type: string
+                minLength: 1
+      headers:
+        RateLimit-Limit:
+          $ref: '#/components/headers/RateLimitLimit'
+        RateLimit-Remaining:
+          $ref: '#/components/headers/RateLimitRemaining'
+        RateLimit-Reset:
+          $ref: '#/components/headers/RateLimitReset'
+    ListRiskModelsSuccess:
+      description: Returns the list of available risk models for use. Both risk model subscription and each risk model vendor specific Open:Risk API subscription are required for use. For subscription, please report an issue from FactSet:Developer portal.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+            - data
+            properties:
+              data:
+                type: array
+                minItems: 1
+                items:
+                  type: object
+                  required:
+                  - available
+                  - category
+                  - code
+                  - name
+                  - vendor
+                  properties:
+                    available:
+                      type: boolean
+                      description: If the model is available for use
+                    category:
+                      description: Model category
+                      type: string
+                      minLength: 1
+                    code:
+                      $ref: '#/components/schemas/RiskModelCode'
+                    name:
+                      description: Model name
+                      type: string
+                      minLength: 1
+                    vendor:
+                      description: Model vendor
+                      type: string
+                      minLength: 1
+          example:
+            data:
+            - available: true
+              category: FactSet
+              code: FDS:GLOBAL_EQUITY_M_V1
+              name: FactSet Equity Model
+              vendor: FactSet
+            - available: true
+              category: FactSet
+              code: FDS:CHINA_EQUITY_D_V1
+              name: FactSet Equity Model - China
+              vendor: FactSet
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-version:
+          $ref: '#/components/headers/ApiVersion'
+        RateLimit-Limit:
+          $ref: '#/components/headers/RateLimitLimit'
+        RateLimit-Remaining:
+          $ref: '#/components/headers/RateLimitRemaining'
+        RateLimit-Reset:
+          $ref: '#/components/headers/RateLimitReset'
+    RateLimitReached:
+      description: Rate limit reached. Wait until the time specified in header 'Retry-After' has elapsed before making further requests.
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        RateLimit-Limit:
+          $ref: '#/components/headers/RateLimitLimit'
+        RateLimit-Remaining:
+          $ref: '#/components/headers/RateLimitRemaining'
+        RateLimit-Reset:
+          $ref: '#/components/headers/RateLimitReset'
+    CalculateFromHoldingsSuccess:
+      description: Calculate predicted risk statistics for provided holdings using risk model data. Asset symbols and market values/weights are required.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+            - meta
+            - data
+            properties:
+              meta:
+                $ref: '#/components/schemas/SuccessResponseMeta'
+              data:
+                $ref: '#/components/schemas/StatsResults'
+          example:
+            data:
+            - level: Portfolio
+              stat: ActiveVarianceToRisk
+              value: 12.3237450414125
+            - level: SecurityGroup
+              stat: ActiveVarianceToRisk
+              value:
+              - 12.3237450414125
+              - 3.49070893626629
+              - 0
+              - 8.83303610514624
+              - 3.92451636403069
+              - 4.90851974111555
+            - level: Security
+              stat: PortfolioWeights
+              value:
+              - 0.5
+              - 0.25
+              - 0.25
+              - -0.25
+              - 0.25
+              - 0
+              - 0
+            - level: Security
+              stat: BenchmarkWeights
+              value:
+              - 0.4
+              - 0
+              - 0
+              - 0
+              - 0
+              - 0.3
+              - 0.3
+            - level: Security
+              stat: ActiveWeights
+              value:
+              - 0.1
+              - 0.25
+              - 0.25
+              - -0.25
+              - 0.25
+              - -0.3
+              - -0.3
+            - level: Security
+              settings:
+                correlatedSpecificRisk: true
+              stat: ActiveFactorVarianceToRisk
+              value:
+              - 1.10534014294057
+              - 2.06615061769137
+              - 2.69363038338542
+              - 0
+              - 1.34077389809848
+              - -1.86822210271993
+              - -0.749633886413939
+            - level: Security
+              stat: ActiveFactorVarianceToRiskCSR
+              value:
+              - 1.10534014294057
+              - 2.06615061769137
+              - 2.69363038338542
+              - 0
+              - 1.34077389809848
+              - -1.86822210271993
+              - -0.749633886413939
+            - level: FactorGroup
+              settings:
+                covarianceTimesTwo: true
+              stat: ActiveFactorRisk
+              value:
+              - 3.58271372820859
+              - 3.53603891949914
+              - 2.28313734920285
+              - 1.79315591947734
+            - level: Portfolio
+              settings:
+                confidenceLevel: 0.95
+                daysPerYear: 250
+                horizon: 1
+              stat: PortfolioReturnAtRiskPercentWithContribution
+              value: 2.64343611634807
+            - level: Security
+              stat: RawResidualRisk
+              value:
+              - 16.2557500876236
+              - 14.951706491152
+              - 14.7063781437888
+              - 0
+              - 17.8158822217523
+              - 17.8158822217523
+              - 11.4525275487782
+            - level: Security
+              stat: RawSecurityFactorRisk
+              value:
+              - 20.5316732730502
+              - 16.789112177398
+              - 19.9101159997578
+              - 0
+              - 14.3123316983644
+              - 18.0077748529056
+              - 16.5729861101766
+            - level: FactorSecurity
+              stat: RawFactorExposure
+              value:
+              - - 0
+                - 0
+                - 0
+                - 0
+                - 0
+                - 1
+                - 0
+              - - 1
+                - 1
+                - 1
+                - 0
+                - 0
+                - 0
+                - 1
+            - level: FactorSecurity
+              settings:
+                sparse: true
+              stat: RawFactorExposure
+              value:
+                columns: 7
+                indexPointer:
+                - 0
+                - 1
+                - 5
+                indices:
+                - 5
+                - 0
+                - 1
+                - 2
+                - 6
+                rows: 2
+                value:
+                - 1
+                - 1
+                - 1
+                - 1
+                - 1
+            - level: Factor
+              settings:
+                sparse: true
+              stat: PortfolioExposure
+              value:
+                columns: 2
+                indexPointer:
+                - 0
+                - 1
+                indices:
+                - 1
+                rows: 1
+                value:
+                - 1
+            meta:
+              labels:
+                factor:
+                  ids:
+                  - FX_GBP
+                  - FX_USD
+                  names:
+                  - British Pounds
+                  - U.S. Dollar
+                factorGroup:
+                  groups:
+                  - index: 0
+                    name: Market
+                  - groups:
+                    - index: 2
+                      name: Market Factors
+                    - index: 3
+                      name: Fundamental Factors
+                    index: 1
+                    name: Style
+                security:
+                  ids:
+                  - IBM
+                  - FDS
+                  - CA_ETF
+                  - CASH_GBP_CFD
+                  - CFD_B10RZP
+                  - B10RZP
+                  - MSFT
+                securityGroup:
+                  groups:
+                  - index: 1
+                    name: GBP
+                  - index: 2
+                    name: Offset Cash
+                  - groups:
+                    - index: 4
+                      name: Composite Assets
+                    - index: 5
+                      name: Direct Assets
+                    index: 3
+                    name: USD
+                  index: 0
+              resolvedDates:
+                covarianceDate: '2021-05-31'
+                ssrDate: '2021-05-31'
+                universeDate: '2021-05-31'
+              warnings:
+              - code: requestBodyMissingData
+                detail: 'Missing Factors: [CGTUR, CGMEX, CGDEU, CGVNM, CGEGY, CGMYS, CGHKG, CGSAU, CGFIN, CGARE, CGCHE, CGSGP, CGZAF, CGARG, CGLKA, CGCHN, CGCAN, CGBRA, CGKOR, CGISR, CGPAK, CGITA, CGTHA, CGRUS, CGJPN, CGNOR, CGAUT, CGPHL, CGKWT, CGNZL, CGIND, CGUSA, CGNLD, CGBEL, CGPOL, CGAUS, CGSWE, CGIRL, CGPRT, CGQAT, CGGBR, CGESP, CGIDN, CGTWN, CGDNK, CGFRA, CGEASTRNEUXPOLRUS, CGSUBSAHARA, CGLATAMXARGBRA, CGMESMALL, CGNAFRICA, CGGRCCYP, IGHEALTHPROVDR, IGMRTGREIT, IGAUTOCOMP, IGHEALTHTECH, IGSPCLRETL, IGMULTUTILITIES, IGENRGYEQPMNT, IGEQREIT, IGAIRFRGTLOGSTC, IGTECHSTRGPERIPH, IGTBCCO, IGMARINE, IGINSRNCE, IGITSRVCS, IGHTLRESTRNTLEISR, IGTRADINGDISTRB, IGMEDIA, IGLIFESCNCESRVCS, IGBEVRG, IGROADRAIL, IGCOMMSEQPMT, IGFOODSTPLRETL, IGAUTO, IGGASUTILITIES, IGTXTLAPPRLLXRY, IGHSHLDDURABLES, IGBUILDINGPRD, IGINDPWRRENPROD, IGCONTNRSPCKG, IGTRNSPRTINFRSTCR, IGPRSNLPRD, IGPHARMACTCL, IGOILGASFUELS, IGPROFSRVC, IGRLESTMGMTDEV, IGINDSTRCONGLM, IGFOODPRDCT, IGSEMICONDCTR, IGINTRNTMKTRETL, IGCONSTRENG, IGHSHLDPRD, IGHEALTHCREQPMT, IGTHRFTMORTGFNCE, IGBANKS, IGELECTUTILITIES, IGSOFTWARE, IGMACHINERY, IGMETALSMINING, IGELCTRCLEQPMNT, IGAIRLINES, IGDIVCONSMRSRVC, IGPAPERFORESTPRD, IGMULTLNRETL, IGCAPMKTS, IGWRLSTELECOM, IGWTRUTILITIES, IGCONSMRFIN, IGDIVFINSRVCS, IGCHEMICALS, IGAEROSPCDEF, IGDISTRIBUTORS, IGCOMMSRVCSPPLY, IGBIOTECH, IGLEISREPRD, IGELECTEQUIP, IGDIVTELECOM, IGCONSTRMATERIAL, IGENTERTAINMENT, IGINTERMEDIASERV, FX_AED, FX_ARS, FX_AUD, FX_BAM, FX_BDT, FX_BGN, FX_BHD, FX_BMD, FX_BRL, FX_BWP, FX_CAD, FX_CHF, FX_CLF, FX_CLP, FX_CNH, FX_CNY, FX_COP, FX_CZK, FX_DKK, FX_EGP, FX_EUR, FX_GBP, FX_GHS, FX_HKD, FX_HRK, FX_HUF, FX_IDR, FX_ILS, FX_INR, FX_ISK, FX_JMD, FX_JOD, FX_JPY, FX_KES, FX_KRW, FX_KWD, FX_KZT, FX_LBP, FX_LKR, FX_LTL, FX_LVL, FX_MAD, FX_MKD, FX_MUR, FX_MWK, FX_MXN, FX_MYR, FX_NAD, FX_NGN, FX_NOK, FX_NZD, FX_OMR, FX_PEN, FX_PHP, FX_PKR, FX_PLN, FX_QAR, FX_RON, FX_RSD, FX_RUB, FX_SAR, FX_SEK, FX_SGD, FX_SKK, FX_THB, FX_TND, FX_TRY, FX_TTD, FX_TWD, FX_TZS, FX_UAH, FX_UGX, FX_USD, FX_UYU, FX_VES, FX_VND, FX_XAF, FX_XOF, FX_ZAR, FX_ZMK, FX_ZMW, FX_ZWL]'
+                id: a25dce97-8df7-4145-b219-16c15975a38c
+                title: Factor grouping missing factor(s).
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-version:
+          $ref: '#/components/headers/ApiVersion'
+        RateLimit-Limit:
+          $ref: '#/components/headers/RateLimitLimit'
+        RateLimit-Remaining:
+          $ref: '#/components/headers/RateLimitRemaining'
+        RateLimit-Reset:
+          $ref: '#/components/headers/RateLimitReset'
+    HealthPass:
+      description: Service is operational and healthy
+      content:
+        application/json:
+          schema:
+            description: Response from the health check route in the event of a 'pass' status
+            type: object
+            required:
+            - status
+            - version
+            properties:
+              status:
+                type: string
+                minLength: 4
+                maxLength: 4
+                enum:
+                - pass
+                example: pass
+              version:
+                description: Full requested semantic version string
+                type: string
+                minLength: 5
+                example: 1.0.1
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-version:
+          $ref: '#/components/headers/ApiVersion'
+        RateLimit-Limit:
+          $ref: '#/components/headers/RateLimitLimit'
+        RateLimit-Remaining:
+          $ref: '#/components/headers/RateLimitRemaining'
+        RateLimit-Reset:
+          $ref: '#/components/headers/RateLimitReset'
+    EndpointNotFound:
+      description: Endpoint not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-version:
+          $ref: '#/components/headers/ApiVersion'
+        RateLimit-Limit:
+          $ref: '#/components/headers/RateLimitLimit'
+        RateLimit-Remaining:
+          $ref: '#/components/headers/RateLimitRemaining'
+        RateLimit-Reset:
+          $ref: '#/components/headers/RateLimitReset'
+    HealthFailAuthorization:
+      description: Full access to the service is not authorized
+      content:
+        application/json:
+          schema:
+            description: Response from the health check route in the event of a 'fail' status
+            type: object
+            required:
+            - status
+            - version
+            - output
+            properties:
+              status:
+                type: string
+                minLength: 4
+                maxLength: 4
+                enum:
+                - fail
+                example: fail
+              version:
+                description: Full requested semantic version string
+                type: string
+                minLength: 5
+                example: 1.0.1
+              output:
+                description: Raw error output describing the failure(s)
+                type: string
+                minLength: 1
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-version:
+          $ref: '#/components/headers/ApiVersion'
+        RateLimit-Limit:
+          $ref: '#/components/headers/RateLimitLimit'
+        RateLimit-Remaining:
+          $ref: '#/components/headers/RateLimitRemaining'
+        RateLimit-Reset:
+          $ref: '#/components/headers/RateLimitReset'
+    ListRiskStatisticsDetails:
+      description: 'All base risk statistic names and their respective support and/or requirement for certain name-settings statistics options (such as: correlated specific risk, covariance isolation method, etc.), available levels, and security group calculation methodology. When ''securityGroupMethod'' is ''statSpecific'', please refer to statistics documentation service for more information.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SupportedStats'
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-version:
+          $ref: '#/components/headers/ApiVersion'
+        RateLimit-Limit:
+          $ref: '#/components/headers/RateLimitLimit'
+        RateLimit-Remaining:
+          $ref: '#/components/headers/RateLimitRemaining'
+        RateLimit-Reset:
+          $ref: '#/components/headers/RateLimitReset'
+    GenerateIDMappingSuccess:
+      description: Provides a mapping to security indices in the risk model or the reason for exclusion
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+            - meta
+            - data
+            properties:
+              meta:
+                $ref: '#/components/schemas/SecurityOnlySuccessResponseMeta'
+              data:
+                type: array
+                minItems: 1
+                items:
+                  $ref: '#/components/schemas/RiskMappingEntry'
+          example:
+            data:
+            - covered: true
+              id: '2005973'
+              modelClass: Equity
+            - covered: true
+              id: '2329770'
+              modelClass: Equity
+            - covered: true
+              id: CA_ETF
+              modelClass: CompositeAsset
+            - covered: true
+              id: CASH_GBP_CFD
+              modelClass: OffsetCash
+            - covered: true
+              id: CFD_B10RZP
+              modelClass: Unknown
+            - covered: true
+              id: B10RZP7
+              modelClass: Equity
+            - covered: true
+              id: '2588173'
+              modelClass: Equity
+            - covered: false
+              exclusionInfo:
+                code: NoRiskModelCoverage
+                details: ''
+              modelClass: Unknown
+            meta:
+              labels:
+                security:
+                  ids:
+                  - IBM
+                  - FDS
+                  - CA_ETF
+                  - CASH_GBP_CFD
+                  - CFD_B10RZP
+                  - B10RZP
+                  - MSFT
+                  - FAKE_UNCOVERED_ASSET
+              resolvedDates:
+                covarianceDate: '2021-05-31'
+                ssrDate: '2021-05-31'
+                universeDate: '2021-05-31'
+    AccessForbidden:
+      description: Access forbidden for the requested data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-version:
+          $ref: '#/components/headers/ApiVersion'
+        RateLimit-Limit:
+          $ref: '#/components/headers/RateLimitLimit'
+        RateLimit-Remaining:
+          $ref: '#/components/headers/RateLimitRemaining'
+        RateLimit-Reset:
+          $ref: '#/components/headers/RateLimitReset'
+    ListRiskStatisticsNames:
+      description: All available risk statistic names including statistics names containing risk statistics options such as CSR (correlated specific risk)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SupportedStatsNamesOnly'
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-version:
+          $ref: '#/components/headers/ApiVersion'
+        RateLimit-Limit:
+          $ref: '#/components/headers/RateLimitLimit'
+        RateLimit-Remaining:
+          $ref: '#/components/headers/RateLimitRemaining'
+        RateLimit-Reset:
+          $ref: '#/components/headers/RateLimitReset'
+    InternalServerErrorJsonOnly:
+      description: Internal server error occurred
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+      headers:
+        api-supported-versions:
+          $ref: '#/components/headers/ApiSupportedVersions'
+        api-version:
+          $ref: '#/components/headers/ApiVersion'
+        RateLimit-Limit:
+          $ref: '#/components/headers/RateLimitLimit'
+        RateLimit-Remaining:
+          $ref: '#/components/headers/RateLimitRemaining'
+        RateLimit-Reset:
+          $ref: '#/components/headers/RateLimitReset'
+    MissingOrInvalidAuthentication:
+      description: Missing or invalid authentication
+      content:
+        text/plain:
+          schema:
+            type: string
+            minLength: 1
     RiskModelDetailsSuccess:
       description: Returns the meta data of risk model.
       content:
@@ -1763,583 +2307,39 @@ components:
           $ref: '#/components/headers/RateLimitRemaining'
         RateLimit-Reset:
           $ref: '#/components/headers/RateLimitReset'
-    HealthFailVersionNotFound:
-      description: API version not found
-      content:
-        application/json:
-          schema:
-            description: Response from the health check route in the event of a 'fail' status
-            type: object
-            required:
-            - status
-            - output
-            properties:
-              status:
-                type: string
-                minLength: 4
-                maxLength: 4
-                enum:
-                - fail
-                example: fail
-              output:
-                description: Raw error output describing the failure(s)
-                type: string
-                minLength: 1
-      headers:
-        RateLimit-Limit:
-          $ref: '#/components/headers/RateLimitLimit'
-        RateLimit-Remaining:
-          $ref: '#/components/headers/RateLimitRemaining'
-        RateLimit-Reset:
-          $ref: '#/components/headers/RateLimitReset'
-    CalculateFromHoldingsSuccess:
-      description: Calculate predicted risk statistics for provided holdings using risk model data. Asset symbols and market values/weights are required.
-      content:
-        application/json:
-          schema:
-            type: object
-            required:
-            - meta
-            - data
-            properties:
-              meta:
-                $ref: '#/components/schemas/SuccessResponseMeta'
-              data:
-                $ref: '#/components/schemas/StatsResults'
-          example:
-            data:
-            - level: Portfolio
-              stat: ActiveVarianceToRisk
-              value: 12.3237450414125
-            - level: SecurityGroup
-              stat: ActiveVarianceToRisk
-              value:
-              - 12.3237450414125
-              - 3.49070893626629
-              - 0
-              - 8.83303610514624
-              - 3.92451636403069
-              - 4.90851974111555
-            - level: Security
-              stat: PortfolioWeights
-              value:
-              - 0.5
-              - 0.25
-              - 0.25
-              - -0.25
-              - 0.25
-              - 0
-              - 0
-            - level: Security
-              stat: BenchmarkWeights
-              value:
-              - 0.4
-              - 0
-              - 0
-              - 0
-              - 0
-              - 0.3
-              - 0.3
-            - level: Security
-              stat: ActiveWeights
-              value:
-              - 0.1
-              - 0.25
-              - 0.25
-              - -0.25
-              - 0.25
-              - -0.3
-              - -0.3
-            - level: Security
-              settings:
-                correlatedSpecificRisk: true
-              stat: ActiveFactorVarianceToRisk
-              value:
-              - 1.10534014294057
-              - 2.06615061769137
-              - 2.69363038338542
-              - 0
-              - 1.34077389809848
-              - -1.86822210271993
-              - -0.749633886413939
-            - level: Security
-              stat: ActiveFactorVarianceToRiskCSR
-              value:
-              - 1.10534014294057
-              - 2.06615061769137
-              - 2.69363038338542
-              - 0
-              - 1.34077389809848
-              - -1.86822210271993
-              - -0.749633886413939
-            - level: FactorGroup
-              settings:
-                covarianceTimesTwo: true
-              stat: ActiveFactorRisk
-              value:
-              - 3.58271372820859
-              - 3.53603891949914
-              - 2.28313734920285
-              - 1.79315591947734
-            - level: Portfolio
-              settings:
-                confidenceLevel: 0.95
-                daysPerYear: 250
-                horizon: 1
-              stat: PortfolioReturnAtRiskPercentWithContribution
-              value: 2.64343611634807
-            - level: Security
-              stat: RawResidualRisk
-              value:
-              - 16.2557500876236
-              - 14.951706491152
-              - 14.7063781437888
-              - 0
-              - 17.8158822217523
-              - 17.8158822217523
-              - 11.4525275487782
-            - level: Security
-              stat: RawSecurityFactorRisk
-              value:
-              - 20.5316732730502
-              - 16.789112177398
-              - 19.9101159997578
-              - 0
-              - 14.3123316983644
-              - 18.0077748529056
-              - 16.5729861101766
-            - level: FactorSecurity
-              stat: RawFactorExposure
-              value:
-              - - 0
-                - 0
-                - 0
-                - 0
-                - 0
-                - 1
-                - 0
-              - - 1
-                - 1
-                - 1
-                - 0
-                - 0
-                - 0
-                - 1
-            - level: FactorSecurity
-              settings:
-                sparse: true
-              stat: RawFactorExposure
-              value:
-                columns: 7
-                indexPointer:
-                - 0
-                - 1
-                - 5
-                indices:
-                - 5
-                - 0
-                - 1
-                - 2
-                - 6
-                rows: 2
-                value:
-                - 1
-                - 1
-                - 1
-                - 1
-                - 1
-            - level: Factor
-              settings:
-                sparse: true
-              stat: PortfolioExposure
-              value:
-                columns: 2
-                indexPointer:
-                - 0
-                - 1
-                indices:
-                - 1
-                rows: 1
-                value:
-                - 1
-            meta:
-              labels:
-                factor:
-                  ids:
-                  - FX_GBP
-                  - FX_USD
-                  names:
-                  - British Pounds
-                  - U.S. Dollar
-                factorGroup:
-                  groups:
-                  - index: 0
-                    name: Market
-                  - groups:
-                    - index: 2
-                      name: Market Factors
-                    - index: 3
-                      name: Fundamental Factors
-                    index: 1
-                    name: Style
-                security:
-                  ids:
-                  - IBM
-                  - FDS
-                  - CA_ETF
-                  - CASH_GBP_CFD
-                  - CFD_B10RZP
-                  - B10RZP
-                  - MSFT
-                securityGroup:
-                  groups:
-                  - index: 1
-                    name: GBP
-                  - index: 2
-                    name: Offset Cash
-                  - groups:
-                    - index: 4
-                      name: Composite Assets
-                    - index: 5
-                      name: Direct Assets
-                    index: 3
-                    name: USD
-                  index: 0
-              resolvedDates:
-                covarianceDate: '2021-05-31'
-                ssrDate: '2021-05-31'
-                universeDate: '2021-05-31'
-              warnings:
-              - code: requestBodyMissingData
-                detail: 'Missing Factors: [CGTUR, CGMEX, CGDEU, CGVNM, CGEGY, CGMYS, CGHKG, CGSAU, CGFIN, CGARE, CGCHE, CGSGP, CGZAF, CGARG, CGLKA, CGCHN, CGCAN, CGBRA, CGKOR, CGISR, CGPAK, CGITA, CGTHA, CGRUS, CGJPN, CGNOR, CGAUT, CGPHL, CGKWT, CGNZL, CGIND, CGUSA, CGNLD, CGBEL, CGPOL, CGAUS, CGSWE, CGIRL, CGPRT, CGQAT, CGGBR, CGESP, CGIDN, CGTWN, CGDNK, CGFRA, CGEASTRNEUXPOLRUS, CGSUBSAHARA, CGLATAMXARGBRA, CGMESMALL, CGNAFRICA, CGGRCCYP, IGHEALTHPROVDR, IGMRTGREIT, IGAUTOCOMP, IGHEALTHTECH, IGSPCLRETL, IGMULTUTILITIES, IGENRGYEQPMNT, IGEQREIT, IGAIRFRGTLOGSTC, IGTECHSTRGPERIPH, IGTBCCO, IGMARINE, IGINSRNCE, IGITSRVCS, IGHTLRESTRNTLEISR, IGTRADINGDISTRB, IGMEDIA, IGLIFESCNCESRVCS, IGBEVRG, IGROADRAIL, IGCOMMSEQPMT, IGFOODSTPLRETL, IGAUTO, IGGASUTILITIES, IGTXTLAPPRLLXRY, IGHSHLDDURABLES, IGBUILDINGPRD, IGINDPWRRENPROD, IGCONTNRSPCKG, IGTRNSPRTINFRSTCR, IGPRSNLPRD, IGPHARMACTCL, IGOILGASFUELS, IGPROFSRVC, IGRLESTMGMTDEV, IGINDSTRCONGLM, IGFOODPRDCT, IGSEMICONDCTR, IGINTRNTMKTRETL, IGCONSTRENG, IGHSHLDPRD, IGHEALTHCREQPMT, IGTHRFTMORTGFNCE, IGBANKS, IGELECTUTILITIES, IGSOFTWARE, IGMACHINERY, IGMETALSMINING, IGELCTRCLEQPMNT, IGAIRLINES, IGDIVCONSMRSRVC, IGPAPERFORESTPRD, IGMULTLNRETL, IGCAPMKTS, IGWRLSTELECOM, IGWTRUTILITIES, IGCONSMRFIN, IGDIVFINSRVCS, IGCHEMICALS, IGAEROSPCDEF, IGDISTRIBUTORS, IGCOMMSRVCSPPLY, IGBIOTECH, IGLEISREPRD, IGELECTEQUIP, IGDIVTELECOM, IGCONSTRMATERIAL, IGENTERTAINMENT, IGINTERMEDIASERV, FX_AED, FX_ARS, FX_AUD, FX_BAM, FX_BDT, FX_BGN, FX_BHD, FX_BMD, FX_BRL, FX_BWP, FX_CAD, FX_CHF, FX_CLF, FX_CLP, FX_CNH, FX_CNY, FX_COP, FX_CZK, FX_DKK, FX_EGP, FX_EUR, FX_GBP, FX_GHS, FX_HKD, FX_HRK, FX_HUF, FX_IDR, FX_ILS, FX_INR, FX_ISK, FX_JMD, FX_JOD, FX_JPY, FX_KES, FX_KRW, FX_KWD, FX_KZT, FX_LBP, FX_LKR, FX_LTL, FX_LVL, FX_MAD, FX_MKD, FX_MUR, FX_MWK, FX_MXN, FX_MYR, FX_NAD, FX_NGN, FX_NOK, FX_NZD, FX_OMR, FX_PEN, FX_PHP, FX_PKR, FX_PLN, FX_QAR, FX_RON, FX_RSD, FX_RUB, FX_SAR, FX_SEK, FX_SGD, FX_SKK, FX_THB, FX_TND, FX_TRY, FX_TTD, FX_TWD, FX_TZS, FX_UAH, FX_UGX, FX_USD, FX_UYU, FX_VES, FX_VND, FX_XAF, FX_XOF, FX_ZAR, FX_ZMK, FX_ZMW, FX_ZWL]'
-                id: a25dce97-8df7-4145-b219-16c15975a38c
-                title: Factor grouping missing factor(s).
-      headers:
-        api-supported-versions:
-          $ref: '#/components/headers/ApiSupportedVersions'
-        api-version:
-          $ref: '#/components/headers/ApiVersion'
-        RateLimit-Limit:
-          $ref: '#/components/headers/RateLimitLimit'
-        RateLimit-Remaining:
-          $ref: '#/components/headers/RateLimitRemaining'
-        RateLimit-Reset:
-          $ref: '#/components/headers/RateLimitReset'
-    ListRiskStatisticsDetails:
-      description: 'All base risk statistic names and their respective support and/or requirement for certain name-settings statistics options (such as: correlated specific risk, covariance isolation method, etc.), available levels, and security group calculation methodology. When ''securityGroupMethod'' is ''statSpecific'', please refer to statistics documentation service for more information.'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/SupportedStats'
-      headers:
-        api-supported-versions:
-          $ref: '#/components/headers/ApiSupportedVersions'
-        api-version:
-          $ref: '#/components/headers/ApiVersion'
-        RateLimit-Limit:
-          $ref: '#/components/headers/RateLimitLimit'
-        RateLimit-Remaining:
-          $ref: '#/components/headers/RateLimitRemaining'
-        RateLimit-Reset:
-          $ref: '#/components/headers/RateLimitReset'
-    BadRequestOrDataUnavailable:
-      description: Request was malformed or the requested data is not available
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-      headers:
-        api-supported-versions:
-          $ref: '#/components/headers/ApiSupportedVersions'
-        api-version:
-          $ref: '#/components/headers/ApiVersion'
-        RateLimit-Limit:
-          $ref: '#/components/headers/RateLimitLimit'
-        RateLimit-Remaining:
-          $ref: '#/components/headers/RateLimitRemaining'
-        RateLimit-Reset:
-          $ref: '#/components/headers/RateLimitReset'
-    MissingOrInvalidAuthentication:
-      description: Missing or invalid authentication
-      content:
-        text/plain:
-          schema:
-            type: string
-            minLength: 1
-    HealthFailAuthorization:
-      description: Full access to the service is not authorized
-      content:
-        application/json:
-          schema:
-            description: Response from the health check route in the event of a 'fail' status
-            type: object
-            required:
-            - status
-            - version
-            - output
-            properties:
-              status:
-                type: string
-                minLength: 4
-                maxLength: 4
-                enum:
-                - fail
-                example: fail
-              version:
-                description: Full requested semantic version string
-                type: string
-                minLength: 5
-                example: 1.0.1
-              output:
-                description: Raw error output describing the failure(s)
-                type: string
-                minLength: 1
-      headers:
-        api-supported-versions:
-          $ref: '#/components/headers/ApiSupportedVersions'
-        api-version:
-          $ref: '#/components/headers/ApiVersion'
-        RateLimit-Limit:
-          $ref: '#/components/headers/RateLimitLimit'
-        RateLimit-Remaining:
-          $ref: '#/components/headers/RateLimitRemaining'
-        RateLimit-Reset:
-          $ref: '#/components/headers/RateLimitReset'
-    ListRiskStatisticsNames:
-      description: All available risk statistic names including statistics names containing risk statistics options such as CSR (correlated specific risk)
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/SupportedStatsNamesOnly'
-      headers:
-        api-supported-versions:
-          $ref: '#/components/headers/ApiSupportedVersions'
-        api-version:
-          $ref: '#/components/headers/ApiVersion'
-        RateLimit-Limit:
-          $ref: '#/components/headers/RateLimitLimit'
-        RateLimit-Remaining:
-          $ref: '#/components/headers/RateLimitRemaining'
-        RateLimit-Reset:
-          $ref: '#/components/headers/RateLimitReset'
-    GenerateIDMappingSuccess:
-      description: Provides a mapping to security indices in the risk model or the reason for exclusion
-      content:
-        application/json:
-          schema:
-            type: object
-            required:
-            - meta
-            - data
-            properties:
-              meta:
-                $ref: '#/components/schemas/SecurityOnlySuccessResponseMeta'
-              data:
-                type: array
-                minItems: 1
-                items:
-                  $ref: '#/components/schemas/RiskMappingEntry'
-          example:
-            data:
-            - covered: true
-              id: '2005973'
-              modelClass: Equity
-            - covered: true
-              id: '2329770'
-              modelClass: Equity
-            - covered: true
-              id: CA_ETF
-              modelClass: CompositeAsset
-            - covered: true
-              id: CASH_GBP_CFD
-              modelClass: OffsetCash
-            - covered: true
-              id: CFD_B10RZP
-              modelClass: Unknown
-            - covered: true
-              id: B10RZP7
-              modelClass: Equity
-            - covered: true
-              id: '2588173'
-              modelClass: Equity
-            - covered: false
-              exclusionInfo:
-                code: NoRiskModelCoverage
-                details: ''
-              modelClass: Unknown
-            meta:
-              labels:
-                security:
-                  ids:
-                  - IBM
-                  - FDS
-                  - CA_ETF
-                  - CASH_GBP_CFD
-                  - CFD_B10RZP
-                  - B10RZP
-                  - MSFT
-                  - FAKE_UNCOVERED_ASSET
-              resolvedDates:
-                covarianceDate: '2021-05-31'
-                ssrDate: '2021-05-31'
-                universeDate: '2021-05-31'
-    EndpointNotFound:
-      description: Endpoint not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-      headers:
-        api-supported-versions:
-          $ref: '#/components/headers/ApiSupportedVersions'
-        api-version:
-          $ref: '#/components/headers/ApiVersion'
-        RateLimit-Limit:
-          $ref: '#/components/headers/RateLimitLimit'
-        RateLimit-Remaining:
-          $ref: '#/components/headers/RateLimitRemaining'
-        RateLimit-Reset:
-          $ref: '#/components/headers/RateLimitReset'
-    AccessForbidden:
-      description: Access forbidden for the requested data
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-      headers:
-        api-supported-versions:
-          $ref: '#/components/headers/ApiSupportedVersions'
-        api-version:
-          $ref: '#/components/headers/ApiVersion'
-        RateLimit-Limit:
-          $ref: '#/components/headers/RateLimitLimit'
-        RateLimit-Remaining:
-          $ref: '#/components/headers/RateLimitRemaining'
-        RateLimit-Reset:
-          $ref: '#/components/headers/RateLimitReset'
-    RateLimitReached:
-      description: Rate limit reached. Wait until the time specified in header 'Retry-After' has elapsed before making further requests.
-      headers:
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        RateLimit-Limit:
-          $ref: '#/components/headers/RateLimitLimit'
-        RateLimit-Remaining:
-          $ref: '#/components/headers/RateLimitRemaining'
-        RateLimit-Reset:
-          $ref: '#/components/headers/RateLimitReset'
-    ListRiskModelsSuccess:
-      description: Returns the list of available risk models for use. Both risk model subscription and each risk model vendor specific Open:Risk API subscription are required for use. For subscription, please report an issue from FactSet:Developer portal.
-      content:
-        application/json:
-          schema:
-            type: object
-            required:
-            - data
-            properties:
-              data:
-                type: array
-                minItems: 1
-                items:
-                  type: object
-                  required:
-                  - available
-                  - category
-                  - code
-                  - name
-                  - vendor
-                  properties:
-                    available:
-                      type: boolean
-                      description: If the model is available for use
-                    category:
-                      description: Model category
-                      type: string
-                      minLength: 1
-                    code:
-                      $ref: '#/components/schemas/RiskModelCode'
-                    name:
-                      description: Model name
-                      type: string
-                      minLength: 1
-                    vendor:
-                      description: Model vendor
-                      type: string
-                      minLength: 1
-          example:
-            data:
-            - available: true
-              category: FactSet
-              code: FDS:GLOBAL_EQUITY_M_V1
-              name: FactSet Equity Model
-              vendor: FactSet
-            - available: true
-              category: FactSet
-              code: FDS:CHINA_EQUITY_D_V1
-              name: FactSet Equity Model - China
-              vendor: FactSet
-      headers:
-        api-supported-versions:
-          $ref: '#/components/headers/ApiSupportedVersions'
-        api-version:
-          $ref: '#/components/headers/ApiVersion'
-        RateLimit-Limit:
-          $ref: '#/components/headers/RateLimitLimit'
-        RateLimit-Remaining:
-          $ref: '#/components/headers/RateLimitRemaining'
-        RateLimit-Reset:
-          $ref: '#/components/headers/RateLimitReset'
-    InternalServerErrorJsonOnly:
-      description: Internal server error occurred
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-      headers:
-        api-supported-versions:
-          $ref: '#/components/headers/ApiSupportedVersions'
-        api-version:
-          $ref: '#/components/headers/ApiVersion'
-        RateLimit-Limit:
-          $ref: '#/components/headers/RateLimitLimit'
-        RateLimit-Remaining:
-          $ref: '#/components/headers/RateLimitRemaining'
-        RateLimit-Reset:
-          $ref: '#/components/headers/RateLimitReset'
-    HealthPass:
-      description: Service is operational and healthy
-      content:
-        application/json:
-          schema:
-            description: Response from the health check route in the event of a 'pass' status
-            type: object
-            required:
-            - status
-            - version
-            properties:
-              status:
-                type: string
-                minLength: 4
-                maxLength: 4
-                enum:
-                - pass
-                example: pass
-              version:
-                description: Full requested semantic version string
-                type: string
-                minLength: 5
-                example: 1.0.1
-      headers:
-        api-supported-versions:
-          $ref: '#/components/headers/ApiSupportedVersions'
-        api-version:
-          $ref: '#/components/headers/ApiVersion'
-        RateLimit-Limit:
-          $ref: '#/components/headers/RateLimitLimit'
-        RateLimit-Remaining:
-          $ref: '#/components/headers/RateLimitRemaining'
-        RateLimit-Reset:
-          $ref: '#/components/headers/RateLimitReset'
+  headers:
+    RateLimitLimit:
+      description: Total number of requests allowed to be made for the time window
+      schema:
+        type: string
+        minLength: 1
+    RetryAfter:
+      description: Time to wait in seconds before making a new request as the rate limit has been reached.
+      schema:
+        type: string
+        minLength: 1
+    RateLimitReset:
+      description: Number of seconds remaining until the rate limit time window resets.
+      schema:
+        type: string
+        minLength: 1
+    RateLimitRemaining:
+      description: Remaining number of requests allowed to be made for the time window.
+      schema:
+        type: string
+        minLength: 1
+    ApiVersion:
+      description: Full requested semantic version string
+      schema:
+        type: string
+        minLength: 5
+        example: 1.0.1
+    ApiSupportedVersions:
+      description: Comma-separated list of the major version numbers currently supported by the service.
+      schema:
+        type: string
+        minLength: 1
+        example: 0,1
   parameters:
     VersionPath:
       name: version

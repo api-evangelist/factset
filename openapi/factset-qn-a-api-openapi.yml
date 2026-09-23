@@ -16,7 +16,7 @@ security:
 - FactSetApiKey: []
 - FactSetOAuth2: []
 tags:
-- name: Qna
+- name: Qn A
 paths:
   /qna/answers:
     post:
@@ -62,7 +62,7 @@ paths:
           description: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
       summary: Factset Endpoint to submit a question for answer(s)
       tags:
-      - Qna
+      - Qn A
   /qna/answers/{id}:
     get:
       description: Endpoint to obtain the results from the original Q&A task request. The `id` parameter represents the identifier from the task and comes from the POST request which created the task. Once the task is complete, the result can be fetched with this endpoint.
@@ -113,7 +113,7 @@ paths:
           description: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
       summary: Factset Endpoint to get the answer(s)
       tags:
-      - Qna
+      - Qn A
   /qna/answers/{id}/status:
     get:
       description: Endpoint to obtain the status of the Q&A task request. The `id` parameter represents the identifier of the task created and comes from the POST request which created the task.
@@ -170,9 +170,54 @@ paths:
           description: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
       summary: Factset Endpoint to get the completion status for a Q&A request
       tags:
-      - Qna
+      - Qn A
 components:
   schemas:
+    HTTPError:
+      description: Schema that defines HTTP error(s).
+      properties:
+        code:
+          description: HTTP Status Code
+          type: string
+        detail:
+          description: Error detail (if any)
+          type: string
+        id:
+          description: The unique identifier detailing the error(s)
+          format: uuid
+          type: string
+        source:
+          $ref: '#/components/schemas/ErrorSource'
+        title:
+          description: Error title
+          type: string
+      required:
+      - code
+      - id
+      - title
+      type: object
+    QnAAnswerParametersRoot:
+      description: Schema that envelopes the `QnAAnswerParameters` and include additional `meta` (if available).
+      properties:
+        data:
+          $ref: '#/components/schemas/QnAAnswerParameters'
+        meta:
+          description: Any associated metadata
+          type: object
+      required:
+      - data
+      type: object
+    HTTPErrorRoot:
+      description: Schema that defines HTTP error(s).
+      properties:
+        errors:
+          description: List of errors
+          items:
+            $ref: '#/components/schemas/HTTPError'
+          type: array
+      required:
+      - errors
+      type: object
     QnAAnswerRoot:
       description: Schema that envelopes the `QnAAnswer` and include additional `meta` (if available).
       properties:
@@ -180,6 +225,32 @@ components:
           items:
             $ref: '#/components/schemas/QnAAnswer'
           type: array
+        meta:
+          description: Any associated metadata
+          type: object
+      required:
+      - data
+      type: object
+    QnAAnswer:
+      description: Schema that defines the answer with a confidence score.
+      properties:
+        answer:
+          description: The machine-generated answer to the question
+          example: Joel Wilson
+          type: string
+        score:
+          description: The confidence score associated to the answer
+          example: 0.8831543922424316
+          type: number
+      required:
+      - answer
+      - score
+      type: object
+    TaskRoot:
+      description: Schema that envelopes `Task` and include additional `meta` (if available).
+      properties:
+        data:
+          $ref: '#/components/schemas/Task'
         meta:
           description: Any associated metadata
           type: object
@@ -306,51 +377,6 @@ components:
       - input
       - question
       type: object
-    HTTPError:
-      description: Schema that defines HTTP error(s).
-      properties:
-        code:
-          description: HTTP Status Code
-          type: string
-        detail:
-          description: Error detail (if any)
-          type: string
-        id:
-          description: The unique identifier detailing the error(s)
-          format: uuid
-          type: string
-        source:
-          $ref: '#/components/schemas/ErrorSource'
-        title:
-          description: Error title
-          type: string
-      required:
-      - code
-      - id
-      - title
-      type: object
-    HTTPErrorRoot:
-      description: Schema that defines HTTP error(s).
-      properties:
-        errors:
-          description: List of errors
-          items:
-            $ref: '#/components/schemas/HTTPError'
-          type: array
-      required:
-      - errors
-      type: object
-    TaskRoot:
-      description: Schema that envelopes `Task` and include additional `meta` (if available).
-      properties:
-        data:
-          $ref: '#/components/schemas/Task'
-        meta:
-          description: Any associated metadata
-          type: object
-      required:
-      - data
-      type: object
     ErrorSource:
       description: Schema that defines the source of the error.
       properties:
@@ -363,32 +389,6 @@ components:
       required:
       - parameter
       - pointer
-      type: object
-    QnAAnswer:
-      description: Schema that defines the answer with a confidence score.
-      properties:
-        answer:
-          description: The machine-generated answer to the question
-          example: Joel Wilson
-          type: string
-        score:
-          description: The confidence score associated to the answer
-          example: 0.8831543922424316
-          type: number
-      required:
-      - answer
-      - score
-      type: object
-    QnAAnswerParametersRoot:
-      description: Schema that envelopes the `QnAAnswerParameters` and include additional `meta` (if available).
-      properties:
-        data:
-          $ref: '#/components/schemas/QnAAnswerParameters'
-        meta:
-          description: Any associated metadata
-          type: object
-      required:
-      - data
       type: object
   securitySchemes:
     FactSetOAuth2:

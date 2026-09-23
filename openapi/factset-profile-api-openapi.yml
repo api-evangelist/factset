@@ -48,35 +48,20 @@ paths:
         '503':
           $ref: '#/components/responses/503ServiceUnavailable'
 components:
+  headers:
+    xDataDirectRequestKey:
+      description: FactSet request ID
+      schema:
+        type: string
+    apiVersion:
+      description: API version (semantic versioning)
+      schema:
+        type: string
+    apiSupportedVersions:
+      description: Supported API versions (semantic versioning)
+      schema:
+        type: string
   examples:
-    parameterErrorActual:
-      summary: actual periods parameter error
-      value:
-        errors:
-        - id: 35a62bd5-c4aa-4e6b-9357-0f1b5688e2db
-          code: parameterError
-          title: 'Invalid parameter: ''actual''. Accepted values include nonzero integers'
-    parameterErrorEstimate:
-      summary: estimate periods parameter error
-      value:
-        errors:
-        - id: 372a28d1-53ac-49cd-9be5-beb714cd62a8
-          code: parameterError
-          title: 'Invalid parameter: ''estimate''. Accepted values include nonzero integers'
-    endpointNotFound:
-      summary: endpoint not found
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: endpointNotFound
-          title: The requested endpoint does not exist.
-    unsupportedEntityParameterError:
-      summary: unsupported entity type
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: parameterError
-          title: Unsupported entity type
     default200ProfileResponse:
       summary: (sample response)
       value:
@@ -162,13 +147,13 @@ components:
         meta:
           requestId: FDS
           fsymId: SQFMK3-R
-    idRequiredParameterError:
-      summary: generic parameter error (missing parameter)
+    parameterErrorActual:
+      summary: actual periods parameter error
       value:
         errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
+        - id: 35a62bd5-c4aa-4e6b-9357-0f1b5688e2db
           code: parameterError
-          title: 'Missing required parameter(s): ''id'''
+          title: 'Invalid parameter: ''actual''. Accepted values include nonzero integers'
     idInvalidParameterError:
       summary: generic parameter error (invalid parameter)
       value:
@@ -176,6 +161,13 @@ components:
         - id: 39314614-e607-465a-ba95-5bb79c362e23
           code: parameterError
           title: 'Invalid parameter(s): ''id'''
+    unsupportedEntityParameterError:
+      summary: unsupported entity type
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: Unsupported entity type
     parameterErrorView:
       summary: view parameter error
       value:
@@ -190,24 +182,58 @@ components:
         - id: 39314614-e607-465a-ba95-5bb79c362e23
           code: parameterError
           title: 'Invalid parameter: ''topn'''
+    endpointNotFound:
+      summary: endpoint not found
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: endpointNotFound
+          title: The requested endpoint does not exist.
+    idRequiredParameterError:
+      summary: generic parameter error (missing parameter)
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Missing required parameter(s): ''id'''
+    parameterErrorEstimate:
+      summary: estimate periods parameter error
+      value:
+        errors:
+        - id: 372a28d1-53ac-49cd-9be5-beb714cd62a8
+          code: parameterError
+          title: 'Invalid parameter: ''estimate''. Accepted values include nonzero integers'
   schemas:
-    DataPointMeta:
+    ErrorObject:
       type: object
-      anyOf:
-      - properties:
-          currencyCode:
-            type: string
-            description: Code for data currency
-          currencySymbol:
-            type: string
-            description: Symbol for data currency
-          scale:
-            type: integer
-            description: 'Integer power of 10 to which numbers have been scaled. For example: 6 implies millions.
-
-              Default is 0.
-
-              '
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        title:
+          type: string
+        links:
+          type: object
+          properties:
+            about:
+              type: string
+        detail:
+          type: string
+        source:
+          type: object
+          properties:
+            parameter:
+              type: string
+    ErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorObject'
+        meta:
+          $ref: '#/components/schemas/Meta'
     ProfileData:
       type: object
       required:
@@ -667,31 +693,23 @@ components:
                   items:
                     type: string
               description: Where the data is sourced from
-    ErrorObject:
+    DataPointMeta:
       type: object
-      properties:
-        id:
-          type: string
-        code:
-          type: string
-        title:
-          type: string
-        links:
-          type: object
-          properties:
-            about:
-              type: string
-        detail:
-          type: string
-        source:
-          type: object
-          properties:
-            parameter:
-              type: string
-    Meta:
-      type: object
-      additionalProperties:
-        type: string
+      anyOf:
+      - properties:
+          currencyCode:
+            type: string
+            description: Code for data currency
+          currencySymbol:
+            type: string
+            description: Symbol for data currency
+          scale:
+            type: integer
+            description: 'Integer power of 10 to which numbers have been scaled. For example: 6 implies millions.
+
+              Default is 0.
+
+              '
     ProfileResponse:
       type: object
       properties:
@@ -699,23 +717,11 @@ components:
           $ref: '#/components/schemas/ProfileData'
         meta:
           $ref: '#/components/schemas/Meta'
-    ErrorResponse:
+    Meta:
       type: object
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorObject'
-        meta:
-          $ref: '#/components/schemas/Meta'
+      additionalProperties:
+        type: string
   responses:
-    401Unauthorized:
-      description: Missing or invalid authentication. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For further assistance, file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
     404NotFound:
       description: Not found. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
       headers:
@@ -730,8 +736,45 @@ components:
           examples:
             endpointNotFound:
               $ref: '#/components/examples/endpointNotFound'
+    200OKProfile:
+      description: Expected response; returns the JSON in a simple key-value format
+      headers:
+        X-DataDirect-Request-Key:
+          $ref: '#/components/headers/xDataDirectRequestKey'
+        Api-Supported-Versions:
+          $ref: '#/components/headers/apiSupportedVersions'
+        Api-Version:
+          $ref: '#/components/headers/apiVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProfileResponse'
+          examples:
+            default200ResponseExample:
+              $ref: '#/components/examples/default200ProfileResponse'
+    401Unauthorized:
+      description: Missing or invalid authentication. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For further assistance, file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    503ServiceUnavailable:
+      description: Service unavailable. Typically a timeout, or result of a rejected request to prevent service overload. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
     500InternalServerError:
       description: Server error. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    429TooManyRequests:
+      description: Too many requests - this API is rate-limited to 20 requests per second. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
       headers:
         X-DataDirect-Request-Key:
           schema:
@@ -765,49 +808,6 @@ components:
               $ref: '#/components/examples/parameterErrorTopn'
             parameterErrorView:
               $ref: '#/components/examples/parameterErrorView'
-    503ServiceUnavailable:
-      description: Service unavailable. Typically a timeout, or result of a rejected request to prevent service overload. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-    200OKProfile:
-      description: Expected response; returns the JSON in a simple key-value format
-      headers:
-        X-DataDirect-Request-Key:
-          $ref: '#/components/headers/xDataDirectRequestKey'
-        Api-Supported-Versions:
-          $ref: '#/components/headers/apiSupportedVersions'
-        Api-Version:
-          $ref: '#/components/headers/apiVersion'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ProfileResponse'
-          examples:
-            default200ResponseExample:
-              $ref: '#/components/examples/default200ProfileResponse'
-    429TooManyRequests:
-      description: Too many requests - this API is rate-limited to 20 requests per second. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-  headers:
-    apiSupportedVersions:
-      description: Supported API versions (semantic versioning)
-      schema:
-        type: string
-    xDataDirectRequestKey:
-      description: FactSet request ID
-      schema:
-        type: string
-    apiVersion:
-      description: API version (semantic versioning)
-      schema:
-        type: string
   securitySchemes:
     FactSetOAuth2:
       type: oauth2

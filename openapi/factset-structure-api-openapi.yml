@@ -42,16 +42,14 @@ paths:
     - url: https://api.factset.com/report/entity/v1
   /factset-rbics/v1/structure:
     get:
-      summary: Factset Get the Full Rbics Taxonomy Structure Ids, Names, and Effective Periods.
+      summary: Factset Get the Full Rbics Taxonomy Structure Ids, Names, and Effective Periods
       description: 'Understand the full RBICS Taxonomy Structure through time to help organize your analysis or facilitate the use of RBICS in application development.
 
 
         Designed to overcome disparate and non-standardized company disclosures, the RBICS taxonomy is a normalized global industry classification consisting of a fourteen-by-six matrix. There are twelve economies with two specialty sectors, each with six incremental detailed layers, resulting in over 1,600 sector groups.
 
 
-        The top-levels'' market-defined approach groups companies based on their behavioral similarities and stock price co-movement, while the patented product-based approach used in the lower levels enables the necessary precision to capture the specialty sectors of global markets.
-
-        '
+        The top-levels'' market-defined approach groups companies based on their behavioral similarities and stock price co-movement, while the patented product-based approach used in the lower levels enables the necessary precision to capture the specialty sectors of global markets.'
       tags:
       - Structure
       operationId: getRbicsStructure
@@ -86,10 +84,8 @@ paths:
       security:
       - UserSecurity: []
     post:
-      summary: Factset Get the Full Rbics Taxonomy Structure Ids, Names, and Effective Periods.
-      description: 'Get the full RBICS Taxonomy Structure Ids, Names, and effective periods. POST method is optimal for requesting large lists of `rbicsIds`.
-
-        '
+      summary: Factset Get the Full Rbics Taxonomy Structure Ids, Names, and Effective Periods
+      description: Get the full RBICS Taxonomy Structure Ids, Names, and effective periods. POST method is optimal for requesting large lists of `rbicsIds`.
       tags:
       - Structure
       operationId: getRbicsStructureForList
@@ -128,7 +124,196 @@ paths:
     servers:
     - url: https://api.factset.com/content
 components:
+  schemas:
+    ErrorObject:
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        title:
+          type: string
+        links:
+          type: object
+          properties:
+            about:
+              type: string
+        detail:
+          type: string
+        source:
+          type: object
+          properties:
+            parameter:
+              type: string
+    ErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorObject'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Response:
+      type: object
+      properties:
+        data:
+          title: STACH
+          description: Returns a STACH 2.0 row organized package
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Meta:
+      type: object
+      additionalProperties:
+        type:
+        - string
+        - 'null'
+    structure:
+      title: Structure
+      type: object
+      properties:
+        rbicsId:
+          description: RBICS Code for the classification.
+          type:
+          - string
+          - 'null'
+          example: '101010101010'
+        firstDate:
+          description: First date of the classification.
+          type:
+          - string
+          - 'null'
+          format: datetime
+          example: '1945-01-01T00:00:00.000'
+        lastDate:
+          description: Date when the classification became no longer valid. If `null`, the classification is still valid.
+          type:
+          - string
+          - 'null'
+          format: datetime
+          example: null
+      additionalProperties: true
+    structureResponse:
+      title: Structure Response
+      type: object
+      description: Structure Response Array
+      properties:
+        data:
+          description: Array of Structure Objects
+          type: array
+          items:
+            $ref: '#/components/schemas/structure'
+          example: []
+    structureRequest:
+      title: Structure Request
+      description: Structure Request Body
+      type: object
+      properties:
+        rbicsIds:
+          $ref: '#/components/schemas/rbicsIds'
+        level:
+          $ref: '#/components/schemas/levelStructure'
+        includeNames:
+          $ref: '#/components/schemas/includeNames'
+        date:
+          $ref: '#/components/schemas/date'
+    errorResponse:
+      type: object
+      description: error description
+      title: Error Response
+      properties:
+        status:
+          description: status
+          type: string
+          example: Bad Request
+        timestamp:
+          description: timestamp in YYYY-MM-DD HH:MM:SS.SSS
+          type: string
+          example: '2019-11-01 11:09:41.918'
+          format: date-time
+        path:
+          description: The Endpoint path {package}/version/{endpoint}
+          type: string
+          example: /factset-rbics/v1/{end-point}
+        message:
+          description: The plain text error message
+          type: string
+          example: Validation Error
+        subErrors:
+          description: subErrors related to the error message. Null if not applicable.
+          type: object
+          properties:
+            object:
+              description: the operation ID
+              type: string
+            field:
+              description: Parameter Field Name
+              type: string
+            message:
+              description: Error message
+              type: string
+            rejectedValue:
+              description: Rejected Values in an Array
+              type: array
+              items:
+                type: string
+          example: example_value
+    levelStructure:
+      type: integer
+      minimum: 1
+      maximum: 6
+      description: "RBICS industry levels to include in the response. All levels from 1-N will be returned. For example, '3' returns all levels 1,2 and 3. To request all levels, request level=6. Level 1 is returned by default.\n  |Level|Description|Number of Groups|\n  ||||\n  |1|Economomy|14|\n  |2|Sector|37\n  |3|Sub-Sector|109|\n  |4|Industry Group|366|\n  |5|Inudstry|901|\n  |6|Sub-Industry|1629|\n"
+      example: 3
+    date:
+      type: string
+      description: 'Effective date for data expressed in YYYY-MM-DD format. If no date is requested, the default behavior is to return the full history for the requested entity.
+
+        '
+      example: '2020-09-30'
+    rbicsIds:
+      title: ids
+      description: 'RBICS Taxonomy Id Filter. Use to lookup the structure details for the Id requested.
+
+        '
+      type: array
+      maxItems: 2500
+      example:
+      - '101010000000'
+      - '55'
+      items:
+        type: string
+        maxLength: 12
+        minLength: 2
+    includeNames:
+      type: boolean
+      description: 'Option to include or exclude industry Names and the L6 Description. True = Include Names; False = Exclude Names.
+
+        '
+      example: true
+      default: true
   examples:
+    notAuthorized:
+      summary: not authorized
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: notAuthorized
+          title: User is forbidden access with current credentials. For access, contact your FactSet sales representative
+    idInvalidParameterError:
+      summary: invalid id parameter
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Invalid parameter(s): ''id'''
+    schemaInvalidParameterError:
+      summary: invalid schema parameter
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Invalid parameter: ''schema'''
     treeResponse:
       summary: (sample tree response)
       description: Subset of rows and columns for an example response
@@ -207,137 +392,6 @@ components:
           requestId: FDS-US
           fsymId: SQFMK3-R
           schema: tree
-    groupLevelResponse:
-      summary: (sample table group level response)
-      description: Subset of rows and columns for an example STACH 2.0 row organized package format table group level response
-      value:
-        data:
-          version: '2.0'
-          tables:
-            main:
-              definition:
-                columns:
-                - id: entityID
-                  type: string
-                  isDimension: true
-                - id: name
-                  type: string
-                - id: country
-                  type: string
-                - id: entityType
-                  type: string
-              headersDefinition:
-                columns:
-                - id: entityTableHeader
-                  type: string
-                  isDimension: true
-              data:
-                rows:
-                - rowType: Header
-                  cells:
-                  - ID
-                  - Name
-                  - Country
-                  - Entity Type
-                  headerCellDetails:
-                    '0':
-                      source: HEADERS
-                      columnIndex: 0
-                    '1':
-                      source: HEADERS
-                      columnIndex: 0
-                    '2':
-                      source: HEADERS
-                      columnIndex: 0
-                    '3':
-                      source: HEADERS
-                      columnIndex: 0
-                - cells:
-                  - 0016YD-E
-                  - FactSet Research Systems, Inc.
-                  - United States
-                  - PUB
-                - cells:
-                  - 003S32-E
-                  - P.A.N. Securities LP
-                  - United States
-                  - SUB
-                  cellDetails:
-                    '0':
-                      groupLevel: '1'
-                - cells:
-                  - 007F37-E
-                  - Portware LLC
-                  - United States
-                  - SUB
-                  cellDetails:
-                    '0':
-                      groupLevel: '1'
-                - cells:
-                  - 0CK25T-E
-                  - Aritas Group, Inc. /Technology & Analytical Business/
-                  - United States
-                  - COR
-                  cellDetails:
-                    '0':
-                      groupLevel: '2'
-                - cells:
-                  - 0DV5KG-E
-                  - Long Ridge Portware Holdings, Inc.
-                  - United States
-                  - EXT
-                  cellDetails:
-                    '0':
-                      groupLevel: '2'
-                - cells:
-                  - 0GV04X-E
-                  - Portware India Pvt Ltd.
-                  - India
-                  - SUB
-                  cellDetails:
-                    '0':
-                      groupLevel: '2'
-                - cells:
-                  - 0GV04Y-E
-                  - Portware International LLC
-                  - United States
-                  - SUB
-                  cellDetails:
-                    '0':
-                      groupLevel: '2'
-                - cells:
-                  - 0G910J-E
-                  - Portware International LLC (United Kingdom)
-                  - United Kingdom
-                  - SUB
-                  cellDetails:
-                    '0':
-                      groupLevel: '3'
-        meta:
-          requestId: FDS-US
-          fsymId: SQFMK3-R
-          schema: table_group_level
-    genericServerError:
-      summary: generic server error
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: genericServerError
-          title: Unexpected error processing request
-    endpointNotFound:
-      summary: endpoint not found
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: endpointNotFound
-          title: The requested endpoint does not exist.
-    idRequiredParameterError:
-      summary: missing id parameter
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: parameterError
-          title: 'Missing required parameter(s): ''id'''
     parentChildColumnsResponse:
       summary: (sample table parent child columns response)
       description: Subset of rows and columns for an example STACH 2.0 row organized package format table parent child columns response
@@ -475,63 +529,137 @@ components:
           requestId: FDS-US
           fsymId: SQFMK3-R
           schema: table_parent_child_columns
-    idInvalidParameterError:
-      summary: invalid id parameter
+    groupLevelResponse:
+      summary: (sample table group level response)
+      description: Subset of rows and columns for an example STACH 2.0 row organized package format table group level response
+      value:
+        data:
+          version: '2.0'
+          tables:
+            main:
+              definition:
+                columns:
+                - id: entityID
+                  type: string
+                  isDimension: true
+                - id: name
+                  type: string
+                - id: country
+                  type: string
+                - id: entityType
+                  type: string
+              headersDefinition:
+                columns:
+                - id: entityTableHeader
+                  type: string
+                  isDimension: true
+              data:
+                rows:
+                - rowType: Header
+                  cells:
+                  - ID
+                  - Name
+                  - Country
+                  - Entity Type
+                  headerCellDetails:
+                    '0':
+                      source: HEADERS
+                      columnIndex: 0
+                    '1':
+                      source: HEADERS
+                      columnIndex: 0
+                    '2':
+                      source: HEADERS
+                      columnIndex: 0
+                    '3':
+                      source: HEADERS
+                      columnIndex: 0
+                - cells:
+                  - 0016YD-E
+                  - FactSet Research Systems, Inc.
+                  - United States
+                  - PUB
+                - cells:
+                  - 003S32-E
+                  - P.A.N. Securities LP
+                  - United States
+                  - SUB
+                  cellDetails:
+                    '0':
+                      groupLevel: '1'
+                - cells:
+                  - 007F37-E
+                  - Portware LLC
+                  - United States
+                  - SUB
+                  cellDetails:
+                    '0':
+                      groupLevel: '1'
+                - cells:
+                  - 0CK25T-E
+                  - Aritas Group, Inc. /Technology & Analytical Business/
+                  - United States
+                  - COR
+                  cellDetails:
+                    '0':
+                      groupLevel: '2'
+                - cells:
+                  - 0DV5KG-E
+                  - Long Ridge Portware Holdings, Inc.
+                  - United States
+                  - EXT
+                  cellDetails:
+                    '0':
+                      groupLevel: '2'
+                - cells:
+                  - 0GV04X-E
+                  - Portware India Pvt Ltd.
+                  - India
+                  - SUB
+                  cellDetails:
+                    '0':
+                      groupLevel: '2'
+                - cells:
+                  - 0GV04Y-E
+                  - Portware International LLC
+                  - United States
+                  - SUB
+                  cellDetails:
+                    '0':
+                      groupLevel: '2'
+                - cells:
+                  - 0G910J-E
+                  - Portware International LLC (United Kingdom)
+                  - United Kingdom
+                  - SUB
+                  cellDetails:
+                    '0':
+                      groupLevel: '3'
+        meta:
+          requestId: FDS-US
+          fsymId: SQFMK3-R
+          schema: table_group_level
+    endpointNotFound:
+      summary: endpoint not found
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: endpointNotFound
+          title: The requested endpoint does not exist.
+    idRequiredParameterError:
+      summary: missing id parameter
       value:
         errors:
         - id: 39314614-e607-465a-ba95-5bb79c362e23
           code: parameterError
-          title: 'Invalid parameter(s): ''id'''
-    schemaInvalidParameterError:
-      summary: invalid schema parameter
+          title: 'Missing required parameter(s): ''id'''
+    genericServerError:
+      summary: generic server error
       value:
         errors:
         - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: parameterError
-          title: 'Invalid parameter: ''schema'''
-    notAuthorized:
-      summary: not authorized
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: notAuthorized
-          title: User is forbidden access with current credentials. For access, contact your FactSet sales representative
-    unsupportedMediaType:
-      summary: Unsupported Media Type
-      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
-      value:
-        status: Unsupported Media Type
-        timestamp: '2020-07-02 09:42:27.237'
-        path: /factset-rbics/v1/{endpoint}
-        message: text/html media type is not supported. Supported media types are application/json.
-        subErrors: null
-    badRequestDateFormat:
-      summary: Bad Request - Date Format
-      description: This bad request occurs when a request doesn't use the YYYY-MM-DD in the date parameters. To resolve, convert your date to YYYY-MM-DD.
-      value:
-        status: Bad Request
-        timestamp: '2020-07-02 11:52:36.464'
-        path: /factset-rbics/v1/{endpoint}
-        message: 'The date parameter must be in the following date format: YYYY-MM-DD'
-        subErrors: null
-    badRequestMalformedJSON:
-      summary: Bad Request - Malformed JSON Request
-      description: This error may be returned when the request body is specified as JSON. But is not in proper JSON format.
-      value:
-        status: Bad Request
-        timestamp: '2020-07-02 11:59:09.649'
-        path: /factset-rbics/v1/{endpoint}
-        message: Malformed JSON Request
-        subErrors: null
-    badRequestInvalidParameters:
-      summary: Bad Request - Passing Invalid Parameter
-      description: This error message occurs when user is passing an Invalid Parameter
-      value:
-        status: Bad Request
-        timestamp: '2020-07-23 11:03:40.765'
-        path: /factset-rbics/v1/{endpoint}
-        message: 'Invalid Parameter (s): fakeParameter. Please modify your request to use parameters outlined in the specification for this endpoint.'
-        subErrors: null
+          code: genericServerError
+          title: Unexpected error processing request
     forbidden:
       summary: Forbidden
       description: The USERNAME-SERIAL attempted to request the endpoint/ID which is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
@@ -541,14 +669,23 @@ components:
         path: /factset-rbics/v1/{endpoint}
         message: User is not authorized for the id requested, please reach out to FactSet for support
         subErrors: null
-    generalException:
-      summary: Internal Server Error - General Exception
-      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
+    badRequestRequiredParameter:
+      summary: Bad Request - Required Parameter Missing
+      description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisks symbol in the specification file.
       value:
-        status: Internal Server Error
-        timestamp: '2020-07-02 10:36:01.944'
+        status: Bad Request
+        timestamp: '2020-06-30 13:22:09.053'
         path: /factset-rbics/v1/{endpoint}
-        message: Unexpected error
+        message: The parameter 'ids' is required and may not be empty.
+        subErrors: null
+    badRequestDateFormat:
+      summary: Bad Request - Date Format
+      description: This bad request occurs when a request doesn't use the YYYY-MM-DD in the date parameters. To resolve, convert your date to YYYY-MM-DD.
+      value:
+        status: Bad Request
+        timestamp: '2020-07-02 11:52:36.464'
+        path: /factset-rbics/v1/{endpoint}
+        message: 'The date parameter must be in the following date format: YYYY-MM-DD'
         subErrors: null
     notWritable:
       summary: Internal Server Error - Not Writable
@@ -577,14 +714,32 @@ components:
           endDate: null
           rbicsId: '10'
           name: Business Services
-    badRequestRequiredParameter:
-      summary: Bad Request - Required Parameter Missing
-      description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisks symbol in the specification file.
+    badRequestInvalidParameters:
+      summary: Bad Request - Passing Invalid Parameter
+      description: This error message occurs when user is passing an Invalid Parameter
       value:
         status: Bad Request
-        timestamp: '2020-06-30 13:22:09.053'
+        timestamp: '2020-07-23 11:03:40.765'
         path: /factset-rbics/v1/{endpoint}
-        message: The parameter 'ids' is required and may not be empty.
+        message: 'Invalid Parameter (s): fakeParameter. Please modify your request to use parameters outlined in the specification for this endpoint.'
+        subErrors: null
+    unsupportedMediaType:
+      summary: Unsupported Media Type
+      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
+      value:
+        status: Unsupported Media Type
+        timestamp: '2020-07-02 09:42:27.237'
+        path: /factset-rbics/v1/{endpoint}
+        message: text/html media type is not supported. Supported media types are application/json.
+        subErrors: null
+    generalException:
+      summary: Internal Server Error - General Exception
+      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
+      value:
+        status: Internal Server Error
+        timestamp: '2020-07-02 10:36:01.944'
+        path: /factset-rbics/v1/{endpoint}
+        message: Unexpected error
         subErrors: null
     badRequestReadTimeout:
       summary: Bad Request - Read Timeout
@@ -595,182 +750,87 @@ components:
         path: /factset-rbics/v1/{endpoint}
         message: The request took too long. Try again with a smaller request.
         subErrors: null
-  schemas:
-    Response:
-      type: object
-      properties:
-        data:
-          title: STACH
-          description: Returns a STACH 2.0 row organized package
-        meta:
-          $ref: '#/components/schemas/Meta'
-    ErrorObject:
-      type: object
-      properties:
-        id:
-          type: string
-        code:
-          type: string
-        title:
-          type: string
-        links:
-          type: object
-          properties:
-            about:
-              type: string
-        detail:
-          type: string
-        source:
-          type: object
-          properties:
-            parameter:
-              type: string
-    Meta:
-      type: object
-      additionalProperties:
-        type:
-        - string
-        - 'null'
-    ErrorResponse:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorObject'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    structureRequest:
-      title: Structure Request
-      description: Structure Request Body
-      type: object
-      properties:
-        rbicsIds:
-          $ref: '#/components/schemas/rbicsIds'
-        level:
-          $ref: '#/components/schemas/levelStructure'
-        includeNames:
-          $ref: '#/components/schemas/includeNames'
-        date:
-          $ref: '#/components/schemas/date'
+    badRequestMalformedJSON:
+      summary: Bad Request - Malformed JSON Request
+      description: This error may be returned when the request body is specified as JSON. But is not in proper JSON format.
+      value:
+        status: Bad Request
+        timestamp: '2020-07-02 11:59:09.649'
+        path: /factset-rbics/v1/{endpoint}
+        message: Malformed JSON Request
+        subErrors: null
+  parameters:
+    schemaParameter:
+      name: schema
+      in: query
+      description: 'The schema that the data is returned as. The following are descriptions for the accepted values:
+
+        - table_group_level - STACH 2.0 row organized package format with parent-child relationships represented using STACH group level cell metadata
+
+        - table_parent_child_columns - STACH 2.0 row organized package format with parent-child relationships represented using STACH parent-child columns
+
+        - tree - Entities are represented as tree nodes returned in a flat structure, where each parent node contains a children attribute pointing to its child nodes
+
+        '
+      required: false
+      schema:
+        type: string
+        enum:
+        - table_group_level
+        - table_parent_child_columns
+        - tree
+        default: table_parent_child_columns
+    idParameter:
+      name: id
+      in: query
+      description: Company ticker
+      required: true
+      schema:
+        type: string
+        example: FDS
     date:
-      type: string
-      description: 'Effective date for data expressed in YYYY-MM-DD format. If no date is requested, the default behavior is to return the full history for the requested entity.
-
-        '
-      example: '2020-09-30'
+      name: date
+      description: Effective date for data expressed in YYYY-MM-DD format. If no date is requested, the default behavior is to return the full history for the requested entity.
+      in: query
+      example: '2017-07-24'
+      schema:
+        type: string
     includeNames:
-      type: boolean
-      description: 'Option to include or exclude industry Names and the L6 Description. True = Include Names; False = Exclude Names.
-
-        '
-      example: true
-      default: true
-    errorResponse:
-      type: object
-      description: error description
-      title: Error Response
-      properties:
-        status:
-          description: status
-          type: string
-          example: Bad Request
-        timestamp:
-          description: timestamp in YYYY-MM-DD HH:MM:SS.SSS
-          type: string
-          example: '2019-11-01 11:09:41.918'
-          format: date-time
-        path:
-          description: The Endpoint path {package}/version/{endpoint}
-          type: string
-          example: /factset-rbics/v1/{end-point}
-        message:
-          description: The plain text error message
-          type: string
-          example: Validation Error
-        subErrors:
-          description: subErrors related to the error message. Null if not applicable.
-          type: object
-          properties:
-            object:
-              description: the operation ID
-              type: string
-            field:
-              description: Parameter Field Name
-              type: string
-            message:
-              description: Error message
-              type: string
-            rejectedValue:
-              description: Rejected Values in an Array
-              type: array
-              items:
-                type: string
-          example: example_value
-    levelStructure:
-      type: integer
-      minimum: 1
-      maximum: 6
-      description: "RBICS industry levels to include in the response. All levels from 1-N will be returned. For example, '3' returns all levels 1,2 and 3. To request all levels, request level=6. Level 1 is returned by default.\n  |Level|Description|Number of Groups|\n  ||||\n  |1|Economomy|14|\n  |2|Sector|37\n  |3|Sub-Sector|109|\n  |4|Industry Group|366|\n  |5|Inudstry|901|\n  |6|Sub-Industry|1629|\n"
-      example: 3
+      name: includeNames
+      in: query
+      description: Option to include or exclude industry Names and the L6 Description. true = Include Names; false = Exclude Names.
+      schema:
+        type: boolean
+        default: true
     rbicsIds:
-      title: ids
+      name: rbicsIds
       description: 'RBICS Taxonomy Id Filter. Use to lookup the structure details for the Id requested.
 
         '
-      type: array
-      maxItems: 2500
+      in: query
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+          minLength: 2
+          maxLength: 12
+        maxItems: 2500
+      explode: false
       example:
       - '101010000000'
       - '55'
-      items:
-        type: string
-        maxLength: 12
-        minLength: 2
-    structureResponse:
-      title: Structure Response
-      type: object
-      description: Structure Response Array
-      properties:
-        data:
-          description: Array of Structure Objects
-          type: array
-          items:
-            $ref: '#/components/schemas/structure'
-          example: []
-    structure:
-      title: Structure
-      type: object
-      properties:
-        rbicsId:
-          description: RBICS Code for the classification.
-          type:
-          - string
-          - 'null'
-          example: '101010101010'
-        firstDate:
-          description: First date of the classification.
-          type:
-          - string
-          - 'null'
-          format: datetime
-          example: '1945-01-01T00:00:00.000'
-        lastDate:
-          description: Date when the classification became no longer valid. If `null`, the classification is still valid.
-          type:
-          - string
-          - 'null'
-          format: datetime
-          example: null
-      additionalProperties: true
+    levelStructure:
+      name: level
+      description: "RBICS industry levels to include in the response. All levels from 1-N will be returned. For example, '3' returns all levels 1,2 and 3. To request all levels, request level=6. Level 1 is returned by default.\n  |Level|Description|Number of Groups|\n  ||||\n  |1|Economomy|14|\n  |2|Sector|37\n  |3|Sub-Sector|109|\n  |4|Industry Group|366|\n  |5|Inudstry|901|\n  |6|Sub-Industry|1629|\n"
+      in: query
+      explode: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 6
+      example: 1
   responses:
-    401Unauthorized:
-      description: Missing or invalid authentication. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For further assistance, file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
     404NotFound:
       description: Not found. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
       headers:
@@ -785,6 +845,20 @@ components:
           examples:
             endpointNotFound:
               $ref: '#/components/examples/endpointNotFound'
+    401Unauthorized:
+      description: Missing or invalid authentication. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For further assistance, file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    503ServiceUnavailable:
+      description: Service unavailable. Typically a timeout, or result of a rejected request to prevent service overload. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
     500InternalServerError:
       description: Server error. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
       headers:
@@ -799,32 +873,13 @@ components:
           examples:
             genericServerError:
               $ref: '#/components/examples/genericServerError'
-    200OK:
-      description: Expected response
+    429TooManyRequests:
+      description: Too many requests - this API is rate-limited to 20 requests per second. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
       headers:
         X-DataDirect-Request-Key:
           schema:
             type: string
           description: FactSet request ID
-        Api-Supported-Versions:
-          schema:
-            type: string
-          description: Supported API major versions
-        Api-Version:
-          schema:
-            type: string
-          description: API version (semantic versioning)
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Response'
-          examples:
-            groupLevelResponse:
-              $ref: '#/components/examples/groupLevelResponse'
-            parentChildColumnsResponse:
-              $ref: '#/components/examples/parentChildColumnsResponse'
-            treeResponse:
-              $ref: '#/components/examples/treeResponse'
     400BadRequest:
       description: Bad Request. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
       headers:
@@ -851,13 +906,32 @@ components:
               $ref: '#/components/examples/idInvalidParameterError'
             schemaInvalidParameterError:
               $ref: '#/components/examples/schemaInvalidParameterError'
-    503ServiceUnavailable:
-      description: Service unavailable. Typically a timeout, or result of a rejected request to prevent service overload. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+    200OK:
+      description: Expected response
       headers:
         X-DataDirect-Request-Key:
           schema:
             type: string
           description: FactSet request ID
+        Api-Supported-Versions:
+          schema:
+            type: string
+          description: Supported API major versions
+        Api-Version:
+          schema:
+            type: string
+          description: API version (semantic versioning)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Response'
+          examples:
+            groupLevelResponse:
+              $ref: '#/components/examples/groupLevelResponse'
+            parentChildColumnsResponse:
+              $ref: '#/components/examples/parentChildColumnsResponse'
+            treeResponse:
+              $ref: '#/components/examples/treeResponse'
     403Forbidden:
       description: User is forbidden access with current credentials. Reach out to your local FactSet Account Manager for assistance, or file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
       headers:
@@ -872,22 +946,6 @@ components:
           examples:
             notAuthorized:
               $ref: '#/components/examples/notAuthorized'
-    429TooManyRequests:
-      description: Too many requests - this API is rate-limited to 20 requests per second. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-    '403':
-      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/errorResponse'
-          examples:
-            Bad Request - forbidden:
-              $ref: '#/components/examples/forbidden'
     '400':
       description: Bad Request. This can occur for several reasons. Please review the "message" for more details.
       content:
@@ -923,6 +981,15 @@ components:
           examples:
             Bad Request - Date Format:
               $ref: '#/components/examples/unauthenticated'
+    '403':
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - forbidden:
+              $ref: '#/components/examples/forbidden'
     '500':
       description: Internal Server Error.
       content:
@@ -934,77 +1001,6 @@ components:
               $ref: '#/components/examples/notWritable'
             Internal Server Error - General Exception:
               $ref: '#/components/examples/generalException'
-  parameters:
-    idParameter:
-      name: id
-      in: query
-      description: Company ticker
-      required: true
-      schema:
-        type: string
-        example: FDS
-    schemaParameter:
-      name: schema
-      in: query
-      description: 'The schema that the data is returned as. The following are descriptions for the accepted values:
-
-        - table_group_level - STACH 2.0 row organized package format with parent-child relationships represented using STACH group level cell metadata
-
-        - table_parent_child_columns - STACH 2.0 row organized package format with parent-child relationships represented using STACH parent-child columns
-
-        - tree - Entities are represented as tree nodes returned in a flat structure, where each parent node contains a children attribute pointing to its child nodes
-
-        '
-      required: false
-      schema:
-        type: string
-        enum:
-        - table_group_level
-        - table_parent_child_columns
-        - tree
-        default: table_parent_child_columns
-    date:
-      name: date
-      description: Effective date for data expressed in YYYY-MM-DD format. If no date is requested, the default behavior is to return the full history for the requested entity.
-      in: query
-      example: '2017-07-24'
-      schema:
-        type: string
-    levelStructure:
-      name: level
-      description: "RBICS industry levels to include in the response. All levels from 1-N will be returned. For example, '3' returns all levels 1,2 and 3. To request all levels, request level=6. Level 1 is returned by default.\n  |Level|Description|Number of Groups|\n  ||||\n  |1|Economomy|14|\n  |2|Sector|37\n  |3|Sub-Sector|109|\n  |4|Industry Group|366|\n  |5|Inudstry|901|\n  |6|Sub-Industry|1629|\n"
-      in: query
-      explode: false
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 6
-      example: 1
-    rbicsIds:
-      name: rbicsIds
-      description: 'RBICS Taxonomy Id Filter. Use to lookup the structure details for the Id requested.
-
-        '
-      in: query
-      required: false
-      schema:
-        type: array
-        items:
-          type: string
-          minLength: 2
-          maxLength: 12
-        maxItems: 2500
-      explode: false
-      example:
-      - '101010000000'
-      - '55'
-    includeNames:
-      name: includeNames
-      in: query
-      description: Option to include or exclude industry Names and the L6 Description. true = Include Names; false = Exclude Names.
-      schema:
-        type: boolean
-        default: true
   securitySchemes:
     basicAuth:
       type: http

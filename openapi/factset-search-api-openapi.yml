@@ -1,17 +1,26 @@
 openapi: 3.2.0
 info:
-  title: Factset Search API
-  version: '1.0'
-  description: 'Operations tagged Search across 2 of this provider''s published API definitions: global-filings-openapi-original.yml, search-answers-openapi-original.yml. Each path carries the servers of the definition it was published in.'
+  title: Factset Global Filings Search API
+  version: 0.0.0
+  contact:
+    name: FactSet Research Systems
+    email: api@factset.com
+    url: https://developer.factset.com/contact
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  description: The Filings API provides a comprehensive set of functionalities for searching and retrieving filing documents from various sources.
 servers:
 - url: https://api.factset.com/global-filings/v0
-- url: https://api.factset.com
+security:
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Search
 paths:
   /search:
     get:
-      summary: Returns the filings documents and related metadata within FactSet coverage.
+      summary: Returns the filings documents and related metadata within FactSet coverage
       tags:
       - Search
       responses:
@@ -92,100 +101,8 @@ paths:
       - $ref: '#/components/parameters/searchText'
       - $ref: '#/components/parameters/formType'
       - $ref: '#/components/parameters/accession'
-      security:
-      - FactSetApiKey: []
-      - FactSetOAuth2: []
-    servers:
-    - url: https://api.factset.com/global-filings/v0
-  /search/answers/v1/data:
-    get:
-      summary: Fetch FactSet answer in data format
-      tags:
-      - Search
-      description: Returns an answer to the specified query (if a valid answer exists). Returns the answer data only (as JSON), without any markup information.
-      operationId: searchForDataAnswer
-      parameters:
-      - $ref: '#/components/parameters/Query'
-      - $ref: '#/components/parameters/ConsumingApplication'
-      responses:
-        '200':
-          description: Request was successful.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DataAnswerSuccessResponse'
-        '400':
-          description: Missing or empty query.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AnswerFailureResponse'
-        '401':
-          description: Missing or invalid authentication.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AnswerFailureResponse'
-        '500':
-          description: Unhandled error occurred while processing the request.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AnswerFailureResponse'
-      security:
-      - Basic: []
-    servers:
-    - url: https://api.factset.com
-  /search/answers/v1/adaptive-card:
-    get:
-      summary: Fetch FactSet answer in Adaptive Card format
-      tags:
-      - Search
-      description: Returns an answer to the specified query (if valid answer exists) in the Adaptive Card format (https://adaptivecards.io/).
-      operationId: searchForAdaptiveCardAnswer
-      parameters:
-      - $ref: '#/components/parameters/Query'
-      - $ref: '#/components/parameters/IncludeThumbnail'
-      - $ref: '#/components/parameters/DisableNoAnswerResponses'
-      - $ref: '#/components/parameters/Theme'
-      responses:
-        '200':
-          description: Request was successful.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdaptiveCardAnswerSuccessResponse'
-        '400':
-          description: Missing or empty query.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AnswerFailureResponse'
-        '401':
-          description: Missing or invalid authentication.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AnswerFailureResponse'
-        '500':
-          description: Unhandled error occurred while processing the request.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AnswerFailureResponse'
-      security:
-      - Basic: []
-    servers:
-    - url: https://api.factset.com
 components:
   examples:
-    ErrorDetails:
-      summary: Sample Error Response
-      value:
-        errors:
-        - code: Bad Request
-          title: parameterError:['_paginationLimit'] is not a valid parameter(s).
-          id: 7af3d86ca5954503b9244f2620fcf5eb
     ServerErrorDetails:
       summary: Sample Error Response
       value:
@@ -193,12 +110,12 @@ components:
         - code: Internal Server Error
           title: An unexpected error happened.
           id: 7af3d86ca5954503b9244f2620fcf5eb
-    AuthorizationErrorDetails:
+    ErrorDetails:
       summary: Sample Error Response
       value:
         errors:
-        - code: Forbidden
-          title: USERNAME-SERIAL does not have permission.
+        - code: Bad Request
+          title: parameterError:['_paginationLimit'] is not a valid parameter(s).
           id: 7af3d86ca5954503b9244f2620fcf5eb
     AuthErrorDetails:
       summary: Sample Error Response
@@ -207,7 +124,22 @@ components:
         - code: Not Authenticated
           title: Unauthenticated USERNAME-SERIAL.
           id: fd5a51ff-02cf-48ec-b9b1-913d64863b0
+    AuthorizationErrorDetails:
+      summary: Sample Error Response
+      value:
+        errors:
+        - code: Forbidden
+          title: USERNAME-SERIAL does not have permission.
+          id: 7af3d86ca5954503b9244f2620fcf5eb
   parameters:
+    endDate:
+      schema:
+        type: string
+        default: '0'
+      in: query
+      name: endDate
+      example: '20231223'
+      description: End Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
     sourcesOne:
       schema:
         type: array
@@ -228,28 +160,6 @@ components:
           - FFR
       description: Code for document source to include.  This is a comma-separated list. Use the ```/helper``` endpoint to get the list of available sources.
       explode: false
-    startDate:
-      schema:
-        type: string
-        default: '0'
-      in: query
-      name: startDate
-      example: '20231222'
-      description: Start Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
-    primaryId:
-      schema:
-        type: string
-        enum:
-        - Y
-        - N
-        default: N
-      in: query
-      name: primaryId
-      description: 'Type of identifier search
-
-        * Y - Returns headlines of stories that have the search ID(s) as the Primary ID.
-
-        * N - Returns headlines of stories that mention/refer to the ID(s).'
     ids:
       schema:
         type: array
@@ -269,14 +179,65 @@ components:
           - OSIS-US
       description: Requested symbols or securities.  This is a comma-separated list with a maximum limit of 1000.  Each symbol can be a FactSet exchange symbol, CUSIP, or SEDOL.
       explode: false
-    endDate:
+    paginationLimit:
+      schema:
+        type: integer
+        format: int32
+        default: 25
+      in: query
+      name: paginationLimit
+      example: 20
+      description: Number of results to return per page.
+    timezone:
+      schema:
+        type: string
+        default: America/New_York
+      in: query
+      name: timezone
+      description: Time zone to return story dates and times. Time zones are in POSIX format and automatically adjusted for daylight savings.
+    startDate:
       schema:
         type: string
         default: '0'
       in: query
-      name: endDate
-      example: '20231223'
-      description: End Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
+      name: startDate
+      example: '20231222'
+      description: Start Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
+    paginationOffset:
+      schema:
+        type: integer
+        format: int32
+      in: query
+      name: paginationOffset
+      description: Page number of the results to return.
+    accession:
+      schema:
+        type: string
+      in: query
+      description: A unique identifier given to each EDGAR filings document. e.g. accession=0001013237-21-000069&sources=EDG
+      name: accession
+      required: false
+    primaryId:
+      schema:
+        type: string
+        enum:
+        - Y
+        - N
+        default: N
+      in: query
+      name: primaryId
+      description: 'Type of identifier search
+
+        * Y - Returns headlines of stories that have the search ID(s) as the Primary ID.
+
+        * N - Returns headlines of stories that mention/refer to the ID(s).'
+    searchText:
+      schema:
+        type: string
+      in: query
+      name: searchText
+      example: Updates
+      description: Restricts the search to include only document stories which include the text searched.
     sort:
       schema:
         type: string
@@ -287,36 +248,6 @@ components:
       in: query
       name: sort
       description: "Sorting the results in chronological (oldest to newest) or reverse chronological (newest to oldest) order. \n\n *  desc - sorting results in reverse chronological (descending) order. This is the default value if\n    the sort parameter isn’t used in the query\n    \n *   asc - sorting results in chronological (ascending) order. If a start date is not specified, the\n   API has a 10-year searching limitation. "
-    paginationOffset:
-      schema:
-        type: integer
-        format: int32
-      in: query
-      name: paginationOffset
-      description: Page number of the results to return.
-    paginationLimit:
-      schema:
-        type: integer
-        format: int32
-        default: 25
-      in: query
-      name: paginationLimit
-      example: 20
-      description: Number of results to return per page.
-    searchText:
-      schema:
-        type: string
-      in: query
-      name: searchText
-      example: Updates
-      description: Restricts the search to include only document stories which include the text searched.
-    accession:
-      schema:
-        type: string
-      in: query
-      description: A unique identifier given to each EDGAR filings document. e.g. accession=0001013237-21-000069&sources=EDG
-      name: accession
-      required: false
     categories:
       schema:
         type: array
@@ -332,13 +263,6 @@ components:
 
         Default = All categories.'
       explode: false
-    timezone:
-      schema:
-        type: string
-        default: America/New_York
-      in: query
-      name: timezone
-      description: Time zone to return story dates and times. Time zones are in POSIX format and automatically adjusted for daylight savings.
     formType:
       schema:
         type: string
@@ -346,45 +270,6 @@ components:
       description: Restricts the search to include any form types of EDGAR.
       name: formType
       required: false
-    ConsumingApplication:
-      name: consumingApplication
-      in: query
-      description: Name of application consuming the API (used for analytics purposes)
-      required: false
-      schema:
-        type: string
-        default: Developer Portal
-    IncludeThumbnail:
-      name: includeThumbnail
-      in: query
-      description: Includes thumbnail of Adaptive Card in response
-      required: false
-      schema:
-        type: boolean
-        default: false
-    DisableNoAnswerResponses:
-      name: disableNoAnswerResponses
-      in: query
-      description: Disables no-result answer responses (no-results and answer without data)
-      required: false
-      schema:
-        type: boolean
-        default: true
-    Theme:
-      name: theme
-      in: query
-      description: Theme for desired answer (e.g., "Light", "Dark")
-      required: false
-      schema:
-        type: string
-        default: Light
-    Query:
-      name: query
-      in: query
-      description: Query for desired answer (e.g., "fds price")
-      required: true
-      schema:
-        type: string
   schemas:
     InvestmentResearchObject:
       type: object
@@ -422,26 +307,6 @@ components:
         documentId:
           type: string
           description: Unique identifier for a document.
-    InvestmentResearch:
-      description: Filings Response Object
-      type: object
-      properties:
-        data:
-          type: array
-          description: Data Array Object
-          items:
-            $ref: '#/components/schemas/InvestmentResearchObject'
-        meta:
-          type: object
-          description: Meta Object
-          properties:
-            pagination:
-              type: object
-              description: Pagination Object
-              properties:
-                isEstimatedTotal:
-                  type: boolean
-                  description: This field acts as a flag for the exact count of results and is defaulted to false as the API should always return the exact count of results.
     ErrorResponse:
       type: object
       description: Error Response Object
@@ -464,633 +329,26 @@ components:
         id:
           description: Specifies the id.
           type: string
-    ValueChange:
+    InvestmentResearch:
+      description: Filings Response Object
       type: object
-      properties:
-        absoluteChange:
-          type: string
-        percentageChange:
-          type: string
-        color:
-          $ref: '#/components/schemas/ChangeColor'
-    AnswerFailureResponse:
-      type: object
-      required:
-      - errors
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/Error'
-    RankedTableEntity:
-      type: object
-      properties:
-        name:
-          type: string
-        identifier:
-          type: string
-    LabelValueChangeLabelValueChangeTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          value:
-            type: string
-          label:
-            type: string
-          valueChange:
-            $ref: '#/components/schemas/ValueChange'
-          value2:
-            type: string
-          label2:
-            type: string
-    ValueChangeDateLabelAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/ValueChangeDateLabelTemplateData'
-    PercentChange:
-      type: object
-      properties:
-        change:
-          type: string
-        color:
-          $ref: '#/components/schemas/ChangeColor'
-    InstrumentID:
-      type: object
-      properties:
-        BBG:
-          type: string
-        CUSIP:
-          type: string
-        FDS_ID:
-          type: string
-        FDS_TICKER_REGION:
-          type: string
-        FDS_TICKER_EXCHANGE:
-          type: string
-        FIGI:
-          type: string
-        ISIN:
-          type: string
-        PERMID:
-          type: string
-        RIC:
-          type: string
-        SEDOL:
-          type: string
-        ticker:
-          type: string
-    TableTableTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          table1:
-            $ref: '#/components/schemas/Table'
-          table2:
-            $ref: '#/components/schemas/Table'
-    ValueColor:
-      type: string
-      enum:
-      - colorNone
-      - colorBuy
-      - colorHold
-      - colorSell
-      - colorOverweight
-      - colorUnderweight
-    TextBlockFootingAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/TextBlockFootingTemplateData'
-    ColoredValueLabelDateTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          value:
-            $ref: '#/components/schemas/ColoredValue'
-          label:
-            type: string
-          date:
-            type: string
-    TemplateWithLinks:
-      allOf:
-      - $ref: '#/components/schemas/Template'
-      - type: object
-        required:
-        - headline
-        properties:
-          applicationLinks:
-            type: array
-            items:
-              $ref: '#/components/schemas/ApplicationLink'
-    ErrorSource:
-      type: object
-      properties:
-        pointer:
-          type: string
-        parameter:
-          type: string
-    DataAnswerData:
-      oneOf:
-      - $ref: '#/components/schemas/LinkTextBlockAnswer'
-      - $ref: '#/components/schemas/TextBlockFootingAnswer'
-      - $ref: '#/components/schemas/PercentChangeLabelAnswer'
-      - $ref: '#/components/schemas/ValueChangeDateLabelAnswer'
-      - $ref: '#/components/schemas/RankedTableAnswer'
-      - $ref: '#/components/schemas/TableAnswer'
-      - $ref: '#/components/schemas/TableTableAnswer'
-      - $ref: '#/components/schemas/ValueLabelAnswer'
-      - $ref: '#/components/schemas/ValueLabelDateAnswer'
-      - $ref: '#/components/schemas/ColoredValueLabelDateAnswer'
-      - $ref: '#/components/schemas/ValueLabelDateTextBlockAnswer'
-      - $ref: '#/components/schemas/ValueLabelDateDataPairListAnswer'
-      - $ref: '#/components/schemas/LabelValueChangeLabelValueChangeAnswer'
-      - $ref: '#/components/schemas/AnswerWithoutData'
-      - $ref: '#/components/schemas/NoAnswersFound'
-      discriminator:
-        propertyName: template
-        mapping:
-          LinkTextBlockTemplate: '#/components/schemas/LinkTextBlockAnswer'
-          TextBlockFootingTemplate: '#/components/schemas/TextBlockFootingAnswer'
-          PercentChangeLabelTemplate: '#/components/schemas/PercentChangeLabelAnswer'
-          ValueChangeDateLabelTemplate: '#/components/schemas/ValueChangeDateLabelAnswer'
-          RankedTableTemplate: '#/components/schemas/RankedTableAnswer'
-          TableTemplate: '#/components/schemas/TableAnswer'
-          TableTableTemplate: '#/components/schemas/TableTableAnswer'
-          ValueLabelTemplate: '#/components/schemas/ValueLabelAnswer'
-          ValueLabelDateTemplate: '#/components/schemas/ValueLabelDateAnswer'
-          ColoredValueLabelDateTemplate: '#/components/schemas/ColoredValueLabelDateAnswer'
-          ValueLabelDateTextBlockTemplate: '#/components/schemas/ValueLabelDateTextBlockAnswer'
-          ValueLabelDateDataPairListTemplate: '#/components/schemas/ValueLabelDateDataPairListAnswer'
-          LabelValueChangeLabelValueChangeTemplate: '#/components/schemas/LabelValueChangeLabelValueChangeAnswer'
-          AnswerWithoutDataTemplate: '#/components/schemas/AnswerWithoutData'
-          NoAnswerTemplate: '#/components/schemas/NoAnswersFound'
-    TitledTextBlock:
-      type: object
-      properties:
-        title:
-          type: string
-        content:
-          type: string
-    ValueLabelDateDataPairListTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          value:
-            type: string
-          label:
-            type: string
-          date:
-            type: string
-          list:
-            type: array
-            items:
-              $ref: '#/components/schemas/DataPair'
-    RankedTableTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/Template'
-      - type: object
-        properties:
-          table:
-            $ref: '#/components/schemas/RankedTable'
-    AdaptiveCard:
-      type: object
-      description: JSON that matches [Adaptive Card](https://adaptivecards.io/explorer/) format.
-    LabelValueChangeLabelValueChangeAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/LabelValueChangeLabelValueChangeTemplateData'
-    RankedTableAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/RankedTableTemplateData'
-    NoAnswersBase:
-      allOf:
-      - $ref: '#/components/schemas/DataAnswer'
-      - type: object
-        required:
-        - message
-        properties:
-          message:
-            type: string
-    Template:
-      type: object
-      required:
-      - headline
-      properties:
-        headline:
-          type: string
-        footer:
-          type: string
-        fdc3Context:
-          $ref: '#/components/schemas/Fdc3Context'
-    TextBlockFootingTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          body:
-            type: string
-          footing:
-            $ref: '#/components/schemas/TitledTextBlock'
-    LinkTextBlockAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/LinkTextBlockTemplateData'
-    AnswerWithTitle:
-      allOf:
-      - $ref: '#/components/schemas/DataAnswer'
-      - type: object
-        required:
-        - title
-        properties:
-          title:
-            type: string
-    ColoredValue:
-      type: object
-      properties:
-        text:
-          type: string
-        color:
-          $ref: '#/components/schemas/ValueColor'
-    AdaptiveCardAnswerSuccessResponse:
-      type: object
-      required:
-      - data
       properties:
         data:
           type: array
+          description: Data Array Object
           items:
-            $ref: '#/components/schemas/AdaptiveCardDataItem'
-    Fdc3Country:
-      type: object
-      required:
-      - type
-      - name
-      properties:
-        type:
-          type: string
-        name:
-          type: string
-        id:
-          $ref: '#/components/schemas/CountryID'
-    ValueLabelDateTextBlockTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          value:
-            type: string
-          label:
-            type: string
-          date:
-            type: string
-          text:
-            type: string
-    TableTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          table:
-            $ref: '#/components/schemas/Table'
-    ErrorLink:
-      type: object
-      required:
-      - about
-      properties:
-        about:
-          type: string
-    ChangeColor:
-      type: string
-      enum:
-      - colorNeutral
-      - colorPositive
-      - colorNegative
-    DataAnswerSuccessResponse:
-      type: object
-      required:
-      - data
-      properties:
-        data:
-          $ref: '#/components/schemas/DataAnswerData'
-    RankedTable:
-      type: object
-      required:
-      - rows
-      properties:
-        headers:
-          type: array
-          items:
-            type: string
-        rows:
-          type: array
-          items:
-            $ref: '#/components/schemas/RankedTableRow'
-    ValueChangeDateLabelTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          value:
-            type: string
-          valueChange:
-            $ref: '#/components/schemas/ValueChange'
-          date:
-            type: string
-          label:
-            type: string
-    DataAnswer:
-      type: object
-      required:
-      - template
-      properties:
-        template:
-          type: string
-    TableTableAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/TableTableTemplateData'
-    AdaptiveCardWithThumbnail:
-      type: object
-      properties:
-        adaptiveCard:
-          $ref: '#/components/schemas/AdaptiveCard'
-        thumbnail:
-          $ref: '#/components/schemas/ThumbnailCard'
-    AdaptiveCardDataItem:
-      oneOf:
-      - $ref: '#/components/schemas/AdaptiveCard'
-      - $ref: '#/components/schemas/AdaptiveCardWithThumbnail'
-    PercentChangeLabelTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          percentChange:
-            $ref: '#/components/schemas/PercentChange'
-          label:
-            type: string
-    Error:
-      type: object
-      required:
-      - id
-      - code
-      - title
-      properties:
-        id:
-          type: string
-        code:
-          type: string
-        title:
-          type: string
-        links:
-          $ref: '#/components/schemas/ErrorLink'
-        detail:
-          type: string
-        source:
-          $ref: '#/components/schemas/ErrorSource'
-    ThumbnailCard:
-      type:
-      - object
-      - 'null'
-      description: JSON that matches [Thumbnail Card](https://docs.microsoft.com/en-us/microsoftteams/platform/task-modules-and-cards/cards/cards-reference#thumbnail-card) format.
-    ValueLabelDateDataPairListAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/ValueLabelDateDataPairListTemplateData'
-    PercentChangeLabelAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/PercentChangeLabelTemplateData'
-    DataPair:
-      type: object
-      required:
-      - value
-      - label
-      properties:
-        value:
-          type: string
-        label:
-          type: string
-    LinkTextBlockTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          link:
-            type: string
-          text:
-            type: string
-    ValueLabelTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          value:
-            type: string
-          label:
-            type: string
-    TableAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/TableTemplateData'
-    Table:
-      type: object
-      required:
-      - tableRows
-      properties:
-        tableHeaders:
-          type: array
-          items:
-            type: string
-        tableRows:
-          type: array
-          items:
-            type: array
-            items:
-              type: string
-        tableFooters:
-          type: array
-          items:
-            type: string
-    Fdc3Instrument:
-      type: object
-      required:
-      - type
-      - name
-      properties:
-        type:
-          type: string
-        name:
-          type: string
-        exchangeMic:
-          type: string
-        exchangeMicFds:
-          type: string
-        id:
-          $ref: '#/components/schemas/InstrumentID'
-    RankedTableRow:
-      type: object
-      required:
-      - rank
-      properties:
-        rank:
-          type: number
-        entity:
-          $ref: '#/components/schemas/RankedTableEntity'
-        applicationLink:
-          $ref: '#/components/schemas/ApplicationLink'
-        additionalData:
-          type: array
-          items:
-            type: string
-    CountryID:
-      type: object
-      properties:
-        ISOALPHA2:
-          type: string
-    NoAnswersFound:
-      allOf:
-      - $ref: '#/components/schemas/NoAnswersBase'
-      - type: object
-        required:
-        - querySuggestions
-        properties:
-          querySuggestions:
-            type: array
-            items:
-              type: string
-    ApplicationLink:
-      type: object
-      required:
-      - name
-      - webLink
-      properties:
-        name:
-          type: string
-        workstationLink:
-          type: string
-        webLink:
-          type: string
-    Fdc3Context:
-      oneOf:
-      - $ref: '#/components/schemas/Fdc3Instrument'
-      - $ref: '#/components/schemas/Fdc3Country'
-      discriminator:
-        propertyName: type
-        mapping:
-          fdc3.instrument: '#/components/schemas/Fdc3Instrument'
-          fdc3.country: '#/components/schemas/Fdc3Country'
-    ValueLabelDateAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/ValueLabelDateTemplateData'
-    ValueLabelAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/ValueLabelTemplateData'
-    ValueLabelDateTextBlockAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/ValueLabelDateTextBlockTemplateData'
-    ColoredValueLabelDateAnswer:
-      allOf:
-      - $ref: '#/components/schemas/AnswerWithTitle'
-      - type: object
-        required:
-        - templateData
-        properties:
-          templateData:
-            $ref: '#/components/schemas/ColoredValueLabelDateTemplateData'
-    ValueLabelDateTemplateData:
-      allOf:
-      - $ref: '#/components/schemas/TemplateWithLinks'
-      - type: object
-        properties:
-          value:
-            type: string
-          label:
-            type: string
-          date:
-            type: string
-    AnswerWithoutData:
-      allOf:
-      - $ref: '#/components/schemas/NoAnswersBase'
-      - type: object
-        required:
-        - title
-        - templateData
-        properties:
-          title:
-            type: string
-          templateData:
-            type: object
-            properties:
-              fdc3Context:
-                $ref: '#/components/schemas/Fdc3Context'
+            $ref: '#/components/schemas/InvestmentResearchObject'
+        meta:
+          type: object
+          description: Meta Object
+          properties:
+            pagination:
+              type: object
+              description: Pagination Object
+              properties:
+                isEstimatedTotal:
+                  type: boolean
+                  description: This field acts as a flag for the exact count of results and is defaulted to false as the API should always return the exact count of results.
   securitySchemes:
     FactSetOAuth2:
       type: oauth2
@@ -1101,12 +359,6 @@ components:
     FactSetApiKey:
       type: http
       scheme: basic
-    Basic:
-      type: http
-      scheme: basic
 externalDocs:
   description: API Documentation
   url: https://developer.factset.com/api-catalog/global-filings-api
-x-refined-from:
-- global-filings-openapi-original.yml
-- search-answers-openapi-original.yml

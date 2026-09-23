@@ -1,8 +1,10 @@
 openapi: 3.2.0
 info:
-  title: Factset Schemas API
+  title: FactSet Procure to Pay SCIM Schemas API
   version: 2.0.0
-  description: 'Operations tagged Schemas across 2 of this provider''s published API definitions: factset-procure-to-pay-scim-openapi.yml, procure-to-pay-api-scim-openapi-original.yml. Each path carries the servers of the definition it was published in.'
+  description: 'Create users and manage user attributes, entitlements and security
+
+    settings'
 servers:
 - url: https://api.factset.com/scim/v2/
   description: Production environment
@@ -15,7 +17,7 @@ paths:
     get:
       tags:
       - Schemas
-      summary: Factset Get a List of Schemas.
+      summary: Factset Get a List of Schemas
       security:
       - basicAuth: []
       parameters:
@@ -33,16 +35,13 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
-    servers:
-    - url: https://api.factset.com/scim/v2/
-      description: Production environment
-    - url: https://api.uat.factset.com/scim/v2/
-      description: UAT environment
+      operationId: getSchemas
+      x-operation-id-source: derived
   /Schemas/{id}:
     get:
       tags:
       - Schemas
-      summary: Factset Get a Schema.
+      summary: Factset Get a Schema
       security:
       - basicAuth: []
       parameters:
@@ -68,75 +67,9 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
-    servers:
-    - url: https://api.factset.com/scim/v2/
-      description: Production environment
-    - url: https://api.uat.factset.com/scim/v2/
-      description: UAT environment
+      operationId: getSchemasById
+      x-operation-id-source: derived
 components:
-  responses:
-    schemasSuccess:
-      description: Success.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/SchemaList'
-    internalServerError:
-      description: Internal server error.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    unauthorizedError:
-      description: User has not been authenticated.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            schemas:
-            - urn:ietf:params:scim:api:messages:2.0:Error
-            detail: FactSet.net credentials are missing or invalid.
-            status: '401'
-    forbiddenError:
-      description: User is not authorized to use this API.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            schemas:
-            - urn:ietf:params:scim:api:messages:2.0:Error
-            detail: FIN_WEALTH-999999 is not authorized to use the FactSet SCIM API.
-            status: '403'
-    schemaSuccess:
-      description: Success.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/Schema'
-  parameters:
-    count:
-      name: count
-      description: Maximum resource count. The server will not return more resources than this value, although it may return fewer.
-      in: query
-      schema:
-        type: integer
-      required: false
-    resourceId:
-      name: id
-      description: ID of resource.
-      in: path
-      schema:
-        type: string
-      required: true
-    startIndex:
-      name: startIndex
-      description: Result start index. The one-based index of the first result to be returned in the list of resources. For example, to exclude the first two resources, use a *startIndex* value of 3. This parameter has a default value of 1. This index applies *after* any resource filtration has been applied as specified by the *filter* argument.
-      in: query
-      schema:
-        type: integer
-      required: false
   schemas:
     SchemaList:
       type: object
@@ -358,26 +291,70 @@ components:
       - id
       - name
       - attributes
-    SchemaList_2:
-      type: object
-      properties:
-        schemas:
-          type: array
-          items:
-            type: string
+  parameters:
+    startIndex:
+      name: startIndex
+      description: Result start index. The one-based index of the first result to be returned in the list of resources. For example, to exclude the first two resources, use a *startIndex* value of 3. This parameter has a default value of 1. This index applies *after* any resource filtration has been applied as specified by the *filter* argument.
+      in: query
+      schema:
+        type: integer
+      required: false
+    count:
+      name: count
+      description: Maximum resource count. The server will not return more resources than this value, although it may return fewer.
+      in: query
+      schema:
+        type: integer
+      required: false
+    resourceId:
+      name: id
+      description: ID of resource.
+      in: path
+      schema:
+        type: string
+      required: true
+  responses:
+    internalServerError:
+      description: Internal server error.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    forbiddenError:
+      description: User is not authorized to use this API.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
           example:
-          - urn:ietf:params:scim:api:messages:2.0:ListResponse
-        totalResults:
-          type: integer
-          example: 1
-        Resources:
-          type: array
-          items:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: FIN_WEALTH-999999 is not authorized to use the FactSet SCIM API.
+            status: '403'
+    unauthorizedError:
+      description: User has not been authenticated.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: FactSet.net credentials are missing or invalid.
+            status: '401'
+    schemaSuccess:
+      description: Success.
+      content:
+        application/scim+json:
+          schema:
             $ref: '#/components/schemas/Schema'
+    schemasSuccess:
+      description: Success.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/SchemaList'
   securitySchemes:
     basicAuth:
       type: http
       scheme: basic
-x-refined-from:
-- factset-procure-to-pay-scim-openapi.yml
-- procure-to-pay-api-scim-openapi-original.yml

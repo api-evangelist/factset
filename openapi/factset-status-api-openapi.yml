@@ -14,12 +14,10 @@ paths:
   /status:
     post:
       operationId: getChatStatus
-      summary: Factset Retrieve the status of a chat response process.
+      summary: Factset Retrieve the status of a chat response process
       description: 'Returns the status of a chat response for a given chat conversation ID (recevied from the `/create` endpoint). Poll the `/status` endpoint with your conversation ID to confirm when your data is ready.
 
-        Answers may take minutes to generate, depending on the complexity of the query.
-
-        '
+        Answers may take minutes to generate, depending on the complexity of the query.'
       tags:
       - Status
       requestBody:
@@ -231,9 +229,7 @@ paths:
       - Status
       summary: Factset Get Fund's Current Status and Database Availability
       operationId: getStatuses
-      description: 'Get the funds active status, share class status, and database availability. Most common use is for coverage checks and id resolution checks.
-
-        '
+      description: Get the funds active status, share class status, and database availability. Most common use is for coverage checks and id resolution checks.
       parameters:
       - $ref: '#/components/parameters/ids'
       responses:
@@ -261,10 +257,8 @@ paths:
     post:
       tags:
       - Status
-      summary: Factset Get Fund's Current Status and Database Availability for Large List of Ids.
-      description: 'Get the funds active status, share class status, and database availability. Most common use is for coverage checks and id resolution checks.
-
-        '
+      summary: Factset Get Fund's Current Status and Database Availability for Large List of…
+      description: Get the funds active status, share class status, and database availability. Most common use is for coverage checks and id resolution checks.
       operationId: getStatusesForList
       requestBody:
         required: true
@@ -324,33 +318,135 @@ paths:
         dispatcher: FALLBACK
       security:
       - FactSetApiKey: []
+      summary: Poll calculate
+      x-summary-source: derived
     servers:
     - url: https://api.factset.com/universal-screening
 components:
+  examples:
+    403ForbiddenErrorExample:
+      value: 'Client does not have the required CACCESS: {00QAI}, Request key: 65CA96B3129489A6'
+    StatusPollResponseAcceptedExample:
+      value:
+        data:
+          conversationId: 9c1031c2-5463-47ae-81b3-126a68f0c2a6
+          status: executing
+    401UnauthorizedErrorExample:
+      value: Authentication Failed
+    ChatPollingRequestExample:
+      value:
+        data:
+          conversationId: 9c1031c2-5463-47ae-81b3-126a68f0c2a6
+    StatusPollResponseCreatedExample:
+      value:
+        data:
+          conversationId: 9c1031c2-5463-47ae-81b3-126a68f0c2a6
+          status: created
+    RateLimitExceededErrorExample:
+      value:
+        message: API rate limit exceeded
+    forbidden:
+      summary: Forbidden
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      value:
+        status: Forbidden
+        timestamp: '2020-06-12 16:08:51.731'
+        path: /factset-funds/v1/{endpoint}
+        message: USERNAME-SERIAL does not have permission to use /factset-funds /v1/{endpoint}
+        subErrors: null
+    badRequestRequiredParameter:
+      summary: Bad Request - Required Parameter Missing
+      description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisks symbol in the specification file.
+      value:
+        status: Bad Request
+        timestamp: '2020-06-12 15:48:42.016'
+        path: /factset-funds/v1/{endpoint}
+        message: The parameter 'ids' is required and may not be empty.
+        subErrors: null
+    badRequestFutureDate:
+      summary: Bad Request - Future Date
+      description: This error message occurs when a future date is requested in the startDate and endDate parameters. Please revise your request to include dates as of today's current date or any prior historical date.
+      value:
+        status: Bad Request
+        timestamp: '2020-06-12 15:52:48.091'
+        path: /factset-funds/v1/{endpoint}
+        message: The use of future dates is not applicable in this endpoint. Please revise your request to include dates up to today's current date.
+        subErrors: null
+    badRequestDateFormat:
+      summary: Bad Request - Date Format
+      description: This bad request occurs when a request doesn't use the YYYY-MM-DD in the date parameters. To resolve, convert your date to YYYY-MM-DD.
+      value:
+        status: Bad Request
+        timestamp: '2019-10-31 16:08:07.945'
+        path: /factset-funds/v1/{endpoint}
+        message: 'The date parameter ''startDate'' must be in the following date format: YYYY-MM-DD'
+        subErrors: null
+    notWritable:
+      summary: Internal Server Error - Not Writable
+      description: This error may be returned when the server encounters an error writing the JSON response.
+      value:
+        status: Internal Server Error
+        timestamp: '2019-11-05 09:48:29.18'
+        path: /factset-funds/v1/{endpoint}
+        message: Error writing JSON output
+        subErrors: null
+    unauthenticated:
+      summary: User Authentication Failed
+      description: This occurs when a user is not properly authenticated or recognized by the service. Please double check the USERNAME-SERIAL and API-Key used to request and ensure you are within the IP range specified for the Key. Report Issue under 401 error for help with troubleshooting.
+      value:
+        status: User Authentication Failed
+        timestamp: '2019-10-31 16:08:07.945'
+        path: /factset-funds/v1/{endpoint}
+        message: User Authentication Failed.
+        subErrors: null
+    badRequestInvalidParameters:
+      summary: Bad Request - Invalid Parameters
+      description: This error message occurs when a request parameter is used in which is not recognized by the service. Please revise your request to include only the parameters listed in the specification. Typical causes are spelling mistakes and use of improper casing.
+      value:
+        status: Bad Request
+        timestamp: '2020-06-12 15:58:54.068'
+        path: /factset-funds/v1/{endpoint}
+        message: 'Invalid Parameter (s): fakeParameterName1 fakeParameterName2. Please modify your request to use parameters outlined in the specification for this endpoint.'
+        subErrors: null
+    unsupportedMediaType:
+      summary: Unsupported Media Type
+      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
+      value:
+        status: Unsupported Media Type
+        timestamp: '2019-11-05 09:42:27.237'
+        path: /factset-funds/v1/{endpoint}
+        message: text/html media type is not supported. Supported media types are application/json
+        subErrors: null
+    generalException:
+      summary: Internal Server Error - General Exception
+      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
+      value:
+        status: Internal Server Error
+        timestamp: '2019-11-01 10:36:01.944'
+        path: /factset-funds/v1/{endpoint}
+        message: Unexpected error
+        subErrors: null
+    badRequestReadTimeout:
+      summary: Bad Request - Read Timeout
+      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
+      value:
+        status: Bad Request
+        timestamp: '2019-11-04 16:18:38.949'
+        path: /factset-funds/v1/{endpoint}
+        message: The request took too long. Try again with a smaller request.
+        subErrors: null
+    badRequestMalformedJSON:
+      summary: Bad Request - Malformed JSON Request
+      description: This error may be returned when the request body is specified as JSON, but is not in proper JSON format.
+      value:
+        status: Bad Request
+        timestamp: '2019-11-05 09:48:29.18'
+        path: /factset-funds/v1/{endpoint}
+        message: Malformed JSON Request
+        subErrors: null
   schemas:
-    ErrorObject:
-      description: Represents a single error, with error name and identifiers
-      type: object
-      properties:
-        id:
-          type: string
-        title:
-          type: string
-        code:
-          type: string
-    RateLimitExceededError:
-      description: Error response when rate limit has been exceeded.
-      type: object
-      properties:
-        message:
-          type: string
-          enum:
-          - API rate limit exceeded
     403ForbiddenError:
       description: Error response for a user without entitlements to the API.
-      type: string
-    401UnauthorizedError:
-      description: Error response for a user without authentication to use the API.
       type: string
     ChatPollingRequest:
       description: Request body containing the chat conversation ID
@@ -362,14 +458,6 @@ components:
             conversationId:
               type: string
               format: uuid
-    Error:
-      description: Wrapper containing metadata and appropriate errors as thrown by the API
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorObject'
     StatusPollResponse:
       description: Response from `/status` containing the chat ID and status of chat processing
       type: object
@@ -385,6 +473,47 @@ components:
               enum:
               - executing
               - created
+    Error:
+      description: Wrapper containing metadata and appropriate errors as thrown by the API
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorObject'
+    ErrorObject:
+      description: Represents a single error, with error name and identifiers
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        code:
+          type: string
+    401UnauthorizedError:
+      description: Error response for a user without authentication to use the API.
+      type: string
+    RateLimitExceededError:
+      description: Error response when rate limit has been exceeded.
+      type: object
+      properties:
+        message:
+          type: string
+          enum:
+          - API rate limit exceeded
+    ids:
+      type: array
+      items:
+        type: string
+      minItems: 1
+      maxItems: 1000
+      description: 'The requested Fund Identifier. FactSet Identifiers, tickers, CUSIP and SEDOL are accepted input. <p>***ids limit** =  1000 per request*</p> *<p>Make note, GET Method URL request lines are also limited to a total length of 8192 bytes (8KB). In cases where the service allows for thousands of ids, which may lead to exceeding this request line limit of 8KB, its advised for any requests with large request lines to be requested through the respective "POST" method.</p>*
+
+        '
+      example:
+      - MABAX
+      - FCNTX
     errorResponse:
       type: object
       title: Error Response
@@ -425,18 +554,6 @@ components:
               items:
                 type: string
           example: example_value
-    ids:
-      type: array
-      items:
-        type: string
-      minItems: 1
-      maxItems: 1000
-      description: 'The requested Fund Identifier. FactSet Identifiers, tickers, CUSIP and SEDOL are accepted input. <p>***ids limit** =  1000 per request*</p> *<p>Make note, GET Method URL request lines are also limited to a total length of 8192 bytes (8KB). In cases where the service allows for thousands of ids, which may lead to exceeding this request line limit of 8KB, its advised for any requests with large request lines to be requested through the respective "POST" method.</p>*
-
-        '
-      example:
-      - MABAX
-      - FCNTX
     statuses:
       title: Statuses Object
       type: object
@@ -473,6 +590,15 @@ components:
           description: The requested Id sent as input.
           type: string
           example: MABAX
+    statusesRequest:
+      title: Statuses Request Body
+      description: Classifications Request Body
+      type: object
+      properties:
+        ids:
+          $ref: '#/components/schemas/ids'
+      required:
+      - ids
     statusesResponse:
       type: object
       title: Statuses Response
@@ -483,15 +609,37 @@ components:
           items:
             $ref: '#/components/schemas/statuses'
           example: []
-    statusesRequest:
-      title: Statuses Request Body
-      description: Classifications Request Body
-      type: object
+    ErrorCode:
+      description: Factset API specific error codes
+      enum:
+      - notAuthenticated
+      - notAuthorized
+      - notFound
+      - endpointNotFound
+      - parameterError
+      - genericServerError
+      - resourceGone
+      - quantityLimitsExceeded
+      - universal_screening_parameterError
+      - universal_screening_parameterWarning
+      type: string
+    ErrorArray:
+      description: An array of errors
       properties:
-        ids:
-          $ref: '#/components/schemas/ids'
-      required:
-      - ids
+        errors:
+          items:
+            $ref: '#/components/schemas/ErrorObject_2'
+          type: array
+          description: Array of Error Objects
+          example: []
+      type: object
+    ErrorObjectSource:
+      properties:
+        parameter:
+          type: string
+          example: example_value
+      description: For errors and warnings found in screens, contains the paramID the error/warning belongs to
+      type: object
     ErrorObject_2:
       properties:
         code:
@@ -508,30 +656,6 @@ components:
           example: Example Title
       type: object
       description: Associated Error Objects
-    ErrorArray:
-      description: An array of errors
-      properties:
-        errors:
-          items:
-            $ref: '#/components/schemas/ErrorObject_2'
-          type: array
-          description: Array of Error Objects
-          example: []
-      type: object
-    ErrorCode:
-      description: Factset API specific error codes
-      enum:
-      - notAuthenticated
-      - notAuthorized
-      - notFound
-      - endpointNotFound
-      - parameterError
-      - genericServerError
-      - resourceGone
-      - quantityLimitsExceeded
-      - universal_screening_parameterError
-      - universal_screening_parameterWarning
-      type: string
     ResourceStatusResponse:
       description: ResourceStatusResponse contains information regarding the status of a calculation job
       properties:
@@ -548,144 +672,39 @@ components:
           type: object
           example: example_value
       type: object
-    ErrorObjectSource:
-      properties:
-        parameter:
+  parameters:
+    ids:
+      name: ids
+      in: query
+      schema:
+        type: array
+        items:
           type: string
-          example: example_value
-      description: For errors and warnings found in screens, contains the paramID the error/warning belongs to
-      type: object
-  examples:
-    403ForbiddenErrorExample:
-      value: 'Client does not have the required CACCESS: {00QAI}, Request key: 65CA96B3129489A6'
-    RateLimitExceededErrorExample:
-      value:
-        message: API rate limit exceeded
-    401UnauthorizedErrorExample:
-      value: Authentication Failed
-    ChatPollingRequestExample:
-      value:
-        data:
-          conversationId: 9c1031c2-5463-47ae-81b3-126a68f0c2a6
-    StatusPollResponseAcceptedExample:
-      value:
-        data:
-          conversationId: 9c1031c2-5463-47ae-81b3-126a68f0c2a6
-          status: executing
-    StatusPollResponseCreatedExample:
-      value:
-        data:
-          conversationId: 9c1031c2-5463-47ae-81b3-126a68f0c2a6
-          status: created
-    unsupportedMediaType:
-      summary: Unsupported Media Type
-      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
-      value:
-        status: Unsupported Media Type
-        timestamp: '2019-11-05 09:42:27.237'
-        path: /factset-funds/v1/{endpoint}
-        message: text/html media type is not supported. Supported media types are application/json
-        subErrors: null
-    badRequestDateFormat:
-      summary: Bad Request - Date Format
-      description: This bad request occurs when a request doesn't use the YYYY-MM-DD in the date parameters. To resolve, convert your date to YYYY-MM-DD.
-      value:
-        status: Bad Request
-        timestamp: '2019-10-31 16:08:07.945'
-        path: /factset-funds/v1/{endpoint}
-        message: 'The date parameter ''startDate'' must be in the following date format: YYYY-MM-DD'
-        subErrors: null
-    badRequestMalformedJSON:
-      summary: Bad Request - Malformed JSON Request
-      description: This error may be returned when the request body is specified as JSON, but is not in proper JSON format.
-      value:
-        status: Bad Request
-        timestamp: '2019-11-05 09:48:29.18'
-        path: /factset-funds/v1/{endpoint}
-        message: Malformed JSON Request
-        subErrors: null
-    badRequestInvalidParameters:
-      summary: Bad Request - Invalid Parameters
-      description: This error message occurs when a request parameter is used in which is not recognized by the service. Please revise your request to include only the parameters listed in the specification. Typical causes are spelling mistakes and use of improper casing.
-      value:
-        status: Bad Request
-        timestamp: '2020-06-12 15:58:54.068'
-        path: /factset-funds/v1/{endpoint}
-        message: 'Invalid Parameter (s): fakeParameterName1 fakeParameterName2. Please modify your request to use parameters outlined in the specification for this endpoint.'
-        subErrors: null
-    badRequestFutureDate:
-      summary: Bad Request - Future Date
-      description: This error message occurs when a future date is requested in the startDate and endDate parameters. Please revise your request to include dates as of today's current date or any prior historical date.
-      value:
-        status: Bad Request
-        timestamp: '2020-06-12 15:52:48.091'
-        path: /factset-funds/v1/{endpoint}
-        message: The use of future dates is not applicable in this endpoint. Please revise your request to include dates up to today's current date.
-        subErrors: null
-    forbidden:
-      summary: Forbidden
-      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
-      value:
-        status: Forbidden
-        timestamp: '2020-06-12 16:08:51.731'
-        path: /factset-funds/v1/{endpoint}
-        message: USERNAME-SERIAL does not have permission to use /factset-funds /v1/{endpoint}
-        subErrors: null
-    generalException:
-      summary: Internal Server Error - General Exception
-      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
-      value:
-        status: Internal Server Error
-        timestamp: '2019-11-01 10:36:01.944'
-        path: /factset-funds/v1/{endpoint}
-        message: Unexpected error
-        subErrors: null
-    notWritable:
-      summary: Internal Server Error - Not Writable
-      description: This error may be returned when the server encounters an error writing the JSON response.
-      value:
-        status: Internal Server Error
-        timestamp: '2019-11-05 09:48:29.18'
-        path: /factset-funds/v1/{endpoint}
-        message: Error writing JSON output
-        subErrors: null
-    unauthenticated:
-      summary: User Authentication Failed
-      description: This occurs when a user is not properly authenticated or recognized by the service. Please double check the USERNAME-SERIAL and API-Key used to request and ensure you are within the IP range specified for the Key. Report Issue under 401 error for help with troubleshooting.
-      value:
-        status: User Authentication Failed
-        timestamp: '2019-10-31 16:08:07.945'
-        path: /factset-funds/v1/{endpoint}
-        message: User Authentication Failed.
-        subErrors: null
-    badRequestRequiredParameter:
-      summary: Bad Request - Required Parameter Missing
-      description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisks symbol in the specification file.
-      value:
-        status: Bad Request
-        timestamp: '2020-06-12 15:48:42.016'
-        path: /factset-funds/v1/{endpoint}
-        message: The parameter 'ids' is required and may not be empty.
-        subErrors: null
-    badRequestReadTimeout:
-      summary: Bad Request - Read Timeout
-      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
-      value:
-        status: Bad Request
-        timestamp: '2019-11-04 16:18:38.949'
-        path: /factset-funds/v1/{endpoint}
-        message: The request took too long. Try again with a smaller request.
-        subErrors: null
+        minItems: 1
+        maxItems: 1000
+      required: true
+      explode: false
+      description: 'The requested fund identifier. FactSet Identifiers, tickers, CUSIP, SEDOL, and ISIN are accepted inputs. <p>***ids limit** =  1000 per request*</p> *<p>Make note, GET Method URL request lines are also limited to a total length of 8192 bytes (8KB). In cases where the service allows for thousands of ids, which may lead to exceeding this request line limit of 8KB, its advised for any requests with large request lines to be requested through the respective "POST" method.</p>*
+
+        '
+      examples:
+        oneId:
+          summary: One Market Identifier
+          value:
+          - MABAX-US
+        multipleIds:
+          summary: Multiple Market Identifiers
+          value:
+          - MABAX-US
+          - FCNTX-US
+    ScreenCalcID:
+      description: Unique identifier for a screen calculation job
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
   responses:
-    '403':
-      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/errorResponse'
-          examples:
-            Bad Request - Date Format:
-              $ref: '#/components/examples/forbidden'
     '400':
       description: Bad Request. This can occur for several reasons. Please review the "message" for more details.
       content:
@@ -723,6 +742,15 @@ components:
           examples:
             Bad Request - Date Format:
               $ref: '#/components/examples/unauthenticated'
+    '403':
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/forbidden'
     '500':
       description: Internal Server Error.
       content:
@@ -734,12 +762,31 @@ components:
               $ref: '#/components/examples/notWritable'
             Internal Server Error - General Exception:
               $ref: '#/components/examples/generalException'
+    Error404Response:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorArray'
+      description: Job ID not found.
     Error410Response:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorArray'
       description: The results have been fetched for this ID.
+    Generic500ErrorResponse:
+      description: Internal Server Error
+      headers:
+        Request-Key:
+          description: Provide this key when reporting this issue
+          schema:
+            type: string
+    Error401Response:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorArray'
+      description: Invalid or missing authentication.
     CalculateSuccessResponse:
       content:
         application/json:
@@ -770,57 +817,6 @@ components:
           description: Screen progress
           schema:
             type: string
-    Generic500ErrorResponse:
-      description: Internal Server Error
-      headers:
-        Request-Key:
-          description: Provide this key when reporting this issue
-          schema:
-            type: string
-    Error404Response:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorArray'
-      description: Job ID not found.
-    Error401Response:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorArray'
-      description: Invalid or missing authentication.
-  parameters:
-    ids:
-      name: ids
-      in: query
-      schema:
-        type: array
-        items:
-          type: string
-        minItems: 1
-        maxItems: 1000
-      required: true
-      explode: false
-      description: 'The requested fund identifier. FactSet Identifiers, tickers, CUSIP, SEDOL, and ISIN are accepted inputs. <p>***ids limit** =  1000 per request*</p> *<p>Make note, GET Method URL request lines are also limited to a total length of 8192 bytes (8KB). In cases where the service allows for thousands of ids, which may lead to exceeding this request line limit of 8KB, its advised for any requests with large request lines to be requested through the respective "POST" method.</p>*
-
-        '
-      examples:
-        oneId:
-          summary: One Market Identifier
-          value:
-          - MABAX-US
-        multipleIds:
-          summary: Multiple Market Identifiers
-          value:
-          - MABAX-US
-          - FCNTX-US
-    ScreenCalcID:
-      description: Unique identifier for a screen calculation job
-      in: path
-      name: id
-      required: true
-      schema:
-        type: string
   securitySchemes:
     FactSetOAuth2:
       type: oauth2

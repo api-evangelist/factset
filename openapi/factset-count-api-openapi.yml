@@ -9,16 +9,7 @@ info:
   license:
     name: Apache License, Version 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
-  description: 'The Filings API provides a comprehensive set of functionalities for searching and retrieving filing documents from various sources.
-
-
-    This API is designed to expose document search and document retrieval functionality. A document search will allow a request to query FactSet’s document databases based on certain search criteria specified in the request.
-
-
-    In addition, a document count request will provide information on the number of stories available for a particular security.
-
-
-    Helper endpoint will provide dynamic information on the parameters of a document request. .'
+  description: The Filings API provides a comprehensive set of functionalities for searching and retrieving filing documents from various sources.
 servers:
 - url: https://api.factset.com/global-filings/v0
 security:
@@ -88,13 +79,6 @@ paths:
                   $ref: '#/components/examples/ServerErrorDetails'
 components:
   examples:
-    ErrorDetails:
-      summary: Sample Error Response
-      value:
-        errors:
-        - code: Bad Request
-          title: parameterError:['_paginationLimit'] is not a valid parameter(s).
-          id: 7af3d86ca5954503b9244f2620fcf5eb
     sampleResponseCount:
       summary: Sample Response
       value:
@@ -112,12 +96,12 @@ components:
         - code: Internal Server Error
           title: An unexpected error happened.
           id: 7af3d86ca5954503b9244f2620fcf5eb
-    AuthorizationErrorDetails:
+    ErrorDetails:
       summary: Sample Error Response
       value:
         errors:
-        - code: Forbidden
-          title: USERNAME-SERIAL does not have permission.
+        - code: Bad Request
+          title: parameterError:['_paginationLimit'] is not a valid parameter(s).
           id: 7af3d86ca5954503b9244f2620fcf5eb
     AuthErrorDetails:
       summary: Sample Error Response
@@ -126,7 +110,50 @@ components:
         - code: Not Authenticated
           title: Unauthenticated USERNAME-SERIAL.
           id: fd5a51ff-02cf-48ec-b9b1-913d64863b0
+    AuthorizationErrorDetails:
+      summary: Sample Error Response
+      value:
+        errors:
+        - code: Forbidden
+          title: USERNAME-SERIAL does not have permission.
+          id: 7af3d86ca5954503b9244f2620fcf5eb
   parameters:
+    startDate:
+      schema:
+        type: string
+        default: '0'
+      in: query
+      name: startDate
+      example: '20231222'
+      description: Start Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
+    sources:
+      schema:
+        type: array
+        items:
+          type: string
+      in: query
+      name: sources
+      required: true
+      explode: false
+      examples:
+        oneSource:
+          summary: One Source
+          value:
+          - EDG
+        multipleSources:
+          summary: Multiple Sources
+          value:
+          - EDG
+          - FFR
+      description: "Code for document source to include.This is a comma-separated list. Use the ```/helper``` endpoint to get the list of available sources.\n "
+    endDate:
+      schema:
+        type: string
+        default: '0'
+      in: query
+      name: endDate
+      example: '20231223'
+      description: End Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
     report2:
       schema:
         type: string
@@ -155,42 +182,6 @@ components:
           - OSIS-US
       description: Requested symbols or securities.  This is a comma-separated list with a maximum limit of 1000.  Each symbol can be a FactSet exchange symbol, CUSIP, or SEDOL.
       explode: false
-    startDate:
-      schema:
-        type: string
-        default: '0'
-      in: query
-      name: startDate
-      example: '20231222'
-      description: Start Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
-    endDate:
-      schema:
-        type: string
-        default: '0'
-      in: query
-      name: endDate
-      example: '20231223'
-      description: End Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
-    sources:
-      schema:
-        type: array
-        items:
-          type: string
-      in: query
-      name: sources
-      required: true
-      explode: false
-      examples:
-        oneSource:
-          summary: One Source
-          value:
-          - EDG
-        multipleSources:
-          summary: Multiple Sources
-          value:
-          - EDG
-          - FFR
-      description: "Code for document source to include.This is a comma-separated list. Use the ```/helper``` endpoint to get the list of available sources.\n "
   schemas:
     responseCountObject:
       type: object
@@ -207,6 +198,15 @@ components:
           type: string
           description: source value
           example: '8000'
+    ErrorResponse:
+      type: object
+      description: Error Response Object
+      properties:
+        errors:
+          type: array
+          description: Errors Array Object
+          items:
+            $ref: '#/components/schemas/ErrorExample'
     ErrorExample:
       type: object
       description: Error Example Object
@@ -220,15 +220,6 @@ components:
         id:
           description: Specifies the id.
           type: string
-    ErrorResponse:
-      type: object
-      description: Error Response Object
-      properties:
-        errors:
-          type: array
-          description: Errors Array Object
-          items:
-            $ref: '#/components/schemas/ErrorExample'
     responseCount:
       description: Filings Response Object
       type: object

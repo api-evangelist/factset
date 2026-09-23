@@ -17,10 +17,8 @@ tags:
 paths:
   /factset-private-markets/v1/financials:
     get:
-      summary: Factset Returns Private Company Financials for a List of Ids.
-      description: 'Returns Private Company Financials Information.
-
-        '
+      summary: Factset Returns Private Company Financials for a List of Ids
+      description: Returns Private Company Financials Information.
       tags:
       - Financials
       operationId: getFinancials
@@ -53,10 +51,8 @@ paths:
         delay: 0
         dispatcher: FALLBACK
     post:
-      summary: Factset Returns Private Company Financials for a List of Ids.
-      description: 'Returns a private markets financials object for the requested ids.
-
-        '
+      summary: Factset Returns Private Company Financials for a List of Ids
+      description: Returns a private markets financials object for the requested ids.
       tags:
       - Financials
       operationId: getFinancialsForList
@@ -89,16 +85,20 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    financialsResponse:
-      type: object
-      title: Private Company Financials Response
-      properties:
-        data:
-          description: Array of Private Company Financials objects.
-          type: array
-          items:
-            $ref: '#/components/schemas/financials'
-          example: []
+    privateMarketIds:
+      title: ids
+      description: 'Security or Entity identifiers. FactSet Identifiers, tickers, CUSIP and SEDOL are accepted input.
+
+        '
+      type: array
+      items:
+        type: string
+      minItems: 1
+      maxItems: 3000
+      example:
+      - 000BFG-E
+      - 000BGZ-E
+      - 000C64-E
     errorResponse:
       type: object
       description: error description
@@ -140,28 +140,36 @@ components:
               items:
                 type: string
           example: example_value
-    startDate:
-      title: Start Date
-      type: string
-      description: 'The start date requested for a given date range in **YYYY-MM-DD** format. If left blank, the API will default to previous close. Future dates (T+1) are not accepted in this endpoint.
+    financialsResponse:
+      type: object
+      title: Private Company Financials Response
+      properties:
+        data:
+          description: Array of Private Company Financials objects.
+          type: array
+          items:
+            $ref: '#/components/schemas/financials'
+          example: []
+    financialsFields:
+      title: fields
+      description: 'Private Markets Financials Fields.
 
         '
-      example: '2019-01-01'
-    financials:
-      title: Private Company Financials
-      type: object
-      properties:
-        fsymId:
-          type:
-          - string
-          - 'null'
-          description: Unique FactSet-generated identifier representing an entity for the current entity identifier (-E)
-          example: 000BGM-E
-        requestId:
-          type: string
-          description: Identifier used in `ids`.
-          example: 000BGM-E
-      additionalProperties: true
+      type: array
+      items:
+        type: string
+      minItems: 1
+      maxItems: 3000
+      example:
+      - assets
+      - ebitda
+    endDate:
+      title: End Date
+      type: string
+      description: 'The end date requested for a given date range in **YYYY-MM-DD** format. If left blank, the API will default to previous close. Future dates (T+1) are not accepted in this endpoint.
+
+        '
+      example: '2019-12-31'
     financialsRequest:
       title: Entity Reference Request
       description: Entity Reference Request Body
@@ -178,77 +186,29 @@ components:
       required:
       - ids
       - startDate
-    endDate:
-      title: End Date
+    financials:
+      title: Private Company Financials
+      type: object
+      properties:
+        fsymId:
+          type:
+          - string
+          - 'null'
+          description: Unique FactSet-generated identifier representing an entity for the current entity identifier (-E)
+          example: 000BGM-E
+        requestId:
+          type: string
+          description: Identifier used in `ids`.
+          example: 000BGM-E
+      additionalProperties: true
+    startDate:
+      title: Start Date
       type: string
-      description: 'The end date requested for a given date range in **YYYY-MM-DD** format. If left blank, the API will default to previous close. Future dates (T+1) are not accepted in this endpoint.
+      description: 'The start date requested for a given date range in **YYYY-MM-DD** format. If left blank, the API will default to previous close. Future dates (T+1) are not accepted in this endpoint.
 
         '
-      example: '2019-12-31'
-    privateMarketIds:
-      title: ids
-      description: 'Security or Entity identifiers. FactSet Identifiers, tickers, CUSIP and SEDOL are accepted input.
-
-        '
-      type: array
-      items:
-        type: string
-      minItems: 1
-      maxItems: 3000
-      example:
-      - 000BFG-E
-      - 000BGZ-E
-      - 000C64-E
-    financialsFields:
-      title: fields
-      description: 'Private Markets Financials Fields.
-
-        '
-      type: array
-      items:
-        type: string
-      minItems: 1
-      maxItems: 3000
-      example:
-      - assets
-      - ebitda
+      example: '2019-01-01'
   examples:
-    unsupportedMediaType:
-      summary: Unsupported Media Type
-      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
-      value:
-        status: Unsupported Media Type
-        timestamp: '2020-07-02 09:42:27.237'
-        path: /factset-private-markets/v1/{endpoint}
-        message: text/html media type is not supported. Supported media types are application/json.
-        subErrors: null
-    badRequestDateFormat:
-      summary: Bad Request - Date Format
-      description: This bad request occurs when a request doesn't use the YYYY-MM-DD in the date parameters. To resolve, convert your date to YYYY-MM-DD.
-      value:
-        status: Bad Request
-        timestamp: '2020-07-02 11:52:36.464'
-        path: /factset-private-markets/v1/{endpoint}
-        message: 'The date parameter must be in the following date format: YYYY-MM-DD'
-        subErrors: null
-    badRequestMalformedJSON:
-      summary: Bad Request - Malformed JSON Request
-      description: This error may be returned when the request body is specified as JSON, but is not in proper JSON format.
-      value:
-        status: Bad Request
-        timestamp: '2020-07-02 11:59:09.649'
-        path: /factset-private-markets/v1/{endpoint}
-        message: Malformed JSON Request
-        subErrors: null
-    badRequestInvalidParameters:
-      summary: Bad Request - Passing Invalid Parameter
-      description: This error message occurs when user is passing an Invalid Parameter
-      value:
-        status: Bad Request
-        timestamp: '2020-07-23 11:03:40.765'
-        path: /factset-private-markets/v1/{endpoint}
-        message: 'Invalid Parameter (s): fakeParameter. Please modify your request to use parameters outlined in the specification for this endpoint.'
-        subErrors: null
     forbidden:
       summary: Forbidden
       description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
@@ -258,14 +218,23 @@ components:
         path: /factset-private-markets/v1/{endpoint}
         message: USERNAME-SERIAL does not have permission to use /factset-private-markets/v1/{endpoint}
         subErrors: null
-    generalException:
-      summary: Internal Server Error - General Exception
-      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
+    badRequestRequiredParameter:
+      summary: Bad Request - Required Parameter Missing
+      description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisks symbol in the specification file.
       value:
-        status: Internal Server Error
-        timestamp: '2020-07-02 10:36:01.944'
+        status: Bad Request
+        timestamp: '2020-06-30 13:22:09.053'
         path: /factset-private-markets/v1/{endpoint}
-        message: Unexpected error
+        message: The parameter 'ids' is required and may not be empty.
+        subErrors: null
+    badRequestDateFormat:
+      summary: Bad Request - Date Format
+      description: This bad request occurs when a request doesn't use the YYYY-MM-DD in the date parameters. To resolve, convert your date to YYYY-MM-DD.
+      value:
+        status: Bad Request
+        timestamp: '2020-07-02 11:52:36.464'
+        path: /factset-private-markets/v1/{endpoint}
+        message: 'The date parameter must be in the following date format: YYYY-MM-DD'
         subErrors: null
     notWritable:
       summary: Internal Server Error - Not Writable
@@ -350,14 +319,32 @@ components:
           fiscalYear: '1998-12-31'
           sales: 170.1
           requestId: 000BGM-E
-    badRequestRequiredParameter:
-      summary: Bad Request - Required Parameter Missing
-      description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisks symbol in the specification file.
+    badRequestInvalidParameters:
+      summary: Bad Request - Passing Invalid Parameter
+      description: This error message occurs when user is passing an Invalid Parameter
       value:
         status: Bad Request
-        timestamp: '2020-06-30 13:22:09.053'
+        timestamp: '2020-07-23 11:03:40.765'
         path: /factset-private-markets/v1/{endpoint}
-        message: The parameter 'ids' is required and may not be empty.
+        message: 'Invalid Parameter (s): fakeParameter. Please modify your request to use parameters outlined in the specification for this endpoint.'
+        subErrors: null
+    unsupportedMediaType:
+      summary: Unsupported Media Type
+      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
+      value:
+        status: Unsupported Media Type
+        timestamp: '2020-07-02 09:42:27.237'
+        path: /factset-private-markets/v1/{endpoint}
+        message: text/html media type is not supported. Supported media types are application/json.
+        subErrors: null
+    generalException:
+      summary: Internal Server Error - General Exception
+      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
+      value:
+        status: Internal Server Error
+        timestamp: '2020-07-02 10:36:01.944'
+        path: /factset-private-markets/v1/{endpoint}
+        message: Unexpected error
         subErrors: null
     badRequestReadTimeout:
       summary: Bad Request - Read Timeout
@@ -368,16 +355,72 @@ components:
         path: /factset-private-markets/v1/{endpoint}
         message: The request took too long. Try again with a smaller request.
         subErrors: null
+    badRequestMalformedJSON:
+      summary: Bad Request - Malformed JSON Request
+      description: This error may be returned when the request body is specified as JSON, but is not in proper JSON format.
+      value:
+        status: Bad Request
+        timestamp: '2020-07-02 11:59:09.649'
+        path: /factset-private-markets/v1/{endpoint}
+        message: Malformed JSON Request
+        subErrors: null
+  parameters:
+    endDate:
+      name: endDate
+      in: query
+      required: false
+      schema:
+        type: string
+      description: 'The end date requested for a given date range in **YYYY-MM-DD** format. If left blank, the API will default to previous close. Future dates (T+1) are not accepted in this endpoint.
+
+        '
+      example: '2019-12-31'
+    privateMarketIds:
+      name: ids
+      in: query
+      description: "The requested FactSet Private Market Entity Identifier in XXXXXX-E format.<p>**Max Ids Limit set to 3000 in a single request**</p>\n  *<p>Make note, GET Method URL request lines are also limited to a total length of 8192 bytes (8KB). In cases where the service allows for thousands of ids,\n      which may lead to exceeding this request line limit of 8KB, its\n      advised for any requests with large request lines to be requested through\n      the respective \\\"POST\\\" method.</p>*\n"
+      required: true
+      schema:
+        type: array
+        items:
+          type: string
+          example: 000C64-E
+        minItems: 1
+        maxItems: 3000
+      explode: false
+      example:
+      - 000BFG-E
+      - 000BGZ-E
+      - 000C64-E
+    financialsFields:
+      name: fields
+      in: query
+      description: 'Private Markets Financials Fields.
+
+        '
+      required: true
+      schema:
+        type: array
+        items:
+          type: string
+          example: assets
+        minItems: 1
+        maxItems: 100
+      explode: false
+      example:
+      - assets
+      - ebitda
+    startDate:
+      name: startDate
+      in: query
+      required: true
+      schema:
+        type: string
+      description: 'The start date requested for a given date range in **YYYY-MM-DD** format. If left blank, the API will default to previous close. Future dates (T+1) are not accepted in this endpoint.
+
+        '
+      example: '2019-01-01'
   responses:
-    '403':
-      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/errorResponse'
-          examples:
-            Bad Request - Forbidden:
-              $ref: '#/components/examples/forbidden'
     '400':
       description: Bad Request. This can occur for several reasons. Please review the "message" for more details.
       content:
@@ -413,6 +456,15 @@ components:
           examples:
             Bad Request - Date Format:
               $ref: '#/components/examples/unauthenticated'
+    '403':
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Forbidden:
+              $ref: '#/components/examples/forbidden'
     '500':
       description: Internal Server Error.
       content:
@@ -424,62 +476,6 @@ components:
               $ref: '#/components/examples/notWritable'
             Internal Server Error - General Exception:
               $ref: '#/components/examples/generalException'
-  parameters:
-    financialsFields:
-      name: fields
-      in: query
-      description: 'Private Markets Financials Fields.
-
-        '
-      required: true
-      schema:
-        type: array
-        items:
-          type: string
-          example: assets
-        minItems: 1
-        maxItems: 100
-      explode: false
-      example:
-      - assets
-      - ebitda
-    startDate:
-      name: startDate
-      in: query
-      required: true
-      schema:
-        type: string
-      description: 'The start date requested for a given date range in **YYYY-MM-DD** format. If left blank, the API will default to previous close. Future dates (T+1) are not accepted in this endpoint.
-
-        '
-      example: '2019-01-01'
-    endDate:
-      name: endDate
-      in: query
-      required: false
-      schema:
-        type: string
-      description: 'The end date requested for a given date range in **YYYY-MM-DD** format. If left blank, the API will default to previous close. Future dates (T+1) are not accepted in this endpoint.
-
-        '
-      example: '2019-12-31'
-    privateMarketIds:
-      name: ids
-      in: query
-      description: "The requested FactSet Private Market Entity Identifier in XXXXXX-E format.<p>**Max Ids Limit set to 3000 in a single request**</p>\n  *<p>Make note, GET Method URL request lines are also limited to a total length of 8192 bytes (8KB). In cases where the service allows for thousands of ids,\n      which may lead to exceeding this request line limit of 8KB, its\n      advised for any requests with large request lines to be requested through\n      the respective \\\"POST\\\" method.</p>*\n"
-      required: true
-      schema:
-        type: array
-        items:
-          type: string
-          example: 000C64-E
-        minItems: 1
-        maxItems: 3000
-      explode: false
-      example:
-      - 000BFG-E
-      - 000BGZ-E
-      - 000C64-E
   securitySchemes:
     BasicAuth:
       type: http

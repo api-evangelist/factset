@@ -1,11 +1,20 @@
 openapi: 3.2.0
 info:
-  title: Factset Entities API
-  version: '1.0'
-  description: 'Operations tagged Entities across 2 of this provider''s published API definitions: factset-signals-api-openapi.yml, vermilion-openapi-original.yml. Each path carries the servers of the definition it was published in.'
+  title: FactSet Signals Entities API
+  description: 'Leverage Signals to identify material events for a company. Signals are
+
+    derived from FactSet''s core data, cognitive computing technology, and our
+
+    3rd party partners.'
+  version: 2.6.0
+  contact:
+    name: Signals API Support
+    email: signals.api@factset.com
 servers:
 - url: https://api.factset.com/signals/v2
   description: Production
+security:
+- basicAuth: []
 tags:
 - name: Entities
 paths:
@@ -62,8 +71,8 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
-      security:
-      - basicAuth: []
+      summary: Get event entities
+      x-summary-source: derived
     post:
       tags:
       - Entities
@@ -114,227 +123,25 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
-      security:
-      - basicAuth: []
-    servers:
-    - url: https://api.factset.com/signals/v2
-      description: Production
-  /v1/{tenant}/entities/{entityCode}/values:
-    get:
-      operationId: getEntityValuesByCode
-      tags:
-      - Entities
-      summary: Factset Gets the entity values
-      description: Gets the entity values for the specified entity
-      parameters:
-      - in: path
-        name: tenant
-        description: The code of the tenancy
-        schema:
-          type: string
-        required: true
-      - in: path
-        name: entityCode
-        description: The code of the entity
-        schema:
-          type: string
-        required: true
-      - in: query
-        name: _sort
-        description: The entity field to sort on. Can only be sorted on entity key, description or secondary key fields. Append "-" to sort in descending order. If no parameter given, it will be sorted by key field in ascending order by default
-        required: false
-        style: form
-        explode: false
-        schema:
-          type: array
-          maxItems: 1
-          items:
-            type: string
-        examples:
-          entity key field:
-            value:
-            - entity key field
-            description: The name of the entity key field
-          entity description field:
-            value:
-            - entity description field
-            description: The name of the entity description field
-          entity secondary key field:
-            value:
-            - entity secondary key field
-            description: The name of the entity secondary key field
-      - in: query
-        name: _paginationLimit
-        description: Non-negative maximum number of entries to return. Default is 25
-        schema:
-          type: integer
-        examples:
-          pageSize:
-            value: 25
-            description: Non-negative maximum number of entries to return
-      - in: query
-        name: _paginationOffset
-        description: Non-negative number of entries to skip. Default is 0
-        schema:
-          type: integer
-        examples:
-          startIndex:
-            value: 0
-            description: Non-negative number of entries to skip
-      - in: query
-        name: showAll
-        description: Whether to show all field values for each entity row. Value should either be 1 or 0. Default is 0 (false)
-        schema:
-          type: integer
-        examples:
-          showAll:
-            value: 1
-            description: 'Show all field values in a JSON array named "fieldsWithValues", with each array value being a string in the format of "**<FIELD_NAME> : <FIELD_VALUE>**". Both key and description field values will be included in this JSON array too.'
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EntityFieldValueDTO'
-        '400':
-          description: The supplied entity code was either missing or invalid, or the entity was not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: parameterError
-                  title: The entity code passed was invalid
-        '401':
-          description: Unauthorised
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAuthenticated
-                  title: User is not authenticated
-        '403':
-          description: No permissions to view datasources in VRS
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAuthorized
-                  title: No permissions to view this item
-        '404':
-          description: The supplied entity code was not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notFound
-                  title: The entity code passed was not found
-        '406':
-          description: Unsupported Accept header. Header needs to be set to application/json.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorList'
-              example:
-                errors:
-                - id: ID of the error
-                  code: notAcceptable
-                  title: Unsupported Accept header. Header needs to be set to application/json
-      security:
-      - FactSetApiKey: []
-      - FactSetOAuth2: []
+      summary: Post event entities
+      x-summary-source: derived
 components:
-  parameters:
-    signalIdsParam:
-      name: signalIds
-      in: query
-      schema:
-        type: string
-        description: Comma delimited string of signalIds
-      example: dilutionTrigger,freeCashFlow
-    themesParam:
-      name: themes
-      in: query
-      schema:
-        type: string
-      description: Comma delimited string of theme ids. Full list of signal themes can be viewed at /themes.
-    createdParam:
-      name: created
-      in: query
-      schema:
-        $ref: '#/components/schemas/DateTimeInterval'
-      style: deepObject
-      explode: true
-      description: A date/time (UTC) interval for filtering signal events based on their creation date. Defaults to NOW - 7 days if omitted. Users with limited access can only provide the default or a smaller date window.
-      examples:
-        default:
-          value: {}
-        lowerBound:
-          $ref: '#/components/examples/lowerBound'
-        upperBound:
-          $ref: '#/components/examples/upperBound'
-        bothBounds:
-          $ref: '#/components/examples/bothBounds'
-    categoriesParam:
-      name: categories
-      in: query
-      schema:
-        type: string
-      description: Comma delimited string of category ids. Full list of signal categories can be viewed at /categories.
-    updatedParam:
-      name: updated
-      in: query
-      schema:
-        $ref: '#/components/schemas/DateTimeInterval'
-      style: deepObject
-      explode: true
-      description: A date/time (UTC) interval for filtering signal events based on their last updated date. Defaults to NOW - 7 days if omitted. Users with limited access can only provide the default or a smaller date window.
-      examples:
-        default:
-          value: {}
-        lowerBound:
-          $ref: '#/components/examples/lowerBound'
-        upperBound:
-          $ref: '#/components/examples/upperBound'
-        bothBounds:
-          $ref: '#/components/examples/bothBounds'
-    relevanceScoreParam:
-      name: userRelevanceScore
-      in: query
-      schema:
-        $ref: '#/components/schemas/RelevanceScoreRange'
-      style: deepObject
-      explode: true
-      description: A range for filtering signal events based on their relevancy score.
-      examples:
-        lowerBound:
-          value:
-            gte: 0
-        upperBound:
-          value:
-            lt: 1
-        bothBounds:
-          value:
-            gt: 0
-            lt: 1
   headers:
+    RateLimit-Limit:
+      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
+      schema:
+        type: integer
+        example: 5
     Api-Supported-Versions:
       description: Comma-separated list of supported major versions.
       schema:
         type: string
         example: '1'
+    RateLimit-Remaining:
+      description: Remaining number of requests in the current time window.
+      schema:
+        type: integer
+        example: 4
     RateLimit-Reset:
       description: Time remaining (in seconds) until the quota is reset.
       schema:
@@ -345,52 +152,12 @@ components:
       schema:
         type: string
         example: 1.0.0
-    RateLimit-Remaining:
-      description: Remaining number of requests in the current time window.
-      schema:
-        type: integer
-        example: 4
-    RateLimit-Limit:
-      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
-      schema:
-        type: integer
-        example: 5
   schemas:
-    errorResponse:
-      type: object
-      required:
-      - message
-      properties:
-        message:
-          type: string
-          description: A short description of the error.
-          example: There was an error processing your request. Please try again later.
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/errorItem'
-          description: Optional list of errors. e.g. Validation errors for multiple parameters
-          example: []
     DateTime:
       type: string
       format: date-time
       description: A date/time string in ISO 8601 format.
       example: '2021-01-01T00:00:00Z'
-    DateTimeInterval:
-      type: object
-      description: 'Represents a valid date/time (UTC) interval. The upper bound of the interval is represented by the attribute **gt** or **gte**. The lower bound of the interval is presented by **lt** or **lte** The interval can contain either of the bounds or both. e.g. { "gt": "2021-05-01T00:00:00.000Z", "lt": "2021-05-08T00:00:00.000Z" }
-
-        '
-      minProperties: 1
-      properties:
-        gt:
-          $ref: '#/components/schemas/DateTime'
-        gte:
-          $ref: '#/components/schemas/DateTime'
-        lt:
-          $ref: '#/components/schemas/DateTime'
-        lte:
-          $ref: '#/components/schemas/DateTime'
     RelevanceScoreRange:
       type: object
       description: 'Represents a valid range for user relevancy score for signal events. The upper bound of the range is represented by the attribute **gt** or **gte**. The lower bound of the range is presented by **lt** or **lte** The range can contain either of the bounds or both. e.g. { "gt": 0.4, "lt": 0.8 }
@@ -414,6 +181,104 @@ components:
           type: number
           format: float
           example: 42.5
+    DateTimeInterval:
+      type: object
+      description: 'Represents a valid date/time (UTC) interval. The upper bound of the interval is represented by the attribute **gt** or **gte**. The lower bound of the interval is presented by **lt** or **lte** The interval can contain either of the bounds or both. e.g. { "gt": "2021-05-01T00:00:00.000Z", "lt": "2021-05-08T00:00:00.000Z" }
+
+        '
+      minProperties: 1
+      properties:
+        gt:
+          $ref: '#/components/schemas/DateTime'
+        gte:
+          $ref: '#/components/schemas/DateTime'
+        lt:
+          $ref: '#/components/schemas/DateTime'
+        lte:
+          $ref: '#/components/schemas/DateTime'
+    errorResponse:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+          description: A short description of the error.
+          example: There was an error processing your request. Please try again later.
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errorItem'
+          description: Optional list of errors. e.g. Validation errors for multiple parameters
+          example: []
+    rateLimitResponse:
+      title: Rate Limit Error Object
+      description: Error returned if any of the user's rate limit have been reached.
+      properties:
+        message:
+          type: string
+          example: API rate limit exceeded
+    eventsEntitiesPost:
+      type: object
+      properties:
+        created:
+          allOf:
+          - $ref: '#/components/schemas/DateTimeInterval'
+          description: A date/time (UTC) interval for filtering signal events based on their creation date. Defaults to NOW - 7 days if omitted. Users with limited access can only provide the default or a smaller date window.
+          example: example_value
+        updated:
+          allOf:
+          - $ref: '#/components/schemas/DateTimeInterval'
+          description: A date/time (UTC) interval for filtering signal events based on their last updated date. Defaults to NOW - 7 days if omitted. Users with limited access can only provide the default or a smaller date window.
+          example: example_value
+        signalIds:
+          type: string
+          description: Comma delimited string of signalIds
+          example: dilutionTrigger,freeCashFlow
+        themes:
+          type: string
+          description: Comma delimited string of theme ids. Full list of signal themes can be viewed at /themes.
+          example: example_value
+        categories:
+          type: string
+          description: Comma delimited string of category ids. Full list of signal categories can be viewed at /categories.
+          example: example_value
+        userRelevanceScore:
+          allOf:
+          - $ref: '#/components/schemas/RelevanceScoreRange'
+          description: A range for filtering signal events based on their relevancy score.
+          example: example_value
+    screenMeta:
+      type: object
+      required:
+      - signalRequestId
+      - dateRange
+      properties:
+        signalRequestId:
+          type: string
+          format: uuid
+          example: '500123'
+        dateRange:
+          type: object
+          properties:
+            created:
+              $ref: '#/components/schemas/DateTimeInterval'
+            updated:
+              $ref: '#/components/schemas/DateTimeInterval'
+          example: example_value
+        partial:
+          type: object
+          required:
+          - isPartial
+          - reason
+          properties:
+            isPartial:
+              type: boolean
+              description: Indicates that some of the matching entities are missing in the response.
+            reason:
+              type: string
+              description: Describes why the response was sent with an incomplete list of entities.
+          example: example_value
     errorItem:
       type: object
       required:
@@ -460,125 +325,80 @@ components:
           items:
             $ref: '#/components/schemas/errorItem'
           example: []
-    eventsEntitiesPost:
-      type: object
-      properties:
-        created:
-          allOf:
-          - $ref: '#/components/schemas/DateTimeInterval'
-          description: A date/time (UTC) interval for filtering signal events based on their creation date. Defaults to NOW - 7 days if omitted. Users with limited access can only provide the default or a smaller date window.
-          example: example_value
-        updated:
-          allOf:
-          - $ref: '#/components/schemas/DateTimeInterval'
-          description: A date/time (UTC) interval for filtering signal events based on their last updated date. Defaults to NOW - 7 days if omitted. Users with limited access can only provide the default or a smaller date window.
-          example: example_value
-        signalIds:
-          type: string
-          description: Comma delimited string of signalIds
-          example: dilutionTrigger,freeCashFlow
-        themes:
-          type: string
-          description: Comma delimited string of theme ids. Full list of signal themes can be viewed at /themes.
-          example: example_value
-        categories:
-          type: string
-          description: Comma delimited string of category ids. Full list of signal categories can be viewed at /categories.
-          example: example_value
-        userRelevanceScore:
-          allOf:
-          - $ref: '#/components/schemas/RelevanceScoreRange'
-          description: A range for filtering signal events based on their relevancy score.
-          example: example_value
-    rateLimitResponse:
-      title: Rate Limit Error Object
-      description: Error returned if any of the user's rate limit have been reached.
-      properties:
-        message:
-          type: string
-          example: API rate limit exceeded
-    screenMeta:
-      type: object
-      required:
-      - signalRequestId
-      - dateRange
-      properties:
-        signalRequestId:
-          type: string
-          format: uuid
-          example: '500123'
-        dateRange:
-          type: object
-          properties:
-            created:
-              $ref: '#/components/schemas/DateTimeInterval'
-            updated:
-              $ref: '#/components/schemas/DateTimeInterval'
-          example: example_value
-        partial:
-          type: object
-          required:
-          - isPartial
-          - reason
-          properties:
-            isPartial:
-              type: boolean
-              description: Indicates that some of the matching entities are missing in the response.
-            reason:
-              type: string
-              description: Describes why the response was sent with an incomplete list of entities.
-          example: example_value
-    ErrorList:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/Error'
-    Error:
-      type: object
-      properties:
-        id:
-          type: string
-        code:
-          type: string
-        title:
-          type: string
-    EntityFieldValueDTO:
-      type: object
-      properties:
-        meta:
-          type: object
-          properties:
-            pagination:
-              type: object
-              properties:
-                total:
-                  type: integer
-                isEstimatedTotal:
-                  type: boolean
-            sort:
-              type: array
-              items:
-                type: string
-        data:
-          type: array
-          items:
-            properties:
-              entityRowId:
-                type: integer
-              keyValue:
-                type: string
-              descriptionValue:
-                type: string
-              fieldsWithValues:
-                type: array
-                items:
-                  type: string
+  parameters:
+    createdParam:
+      name: created
+      in: query
+      schema:
+        $ref: '#/components/schemas/DateTimeInterval'
+      style: deepObject
+      explode: true
+      description: A date/time (UTC) interval for filtering signal events based on their creation date. Defaults to NOW - 7 days if omitted. Users with limited access can only provide the default or a smaller date window.
+      examples:
+        default:
+          value: {}
+        lowerBound:
+          $ref: '#/components/examples/lowerBound'
+        upperBound:
+          $ref: '#/components/examples/upperBound'
+        bothBounds:
+          $ref: '#/components/examples/bothBounds'
+    signalIdsParam:
+      name: signalIds
+      in: query
+      schema:
+        type: string
+        description: Comma delimited string of signalIds
+      example: dilutionTrigger,freeCashFlow
+    relevanceScoreParam:
+      name: userRelevanceScore
+      in: query
+      schema:
+        $ref: '#/components/schemas/RelevanceScoreRange'
+      style: deepObject
+      explode: true
+      description: A range for filtering signal events based on their relevancy score.
+      examples:
+        lowerBound:
+          value:
+            gte: 0
+        upperBound:
+          value:
+            lt: 1
+        bothBounds:
+          value:
+            gt: 0
+            lt: 1
+    updatedParam:
+      name: updated
+      in: query
+      schema:
+        $ref: '#/components/schemas/DateTimeInterval'
+      style: deepObject
+      explode: true
+      description: A date/time (UTC) interval for filtering signal events based on their last updated date. Defaults to NOW - 7 days if omitted. Users with limited access can only provide the default or a smaller date window.
+      examples:
+        default:
+          value: {}
+        lowerBound:
+          $ref: '#/components/examples/lowerBound'
+        upperBound:
+          $ref: '#/components/examples/upperBound'
+        bothBounds:
+          $ref: '#/components/examples/bothBounds'
+    themesParam:
+      name: themes
+      in: query
+      schema:
+        type: string
+      description: Comma delimited string of theme ids. Full list of signal themes can be viewed at /themes.
+    categoriesParam:
+      name: categories
+      in: query
+      schema:
+        type: string
+      description: Comma delimited string of category ids. Full list of signal categories can be viewed at /categories.
   examples:
-    upperBound:
-      value:
-        lt: '2022-01-02T00:00:00.000Z'
     bothBounds:
       value:
         gt: '2022-01-01T00:00:00.000Z'
@@ -586,22 +406,10 @@ components:
     lowerBound:
       value:
         gt: '2022-01-01T00:00:00.000Z'
+    upperBound:
+      value:
+        lt: '2022-01-02T00:00:00.000Z'
   securitySchemes:
     basicAuth:
       type: http
       scheme: basic
-    FactSetOAuth2:
-      type: oauth2
-      flows:
-        clientCredentials:
-          tokenUrl: https://auth.factset.com/as/token.oauth2
-          scopes: {}
-    FactSetApiKey:
-      type: http
-      scheme: basic
-externalDocs:
-  description: API Documentation
-  url: https://developer.factset.com/api-catalog/vermilion-api
-x-refined-from:
-- factset-signals-api-openapi.yml
-- vermilion-openapi-original.yml

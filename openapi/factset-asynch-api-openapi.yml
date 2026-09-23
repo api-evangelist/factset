@@ -2,7 +2,10 @@ openapi: 3.2.0
 info:
   title: Factset Documents Distributor - Documents Asynch API
   version: 1.0.0
-  description: "Documents APIs that provide filings such as Global Filings and XML files such as StreetAccount\n\n  Global Filings API provides the capability to search and download filings documents from various exchanges around the world. This API will provide access to the full history and the ability to search by date and dataset(source). It does not provide real-time updates to the filings documents. Filings providers currently include EDGAR \n  \n  Note: The real-time updates to the filing documents will be available within week to ten days and per request able to query up to 8 days of data\n        \n  \n  StreetAccount XML API provides access to historical StreetAccount (SA) news. SA provides a summary for various corporate and market news written by journalist with background in financial markets.\n\n  The API delivers SA stories in XML format based on user-specified date input parameters. When the API request is completed, output files will be made available back to the users through a secure URL. This API has three endpoints (1) Request Files (2) Check Status (3) Get Files.\n  \n  This API only supports adhoc requests to retrieve historical files and does not support real-time files and if require real-time push should consider the other three methods (pushed via SFTP, to QNT account, or users Azure Storage)\n\n Both historical and real-time Street Account news is also delivered via SFTP, to users QNT account, or users Azure Storage.\n\nFiles delivered contain both metadata and content body in each file. This eliminates the need to make multiple requests through multiple services to get all the information.\n\nNews API provides access to historical news. This provides a summary for various corporate and market news written by journalist with background in financial markets.\n\nThe API delivers  stories in different format based on user-specified date input parameters. When the API request is completed, output files will be made available back to the users through a secure URL. This API has three endpoints (1) Request Files (2) Check Status (3) Get Files  \n "
+  description: 'Documents APIs that provide filings such as Global Filings and XML files such as StreetAccount
+
+
+    Global Filings API provides the capability to search and download filings documents from various exchanges around the world.'
 servers:
 - url: https://api.factset.com/bulk-documents
 security:
@@ -18,7 +21,7 @@ paths:
       description: 'Give the startDate and endDate parameters as request parameters in the /request-files endpoint, it returns the jobID. startDate and endDate should be in YYYY-MM-DDTHH:MM:SSZ format
 
 
-        This API only supports adhoc requests to retrieve historical files and does not support real-time       files and if you interested in require real-time push should consider the other three methods         (pushed via SFTP, to QNT account, or your Azure Storage). Per API request able to query till 2 years of data'
+        This API only supports adhoc requests to retrieve historical files and does not support real-time files and if you interested in require real-time push should consider the other three methods (pushed via SFTP, to QNT account, or your Azure Storage). Per API request able to query till 2 years of data'
       parameters:
       - name: startDate
         in: query
@@ -53,6 +56,8 @@ paths:
               examples:
                 default400ResponseExample:
                   $ref: '#/components/examples/StreetAccountExample'
+      operationId: getAsynchStreetaccountV1RequestFiles
+      x-operation-id-source: derived
   /asynch/streetaccount/v1/check-status:
     get:
       tags:
@@ -97,6 +102,8 @@ paths:
               examples:
                 default400ResponseExample:
                   $ref: '#/components/examples/StreetAccountExample'
+      operationId: getAsynchStreetaccountV1CheckStatus
+      x-operation-id-source: derived
   /asynch/streetaccount/v1/get-files:
     get:
       tags:
@@ -141,6 +148,8 @@ paths:
               examples:
                 default400ResponseExample:
                   $ref: '#/components/examples/StreetAccountExample'
+      operationId: getAsynchStreetaccountV1GetFiles
+      x-operation-id-source: derived
   /asynch/news/v1/request-files:
     get:
       tags:
@@ -192,6 +201,8 @@ paths:
               examples:
                 default400ResponseExample:
                   $ref: '#/components/examples/NewsExample'
+      operationId: getAsynchNewsV1RequestFiles
+      x-operation-id-source: derived
   /asynch/news/v1/check-status:
     get:
       tags:
@@ -245,6 +256,8 @@ paths:
               examples:
                 default400ResponseExample:
                   $ref: '#/components/examples/NewsExample'
+      operationId: getAsynchNewsV1CheckStatus
+      x-operation-id-source: derived
   /asynch/news/v1/get-files:
     get:
       tags:
@@ -298,8 +311,79 @@ paths:
               examples:
                 default400ResponseExample:
                   $ref: '#/components/examples/NewsExample'
+      operationId: getAsynchNewsV1GetFiles
+      x-operation-id-source: derived
 components:
   schemas:
+    newscheckstatusResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/checkstatusone'
+        meta:
+          $ref: '#/components/schemas/metaOne'
+    newsgetfilesResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/getfilesone'
+        meta:
+          $ref: '#/components/schemas/metaOne'
+    getfilesone:
+      type: object
+      properties:
+        product:
+          description: Defines the name of the product
+          type: string
+        startDate:
+          description: The startDate from which the data is required in YYYY-MM-DDTHH:MM:SSZ format
+          type: string
+          format: date
+        endDate:
+          description: The endDate until which the data is fetched in YYYY-MM-DDTHH:MM:SSZ format
+          type: string
+          format: date
+        jobID:
+          description: Unique id to get the xml files for the requested date
+          type: string
+        status:
+          description: Defines the status of the request
+          type: string
+        url:
+          description: Link to download the zip file which contains xml files
+          type: string
+        part:
+          description: Returns the part number of the jobID
+          type: integer
+    getfilesResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/getfiles'
+        meta:
+          $ref: '#/components/schemas/metaOne'
+    newsrequestfilesResponse:
+      type: object
+      properties:
+        jobID:
+          description: Unique id to get the xml files for the requested date
+          type: string
+        status:
+          description: Returns the value as submitted. Tells the request has been submitted
+          type: string
+    isPartialOne:
+      title: IsPartialItems
+      description: If the value is true, it indicates additional results are available. False represents that this is the last set of results for this request.
+      type: object
+      properties:
+        isPartial:
+          type: boolean
     checkstatus:
       type: object
       properties:
@@ -326,6 +410,50 @@ components:
         part:
           description: Returns the part number of the jobID
           type: integer
+    requestfilesResponse:
+      type: object
+      properties:
+        jobID:
+          description: Unique id to get the xml files for the requested date
+          type: string
+        status:
+          description: Returns the value as submitted. Tells the request has been submitted
+          type: string
+    checkstatusone:
+      type: object
+      properties:
+        product:
+          description: Defines the name of the product
+          type: string
+        jobID:
+          description: Unique id to get the xml files for the requested date
+          type: string
+        status:
+          description: Returns any of the 2 results Submitted ->Running->Completed and Failed
+          type: string
+        percentDone:
+          description: Returns how much percentage of  task is completed for the requested jobID
+          type: integer
+        startDate:
+          description: The date from which the data is required in YYYY-MM-DDTHH:MM:SSZ format
+          type: string
+          format: date
+        endDate:
+          description: The date until which the data is fetched in YYYY-MM-DDTHH:MM:SSZ format
+          type: string
+          format: date
+        part:
+          description: Returns the part number of the jobID
+          type: integer
+    newsStatus:
+      title: Response Status of News
+      type: object
+      properties:
+        id:
+          type: string
+        error_message:
+          description: Textual error message
+          type: string
     metaOne:
       title: Meta
       description: Array of metadata objects
@@ -361,6 +489,15 @@ components:
         part:
           description: Returns the part number of the jobID
           type: integer
+    StreetAccountStatus:
+      title: Response Status of SA
+      type: object
+      properties:
+        id:
+          type: string
+        error_message:
+          description: Textual error message
+          type: string
     paginationOne:
       title: PaginationItems
       description: List of pagination objects
@@ -378,77 +515,6 @@ components:
         offset:
           description: The flag indicating the position in the results array if additional results are available beyond the default value or the value in paginationLimit parameter (if used). This value is passed in the _paginationOffset parameter to retreieve subsequent results
           type: integer
-    newsrequestfilesResponse:
-      type: object
-      properties:
-        jobID:
-          description: Unique id to get the xml files for the requested date
-          type: string
-        status:
-          description: Returns the value as submitted. Tells the request has been submitted
-          type: string
-    getfilesResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/getfiles'
-        meta:
-          $ref: '#/components/schemas/metaOne'
-    checkstatusone:
-      type: object
-      properties:
-        product:
-          description: Defines the name of the product
-          type: string
-        jobID:
-          description: Unique id to get the xml files for the requested date
-          type: string
-        status:
-          description: Returns any of the 2 results Submitted ->Running->Completed and Failed
-          type: string
-        percentDone:
-          description: Returns how much percentage of  task is completed for the requested jobID
-          type: integer
-        startDate:
-          description: The date from which the data is required in YYYY-MM-DDTHH:MM:SSZ format
-          type: string
-          format: date
-        endDate:
-          description: The date until which the data is fetched in YYYY-MM-DDTHH:MM:SSZ format
-          type: string
-          format: date
-        part:
-          description: Returns the part number of the jobID
-          type: integer
-    requestfilesResponse:
-      type: object
-      properties:
-        jobID:
-          description: Unique id to get the xml files for the requested date
-          type: string
-        status:
-          description: Returns the value as submitted. Tells the request has been submitted
-          type: string
-    newscheckstatusResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/checkstatusone'
-        meta:
-          $ref: '#/components/schemas/metaOne'
-    newsStatus:
-      title: Response Status of News
-      type: object
-      properties:
-        id:
-          type: string
-        error_message:
-          description: Textual error message
-          type: string
     checkstatusResponse:
       type: object
       properties:
@@ -458,58 +524,74 @@ components:
             $ref: '#/components/schemas/checkstatus'
         meta:
           $ref: '#/components/schemas/metaOne'
-    getfilesone:
-      type: object
-      properties:
-        product:
-          description: Defines the name of the product
-          type: string
-        startDate:
-          description: The startDate from which the data is required in YYYY-MM-DDTHH:MM:SSZ format
-          type: string
-          format: date
-        endDate:
-          description: The endDate until which the data is fetched in YYYY-MM-DDTHH:MM:SSZ format
-          type: string
-          format: date
-        jobID:
-          description: Unique id to get the xml files for the requested date
-          type: string
-        status:
-          description: Defines the status of the request
-          type: string
-        url:
-          description: Link to download the zip file which contains xml files
-          type: string
-        part:
-          description: Returns the part number of the jobID
-          type: integer
-    newsgetfilesResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/getfilesone'
-        meta:
-          $ref: '#/components/schemas/metaOne'
-    StreetAccountStatus:
-      title: Response Status of SA
-      type: object
-      properties:
-        id:
-          type: string
-        error_message:
-          description: Textual error message
-          type: string
-    isPartialOne:
-      title: IsPartialItems
-      description: If the value is true, it indicates additional results are available. False represents that this is the last set of results for this request.
-      type: object
-      properties:
-        isPartial:
-          type: boolean
   examples:
+    news200GetFilesExample:
+      summary: Sample Response
+      value:
+        data:
+        - product: news_ukwd
+          startDate: '2021-11-21T00:00:00Z'
+          endDate: '2021-11-28T00:00:00Z'
+          jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
+          status: completed
+          part: '1'
+          url: https://fdss3-unstructured-data-delivery-async-prod.s3.amazonaws.com/content_engineering_user/sa_mustang_history/9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5_1.zip?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=REDACTED_AWS_ACCESS_KEY_ID%2F20220408%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20220408T133348Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjED4aCXVzLWVhc3QtMSJHMEUCIBzma%2Bsah7KyvIQvfx9lU8Mt1sy5biZKGRhNSZx3ASQKAiEAhRs4TWZzxtvBHPQsBaZdoqdN6kih2BCD4rHwAkRUY0kqqQII1%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARABGgw5NjYyODIxMTY0MjUiDLWCnDoKAGnEkMMEUyr9AXDOWoW6CQeGJE6VyNrHwf1uIP5Ut78v2CG5LottatIyDne6UKaNSs%2F1d9s5k9PCXsu1aMFIGcaePX9U3nmaFxXbsLYlrfejcc5%2FDIywMFWGuXj7T023sjqEb4gE9d%2FVG2bx%2FgMs%2Bdj2ZNU4W3OARWFhAMxy3ZGn8DiPdUwytItzxwIi2UTUZhXlyuGr5sfpEX%2Fu8V3ZQRJN44QEMDZg4tsfshu%2F%2BSC8HmisC22Nb9gOjCj6LarLUYZrAfd8Lbfskm1Z4WDm9oKX4zR3NFrMu3VETleuyU%2FDTx66rae%2FZvELaz3%2FBnYcajNniB2iYJK6pu3NOqeoUP%2FdiHqAa1cwt%2FPAkgY6mgEZosJatTVk8gVBZDmWeT9xVxbE6jEVB49S5ujzbk9WG0pCishiaheTZmiKZJ%2FWAxJCq%2BzqrvelVL2QSAreaeKDw4qclCqXd5Fq5Fkt3CKNr%2FqfGUsf7mk7y%2FsK0V532dew%2FM3rsx32TC%2FyPq6n1jLS8Vshn4NbcKeYKI22iI14F36XlfDFZQiP5iTbCzh%2BfbJLLCmeuClsJznx&X-Amz-Signature=e9e0f814b339f6fb40266f5f30c18face40ec648b1e650e810c16973c01ce832
+        meta:
+          pagination:
+            total: 105
+            isEstimatedTotal: false
+            limit: 200
+            offset: 105
+          partial:
+            isPartial: false
+    200GetFilesExample:
+      summary: Sample Response
+      value:
+        data:
+        - product: SA
+          startDate: '2021-11-21T00:00:00Z'
+          endDate: '2021-11-28T00:00:00Z'
+          jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
+          status: completed
+          part: '1'
+          url: https://fdss3-unstructured-data-delivery-async-prod.s3.amazonaws.com/content_engineering_user/sa_mustang_history/9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5_1.zip?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=REDACTED_AWS_ACCESS_KEY_ID%2F20220408%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20220408T133348Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjED4aCXVzLWVhc3QtMSJHMEUCIBzma%2Bsah7KyvIQvfx9lU8Mt1sy5biZKGRhNSZx3ASQKAiEAhRs4TWZzxtvBHPQsBaZdoqdN6kih2BCD4rHwAkRUY0kqqQII1%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARABGgw5NjYyODIxMTY0MjUiDLWCnDoKAGnEkMMEUyr9AXDOWoW6CQeGJE6VyNrHwf1uIP5Ut78v2CG5LottatIyDne6UKaNSs%2F1d9s5k9PCXsu1aMFIGcaePX9U3nmaFxXbsLYlrfejcc5%2FDIywMFWGuXj7T023sjqEb4gE9d%2FVG2bx%2FgMs%2Bdj2ZNU4W3OARWFhAMxy3ZGn8DiPdUwytItzxwIi2UTUZhXlyuGr5sfpEX%2Fu8V3ZQRJN44QEMDZg4tsfshu%2F%2BSC8HmisC22Nb9gOjCj6LarLUYZrAfd8Lbfskm1Z4WDm9oKX4zR3NFrMu3VETleuyU%2FDTx66rae%2FZvELaz3%2FBnYcajNniB2iYJK6pu3NOqeoUP%2FdiHqAa1cwt%2FPAkgY6mgEZosJatTVk8gVBZDmWeT9xVxbE6jEVB49S5ujzbk9WG0pCishiaheTZmiKZJ%2FWAxJCq%2BzqrvelVL2QSAreaeKDw4qclCqXd5Fq5Fkt3CKNr%2FqfGUsf7mk7y%2FsK0V532dew%2FM3rsx32TC%2FyPq6n1jLS8Vshn4NbcKeYKI22iI14F36XlfDFZQiP5iTbCzh%2BfbJLLCmeuClsJznx&X-Amz-Signature=e9e0f814b339f6fb40266f5f30c18face40ec648b1e650e810c16973c01ce832
+        meta:
+          pagination:
+            total: 105
+            isEstimatedTotal: false
+            limit: 200
+            offset: 105
+          partial:
+            isPartial: false
+    200CheckStatusExample:
+      summary: Sample Response
+      value:
+        data:
+        - product: SA
+          jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
+          status: completed
+          percentDone: '100'
+          startDate: '2021-11-21T00:00:00Z'
+          endDate: '2021-11-28T00:00:00Z'
+          part: '1'
+        meta:
+          pagination:
+            total: 105
+            isEstimatedTotal: false
+            limit: 200
+            offset: 105
+          partial:
+            isPartial: false
+    200newsRequestFilesExample:
+      summary: Sample Response
+      value:
+        jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
+        status: submitted
+    StreetAccountExample:
+      summary: Sample error Response
+      value:
+        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
+        error_message: parameterError:Missing required parameter jobID
     200RequestFilesExample:
       summary: Sample Response
       value:
@@ -534,74 +616,7 @@ components:
             offset: 105
           partial:
             isPartial: false
-    200newsRequestFilesExample:
-      summary: Sample Response
-      value:
-        jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
-        status: submitted
-    news200GetFilesExample:
-      summary: Sample Response
-      value:
-        data:
-        - product: news_ukwd
-          startDate: '2021-11-21T00:00:00Z'
-          endDate: '2021-11-28T00:00:00Z'
-          jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
-          status: completed
-          part: '1'
-          url: https://fdss3-unstructured-data-delivery-async-prod.s3.amazonaws.com/content_engineering_user/sa_mustang_history/9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5_1.zip?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA6B6XG7VEUZD7SMXD%2F20220408%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20220408T133348Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjED4aCXVzLWVhc3QtMSJHMEUCIBzma%2Bsah7KyvIQvfx9lU8Mt1sy5biZKGRhNSZx3ASQKAiEAhRs4TWZzxtvBHPQsBaZdoqdN6kih2BCD4rHwAkRUY0kqqQII1%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARABGgw5NjYyODIxMTY0MjUiDLWCnDoKAGnEkMMEUyr9AXDOWoW6CQeGJE6VyNrHwf1uIP5Ut78v2CG5LottatIyDne6UKaNSs%2F1d9s5k9PCXsu1aMFIGcaePX9U3nmaFxXbsLYlrfejcc5%2FDIywMFWGuXj7T023sjqEb4gE9d%2FVG2bx%2FgMs%2Bdj2ZNU4W3OARWFhAMxy3ZGn8DiPdUwytItzxwIi2UTUZhXlyuGr5sfpEX%2Fu8V3ZQRJN44QEMDZg4tsfshu%2F%2BSC8HmisC22Nb9gOjCj6LarLUYZrAfd8Lbfskm1Z4WDm9oKX4zR3NFrMu3VETleuyU%2FDTx66rae%2FZvELaz3%2FBnYcajNniB2iYJK6pu3NOqeoUP%2FdiHqAa1cwt%2FPAkgY6mgEZosJatTVk8gVBZDmWeT9xVxbE6jEVB49S5ujzbk9WG0pCishiaheTZmiKZJ%2FWAxJCq%2BzqrvelVL2QSAreaeKDw4qclCqXd5Fq5Fkt3CKNr%2FqfGUsf7mk7y%2FsK0V532dew%2FM3rsx32TC%2FyPq6n1jLS8Vshn4NbcKeYKI22iI14F36XlfDFZQiP5iTbCzh%2BfbJLLCmeuClsJznx&X-Amz-Signature=e9e0f814b339f6fb40266f5f30c18face40ec648b1e650e810c16973c01ce832
-        meta:
-          pagination:
-            total: 105
-            isEstimatedTotal: false
-            limit: 200
-            offset: 105
-          partial:
-            isPartial: false
-    200GetFilesExample:
-      summary: Sample Response
-      value:
-        data:
-        - product: SA
-          startDate: '2021-11-21T00:00:00Z'
-          endDate: '2021-11-28T00:00:00Z'
-          jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
-          status: completed
-          part: '1'
-          url: https://fdss3-unstructured-data-delivery-async-prod.s3.amazonaws.com/content_engineering_user/sa_mustang_history/9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5_1.zip?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA6B6XG7VEUZD7SMXD%2F20220408%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20220408T133348Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjED4aCXVzLWVhc3QtMSJHMEUCIBzma%2Bsah7KyvIQvfx9lU8Mt1sy5biZKGRhNSZx3ASQKAiEAhRs4TWZzxtvBHPQsBaZdoqdN6kih2BCD4rHwAkRUY0kqqQII1%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARABGgw5NjYyODIxMTY0MjUiDLWCnDoKAGnEkMMEUyr9AXDOWoW6CQeGJE6VyNrHwf1uIP5Ut78v2CG5LottatIyDne6UKaNSs%2F1d9s5k9PCXsu1aMFIGcaePX9U3nmaFxXbsLYlrfejcc5%2FDIywMFWGuXj7T023sjqEb4gE9d%2FVG2bx%2FgMs%2Bdj2ZNU4W3OARWFhAMxy3ZGn8DiPdUwytItzxwIi2UTUZhXlyuGr5sfpEX%2Fu8V3ZQRJN44QEMDZg4tsfshu%2F%2BSC8HmisC22Nb9gOjCj6LarLUYZrAfd8Lbfskm1Z4WDm9oKX4zR3NFrMu3VETleuyU%2FDTx66rae%2FZvELaz3%2FBnYcajNniB2iYJK6pu3NOqeoUP%2FdiHqAa1cwt%2FPAkgY6mgEZosJatTVk8gVBZDmWeT9xVxbE6jEVB49S5ujzbk9WG0pCishiaheTZmiKZJ%2FWAxJCq%2BzqrvelVL2QSAreaeKDw4qclCqXd5Fq5Fkt3CKNr%2FqfGUsf7mk7y%2FsK0V532dew%2FM3rsx32TC%2FyPq6n1jLS8Vshn4NbcKeYKI22iI14F36XlfDFZQiP5iTbCzh%2BfbJLLCmeuClsJznx&X-Amz-Signature=e9e0f814b339f6fb40266f5f30c18face40ec648b1e650e810c16973c01ce832
-        meta:
-          pagination:
-            total: 105
-            isEstimatedTotal: false
-            limit: 200
-            offset: 105
-          partial:
-            isPartial: false
     NewsExample:
-      summary: Sample error Response
-      value:
-        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
-        error_message: parameterError:Missing required parameter jobID
-    200CheckStatusExample:
-      summary: Sample Response
-      value:
-        data:
-        - product: SA
-          jobID: 9ffa3ffb-0ed3-40a0-a98f-8ed7da0a8ad5
-          status: completed
-          percentDone: '100'
-          startDate: '2021-11-21T00:00:00Z'
-          endDate: '2021-11-28T00:00:00Z'
-          part: '1'
-        meta:
-          pagination:
-            total: 105
-            isEstimatedTotal: false
-            limit: 200
-            offset: 105
-          partial:
-            isPartial: false
-    StreetAccountExample:
       summary: Sample error Response
       value:
         id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351

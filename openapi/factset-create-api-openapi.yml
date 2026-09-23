@@ -1,20 +1,37 @@
 openapi: 3.2.0
 info:
-  title: Factset Create API
-  version: '1.0'
-  description: 'Operations tagged Create across 2 of this provider''s published API definitions: conversational-api-powered-by-mercury-openapi-original.yml, factset-bookbuilder-api-openapi.yml. Each path carries the servers of the definition it was published in.'
+  title: Factset Conversational API Powered by FactSet Mercury…
+  description: 'The FactSet Conversational API allows clients to white-label core FactSet Mercury capabilities in a client’s chatbot experience.
+
+
+    Request data from FactSet using a single natural language query. Start the response generation using the `/create` endpoint, poll the status using `/status`. Once the result is ready, retrieve it using `/result`.
+
+
+    **Please note:** "Natural language" in this documentation refers to modern conversational English. Support for other languages is currently unavailable.'
+  version: 0.1.0
+  license:
+    name: Apache License, Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  contact:
+    name: FactSet Research Systems
+    email: api@factset.com
+    url: https://developer.factset.com/contact
 servers:
 - url: https://api.factset.com/conversational/v0
-- url: https://api.factset.com/book-builder-api/
-  description: Base URL Production
+security:
+- FactSetApiKey: []
+- FactSetOAuth2: []
 tags:
 - name: Create
 paths:
   /create:
     post:
       operationId: createChat
-      summary: Factset Create a chat request for a given natural language query.
-      description: "Returns a chat ID for polling the response to a natural language query for financial data.\n\n  This endpoint is an interface for initializing a request for an answer from FactSet Mercury, our large language model for surfacing FactSet datasets through conversational natural language queries. Use the `/create` endpoint to start generating responses for one-off questions. Responses contain a chat ID and status for the chat process.\n"
+      summary: Factset Create a chat request for a given natural language query
+      description: 'Returns a chat ID for polling the response to a natural language query for financial data.
+
+
+        This endpoint is an interface for initializing a request for an answer from FactSet Mercury, our large language model for surfacing FactSet datasets through conversational natural language queries. Use the `/create` endpoint to start generating responses for one-off questions. Responses contain a chat ID and status for the chat process.'
       tags:
       - Create
       requestBody:
@@ -157,68 +174,50 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-      security:
-      - FactSetApiKey: []
-      - FactSetOAuth2: []
-    servers:
-    - url: https://api.factset.com/conversational/v0
-  /v1/create-template/:
-    post:
-      tags:
-      - Create
-      summary: Factset Kick Off Request to Create Template With Reports of Your Choice
-      description: This end point retrieves template name and template_id of the template you create. All the book options such as name of the template, type, and reports can be specified in the request body. Please refer to the documentation for valid section ids and report ids.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/createTemplatePostRequest'
-      responses:
-        '200':
-          description: Successful response contains book name and book ID
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Enable_Template_Info_Post'
-        '400':
-          description: Invalid template type/section_id/report_id
-        '401':
-          description: Missing or invalid authentication
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-      security:
-      - BasicAuth: []
-    servers:
-    - url: https://api.factset.com/book-builder-api/
-      description: Base URL Production
 components:
+  examples:
+    403ForbiddenErrorExample:
+      value: 'Client does not have the required CACCESS: {00QAI}, Request key: 65CA96B3129489A6'
+    CreateChatResponseExample:
+      value:
+        data:
+          conversationId: 9c1031c2-5463-47ae-81b3-126a68f0c2a6
+          status: executing
+    401UnauthorizedErrorExample:
+      value: Authentication Failed
+    CreateChatRequestExample:
+      value:
+        data:
+          query: What is Tesla's enterprise value?
+    RateLimitExceededErrorExample:
+      value:
+        message: API rate limit exceeded
   schemas:
-    ErrorObject:
-      description: Represents a single error, with error name and identifiers
+    CreateChatResponse:
+      description: Response from `/create` containing the chat ID and executing status
       type: object
       properties:
-        id:
-          type: string
-        title:
-          type: string
-        code:
-          type: string
-    RateLimitExceededError:
-      description: Error response when rate limit has been exceeded.
-      type: object
-      properties:
-        message:
-          type: string
-          enum:
-          - API rate limit exceeded
+        data:
+          type: object
+          properties:
+            conversationId:
+              type: string
+              format: uuid
+            status:
+              type: string
+              enum:
+              - executing
     403ForbiddenError:
       description: Error response for a user without entitlements to the API.
       type: string
-    401UnauthorizedError:
-      description: Error response for a user without authentication to use the API.
-      type: string
+    Error:
+      description: Wrapper containing metadata and appropriate errors as thrown by the API
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorObject'
     CreateChatRequest:
       description: Request body containing the query to be sent to the LLM
       properties:
@@ -234,91 +233,27 @@ components:
       required:
       - data
       type: object
-    CreateChatResponse:
-      description: Response from `/create` containing the chat ID and executing status
+    ErrorObject:
+      description: Represents a single error, with error name and identifiers
       type: object
       properties:
-        data:
-          type: object
-          properties:
-            conversationId:
-              type: string
-              format: uuid
-            status:
-              type: string
-              enum:
-              - executing
-    Error:
-      description: Wrapper containing metadata and appropriate errors as thrown by the API
+        id:
+          type: string
+        title:
+          type: string
+        code:
+          type: string
+    401UnauthorizedError:
+      description: Error response for a user without authentication to use the API.
+      type: string
+    RateLimitExceededError:
+      description: Error response when rate limit has been exceeded.
       type: object
       properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorObject'
-    createTemplatePostRequest:
-      title: Request Body for Template Request
-      description: The request body allows users to input the name of the template, ticker
-      type: object
-      properties:
-        tmpl_name:
+        message:
           type: string
-          description: name of the template
-          example: Quick Financials
-        tmpl_type:
-          type: string
-          description: Type of the template (public,pc,pe,fi)
-          example: public
-        content:
-          type: array
-          description: Content sections
-          items:
-            oneOf:
-            - type: object
-              properties:
-                section_id:
-                  example: COMPANY_OVERVIEW
-                reports:
-                  type: array
-                  items:
-                    oneOf:
-                    - type: string
-                      example: COMPANY_SNAPSHOT_IB
-                    - type: string
-                      example: COMPANY_SNAPSHOT_IM
-                    - type: string
-                      example: ENTITY_STRUCTURE
-          example: []
-    Enable_Template_Info_Post:
-      title: Template Request
-      description: Request to enable template list information for the client.
-      type: object
-      properties:
-        tmpl_id:
-          type: string
-          description: Template ID
-          example: 20200623094829450
-        tmpl_name:
-          type: string
-          description: Template name
-          example: Financials
-  examples:
-    403ForbiddenErrorExample:
-      value: 'Client does not have the required CACCESS: {00QAI}, Request key: 65CA96B3129489A6'
-    CreateChatResponseExample:
-      value:
-        data:
-          conversationId: 9c1031c2-5463-47ae-81b3-126a68f0c2a6
-          status: executing
-    RateLimitExceededErrorExample:
-      value:
-        message: API rate limit exceeded
-    401UnauthorizedErrorExample:
-      value: Authentication Failed
-    CreateChatRequestExample:
-      value:
-        data:
-          query: What is Tesla's enterprise value?
+          enum:
+          - API rate limit exceeded
   securitySchemes:
     FactSetOAuth2:
       type: oauth2
@@ -329,12 +264,6 @@ components:
     FactSetApiKey:
       type: http
       scheme: basic
-    BasicAuth:
-      type: http
-      scheme: basic
 externalDocs:
   description: API Documentation
   url: https://developer.factset.com/api-catalog/conversational-api-powered-factset-mercury
-x-refined-from:
-- conversational-api-powered-by-mercury-openapi-original.yml
-- factset-bookbuilder-api-openapi.yml

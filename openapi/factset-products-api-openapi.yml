@@ -2,11 +2,9 @@ openapi: 3.2.0
 info:
   title: Factset Products API
   version: '1.0'
-  description: 'Operations tagged Products across 6 of this provider''s published API definitions: exchange-datafeed-data-model-openapi-original.yml, factset-content-feeds-data-dictionary-openapi.yml, factset-exchange-datafeed-data-model-api-openapi.yml, factset-open-factset-marketplace-api-openapi.yml, factset-procure-to-pay-scim-openapi.yml, procure-to-pay-api-scim-openapi-original.yml. Each path carries the servers of the definition it was published in.'
+  description: 'Operations tagged Products across 3 of this provider''s published API definitions: exchange-datafeed-data-model-openapi-original.yml, factset-open-factset-marketplace-api-openapi.yml, factset-procure-to-pay-scim-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
 - url: https://api.factset.com/RTDataModel
-- url: https://api.factset.com/data-dictionary
-  description: Production
 - url: https://api-sandbox.factset.com
 - url: https://api.factset.com/scim/v2/
   description: Production environment
@@ -17,13 +15,11 @@ tags:
 paths:
   /products:
     get:
-      summary: Request the enumeration table for FactSet product codes.
+      summary: Request the enumeration table for FactSet product codes
       operationId: get_products
       tags:
       - Products
-      description: 'Data can be returned in CSV, JSON or XML format, use the `format` parameter to chnage from the default JSON format.
-
-        '
+      description: Data can be returned in CSV, JSON or XML format, use the `format` parameter to chnage from the default JSON format.
       parameters:
       - $ref: '#/components/parameters/format'
       responses:
@@ -79,33 +75,9 @@ paths:
       - BasicAuth: []
     servers:
     - url: https://api.factset.com/RTDataModel
-  /navigator/products:
-    get:
-      tags:
-      - Products
-      summary: Factset Get the List of Products for Navigator.
-      responses:
-        '200':
-          description: Successful operation.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Product'
-        '401':
-          description: You are not authorized to view this page.
-      x-microcks-operation:
-        delay: 0
-        dispatcher: FALLBACK
-      security:
-      - basicAuth: []
-    servers:
-    - url: https://api.factset.com/data-dictionary
-      description: Production
   /ofs/v2/products/{id}:
     get:
-      summary: Factset Retrieve a Specific Product Record.
+      summary: Factset Retrieve a Specific Product Record
       parameters:
       - name: id
         in: path
@@ -129,11 +101,13 @@ paths:
         dispatcher: FALLBACK
       security:
       - Basic: []
+      operationId: getOfsV2ProductsById
+      x-operation-id-source: derived
     servers:
     - url: https://api-sandbox.factset.com
   /ofs/v2/products/types:
     get:
-      summary: Factset Retrieve a Collection of the Available Product Types Along With the Number of Published Products Per Type.
+      summary: Factset Retrieve a Collection of the Available Product Types Along With the…
       responses:
         '200':
           description: A JSON representation a collection of the available Product Types.
@@ -166,11 +140,13 @@ paths:
         dispatcher: FALLBACK
       security:
       - Basic: []
+      operationId: getOfsV2ProductsTypes
+      x-operation-id-source: derived
     servers:
     - url: https://api-sandbox.factset.com
   /ofs/v2/products:
     get:
-      summary: Factset Retrieve a Collection of Product Records.
+      summary: Factset Retrieve a Collection of Product Records
       parameters:
       - name: limit
         in: query
@@ -215,11 +191,13 @@ paths:
         dispatcher: FALLBACK
       security:
       - Basic: []
+      operationId: getOfsV2Products
+      x-operation-id-source: derived
     servers:
     - url: https://api-sandbox.factset.com
   /ofs/v2/products/search:
     post:
-      summary: Factset Retrieve a Collection of Product Records.
+      summary: Factset Retrieve a Collection of Product Records
       responses:
         '200':
           description: A JSON representation of collection of Product records. Might be empty.
@@ -255,13 +233,15 @@ paths:
               $ref: '#/components/schemas/PostProductSearchDto'
       security:
       - Basic: []
+      operationId: postOfsV2ProductsSearch
+      x-operation-id-source: derived
     servers:
     - url: https://api-sandbox.factset.com
   /Products:
     get:
       tags:
       - Products
-      summary: Factset Get a List of Products.
+      summary: Factset Get a List of Products
       security:
       - basicAuth: []
       parameters:
@@ -284,6 +264,8 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
+      operationId: getProducts
+      x-operation-id-source: derived
     servers:
     - url: https://api.factset.com/scim/v2/
       description: Production environment
@@ -293,7 +275,7 @@ paths:
     get:
       tags:
       - Products
-      summary: Factset Get a Product.
+      summary: Factset Get a Product
       security:
       - basicAuth: []
       parameters:
@@ -312,6 +294,8 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
+      operationId: getProductsById
+      x-operation-id-source: derived
     servers:
     - url: https://api.factset.com/scim/v2/
       description: Production environment
@@ -344,81 +328,36 @@ components:
           example: New York Stock Exchange Level 1
           type: string
           description: Product description
-    Product:
-      type: object
+    Document:
       properties:
-        id:
-          type: string
-          example: '3210'
-          description: Unique identifier for the product
         name:
           type: string
-          example: Estimize US Equities
-          description: Name of the product
-        ofmLink:
+        description:
           type: string
-          example: https://open.factset.com/products/estimize-us-equities/en-us
-          description: URL to the product page on the Open:FactSet Marketplace
-        ofmProductId:
+        fileName:
           type: string
-          example: 168e9bf8-108c-4912-beca-b658083c7c86
-          description: The id defining a product in the Open:FactSet Marketplace
-        entitled:
-          type: boolean
-          example: true
-          description: Flag indicating if the user is entitled to access the data in their subscriptions
-        providerName:
+        url:
           type: string
-          example: Estimize
-          description: Name of the Data Provider for the product
-        dataFeed:
+        isFile:
           type: boolean
-          example: true
-          description: Flag indicating if this product is available in a data feed
-        api:
+        isPublic:
           type: boolean
-          example: true
-          description: Flag indicating if this product is available in an api
-        referenceDataFeed:
-          type: boolean
-          example: false
-          description: Flag indicating if this product is maintained by RDF/UCF
+        order:
+          type: integer
+        section:
+          items:
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+            type: object
+          type: array
+      type: object
     Marking:
       properties:
         state:
           example: published
-          type: string
-      type: object
-    PostProductSearchDto:
-      properties:
-        limit:
-          description: Limit the amount of records per page.
-          example: 10
-          type: integer
-          default: 10
-          maximum: 300
-        page:
-          description: Select which page to show.
-          example: 1
-          type: integer
-          default: 1
-          minimum: 1
-        sort:
-          description: Sort according to  specific field value.
-          example: name:asc
-          type: string
-          default: name:asc
-        fields:
-          description: Fetch only specific fields. The fields' names separated by a comma.
-          example: name,marking.state,slug,partner
-          type: string
-        search:
-          description: Search for terms in certain fields.
-          example: name:FactSet,detail:FactSet
-          type: string
-        filter:
-          description: Filter against specific field values.
-          example: type:Data Feed:API
           type: string
       type: object
     GetProductDto:
@@ -833,32 +772,55 @@ components:
               type: string
           type: object
       type: object
-    Document:
+    PostProductSearchDto:
       properties:
-        name:
-          type: string
-        description:
-          type: string
-        fileName:
-          type: string
-        url:
-          type: string
-        isFile:
-          type: boolean
-        isPublic:
-          type: boolean
-        order:
+        limit:
+          description: Limit the amount of records per page.
+          example: 10
           type: integer
-        section:
-          items:
-            properties:
-              id:
-                type: integer
-              name:
-                type: string
-            type: object
-          type: array
+          default: 10
+          maximum: 300
+        page:
+          description: Select which page to show.
+          example: 1
+          type: integer
+          default: 1
+          minimum: 1
+        sort:
+          description: Sort according to  specific field value.
+          example: name:asc
+          type: string
+          default: name:asc
+        fields:
+          description: Fetch only specific fields. The fields' names separated by a comma.
+          example: name,marking.state,slug,partner
+          type: string
+        search:
+          description: Search for terms in certain fields.
+          example: name:FactSet,detail:FactSet
+          type: string
+        filter:
+          description: Filter against specific field values.
+          example: type:Data Feed:API
+          type: string
       type: object
+    ProductResourceList:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example:
+          - urn:ietf:params:scim:api:messages:2.0:ListResponse
+        totalResults:
+          type: integer
+          example: 1
+        Resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductResource'
+          example: []
     ProductResource:
       type: object
       properties:
@@ -915,94 +877,6 @@ components:
           example: example_value
       required:
       - whitelist
-    ProductResourceList:
-      type: object
-      properties:
-        schemas:
-          type: array
-          items:
-            type: string
-          example:
-          - urn:ietf:params:scim:api:messages:2.0:ListResponse
-        totalResults:
-          type: integer
-          example: 1
-        Resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProductResource'
-          example: []
-    ProductResource_2:
-      type: object
-      properties:
-        schemas:
-          type: array
-          items:
-            type: string
-          example:
-          - urn:scim:schemas:extension:FactSet:Core:1.0:Product
-        id:
-          type: string
-          example: '6781'
-          readOnly: true
-        name:
-          type: string
-          description: Name of product.
-          readOnly: true
-          example: FactSet Identity
-        description:
-          type: string
-          description: Details of product.
-          readOnly: true
-          example: This workstation product will provide the user with a serial number and a "blanket" login. Examples of when this can be used is for web only users, notify clients, or to give users minimal access.
-        groupDescription:
-          type: string
-          description: Description of the group the product belongs in, e.g. Exchange, Product, Database, Workstation, etc.
-          readOnly: true
-          example: Workstations
-        workstation:
-          type: boolean
-          description: A boolean representing whether the product is base-level access to FactSet, issuing the individual's serial number. Only one Product "id" per individual will have this value set to true.
-          readOnly: true
-          example: true
-        requiresApproval:
-          type: string
-          description: A description of the type of approval required before an order for this product can be fulfilled. This value is null for those products that do not require any approval.
-          readOnly: true
-          example: FactSet
-        whitelist:
-          type: boolean
-          description: Whether the product appears in the requester's product whitelist. Presence in the product whitelist means the requester is authorized to order this product for other users.
-          readOnly: true
-          example: true
-        meta:
-          type: object
-          properties:
-            resourceType:
-              type: string
-              example: Product
-            location:
-              type: string
-              example: https://api.factset.com/scim/v2/Products/6781
-          readOnly: true
-      required:
-      - whitelist
-    ProductResourceList_2:
-      type: object
-      properties:
-        schemas:
-          type: array
-          items:
-            type: string
-          example:
-          - urn:ietf:params:scim:api:messages:2.0:ListResponse
-        totalResults:
-          type: integer
-          example: 1
-        Resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProductResource_2'
   parameters:
     format:
       name: format
@@ -1015,6 +889,34 @@ components:
         - xml
         - json
         - csv
+    excludedAttributes:
+      name: excludedAttributes
+      description: Attribute blacklist filter string. A comma-separated list of resource attribute names to be excluded in the response, overriding the set of attributes that would be returned by default. Attribute names must be specified in standard attribute notation (see [RFC 7644 section 3.10](https://datatracker.ietf.org/doc/html/rfc7644#section-3.10).) This parameter cannot be used with the *attributes* parameter.
+      in: query
+      schema:
+        type: string
+      required: false
+    startIndex:
+      name: startIndex
+      description: Result start index. The one-based index of the first result to be returned in the list of resources. For example, to exclude the first two resources, use a *startIndex* value of 3. This parameter has a default value of 1. This index applies *after* any resource filtration has been applied as specified by the *filter* argument.
+      in: query
+      schema:
+        type: integer
+      required: false
+    filter:
+      name: filter
+      description: Resource filter string. See [RFC 7644 section 3.4.2.2](https://tools.ietf.org/html/rfc7644#section-3.4.2.2) for syntax. Note this API implementation also supports a non-standard "re" operator for regular expression matching against strings.
+      in: query
+      schema:
+        type: string
+      required: false
+    attributes:
+      name: attributes
+      description: Attribute whitelist filter string. A comma-separated list of resource attribute names to be returned in the response, overriding the set of attributes that would be returned by default. Attribute names must be specified in standard attribute notation (see [RFC 7644 section 3.10](https://datatracker.ietf.org/doc/html/rfc7644#section-3.10).) This parameter cannot be used with the *excludedAttributes* parameter.
+      in: query
+      schema:
+        type: string
+      required: false
     count:
       name: count
       description: Maximum resource count. The server will not return more resources than this value, although it may return fewer.
@@ -1029,35 +931,13 @@ components:
       schema:
         type: string
       required: true
-    filter:
-      name: filter
-      description: Resource filter string. See [RFC 7644 section 3.4.2.2](https://tools.ietf.org/html/rfc7644#section-3.4.2.2) for syntax. Note this API implementation also supports a non-standard "re" operator for regular expression matching against strings.
-      in: query
-      schema:
-        type: string
-      required: false
-    startIndex:
-      name: startIndex
-      description: Result start index. The one-based index of the first result to be returned in the list of resources. For example, to exclude the first two resources, use a *startIndex* value of 3. This parameter has a default value of 1. This index applies *after* any resource filtration has been applied as specified by the *filter* argument.
-      in: query
-      schema:
-        type: integer
-      required: false
-    excludedAttributes:
-      name: excludedAttributes
-      description: Attribute blacklist filter string. A comma-separated list of resource attribute names to be excluded in the response, overriding the set of attributes that would be returned by default. Attribute names must be specified in standard attribute notation (see [RFC 7644 section 3.10](https://datatracker.ietf.org/doc/html/rfc7644#section-3.10).) This parameter cannot be used with the *attributes* parameter.
-      in: query
-      schema:
-        type: string
-      required: false
-    attributes:
-      name: attributes
-      description: Attribute whitelist filter string. A comma-separated list of resource attribute names to be returned in the response, overriding the set of attributes that would be returned by default. Attribute names must be specified in standard attribute notation (see [RFC 7644 section 3.10](https://datatracker.ietf.org/doc/html/rfc7644#section-3.10).) This parameter cannot be used with the *excludedAttributes* parameter.
-      in: query
-      schema:
-        type: string
-      required: false
   responses:
+    productSuccess:
+      description: Success.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/ProductResource'
     internalServerError:
       description: Internal server error.
       content:
@@ -1075,18 +955,17 @@ components:
             - urn:ietf:params:scim:api:messages:2.0:Error
             detail: FactSet.net credentials are missing or invalid.
             status: '401'
-    productsSuccess:
-      description: Success.
+    productNotFoundError:
+      description: Product not found.
       content:
         application/scim+json:
           schema:
-            $ref: '#/components/schemas/ProductResourceList'
-    productSuccess:
-      description: Success.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/ProductResource'
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: Product 6781 was not found.
+            status: '404'
     forbiddenError:
       description: User is not authorized to use this API.
       content:
@@ -1110,31 +989,23 @@ components:
             scimType: invalidFilter
             detail: Invalid filter value.
             status: '400'
-    productNotFoundError:
-      description: Product not found.
+    productsSuccess:
+      description: Success.
       content:
         application/scim+json:
           schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            schemas:
-            - urn:ietf:params:scim:api:messages:2.0:Error
-            detail: Product 6781 was not found.
-            status: '404'
+            $ref: '#/components/schemas/ProductResourceList'
   securitySchemes:
     BasicAuth:
-      type: http
-      scheme: basic
-    basicAuth:
       type: http
       scheme: basic
     Basic:
       type: http
       scheme: basic
+    basicAuth:
+      type: http
+      scheme: basic
 x-refined-from:
 - exchange-datafeed-data-model-openapi-original.yml
-- factset-content-feeds-data-dictionary-openapi.yml
-- factset-exchange-datafeed-data-model-api-openapi.yml
 - factset-open-factset-marketplace-api-openapi.yml
 - factset-procure-to-pay-scim-openapi.yml
-- procure-to-pay-api-scim-openapi-original.yml

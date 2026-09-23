@@ -1,15 +1,13 @@
 openapi: 3.2.0
 info:
-  title: Factset Conversational API Powered by FactSet Mercury Result API
+  title: Factset Conversational API Powered by FactSet Mercury…
   description: 'The FactSet Conversational API allows clients to white-label core FactSet Mercury capabilities in a client’s chatbot experience.
 
 
     Request data from FactSet using a single natural language query. Start the response generation using the `/create` endpoint, poll the status using `/status`. Once the result is ready, retrieve it using `/result`.
 
 
-    **Please note:** "Natural language" in this documentation refers to modern conversational English. Support for other languages is currently unavailable.
-
-    '
+    **Please note:** "Natural language" in this documentation refers to modern conversational English. Support for other languages is currently unavailable.'
   version: 0.1.0
   license:
     name: Apache License, Version 2.0
@@ -29,12 +27,10 @@ paths:
   /result:
     post:
       operationId: getChatResult
-      summary: Factset Retrieve the completed response for your query.
+      summary: Factset Retrieve the completed response for your query
       description: 'Returns FactSet content and data in response to the query provided to the `/create` endpoint. This endpoint is the final step in the single-question request process.
 
-        Responses contain a combination of Microsoft Adaptive Cards for data/tables and markdown for text.
-
-        '
+        Responses contain a combination of Microsoft Adaptive Cards for data/tables and markdown for text.'
       tags:
       - Result
       requestBody:
@@ -175,44 +171,19 @@ paths:
                 $ref: '#/components/schemas/Error'
 components:
   schemas:
-    OpenActiveGraph:
+    FederationDataValue:
+      oneOf:
+      - $ref: '#/components/schemas/String'
+      - $ref: '#/components/schemas/AdaptiveCard'
+      - $ref: '#/components/schemas/NextStep'
+    Error:
+      description: Wrapper containing metadata and appropriate errors as thrown by the API
       type: object
       properties:
-        action:
-          type: string
-          enum:
-          - OpenActiveGraph
-        label:
-          type: string
-        xml:
-          type: string
-    ChatPollingRequest:
-      description: Request body containing the chat conversation ID
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            conversationId:
-              type: string
-              format: uuid
-    FederationData:
-      description: Data surfaced by processing the query through FactSet Mercury. Contains financial data, if accessible and available, as well as natural language answer to the query
-      type: object
-      properties:
-        type:
-          description: 'Data type contained in the FederationData value.
-
-            '
-          type:
-          - string
-          - 'null'
-          enum:
-          - string
-          - AdaptiveCard
-          - NextStep
-        value:
-          $ref: '#/components/schemas/FederationDataValue'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorObject'
     QueryResponse:
       description: Query response body containing data from FactSet's Mercury LLM and metadata describing the model interaction
       type: object
@@ -229,6 +200,16 @@ components:
                 $ref: '#/components/schemas/FederationData'
       required:
       - data
+    ErrorObject:
+      description: Represents a single error, with error name and identifiers
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        code:
+          type: string
     OpenComponent:
       type: object
       properties:
@@ -245,6 +226,37 @@ components:
         parameters:
           type: object
         report:
+          type: object
+          properties:
+            fdsup:
+              type: string
+            http:
+              type: string
+    ChatPollingRequest:
+      description: Request body containing the chat conversation ID
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            conversationId:
+              type: string
+              format: uuid
+    401UnauthorizedError:
+      description: Error response for a user without authentication to use the API.
+      type: string
+    OpenUrl:
+      type: object
+      properties:
+        action:
+          type: string
+          enum:
+          - OpenUrl
+        label:
+          type: string
+        category:
+          type: string
+        url:
           type: object
           properties:
             fdsup:
@@ -268,6 +280,17 @@ components:
           - type
           - version
           additionalProperties: true
+    OpenActiveGraph:
+      type: object
+      properties:
+        action:
+          type: string
+          enum:
+          - OpenActiveGraph
+        label:
+          type: string
+        xml:
+          type: string
     NextStep:
       description: 'NextStep: A serialized list of `action` items, which are directives to a front-end application to perform a certain task i.e. open a FactSet application or component, download an Excel file.
 
@@ -278,16 +301,14 @@ components:
         - $ref: '#/components/schemas/OpenComponent'
         - $ref: '#/components/schemas/OpenUrl'
         - $ref: '#/components/schemas/OpenActiveGraph'
-    ErrorObject:
-      description: Represents a single error, with error name and identifiers
-      type: object
-      properties:
-        id:
-          type: string
-        title:
-          type: string
-        code:
-          type: string
+    String:
+      description: 'String: Chat response to the query. Provides an answer to the question or references further attached data. `Value` property of parent FederationData contains a string with natural language.
+
+        '
+      type: string
+    403ForbiddenError:
+      description: Error response for a user without entitlements to the API.
+      type: string
     RateLimitExceededError:
       description: Error response when rate limit has been exceeded.
       type: object
@@ -296,48 +317,23 @@ components:
           type: string
           enum:
           - API rate limit exceeded
-    401UnauthorizedError:
-      description: Error response for a user without authentication to use the API.
-      type: string
-    String:
-      description: 'String: Chat response to the query. Provides an answer to the question or references further attached data. `Value` property of parent FederationData contains a string with natural language.
+    FederationData:
+      description: Data surfaced by processing the query through FactSet Mercury. Contains financial data, if accessible and available, as well as natural language answer to the query
+      type: object
+      properties:
+        type:
+          description: 'Data type contained in the FederationData value.
 
-        '
-      type: string
-    Error:
-      description: Wrapper containing metadata and appropriate errors as thrown by the API
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorObject'
-    OpenUrl:
-      type: object
-      properties:
-        action:
-          type: string
+            '
+          type:
+          - string
+          - 'null'
           enum:
-          - OpenUrl
-        label:
-          type: string
-        category:
-          type: string
-        url:
-          type: object
-          properties:
-            fdsup:
-              type: string
-            http:
-              type: string
-    403ForbiddenError:
-      description: Error response for a user without entitlements to the API.
-      type: string
-    FederationDataValue:
-      oneOf:
-      - $ref: '#/components/schemas/String'
-      - $ref: '#/components/schemas/AdaptiveCard'
-      - $ref: '#/components/schemas/NextStep'
+          - string
+          - AdaptiveCard
+          - NextStep
+        value:
+          $ref: '#/components/schemas/FederationDataValue'
   examples:
     QueryResponseExample:
       value:
@@ -404,13 +400,13 @@ components:
                 http: http://...
     403ForbiddenErrorExample:
       value: 'Client does not have the required CACCESS: {00QAI}, Request key: 65CA96B3129489A6'
-    RateLimitExceededErrorExample:
-      value:
-        message: API rate limit exceeded
     ChatPollingRequestExample:
       value:
         data:
           conversationId: 9c1031c2-5463-47ae-81b3-126a68f0c2a6
+    RateLimitExceededErrorExample:
+      value:
+        message: API rate limit exceeded
     401UnauthorizedErrorExample:
       value: Authentication Failed
   securitySchemes:
