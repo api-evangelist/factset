@@ -169,6 +169,12 @@ paths:
           $ref: '#/components/responses/403'
 components:
   parameters:
+    sf:
+      description: "Symbol Filters, ability to apply filtering to the result of an option chain `oc` request based on available fields and values for the symbols. `sf`=VALUE_[filter],[field],[value]\n  * **VALUE_MINMAX** -  Field value will be within specified interval. ex. - VALUE_MINMAX,BID_1,min,max\n  * **VALUE_EQUALS** - Field value will equal specified value. ex. - VALUE_EQUALS,BID_1,value\n  * **VALUE_NOT_EQUALS** - Field value will not equal specified value. ex. - VALUE_NOT_EQUALS,BID_1,value\n  \n  **Try it Out** - depends on fields used. Example - VALUE_MINMAX,STRIKE_PRICE,120,130 \n"
+      name: sf
+      in: query
+      schema:
+        type: string
     req_id:
       name: req_id
       in: query
@@ -176,9 +182,16 @@ components:
       required: false
       schema:
         type: string
-    oc:
-      description: Option Chain, accepts one underlying symbol for which the option chain will be returned. **Required** if not using `ids`. <p>**Try it Out** - Only available for BABA-USA</p>
-      name: oc
+    ids:
+      description: Requested symbols or securities. **Required** if not using `oc`. This is a comma-seperated list with a maximum of 500. Each symbol can be a FactSet Exchange Symbol, CUSIP, or SEDOL. This can be used in combination with `chain` parameter to pull in a custom portfolio.<P>**Try it out** - Choose one or multiple - IBM-USA, BABA-USA, WALMEX-MX, 7203-TKS, VOD-LON, NPN-JSE, MABAX, NZF, SPY-USA, AGG-USA, GLD-USA, AOR-USA, MNA-USA, UUP-USA, SP50-SPX, ESX-STX, XAO-ASX, WD-MSX, NG00-USA, GC00-USA, CC00-USA, C00-USA, FC00-USA, ER00-USA, EURUSD-FX1, USDMXN-FX1, AUDJPY-FX1, EURCZK-FX1, USDILS-FX1, USDZAR-FX1, US10YY-TU1, FDS#190621C00145000-USA, FDS#190621P00145000-USA. *Leave blank if you are trying the `oc` parameter*.</p>
+      name: ids
+      in: query
+      schema:
+        type: string
+      required: false
+    fields:
+      description: 'All available fields. This is a comma-seperated list (no spaces). **Required** only when using `oc`. Otherwise, leave blank to return all fields by default. See definitions for details on available field names and Field ID #s. The Data Service Manual has complete reference.<p>**Try it Out** - All fields available. Use either FID # or name. For `oc`, recommend to use BID_1,ASK_1,STRIKE_PRICE.'
+      name: fields
       in: query
       schema:
         type: string
@@ -191,6 +204,12 @@ components:
         enum:
         - FDS1
         - FDS_FUND
+    oc:
+      description: Option Chain, accepts one underlying symbol for which the option chain will be returned. **Required** if not using `ids`. <p>**Try it Out** - Only available for BABA-USA</p>
+      name: oc
+      in: query
+      schema:
+        type: string
     format:
       name: format
       description: The format of the output file.<p>**Try it Out** - All formats available</p>
@@ -202,57 +221,7 @@ components:
         - XML
         - JSON
         - CSV
-    sf:
-      description: "Symbol Filters, ability to apply filtering to the result of an option chain `oc` request based on available fields and values for the symbols. `sf`=VALUE_[filter],[field],[value]\n  * **VALUE_MINMAX** -  Field value will be within specified interval. ex. - VALUE_MINMAX,BID_1,min,max\n  * **VALUE_EQUALS** - Field value will equal specified value. ex. - VALUE_EQUALS,BID_1,value\n  * **VALUE_NOT_EQUALS** - Field value will not equal specified value. ex. - VALUE_NOT_EQUALS,BID_1,value\n  \n  **Try it Out** - depends on fields used. Example - VALUE_MINMAX,STRIKE_PRICE,120,130 \n"
-      name: sf
-      in: query
-      schema:
-        type: string
-    fields:
-      description: 'All available fields. This is a comma-seperated list (no spaces). **Required** only when using `oc`. Otherwise, leave blank to return all fields by default. See definitions for details on available field names and Field ID #s. The Data Service Manual has complete reference.<p>**Try it Out** - All fields available. Use either FID # or name. For `oc`, recommend to use BID_1,ASK_1,STRIKE_PRICE.'
-      name: fields
-      in: query
-      schema:
-        type: string
-    ids:
-      description: Requested symbols or securities. **Required** if not using `oc`. This is a comma-seperated list with a maximum of 500. Each symbol can be a FactSet Exchange Symbol, CUSIP, or SEDOL. This can be used in combination with `chain` parameter to pull in a custom portfolio.<P>**Try it out** - Choose one or multiple - IBM-USA, BABA-USA, WALMEX-MX, 7203-TKS, VOD-LON, NPN-JSE, MABAX, NZF, SPY-USA, AGG-USA, GLD-USA, AOR-USA, MNA-USA, UUP-USA, SP50-SPX, ESX-STX, XAO-ASX, WD-MSX, NG00-USA, GC00-USA, CC00-USA, C00-USA, FC00-USA, ER00-USA, EURUSD-FX1, USDMXN-FX1, AUDJPY-FX1, EURCZK-FX1, USDILS-FX1, USDZAR-FX1, US10YY-TU1, FDS#190621C00145000-USA, FDS#190621P00145000-USA. *Leave blank if you are trying the `oc` parameter*.</p>
-      name: ids
-      in: query
-      schema:
-        type: string
-      required: false
   schemas:
-    errorResponse:
-      type: object
-      title: Error Response
-      properties:
-        status:
-          description: status
-          type: string
-          example: Bad Request
-        timestamp:
-          description: timestamp in YYYY-MM-DD HH:MM:SS.SSS
-          type: string
-          example: '2019-11-01 11:09:41.918'
-          format: date-time
-        path:
-          description: The Endpoint path {endpoint}
-          type: string
-          example: /dfsnapshot
-        message:
-          description: The plain text error message
-          type: string
-          example: Validation Error
-        subErrors:
-          description: subErrors related to the error message. Null if not applicable.
-          type: object
-          properties:
-            field:
-              description: Parameter Field Name
-              type: string
-            message:
-              description: Error message
-              type: string
     fields:
       type: object
       description: All available fields in service. FID = Field ID Number.
@@ -623,6 +592,37 @@ components:
         Total_Return_52W:
           description: 'Field ID # 747. 52-Week Total Return for US mutual funds'
           type: number
+    errorResponse:
+      type: object
+      title: Error Response
+      properties:
+        status:
+          description: status
+          type: string
+          example: Bad Request
+        timestamp:
+          description: timestamp in YYYY-MM-DD HH:MM:SS.SSS
+          type: string
+          example: '2019-11-01 11:09:41.918'
+          format: date-time
+        path:
+          description: The Endpoint path {endpoint}
+          type: string
+          example: /dfsnapshot
+        message:
+          description: The plain text error message
+          type: string
+          example: Validation Error
+        subErrors:
+          description: subErrors related to the error message. Null if not applicable.
+          type: object
+          properties:
+            field:
+              description: Parameter Field Name
+              type: string
+            message:
+              description: Error message
+              type: string
     DFSnapshot_Response:
       type: object
       description: sample response

@@ -61,294 +61,121 @@ paths:
         '503':
           $ref: '#/components/responses/503ServiceUnavailable'
 components:
-  schemas:
-    ErrorObject:
-      type: object
-      properties:
-        id:
-          type: string
-        code:
-          type: string
-        title:
-          type: string
-        links:
-          type: object
-          properties:
-            about:
-              type: string
-        detail:
-          type: string
-        source:
-          type: object
-          properties:
-            parameter:
-              type: string
-    ErrorResponse:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorObject'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    Response:
-      type: object
-      properties:
-        data:
-          title: STACH
-          description: Returns a STACH 2.0 row organized package
-        meta:
-          $ref: '#/components/schemas/Meta'
-    Meta:
-      type: object
-      additionalProperties:
-        type:
-        - string
-        - 'null'
+  responses:
+    429TooManyRequests:
+      description: Too many requests - this API is rate-limited to 20 requests per second. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    400BadRequest:
+      description: Bad Request. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+        Api-Supported-Versions:
+          schema:
+            type: string
+          description: Supported API major versions
+        Api-Version:
+          schema:
+            type: string
+          description: API version (semantic versioning)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            idRequiredParameterError:
+              $ref: '#/components/examples/idRequiredParameterError'
+            idInvalidParameterError:
+              $ref: '#/components/examples/idInvalidParameterError'
+            schemaInvalidParameterError:
+              $ref: '#/components/examples/schemaInvalidParameterError'
+    404NotFound:
+      description: Not found. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            endpointNotFound:
+              $ref: '#/components/examples/endpointNotFound'
+    500InternalServerError:
+      description: Server error. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            genericServerError:
+              $ref: '#/components/examples/genericServerError'
+    401Unauthorized:
+      description: Missing or invalid authentication. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For further assistance, file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    503ServiceUnavailable:
+      description: Service unavailable. Typically a timeout, or result of a rejected request to prevent service overload. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    403Forbidden:
+      description: User is forbidden access with current credentials. Reach out to your local FactSet Account Manager for assistance, or file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            notAuthorized:
+              $ref: '#/components/examples/notAuthorized'
+    200OKStachDcsSummary:
+      description: Expected response; returns JSON data containing STACH 2.0 row organized package format
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+        Api-Supported-Versions:
+          schema:
+            type: string
+          description: Supported API major versions
+        Api-Version:
+          schema:
+            type: string
+          description: API version (semantic versioning)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Response'
+          examples:
+            groupLevelResponse:
+              $ref: '#/components/examples/groupLevelResponseDcsSummary'
+            parentChildColumnsResponse:
+              $ref: '#/components/examples/parentChildColumnsResponseDcsSummary'
   examples:
-    notAuthorized:
-      summary: not authorized
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: notAuthorized
-          title: User is forbidden access with current credentials. For access, contact your FactSet sales representative
-    idInvalidParameterError:
-      summary: generic parameter error (invalid parameter)
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: parameterError
-          title: 'Invalid parameter(s): ''id'''
-    schemaInvalidParameterError:
-      summary: generic parameter error (invalid parameter)
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: parameterError
-          title: 'Invalid parameter(s): ''schema'''
-    parentChildColumnsResponseDcsSummary:
-      summary: (sample table parent child columns response)
-      description: Subset of rows and columns for an example STACH 2.0 row organized table with parent-child columns
-      value:
-        data:
-          version: '2.0'
-          tables:
-            main:
-              headersDefinition:
-                columns:
-                - id: detailTableHeader
-                  type: string
-                  isDimension: true
-              definition:
-                columns:
-                - id: description1
-                  type: string
-                  isDimension: true
-                - id: description2
-                  type: string
-                  isDimension: true
-                  parentId: description1
-                - id: description3
-                  type: string
-                  isDimension: true
-                  parentId: description2
-                - id: latest
-                  type: real
-                - id: latestToLtmEbitda
-                  type: real
-                - id: latestToNtmEbitda
-                  type: real
-                - id: last
-                  type: real
-                - id: lastToLtmEbitda
-                  type: real
-                - id: lastToNtmEbitda
-                  type: real
-              data:
-                rows:
-                - cells:
-                  - null
-                  - null
-                  - null
-                  - May '21
-                  - /LTM EBITDA
-                  - /NTM EBITDA
-                  - Feb '21
-                  - /LTM EBITDA
-                  - /NTM EBITDA
-                  headerCellDetails:
-                    '0':
-                      source: HEADERS
-                      columnIndex: 0
-                    '1':
-                      source: HEADERS
-                      columnIndex: 0
-                    '2':
-                      source: HEADERS
-                      columnIndex: 0
-                    '3':
-                      source: HEADERS
-                      columnIndex: 0
-                    '4':
-                      source: HEADERS
-                      columnIndex: 0
-                    '5':
-                      source: HEADERS
-                      columnIndex: 0
-                    '6':
-                      source: HEADERS
-                      columnIndex: 0
-                - cells:
-                  - Short Term Debt
-                  - null
-                  - null
-                  - null
-                  - null
-                  - null
-                  - null
-                  - null
-                  - null
-                - cells:
-                  - Long Term Debt
-                  - null
-                  - null
-                  - 574.49
-                  - 1.02130103038535
-                  - 0.998906313302117
-                  - 574.399
-                  - 1.03639663892232
-                  - 1.01769506195566
-                - cells:
-                  - Long Term Debt
-                  - Revolving Credit
-                  - null
-                  - 575
-                  - 1.02220768415738
-                  - 0.9997930863004
-                  - 575
-                  - 1.03748103214026
-                  - 1.01875988750765
-                - cells:
-                  - Long Term Debt
-                  - Revolving Credit
-                  - Unsec. Rev. Facility
-                  - 575
-                  - null
-                  - null
-                  - 575
-                  - null
-                  - null
-                - cells:
-                  - Long Term Debt
-                  - Term Loans
-                  - null
-                  - null
-                  - null
-                  - null
-                  - null
-                  - null
-                  - null
-                - cells:
-                  - Long Term Debt
-                  - Notes/Bonds
-                  - null
-                  - null
-                  - null
-                  - null
-                  - null
-                  - null
-                  - null
-                - cells:
-                  - Long Term Debt
-                  - Other
-                  - null
-                  - -0.51
-                  - -0.000906653772035242
-                  - -0.000886772998283833
-                  - -0.601
-                  - -0.00108439321794139
-                  - -0.00106482555198625
-                - cells:
-                  - Long Term Debt
-                  - Other
-                  - Adjustments
-                  - -0.51
-                  - null
-                  - null
-                  - -0.601
-                  - null
-                  - null
-                - cells:
-                  - Long Term Debt, Less Current Portion
-                  - null
-                  - null
-                  - 574.49
-                  - 1.02130103038535
-                  - 0.998906313302117
-                  - 574.399
-                  - 1.03639663892232
-                  - 1.01769506195566
-                - cells:
-                  - Long Term Debt, Less Current Portion
-                  - Long Term Debt
-                  - null
-                  - 574.49
-                  - 1.02130103038535
-                  - 0.998906313302117
-                  - 574.399
-                  - 1.03639663892232
-                  - 1.01769506195566
-                - cells:
-                  - Long Term Debt, Less Current Portion
-                  - Current Portion of LTD
-                  - null
-                  - null
-                  - null
-                  - null
-                  - null
-                  - null
-                  - null
-                - cells:
-                  - Total Debt
-                  - null
-                  - null
-                  - 574.49
-                  - 1.02130103038535
-                  - 0.998906313302117
-                  - 574.399
-                  - 1.03639663892232
-                  - 1.01769506195566
-                columnMetadata:
-                  latest:
-                    items:
-                      scale:
-                        value: 6
-                  latestToLtmEbitda:
-                    items:
-                      valueType:
-                        value: RATIO
-                  last:
-                    items:
-                      scale:
-                        value: 6
-                  latestToNtmEbitda:
-                    items:
-                      valueType:
-                        value: RATIO
-                  lastToLtmEbitda:
-                    items:
-                      valueType:
-                        value: RATIO
-                  lastToNtmEbitda:
-                    items:
-                      valueType:
-                        value: RATIO
-        meta:
-          requestId: FDS
-          fsymId: SQFMK3-R
-          schema: table_parent_child_columns
     groupLevelResponseDcsSummary:
       summary: (sample table group level columns response)
       description: Subset of rows and columns for an example response
@@ -715,6 +542,255 @@ components:
           requestId: FDS
           fsymId: SQFMK3-R
           schema: table_group_level
+    parentChildColumnsResponseDcsSummary:
+      summary: (sample table parent child columns response)
+      description: Subset of rows and columns for an example STACH 2.0 row organized table with parent-child columns
+      value:
+        data:
+          version: '2.0'
+          tables:
+            main:
+              headersDefinition:
+                columns:
+                - id: detailTableHeader
+                  type: string
+                  isDimension: true
+              definition:
+                columns:
+                - id: description1
+                  type: string
+                  isDimension: true
+                - id: description2
+                  type: string
+                  isDimension: true
+                  parentId: description1
+                - id: description3
+                  type: string
+                  isDimension: true
+                  parentId: description2
+                - id: latest
+                  type: real
+                - id: latestToLtmEbitda
+                  type: real
+                - id: latestToNtmEbitda
+                  type: real
+                - id: last
+                  type: real
+                - id: lastToLtmEbitda
+                  type: real
+                - id: lastToNtmEbitda
+                  type: real
+              data:
+                rows:
+                - cells:
+                  - null
+                  - null
+                  - null
+                  - May '21
+                  - /LTM EBITDA
+                  - /NTM EBITDA
+                  - Feb '21
+                  - /LTM EBITDA
+                  - /NTM EBITDA
+                  headerCellDetails:
+                    '0':
+                      source: HEADERS
+                      columnIndex: 0
+                    '1':
+                      source: HEADERS
+                      columnIndex: 0
+                    '2':
+                      source: HEADERS
+                      columnIndex: 0
+                    '3':
+                      source: HEADERS
+                      columnIndex: 0
+                    '4':
+                      source: HEADERS
+                      columnIndex: 0
+                    '5':
+                      source: HEADERS
+                      columnIndex: 0
+                    '6':
+                      source: HEADERS
+                      columnIndex: 0
+                - cells:
+                  - Short Term Debt
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                - cells:
+                  - Long Term Debt
+                  - null
+                  - null
+                  - 574.49
+                  - 1.02130103038535
+                  - 0.998906313302117
+                  - 574.399
+                  - 1.03639663892232
+                  - 1.01769506195566
+                - cells:
+                  - Long Term Debt
+                  - Revolving Credit
+                  - null
+                  - 575
+                  - 1.02220768415738
+                  - 0.9997930863004
+                  - 575
+                  - 1.03748103214026
+                  - 1.01875988750765
+                - cells:
+                  - Long Term Debt
+                  - Revolving Credit
+                  - Unsec. Rev. Facility
+                  - 575
+                  - null
+                  - null
+                  - 575
+                  - null
+                  - null
+                - cells:
+                  - Long Term Debt
+                  - Term Loans
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                - cells:
+                  - Long Term Debt
+                  - Notes/Bonds
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                - cells:
+                  - Long Term Debt
+                  - Other
+                  - null
+                  - -0.51
+                  - -0.000906653772035242
+                  - -0.000886772998283833
+                  - -0.601
+                  - -0.00108439321794139
+                  - -0.00106482555198625
+                - cells:
+                  - Long Term Debt
+                  - Other
+                  - Adjustments
+                  - -0.51
+                  - null
+                  - null
+                  - -0.601
+                  - null
+                  - null
+                - cells:
+                  - Long Term Debt, Less Current Portion
+                  - null
+                  - null
+                  - 574.49
+                  - 1.02130103038535
+                  - 0.998906313302117
+                  - 574.399
+                  - 1.03639663892232
+                  - 1.01769506195566
+                - cells:
+                  - Long Term Debt, Less Current Portion
+                  - Long Term Debt
+                  - null
+                  - 574.49
+                  - 1.02130103038535
+                  - 0.998906313302117
+                  - 574.399
+                  - 1.03639663892232
+                  - 1.01769506195566
+                - cells:
+                  - Long Term Debt, Less Current Portion
+                  - Current Portion of LTD
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                  - null
+                - cells:
+                  - Total Debt
+                  - null
+                  - null
+                  - 574.49
+                  - 1.02130103038535
+                  - 0.998906313302117
+                  - 574.399
+                  - 1.03639663892232
+                  - 1.01769506195566
+                columnMetadata:
+                  latest:
+                    items:
+                      scale:
+                        value: 6
+                  latestToLtmEbitda:
+                    items:
+                      valueType:
+                        value: RATIO
+                  last:
+                    items:
+                      scale:
+                        value: 6
+                  latestToNtmEbitda:
+                    items:
+                      valueType:
+                        value: RATIO
+                  lastToLtmEbitda:
+                    items:
+                      valueType:
+                        value: RATIO
+                  lastToNtmEbitda:
+                    items:
+                      valueType:
+                        value: RATIO
+        meta:
+          requestId: FDS
+          fsymId: SQFMK3-R
+          schema: table_parent_child_columns
+    notAuthorized:
+      summary: not authorized
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: notAuthorized
+          title: User is forbidden access with current credentials. For access, contact your FactSet sales representative
+    genericServerError:
+      summary: generic server error
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: genericServerError
+          title: Unexpected error processing request
+    schemaInvalidParameterError:
+      summary: generic parameter error (invalid parameter)
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Invalid parameter(s): ''schema'''
+    idInvalidParameterError:
+      summary: generic parameter error (invalid parameter)
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Invalid parameter(s): ''id'''
     endpointNotFound:
       summary: endpoint not found
       value:
@@ -729,127 +805,51 @@ components:
         - id: 39314614-e607-465a-ba95-5bb79c362e23
           code: parameterError
           title: 'Missing required parameter(s): ''id'''
-    genericServerError:
-      summary: generic server error
-      value:
+  schemas:
+    ErrorObject:
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        title:
+          type: string
+        links:
+          type: object
+          properties:
+            about:
+              type: string
+        detail:
+          type: string
+        source:
+          type: object
+          properties:
+            parameter:
+              type: string
+    Meta:
+      type: object
+      additionalProperties:
+        type:
+        - string
+        - 'null'
+    Response:
+      type: object
+      properties:
+        data:
+          title: STACH
+          description: Returns a STACH 2.0 row organized package
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ErrorResponse:
+      type: object
+      properties:
         errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: genericServerError
-          title: Unexpected error processing request
-  responses:
-    404NotFound:
-      description: Not found. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            endpointNotFound:
-              $ref: '#/components/examples/endpointNotFound'
-    401Unauthorized:
-      description: Missing or invalid authentication. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For further assistance, file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-    503ServiceUnavailable:
-      description: Service unavailable. Typically a timeout, or result of a rejected request to prevent service overload. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-    500InternalServerError:
-      description: Server error. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            genericServerError:
-              $ref: '#/components/examples/genericServerError'
-    429TooManyRequests:
-      description: Too many requests - this API is rate-limited to 20 requests per second. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-    400BadRequest:
-      description: Bad Request. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-        Api-Supported-Versions:
-          schema:
-            type: string
-          description: Supported API major versions
-        Api-Version:
-          schema:
-            type: string
-          description: API version (semantic versioning)
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            idRequiredParameterError:
-              $ref: '#/components/examples/idRequiredParameterError'
-            idInvalidParameterError:
-              $ref: '#/components/examples/idInvalidParameterError'
-            schemaInvalidParameterError:
-              $ref: '#/components/examples/schemaInvalidParameterError'
-    200OKStachDcsSummary:
-      description: Expected response; returns JSON data containing STACH 2.0 row organized package format
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-        Api-Supported-Versions:
-          schema:
-            type: string
-          description: Supported API major versions
-        Api-Version:
-          schema:
-            type: string
-          description: API version (semantic versioning)
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Response'
-          examples:
-            groupLevelResponse:
-              $ref: '#/components/examples/groupLevelResponseDcsSummary'
-            parentChildColumnsResponse:
-              $ref: '#/components/examples/parentChildColumnsResponseDcsSummary'
-    403Forbidden:
-      description: User is forbidden access with current credentials. Reach out to your local FactSet Account Manager for assistance, or file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            notAuthorized:
-              $ref: '#/components/examples/notAuthorized'
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorObject'
+        meta:
+          $ref: '#/components/schemas/Meta'
   securitySchemes:
     basicAuth:
       type: http

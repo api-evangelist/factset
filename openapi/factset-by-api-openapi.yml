@@ -243,25 +243,14 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    OffsetBasedPaginationOutputObject:
-      type: object
-      description: Pagination attributes for the offset-based pagination strategy.
-      properties:
-        total:
-          type: number
-          format: int32
-          description: Total number of entries in the result set.
-          example: 42.5
-        isEstimatedTotal:
-          type: boolean
-          description: Flag indicating that the value of "total" is estimated.
-          example: true
-      required:
-      - total
-      - isEstimatedTotal
-      x-property-sort:
-      - total
-      - isEstimatedTotal
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+      maxItems: 50
+      uniqueItems: true
     PostNotationCrossReferenceFactSetIdentifierListByFactSetIdentifierRequest:
       x-property-sort:
       - data
@@ -373,20 +362,6 @@ components:
           - attributes
           - language
           example: example_value
-    AttributesMember:
-      type: array
-      description: Limit the attributes returned in the response to the specified set.
-      items:
-        type: string
-        maxLength: 100
-      maxItems: 50
-      uniqueItems: true
-    LanguageMember:
-      type: string
-      format: isoLanguage
-      description: ISO 639-1 code of the language.
-      maxLength: 2
-      minLength: 2
     StatusObject:
       type: object
       properties:
@@ -398,184 +373,32 @@ components:
       description: The status member contains the status code of the response.
       required:
       - code
+    LanguageMember:
+      type: string
+      format: isoLanguage
+      description: ISO 639-1 code of the language.
+      maxLength: 2
+      minLength: 2
+    OffsetBasedPaginationOutputObject:
+      type: object
+      description: Pagination attributes for the offset-based pagination strategy.
+      properties:
+        total:
+          type: number
+          format: int32
+          description: Total number of entries in the result set.
+          example: 42.5
+        isEstimatedTotal:
+          type: boolean
+          description: Flag indicating that the value of "total" is estimated.
+          example: true
+      required:
+      - total
+      - isEstimatedTotal
+      x-property-sort:
+      - total
+      - isEstimatedTotal
   responses:
-    PostNotationCrossReferenceFactSetIdentifierListByFactSetIdentifier200Response:
-      description: Successful Response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: object
-                properties:
-                  instrument:
-                    type: object
-                    x-property-sort:
-                    - id
-                    - name
-                    - shortName
-                    description: Instrument data.
-                    properties:
-                      id:
-                        type:
-                        - string
-                        - 'null'
-                        format: id64
-                        x-positive: true
-                        description: Identifier of the instrument.
-                      name:
-                        type:
-                        - string
-                        - 'null'
-                        format: localizedString
-                        description: Name of the instrument.
-                      shortName:
-                        type:
-                        - string
-                        - 'null'
-                        format: localizedString
-                        description: Short name of the instrument.
-                  permanentIdentifier:
-                    type:
-                    - string
-                    - 'null'
-                    description: FactSet Permanent Identifier for an instrument. The format is six alpha numeric characters, excluding vowels, with an S suffix (XXXXXX-S).
-                  regional:
-                    type: array
-                    items:
-                      type: object
-                      x-property-sort:
-                      - isPrimary
-                      - permanentIdentifier
-                      - tickerRegion
-                      - listing
-                      properties:
-                        isPrimary:
-                          type:
-                          - boolean
-                          - 'null'
-                          description: Indicates whether the regional identifier is the primary regional identifier of the security (`true`) or not (`false`).
-                        permanentIdentifier:
-                          type:
-                          - string
-                          - 'null'
-                          description: FactSet Permanent Identifier for a set of one or more notations of the same region with the same value unit. The format is six alpha numeric characters, excluding vowels, with an R suffix (XXXXXX-R).
-                        tickerRegion:
-                          type:
-                          - string
-                          - 'null'
-                          description: 'FactSet regional symbol of the notation, consisting of the ticker and the two-character code of the country or region where the listing is traded (example: FDS-US).'
-                        listing:
-                          type: array
-                          items:
-                            type: object
-                            x-property-sort:
-                            - notation
-                            - isPrimary
-                            - permanentIdentifier
-                            - tickerExchange
-                            properties:
-                              notation:
-                                type: object
-                                x-property-sort:
-                                - id
-                                - market
-                                - valueUnit
-                                description: Notation data.
-                                properties:
-                                  id:
-                                    type:
-                                    - string
-                                    - 'null'
-                                    format: id64
-                                    x-positive: true
-                                    description: Identifier of a notation.
-                                  market:
-                                    type: object
-                                    x-property-sort:
-                                    - id
-                                    - name
-                                    description: Market of the notation. See endpoint `/basic/market/list` for possible values.
-                                    properties:
-                                      id:
-                                        type:
-                                        - number
-                                        - 'null'
-                                        format: id32
-                                        x-positive: true
-                                        description: Identifier of the market.
-                                      name:
-                                        type:
-                                        - string
-                                        - 'null'
-                                        format: localizedString
-                                        description: Name of the market.
-                                  valueUnit:
-                                    type: object
-                                    x-property-sort:
-                                    - id
-                                    - code
-                                    - isoCode
-                                    - name
-                                    description: Value unit of the notation. See endpoint `/basic/valueUnit/list` for possible values.
-                                    properties:
-                                      id:
-                                        type:
-                                        - number
-                                        - 'null'
-                                        format: id32
-                                        x-positive: true
-                                        description: Identifier of the value unit.
-                                      code:
-                                        type:
-                                        - string
-                                        - 'null'
-                                        description: 'Code of the value unit: If assigned, a code according to ISO 4217, otherwise a local code, for a main currency; a code such as GBp (for British pence) for a fractional currency; or a code such as PT (points) for non-currency value units.'
-                                      isoCode:
-                                        type:
-                                        - string
-                                        - 'null'
-                                        description: ISO 4217 code of the value unit. Empty if the ISO 4217 standard does not define a code for the currency.
-                                      name:
-                                        type:
-                                        - string
-                                        - 'null'
-                                        format: localizedString
-                                        description: Name of the value unit.
-                              isPrimary:
-                                type:
-                                - boolean
-                                - 'null'
-                                description: Indicates whether the listing identifier is the one for the primary listing among all listings with the same regional identifier (`true`) or not (`false`).
-                              permanentIdentifier:
-                                type:
-                                - string
-                                - 'null'
-                                description: FactSet Permanent Identifier for a notation. The format is six alpha numeric characters, excluding vowels, with an L suffix (XXXXXX-L).
-                              tickerExchange:
-                                type:
-                                - string
-                                - 'null'
-                                description: 'FactSet market symbol of the notation, usually consisting of the ticker (e.g. "FDS" for FactSet Research Systems Inc.) and the three-character code of the exchange on which the listing is traded (example: FDS-NYS).'
-                          description: Listing-level data with a list of notations. If the set of listing identifiers contains an element for which the attribute `isPrimary = true`, then this element is the first one in the array.
-                    description: Regional-level data with assigned listing-level data. If the set of regional identifiers contains an element for which the attribute `isPrimary = true`, then this element is the first one in the array.
-                description: Instrument data with a list of regional-level data and assigned listing-level data.
-                x-property-sort:
-                - instrument
-                - permanentIdentifier
-                - regional
-              meta:
-                type: object
-                description: The meta member contains the meta information of the response.
-                properties:
-                  status:
-                    $ref: '#/components/schemas/StatusObject'
-                x-property-sort:
-                - status
-            x-property-sort:
-            - data
-            - meta
     PostNotationCrossReferenceFactSetIdentifierListByInstrument200Response:
       description: Successful Response
       content:
@@ -839,6 +662,183 @@ components:
                 x-property-sort:
                 - status
                 - pagination
+            x-property-sort:
+            - data
+            - meta
+    PostNotationCrossReferenceFactSetIdentifierListByFactSetIdentifier200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  instrument:
+                    type: object
+                    x-property-sort:
+                    - id
+                    - name
+                    - shortName
+                    description: Instrument data.
+                    properties:
+                      id:
+                        type:
+                        - string
+                        - 'null'
+                        format: id64
+                        x-positive: true
+                        description: Identifier of the instrument.
+                      name:
+                        type:
+                        - string
+                        - 'null'
+                        format: localizedString
+                        description: Name of the instrument.
+                      shortName:
+                        type:
+                        - string
+                        - 'null'
+                        format: localizedString
+                        description: Short name of the instrument.
+                  permanentIdentifier:
+                    type:
+                    - string
+                    - 'null'
+                    description: FactSet Permanent Identifier for an instrument. The format is six alpha numeric characters, excluding vowels, with an S suffix (XXXXXX-S).
+                  regional:
+                    type: array
+                    items:
+                      type: object
+                      x-property-sort:
+                      - isPrimary
+                      - permanentIdentifier
+                      - tickerRegion
+                      - listing
+                      properties:
+                        isPrimary:
+                          type:
+                          - boolean
+                          - 'null'
+                          description: Indicates whether the regional identifier is the primary regional identifier of the security (`true`) or not (`false`).
+                        permanentIdentifier:
+                          type:
+                          - string
+                          - 'null'
+                          description: FactSet Permanent Identifier for a set of one or more notations of the same region with the same value unit. The format is six alpha numeric characters, excluding vowels, with an R suffix (XXXXXX-R).
+                        tickerRegion:
+                          type:
+                          - string
+                          - 'null'
+                          description: 'FactSet regional symbol of the notation, consisting of the ticker and the two-character code of the country or region where the listing is traded (example: FDS-US).'
+                        listing:
+                          type: array
+                          items:
+                            type: object
+                            x-property-sort:
+                            - notation
+                            - isPrimary
+                            - permanentIdentifier
+                            - tickerExchange
+                            properties:
+                              notation:
+                                type: object
+                                x-property-sort:
+                                - id
+                                - market
+                                - valueUnit
+                                description: Notation data.
+                                properties:
+                                  id:
+                                    type:
+                                    - string
+                                    - 'null'
+                                    format: id64
+                                    x-positive: true
+                                    description: Identifier of a notation.
+                                  market:
+                                    type: object
+                                    x-property-sort:
+                                    - id
+                                    - name
+                                    description: Market of the notation. See endpoint `/basic/market/list` for possible values.
+                                    properties:
+                                      id:
+                                        type:
+                                        - number
+                                        - 'null'
+                                        format: id32
+                                        x-positive: true
+                                        description: Identifier of the market.
+                                      name:
+                                        type:
+                                        - string
+                                        - 'null'
+                                        format: localizedString
+                                        description: Name of the market.
+                                  valueUnit:
+                                    type: object
+                                    x-property-sort:
+                                    - id
+                                    - code
+                                    - isoCode
+                                    - name
+                                    description: Value unit of the notation. See endpoint `/basic/valueUnit/list` for possible values.
+                                    properties:
+                                      id:
+                                        type:
+                                        - number
+                                        - 'null'
+                                        format: id32
+                                        x-positive: true
+                                        description: Identifier of the value unit.
+                                      code:
+                                        type:
+                                        - string
+                                        - 'null'
+                                        description: 'Code of the value unit: If assigned, a code according to ISO 4217, otherwise a local code, for a main currency; a code such as GBp (for British pence) for a fractional currency; or a code such as PT (points) for non-currency value units.'
+                                      isoCode:
+                                        type:
+                                        - string
+                                        - 'null'
+                                        description: ISO 4217 code of the value unit. Empty if the ISO 4217 standard does not define a code for the currency.
+                                      name:
+                                        type:
+                                        - string
+                                        - 'null'
+                                        format: localizedString
+                                        description: Name of the value unit.
+                              isPrimary:
+                                type:
+                                - boolean
+                                - 'null'
+                                description: Indicates whether the listing identifier is the one for the primary listing among all listings with the same regional identifier (`true`) or not (`false`).
+                              permanentIdentifier:
+                                type:
+                                - string
+                                - 'null'
+                                description: FactSet Permanent Identifier for a notation. The format is six alpha numeric characters, excluding vowels, with an L suffix (XXXXXX-L).
+                              tickerExchange:
+                                type:
+                                - string
+                                - 'null'
+                                description: 'FactSet market symbol of the notation, usually consisting of the ticker (e.g. "FDS" for FactSet Research Systems Inc.) and the three-character code of the exchange on which the listing is traded (example: FDS-NYS).'
+                          description: Listing-level data with a list of notations. If the set of listing identifiers contains an element for which the attribute `isPrimary = true`, then this element is the first one in the array.
+                    description: Regional-level data with assigned listing-level data. If the set of regional identifiers contains an element for which the attribute `isPrimary = true`, then this element is the first one in the array.
+                description: Instrument data with a list of regional-level data and assigned listing-level data.
+                x-property-sort:
+                - instrument
+                - permanentIdentifier
+                - regional
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
             x-property-sort:
             - data
             - meta

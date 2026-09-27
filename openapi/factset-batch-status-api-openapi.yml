@@ -62,14 +62,14 @@ paths:
       deprecated: false
 components:
   examples:
-    BatchStatusDoneResponse:
-      description: Batch Status Done Response
+    BatchStatusQueuedResponse:
+      description: Batch Status Queued Response
       value:
         data:
           id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-          status: created
+          status: queued
           startTime: '2021-06-29T18:34:52.168Z'
-          endTime: '2021-06-29T18:34:55.402Z'
+          endTime: null
           error: null
     BatchStatusFailedResponse:
       description: Batch Status Failed Response
@@ -83,6 +83,15 @@ components:
             id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
             code: GenericError
             title: the date parameter must be in YYYY-MM-DD format
+    BatchStatusDoneResponse:
+      description: Batch Status Done Response
+      value:
+        data:
+          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+          status: created
+          startTime: '2021-06-29T18:34:52.168Z'
+          endTime: '2021-06-29T18:34:55.402Z'
+          error: null
     notFound:
       summary: Not Found
       description: The requested item was not found.
@@ -92,15 +101,6 @@ components:
         path: /factset-fundamentals/v2/{endpoint}
         message: The Batch Request was not found. It has probably expired.
         subErrors: null
-    BatchStatusQueuedResponse:
-      description: Batch Status Queued Response
-      value:
-        data:
-          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-          status: queued
-          startTime: '2021-06-29T18:34:52.168Z'
-          endTime: null
-          error: null
     BatchStatusExecutingResponse:
       description: Batch Status Executing Response
       value:
@@ -110,27 +110,17 @@ components:
           startTime: '2021-06-29T18:34:52.168Z'
           endTime: null
           error: null
-  responses:
-    '404':
-      description: Resource not found.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/errorResponse'
-          examples:
-            Batch Request Not Found:
-              $ref: '#/components/examples/notFound'
+  parameters:
+    batchId:
+      name: id
+      in: query
+      description: Batch Request identifier.
+      schema:
+        type: string
+        format: uuid
+      required: true
+      allowEmptyValue: false
   schemas:
-    errorResponse:
-      type: object
-      title: Error Response
-      description: Error Default Response
-      properties:
-        errors:
-          type: array
-          description: An array containing errors
-          items:
-            $ref: '#/components/schemas/errorObject'
     batchErrorObject:
       type:
       - object
@@ -148,12 +138,39 @@ components:
           description: The plain text error message
           type: string
           example: Validation Error
-    BatchStatusResponse:
-      title: Batch Status Response
+    errorObject:
       type: object
       properties:
-        data:
-          $ref: '#/components/schemas/BatchStatus'
+        id:
+          description: A UUID for this particular occurrence of the problem.
+          type: string
+          example: adb01824-252f-4420-b0c6-35a1e3507ef5
+        code:
+          description: status
+          type: string
+          example: Bad Request
+        links:
+          description: The Endpoint path {package}/version/{endpoint}
+          type: object
+          properties:
+            about:
+              description: details.
+              type: string
+              example: /factset-fundamentals/v1/{endpoint}
+        title:
+          description: The plain text error message
+          type: string
+          example: Validation Error
+    errorResponse:
+      type: object
+      title: Error Response
+      description: Error Default Response
+      properties:
+        errors:
+          type: array
+          description: An array containing errors
+          items:
+            $ref: '#/components/schemas/errorObject'
     BatchStatus:
       title: Batch Status
       type: object
@@ -181,39 +198,22 @@ components:
           - failed
         error:
           $ref: '#/components/schemas/batchErrorObject'
-    errorObject:
+    BatchStatusResponse:
+      title: Batch Status Response
       type: object
       properties:
-        id:
-          description: A UUID for this particular occurrence of the problem.
-          type: string
-          example: adb01824-252f-4420-b0c6-35a1e3507ef5
-        code:
-          description: status
-          type: string
-          example: Bad Request
-        links:
-          description: The Endpoint path {package}/version/{endpoint}
-          type: object
-          properties:
-            about:
-              description: details.
-              type: string
-              example: /factset-fundamentals/v1/{endpoint}
-        title:
-          description: The plain text error message
-          type: string
-          example: Validation Error
-  parameters:
-    batchId:
-      name: id
-      in: query
-      description: Batch Request identifier.
-      schema:
-        type: string
-        format: uuid
-      required: true
-      allowEmptyValue: false
+        data:
+          $ref: '#/components/schemas/BatchStatus'
+  responses:
+    '404':
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Batch Request Not Found:
+              $ref: '#/components/examples/notFound'
   securitySchemes:
     FactSetOAuth2:
       type: oauth2

@@ -279,6 +279,55 @@ paths:
       - FactSetApiKey: []
       - FactSetOAuth2: []
 components:
+  responses:
+    InternalServerErrorResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    NotFoundErrorResponse:
+      description: The requested resource could not be found but may be available in the future. Subsequent requests by the client are permissible.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    BadRequestErrorResponse:
+      description: The server cannot or will not process the request due to an apparent client error (e.g., malformed request syntax, size too large, invalid request message framing, or deceptive request routing).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    UnsupportedMediaTypeErrorResponse:
+      description: The request entity has a media type which the server or resource does not support.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    UnauthorizedErrorResponse:
+      description: Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    ForbiddenErrorResponse:
+      description: The request contained valid data and was understood by the server, but the server is refusing action. This may be due to the user not having the necessary permissions for a resource or needing an account of some sort, or attempting a prohibited action.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    NotImplementedErrorResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    NotAcceptableErrorResponse:
+      description: The requested resource is capable of generating only content not acceptable according to the Accept headers sent in the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
   schemas:
     readTradeDataResponse:
       type:
@@ -376,51 +425,30 @@ components:
           example: []
       required:
       - errors
-    signalMetaData:
+    signalDefinition:
       type: object
       required:
       - data
       properties:
         data:
-          type: array
-          items:
-            type: object
-            required:
-            - id
-            - name
-            - description
-            properties:
-              id:
-                type: string
-              name:
-                type: string
-              description:
-                type: string
-          example: []
-    contractFields:
-      type: object
-      required:
-      - summary
-      - eventDate
-      properties:
-        summary:
           type: object
+          required:
+          - signalId
+          - theme
+          - categories
+          - contract
           properties:
-            description:
+            signalId:
               type: string
-            type:
+            theme:
               type: string
+            categories:
+              type: array
+              items:
+                type: string
+            contract:
+              $ref: '#/components/schemas/contract'
           example: example_value
-        eventDate:
-          type: object
-          properties:
-            description:
-              type: string
-            type:
-              type: string
-          example: example_value
-        additionalProperties:
-          $ref: '#/components/schemas/contractProperty'
     errorItem:
       type: object
       required:
@@ -447,6 +475,27 @@ components:
             parameter:
               type: string
           example: example_value
+    signalMetaData:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            required:
+            - id
+            - name
+            - description
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              description:
+                type: string
+          example: []
     contract:
       type: object
       required:
@@ -458,21 +507,30 @@ components:
         version:
           type: string
           example: example_value
-    errorResponse:
+    contractFields:
       type: object
       required:
-      - message
+      - summary
+      - eventDate
       properties:
-        message:
-          type: string
-          description: A short description of the error.
-          example: There was an error processing your request. Please try again later.
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/errorItem'
-          description: Optional list of errors. e.g. Validation errors for multiple parameters
-          example: []
+        summary:
+          type: object
+          properties:
+            description:
+              type: string
+            type:
+              type: string
+          example: example_value
+        eventDate:
+          type: object
+          properties:
+            description:
+              type: string
+            type:
+              type: string
+          example: example_value
+        additionalProperties:
+          $ref: '#/components/schemas/contractProperty'
     contractProperty:
       type: object
       required:
@@ -503,37 +561,20 @@ components:
         message:
           type: string
           example: API rate limit exceeded
-    signalDefinition:
+    errorResponse:
       type: object
       required:
-      - data
+      - message
       properties:
-        data:
-          type: object
-          required:
-          - signalId
-          - theme
-          - categories
-          - contract
-          properties:
-            signalId:
-              type: string
-            theme:
-              type: string
-            categories:
-              type: array
-              items:
-                type: string
-            contract:
-              $ref: '#/components/schemas/contract'
-          example: example_value
-    ErrorList:
-      type: object
-      properties:
+        message:
+          type: string
+          description: A short description of the error.
+          example: There was an error processing your request. Please try again later.
         errors:
           type: array
           items:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/errorItem'
+          description: Optional list of errors. e.g. Validation errors for multiple parameters
           example: []
     DataSourceList:
       type: object
@@ -558,6 +599,26 @@ components:
           items:
             $ref: '#/components/schemas/DataSourceDTO'
           example: []
+    ErrorList:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+          example: []
+    Error:
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        code:
+          type: string
+          example: example_value
+        title:
+          type: string
+          example: Example Title
     DataSourceDTO:
       type: object
       properties:
@@ -601,18 +662,6 @@ components:
         lastUpdated:
           type: number
           example: 42.5
-    Error:
-      type: object
-      properties:
-        id:
-          type: string
-          example: abc123
-        code:
-          type: string
-          example: example_value
-        title:
-          type: string
-          example: Example Title
     EntityDTO:
       type: object
       properties:
@@ -626,71 +675,12 @@ components:
         code:
           type: string
           example: example_value
-  responses:
-    UnsupportedMediaTypeErrorResponse:
-      description: The request entity has a media type which the server or resource does not support.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    NotAcceptableErrorResponse:
-      description: The requested resource is capable of generating only content not acceptable according to the Accept headers sent in the request.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    ForbiddenErrorResponse:
-      description: The request contained valid data and was understood by the server, but the server is refusing action. This may be due to the user not having the necessary permissions for a resource or needing an account of some sort, or attempting a prohibited action.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    InternalServerErrorResponse:
-      description: ''
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    NotImplementedErrorResponse:
-      description: ''
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    BadRequestErrorResponse:
-      description: The server cannot or will not process the request due to an apparent client error (e.g., malformed request syntax, size too large, invalid request message framing, or deceptive request routing).
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    UnauthorizedErrorResponse:
-      description: Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    NotFoundErrorResponse:
-      description: The requested resource could not be found but may be available in the future. Subsequent requests by the client are permissible.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
   headers:
-    RateLimit-Limit:
-      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
-      schema:
-        type: integer
-        example: 5
     Api-Supported-Versions:
       description: Comma-separated list of supported major versions.
       schema:
         type: string
         example: '1'
-    Api-Version:
-      description: Full semantic version of the API.
-      schema:
-        type: string
-        example: 1.0.0
     RateLimit-Reset:
       description: Time remaining (in seconds) until the quota is reset.
       schema:
@@ -701,6 +691,16 @@ components:
       schema:
         type: integer
         example: 4
+    Api-Version:
+      description: Full semantic version of the API.
+      schema:
+        type: string
+        example: 1.0.0
+    RateLimit-Limit:
+      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
+      schema:
+        type: integer
+        example: 5
   parameters:
     signalIdParam:
       name: signalId

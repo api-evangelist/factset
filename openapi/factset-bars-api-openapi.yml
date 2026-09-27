@@ -292,19 +292,58 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    filesOne:
-      title: Files
-      description: Array of data objects
+    granularity:
+      title: granularity
+      description: 'This is the grantualrity in which minute bars data is shown. Possible values are 1 Minute (1m)
+
+        '
+      type: string
+      enum:
+      - 1m
+    type:
+      title: type
+      description: '
+
+        <p>''type=trades'' gives  minute bars data calculated from trade data (price and volume)</p>
+
+        '
+      type: string
+      enum:
+      - trades
+    status:
       type: object
+      description: specifies the error message fields in the response
       properties:
-        fileName:
-          description: Name of the file(s) generated for the query requested
+        errors:
+          type: array
+          description: An array containing errors
+          items:
+            $ref: '#/components/schemas/errorExample'
+          example: []
+    Get-FilesMinuteResponse:
+      type: object
+      description: Returns Tick History Files
+      properties:
+        data:
+          $ref: '#/components/schemas/MinTickData'
+        meta:
+          $ref: '#/components/schemas/meta'
+    errorExample:
+      type: object
+      description: Specifies the fields in the error message
+      properties:
+        code:
+          description: It specifies the unique code
           type: string
           example: example_value
-        url:
-          description: "Download link for the TickHistory minute bars file with requested parameters. \n\n <p>The downloaded file contains isoCode, ticker, date, time, tradeOpen, tradeHigh, tradeLow, tradeClose, tradeVolume, tradeNumber, and tradeVWAP</P>\n \n <p>This download link will expire after 12 hours.</p>\n"
+        title:
+          description: ' Specifies the error message'
           type: string
-          example: https://www.example.com
+          example: Example Title
+        id:
+          description: Specifies the id
+          type: string
+          example: abc123
     ErrorObject:
       type:
       - object
@@ -323,27 +362,103 @@ components:
           description: The plain text error message
           type: string
           example: Validation Error
-    factsetExchangeCode:
-      title: factsetExchangeCode
-      description: 'FactSet specific regional or composite exchange code and last exchange code.
-
-        <p> NOTE:Does not support multiple factsetExchangeCodes</p>.
-
-        '
-      type: string
-      minItems: 1
-      maxItems: 1
-      example: USA
-    type:
-      title: type
-      description: '
-
-        <p>''type=trades'' gives  minute bars data calculated from trade data (price and volume)</p>
-
-        '
-      type: string
-      enum:
-      - trades
+    minRequest:
+      title: Level1 Minute bars Request Body
+      description: Level1 Minute bars request body elements
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/minutesbarRequestBody'
+      required:
+      - data
+    checkFiles:
+      type: object
+      description: check-files
+      properties:
+        id:
+          description: a unique identification for the query requested
+          type: string
+          example: abc123
+        status:
+          description: The status of the query
+          type: string
+          enum:
+          - queued
+          - executing
+          - created
+          - failed
+          - cancelled
+          example: queued
+        error:
+          $ref: '#/components/schemas/ErrorObject'
+    completedResponse:
+      type: object
+      title: status
+      description: Returns status.
+      properties:
+        data:
+          $ref: '#/components/schemas/checkFiles'
+    meta:
+      title: Meta
+      description: Array of metadata objects
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/pagination'
+    filesOne:
+      title: Files
+      description: Array of data objects
+      type: object
+      properties:
+        fileName:
+          description: Name of the file(s) generated for the query requested
+          type: string
+          example: example_value
+        url:
+          description: "Download link for the TickHistory minute bars file with requested parameters. \n\n <p>The downloaded file contains isoCode, ticker, date, time, tradeOpen, tradeHigh, tradeLow, tradeClose, tradeVolume, tradeNumber, and tradeVWAP</P>\n \n <p>This download link will expire after 12 hours.</p>\n"
+          type: string
+          example: https://www.example.com
+    pagination:
+      title: Pagination
+      description: List of pagination objects
+      type: object
+      properties:
+        total:
+          description: Total number of files the API returns for a particular query
+          type: integer
+          example: 10
+        isEstimatedTotal:
+          description: Boolean value that represents whether the total count of files returned is exact or an estimate. This is defaulted to False as the API should always return the exact count
+          type: boolean
+          example: true
+    submittedResponse:
+      type: object
+      title: Status Response
+      description: Returns Status of the id.
+      properties:
+        data:
+          $ref: '#/components/schemas/StatusOne'
+    minutesbarRequestBody:
+      title: Level1 Minute bars Request Body
+      description: Level1 Minute bars request body elements
+      type: object
+      properties:
+        tickers:
+          $ref: '#/components/schemas/tickers'
+        factsetExchangeCode:
+          $ref: '#/components/schemas/factsetExchangeCode'
+        dateTimeRange:
+          $ref: '#/components/schemas/dateTimePeriodMin'
+        granularity:
+          $ref: '#/components/schemas/granularity'
+        type:
+          $ref: '#/components/schemas/type'
+      required:
+      - tickers
+      - factsetExchangeCode
+      - dateTimeRange
+      - granularity
+      - type
     MinTickData:
       type: object
       title: Tick History Object
@@ -365,6 +480,15 @@ components:
           items:
             $ref: '#/components/schemas/filesOne'
           example: []
+    tickers:
+      type: array
+      items:
+        type: string
+        minItems: 1
+        maxItems: 500
+      description: "The requested list of one or more tickers. <p> NOTE: Maximum 500 tickers per request.</p>.\n \n"
+      example:
+      - FDS
     dateTimePeriodMin:
       type: object
       description: 'Date-Time
@@ -388,106 +512,17 @@ components:
 
             '
           example: '2012-01-30T11:20:30Z'
-    meta:
-      title: Meta
-      description: Array of metadata objects
-      type: object
-      properties:
-        pagination:
-          $ref: '#/components/schemas/pagination'
-    completedResponse:
-      type: object
-      title: status
-      description: Returns status.
-      properties:
-        data:
-          $ref: '#/components/schemas/checkFiles'
-    pagination:
-      title: Pagination
-      description: List of pagination objects
-      type: object
-      properties:
-        total:
-          description: Total number of files the API returns for a particular query
-          type: integer
-          example: 10
-        isEstimatedTotal:
-          description: Boolean value that represents whether the total count of files returned is exact or an estimate. This is defaulted to False as the API should always return the exact count
-          type: boolean
-          example: true
-    Get-FilesMinuteResponse:
-      type: object
-      description: Returns Tick History Files
-      properties:
-        data:
-          $ref: '#/components/schemas/MinTickData'
-        meta:
-          $ref: '#/components/schemas/meta'
-    status:
-      type: object
-      description: specifies the error message fields in the response
-      properties:
-        errors:
-          type: array
-          description: An array containing errors
-          items:
-            $ref: '#/components/schemas/errorExample'
-          example: []
-    tickers:
-      type: array
-      items:
-        type: string
-        minItems: 1
-        maxItems: 500
-      description: "The requested list of one or more tickers. <p> NOTE: Maximum 500 tickers per request.</p>.\n \n"
-      example:
-      - FDS
-    minRequest:
-      title: Level1 Minute bars Request Body
-      description: Level1 Minute bars request body elements
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/minutesbarRequestBody'
-      required:
-      - data
-    errorExample:
-      type: object
-      description: Specifies the fields in the error message
-      properties:
-        code:
-          description: It specifies the unique code
-          type: string
-          example: example_value
-        title:
-          description: ' Specifies the error message'
-          type: string
-          example: Example Title
-        id:
-          description: Specifies the id
-          type: string
-          example: abc123
-    minutesbarRequestBody:
-      title: Level1 Minute bars Request Body
-      description: Level1 Minute bars request body elements
-      type: object
-      properties:
-        tickers:
-          $ref: '#/components/schemas/tickers'
-        factsetExchangeCode:
-          $ref: '#/components/schemas/factsetExchangeCode'
-        dateTimeRange:
-          $ref: '#/components/schemas/dateTimePeriodMin'
-        granularity:
-          $ref: '#/components/schemas/granularity'
-        type:
-          $ref: '#/components/schemas/type'
-      required:
-      - tickers
-      - factsetExchangeCode
-      - dateTimeRange
-      - granularity
-      - type
+    factsetExchangeCode:
+      title: factsetExchangeCode
+      description: 'FactSet specific regional or composite exchange code and last exchange code.
+
+        <p> NOTE:Does not support multiple factsetExchangeCodes</p>.
+
+        '
+      type: string
+      minItems: 1
+      maxItems: 1
+      example: USA
     StatusOne:
       type: object
       description: request-files
@@ -508,173 +543,14 @@ components:
           example: queued
         error:
           $ref: '#/components/schemas/ErrorObject'
-    submittedResponse:
-      type: object
-      title: Status Response
-      description: Returns Status of the id.
-      properties:
-        data:
-          $ref: '#/components/schemas/StatusOne'
-    granularity:
-      title: granularity
-      description: 'This is the grantualrity in which minute bars data is shown. Possible values are 1 Minute (1m)
-
-        '
-      type: string
-      enum:
-      - 1m
-    checkFiles:
-      type: object
-      description: check-files
-      properties:
-        id:
-          description: a unique identification for the query requested
-          type: string
-          example: abc123
-        status:
-          description: The status of the query
-          type: string
-          enum:
-          - queued
-          - executing
-          - created
-          - failed
-          - cancelled
-          example: queued
-        error:
-          $ref: '#/components/schemas/ErrorObject'
-  examples:
-    sampleFilesResponse:
-      summary: Status Accepted
-      value:
-        data:
-          id: 27b4923f-86dd-4b8b-89ac-dfc3a26fa786
-          status: queued
-          error: null
-    minMultipleTicker:
-      summary: Multiple tickers for the given period
-      description: Post body request example to fetch details of the IBM and GOOGL tick data for the period    2023-01-01T00:00:00Z to 2023-01-05T23:59:59Z
-      value:
-        data:
-          tickers:
-          - IBM
-          - GOOGL
-          factsetExchangeCode: USA
-          dateTimeRange:
-            start: '2023-01-01T00:00:00Z'
-            end: '2023-01-05T23:59:59Z'
-          granularity: 1m
-          type: trades
-    sampleMinGet-FilesResponse:
-      summary: sample Response data for Minute bars Trades
-      value:
-        data:
-          requestTimestamp: '2020-10-23T03:38:02Z'
-          updateTimestamp: '2020-10-23T03:41:39Z'
-          listOfFiles:
-          - fileName: data_0_0_0.csv.gz
-            url: https://fdss3-structured-data-delivery-tickhistory-prod.s3.amazonaws.com/1908ba22c3d50cf0eb29d4941a15d754/1064084624/data_0_0_0.csv.gz?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=REDACTED_AWS_ACCESS_KEY_ID%2F20210407%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20210407T173818Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPL%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJHMEUCIQDvzcjGyFCVYyQANp8yuwa3Wn3pD0qWWxLx4ay4oHW61QIgXf3ULeWuRB2jidoA%2BiY83uRbUT8PvB8enoeKgisQUIYq2AEISxAAGgw5NjYyODIxMTY0MjUiDLuCDb9G45Fsn6HtLCq1AYQPGk8GpzGiRXMiASd%2FayNLEOTkXRvTkjg00DAMPt4GM9%2BmVJyXStFairI5Ru1ZO6%2B4DAHT8H1u2Z2g%2FZfIR8Wozv8NYq992v8PapfgUXfuVeJI%2BLnGFyUstgbIB1BgO18I0JscQWbGIy6FTiGfBgPuxvpN57TAcmHgc1XNbKDGFqgeVwcLIkY62a8zYjbOPP09gzFW2%2FNPCIyKl074r0dAHwmGw21XEoxKyJgNaybEXli4lGAwh9y3gwY64AFxwpKMsSGOx4teikNbdzo8dCDU0rjtxUgCupkqrqOtetRTLrjaxp4%2BfDa5IweJcdTREupEfkEZR8aaHgcWSzd5%2BKk1nUEUe1RoG%2FqzrQ0%2BANY3nX2a%2BKhgI6PLX%2FVEGJtaxtx0fMHO9PU1Szg9Rr%2FRY%2BphK19fHFGGAJc1r%2Fby00MrJFahqIRkwVud8h63dSoOJ%2Fbc0vd3oPzl%2F6GGyRTaAyCsjPTr6lPBXLdrmBkP8TuDyW%2BnTGhX8wJtSp2BxCOxLy7%2BVwGGAPl%2FtBtQdNK7q4tkb2COlYL%2BD9m6w2uNFg%3D%3D&X-Amz-Signature=3d54bc7804a710dbea470007eb9a7b231a9f60544fe44582bab3ae60ab67ca65
-        meta:
-          pagination:
-            total: 256
-            isEstimatedTotal: false
-    500Example:
-      summary: sample error response
-      value:
-        errors:
-        - code: Internal server error
-          title: An unexpected error happened
-          id: 7af3d86ca5954503b9244f2620fcf5eb
-    429Example:
-      summary: sample error response
-      value:
-        errors:
-        - code: Too Many Requests
-          title: quantityLimitsExceeded
-          id: 7af3d86ca5954503b9244f2620fcf5eb
-    sampleFilesResponseQueued:
-      summary: Status Queued
-      value:
-        data:
-          id: 27b4923f-86dd-4b8b-89ac-dfc3a26fa786
-          status: queued
-          error: null
-    sampleCompletedResponse:
-      summary: Status Done
-      value:
-        data:
-          id: 27b4923f-86dd-4b8b-89ac-dfc3a26fa786
-          status: created
-          error: null
-    403Example:
-      summary: sample error response
-      value:
-        errors:
-        - code: Forbidden
-          title: USERNAME-SERIAL does not have permission
-          id: 7af3d86ca5954503b9244f2620fcf5eb
-    sampleFilesResponseExecuting:
-      summary: Status Executing
-      value:
-        data:
-          id: 27b4923f-86dd-4b8b-89ac-dfc3a26fa786
-          status: executing
-          error: null
-    400Example:
-      summary: Sample error Response
-      value:
-        errors:
-        - code: Bad Request
-          title: parameterError:['_id'] is not a valid parameter(s)
-          id: 7af3d86ca5954503b9244f2620fcf5eb
-    404Example:
-      summary: sample error response
-      value:
-        errors:
-        - code: Not Found
-          title: id not found
-          id: 7af3d86ca5954503b9244f2620fcf5eb
-    minSingleTicker:
-      summary: Single ticker for the given period
-      description: Post body request example to fetch details of the IBM tick data for the period 2023-01-01T00:00:00Z to 2023-01-05T23:59:59Z.
-      value:
-        data:
-          tickers:
-          - IBM
-          factsetExchangeCode: USA
-          dateTimeRange:
-            start: '2023-01-01T00:00:00Z'
-            end: '2023-01-05T23:59:59Z'
-          granularity: 1m
-          type: trades
-    sampleFilesResponseCancelled:
-      summary: Status Cancelled
-      value:
-        data:
-          id: 27b4923f-86dd-4b8b-89ac-dfc3a26fa786
-          status: cancelled
-          error:
-            id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-            code: Error
-            title: Request taking long time
-    401Example:
-      summary: sample error response
-      value:
-        errors:
-        - code: Not Authenticated
-          title: USERNAME-SERIAL does not have permission
-          id: 7af3d86ca5954503b9244f2620fcf5eb
-    sampleFilesResponseFailed:
-      summary: Status Failed
-      value:
-        data:
-          id: 27b4923f-86dd-4b8b-89ac-dfc3a26fa786
-          status: failed
-          error:
-            id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-            code: Geeneric Error
-            title: 'Not a valid request '
   parameters:
+    requestId:
+      name: id
+      in: query
+      description: id returned by files create endpoint to poll and collect results of the query
+      required: true
+      schema:
+        type: string
     _paginationOffset:
       name: _paginationOffset
       in: query
@@ -698,13 +574,137 @@ components:
       required: true
       schema:
         type: string
-    requestId:
-      name: id
-      in: query
-      description: id returned by files create endpoint to poll and collect results of the query
-      required: true
-      schema:
-        type: string
+  examples:
+    sampleFilesResponseQueued:
+      summary: Status Queued
+      value:
+        data:
+          id: 27b4923f-86dd-4b8b-89ac-dfc3a26fa786
+          status: queued
+          error: null
+    minMultipleTicker:
+      summary: Multiple tickers for the given period
+      description: Post body request example to fetch details of the IBM and GOOGL tick data for the period    2023-01-01T00:00:00Z to 2023-01-05T23:59:59Z
+      value:
+        data:
+          tickers:
+          - IBM
+          - GOOGL
+          factsetExchangeCode: USA
+          dateTimeRange:
+            start: '2023-01-01T00:00:00Z'
+            end: '2023-01-05T23:59:59Z'
+          granularity: 1m
+          type: trades
+    sampleFilesResponseExecuting:
+      summary: Status Executing
+      value:
+        data:
+          id: 27b4923f-86dd-4b8b-89ac-dfc3a26fa786
+          status: executing
+          error: null
+    sampleFilesResponseFailed:
+      summary: Status Failed
+      value:
+        data:
+          id: 27b4923f-86dd-4b8b-89ac-dfc3a26fa786
+          status: failed
+          error:
+            id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+            code: Geeneric Error
+            title: 'Not a valid request '
+    500Example:
+      summary: sample error response
+      value:
+        errors:
+        - code: Internal server error
+          title: An unexpected error happened
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    sampleCompletedResponse:
+      summary: Status Done
+      value:
+        data:
+          id: 27b4923f-86dd-4b8b-89ac-dfc3a26fa786
+          status: created
+          error: null
+    sampleFilesResponseCancelled:
+      summary: Status Cancelled
+      value:
+        data:
+          id: 27b4923f-86dd-4b8b-89ac-dfc3a26fa786
+          status: cancelled
+          error:
+            id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+            code: Error
+            title: Request taking long time
+    sampleMinGet-FilesResponse:
+      summary: sample Response data for Minute bars Trades
+      value:
+        data:
+          requestTimestamp: '2020-10-23T03:38:02Z'
+          updateTimestamp: '2020-10-23T03:41:39Z'
+          listOfFiles:
+          - fileName: data_0_0_0.csv.gz
+            url: https://fdss3-structured-data-delivery-tickhistory-prod.s3.amazonaws.com/1908ba22c3d50cf0eb29d4941a15d754/1064084624/data_0_0_0.csv.gz?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=REDACTED_AWS_ACCESS_KEY_ID%2F20210407%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20210407T173818Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPL%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJHMEUCIQDvzcjGyFCVYyQANp8yuwa3Wn3pD0qWWxLx4ay4oHW61QIgXf3ULeWuRB2jidoA%2BiY83uRbUT8PvB8enoeKgisQUIYq2AEISxAAGgw5NjYyODIxMTY0MjUiDLuCDb9G45Fsn6HtLCq1AYQPGk8GpzGiRXMiASd%2FayNLEOTkXRvTkjg00DAMPt4GM9%2BmVJyXStFairI5Ru1ZO6%2B4DAHT8H1u2Z2g%2FZfIR8Wozv8NYq992v8PapfgUXfuVeJI%2BLnGFyUstgbIB1BgO18I0JscQWbGIy6FTiGfBgPuxvpN57TAcmHgc1XNbKDGFqgeVwcLIkY62a8zYjbOPP09gzFW2%2FNPCIyKl074r0dAHwmGw21XEoxKyJgNaybEXli4lGAwh9y3gwY64AFxwpKMsSGOx4teikNbdzo8dCDU0rjtxUgCupkqrqOtetRTLrjaxp4%2BfDa5IweJcdTREupEfkEZR8aaHgcWSzd5%2BKk1nUEUe1RoG%2FqzrQ0%2BANY3nX2a%2BKhgI6PLX%2FVEGJtaxtx0fMHO9PU1Szg9Rr%2FRY%2BphK19fHFGGAJc1r%2Fby00MrJFahqIRkwVud8h63dSoOJ%2Fbc0vd3oPzl%2F6GGyRTaAyCsjPTr6lPBXLdrmBkP8TuDyW%2BnTGhX8wJtSp2BxCOxLy7%2BVwGGAPl%2FtBtQdNK7q4tkb2COlYL%2BD9m6w2uNFg%3D%3D&X-Amz-Signature=3d54bc7804a710dbea470007eb9a7b231a9f60544fe44582bab3ae60ab67ca65
+        meta:
+          pagination:
+            total: 256
+            isEstimatedTotal: false
+    401Example:
+      summary: sample error response
+      value:
+        errors:
+        - code: Not Authenticated
+          title: USERNAME-SERIAL does not have permission
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    minSingleTicker:
+      summary: Single ticker for the given period
+      description: Post body request example to fetch details of the IBM tick data for the period 2023-01-01T00:00:00Z to 2023-01-05T23:59:59Z.
+      value:
+        data:
+          tickers:
+          - IBM
+          factsetExchangeCode: USA
+          dateTimeRange:
+            start: '2023-01-01T00:00:00Z'
+            end: '2023-01-05T23:59:59Z'
+          granularity: 1m
+          type: trades
+    sampleFilesResponse:
+      summary: Status Accepted
+      value:
+        data:
+          id: 27b4923f-86dd-4b8b-89ac-dfc3a26fa786
+          status: queued
+          error: null
+    400Example:
+      summary: Sample error Response
+      value:
+        errors:
+        - code: Bad Request
+          title: parameterError:['_id'] is not a valid parameter(s)
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    404Example:
+      summary: sample error response
+      value:
+        errors:
+        - code: Not Found
+          title: id not found
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    403Example:
+      summary: sample error response
+      value:
+        errors:
+        - code: Forbidden
+          title: USERNAME-SERIAL does not have permission
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    429Example:
+      summary: sample error response
+      value:
+        errors:
+        - code: Too Many Requests
+          title: quantityLimitsExceeded
+          id: 7af3d86ca5954503b9244f2620fcf5eb
   securitySchemes:
     FactSetOAuth2:
       type: oauth2

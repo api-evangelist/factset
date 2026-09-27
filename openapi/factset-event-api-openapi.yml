@@ -95,6 +95,33 @@ components:
             parameter:
               type: string
           example: example_value
+    eventMeta:
+      type: object
+      required:
+      - signalRequestId
+      - idResolutions
+      properties:
+        signalRequestId:
+          type: string
+          format: uuid
+          example: '500123'
+        idResolutions:
+          $ref: '#/components/schemas/idResolutionsMeta'
+    eventDetail:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/eventDetailDataItem'
+        meta:
+          $ref: '#/components/schemas/eventMeta'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errorItem'
+          example: []
     eventHeadlineDataItem:
       type: object
       required:
@@ -156,72 +183,6 @@ components:
           format: date-time
           description: Date/Time in UTC the event was first recorded in our data store.
           example: '2021-04-26T06:39:40.094Z'
-    eventMeta:
-      type: object
-      required:
-      - signalRequestId
-      - idResolutions
-      properties:
-        signalRequestId:
-          type: string
-          format: uuid
-          example: '500123'
-        idResolutions:
-          $ref: '#/components/schemas/idResolutionsMeta'
-    idResolutionsMeta:
-      type: object
-      properties:
-        tickerRegion:
-          type: object
-          additionalProperties:
-            type:
-            - string
-            - 'null'
-          example: example_value
-        regionalPermId:
-          type: object
-          additionalProperties:
-            type:
-            - string
-            - 'null'
-          example: '500123'
-    errorResponse:
-      type: object
-      required:
-      - message
-      properties:
-        message:
-          type: string
-          description: A short description of the error.
-          example: There was an error processing your request. Please try again later.
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/errorItem'
-          description: Optional list of errors. e.g. Validation errors for multiple parameters
-          example: []
-    rateLimitResponse:
-      title: Rate Limit Error Object
-      description: Error returned if any of the user's rate limit have been reached.
-      properties:
-        message:
-          type: string
-          example: API rate limit exceeded
-    eventDetail:
-      type: object
-      required:
-      - data
-      - meta
-      properties:
-        data:
-          $ref: '#/components/schemas/eventDetailDataItem'
-        meta:
-          $ref: '#/components/schemas/eventMeta'
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/errorItem'
-          example: []
     eventDetailDataItem:
       allOf:
       - $ref: '#/components/schemas/eventHeadlineDataItem'
@@ -245,22 +206,51 @@ components:
             type: object
             description: Signal specific event properties.
             additionalProperties: true
+    rateLimitResponse:
+      title: Rate Limit Error Object
+      description: Error returned if any of the user's rate limit have been reached.
+      properties:
+        message:
+          type: string
+          example: API rate limit exceeded
+    errorResponse:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+          description: A short description of the error.
+          example: There was an error processing your request. Please try again later.
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errorItem'
+          description: Optional list of errors. e.g. Validation errors for multiple parameters
+          example: []
+    idResolutionsMeta:
+      type: object
+      properties:
+        tickerRegion:
+          type: object
+          additionalProperties:
+            type:
+            - string
+            - 'null'
+          example: example_value
+        regionalPermId:
+          type: object
+          additionalProperties:
+            type:
+            - string
+            - 'null'
+          example: '500123'
   headers:
-    RateLimit-Limit:
-      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
-      schema:
-        type: integer
-        example: 5
     Api-Supported-Versions:
       description: Comma-separated list of supported major versions.
       schema:
         type: string
         example: '1'
-    Api-Version:
-      description: Full semantic version of the API.
-      schema:
-        type: string
-        example: 1.0.0
     RateLimit-Reset:
       description: Time remaining (in seconds) until the quota is reset.
       schema:
@@ -271,6 +261,16 @@ components:
       schema:
         type: integer
         example: 4
+    Api-Version:
+      description: Full semantic version of the API.
+      schema:
+        type: string
+        example: 1.0.0
+    RateLimit-Limit:
+      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
+      schema:
+        type: integer
+        example: 5
   parameters:
     eventIdParam:
       name: eventId

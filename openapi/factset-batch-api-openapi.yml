@@ -299,7 +299,7 @@ paths:
       - Batch
       summary: Factset Returns the Status for a Batch Request
       description: Return the status for the underlying batch request that is specified by the id.
-      operationId: getBatchStatus
+      operationId: getFactsetGlobalPricesV1BatchStatus
       parameters:
       - $ref: '#/components/parameters/batchId'
       responses:
@@ -337,6 +337,8 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
+      x-operation-id-source: normalized
+      x-operation-id-original: getBatchStatus
     servers:
     - url: https://api.factset.com/content
       description: Production
@@ -349,7 +351,7 @@ paths:
 
 
         By default, this endpoint will return data as JSON. If you wish to receive your data in CSV format, you can edit the header to have the "accept" parameter as "text/csv" instead of "application/json".'
-      operationId: getBatchData
+      operationId: getFactsetGlobalPricesV1BatchResult
       parameters:
       - $ref: '#/components/parameters/batchId'
       responses:
@@ -387,6 +389,8 @@ paths:
       x-microcks-operation:
         delay: 0
         dispatcher: FALLBACK
+      x-operation-id-source: normalized
+      x-operation-id-original: getBatchData
     servers:
     - url: https://api.factset.com/content
       description: Production
@@ -396,7 +400,7 @@ paths:
       - Batch
       summary: Factset Returns the status for a Batch Request
       description: Return the status for the underlying batch request that is specified by the id.
-      operationId: getBatchStatus
+      operationId: getBatchV1Status
       parameters:
       - $ref: '#/components/parameters/batchId'
       responses:
@@ -431,12 +435,14 @@ paths:
         '404':
           $ref: '#/components/responses/404'
       deprecated: false
+      x-operation-id-source: normalized
+      x-operation-id-original: getBatchStatus
     post:
       tags:
       - Batch
       summary: Factset Returns the status for a Batch Request
       description: Return the status for the underlying batch request that is specified by the id.
-      operationId: getBatchStatusWithPost
+      operationId: postBatchV1Status
       requestBody:
         description: Batch Status Request Post Body
         content:
@@ -479,6 +485,8 @@ paths:
         '404':
           $ref: '#/components/responses/404'
       deprecated: false
+      x-operation-id-source: normalized
+      x-operation-id-original: getBatchStatusWithPost
     servers:
     - url: https://api.factset.com/content
       description: Production
@@ -488,7 +496,7 @@ paths:
       - Batch
       summary: Factset Returns the response for a Batch Request
       description: Returns the response data for the underlying batch request that is specified by the id.
-      operationId: getBatchData
+      operationId: getBatchV1Result
       parameters:
       - $ref: '#/components/parameters/batchId'
       responses:
@@ -519,12 +527,14 @@ paths:
         '404':
           $ref: '#/components/responses/404'
       deprecated: false
+      x-operation-id-source: normalized
+      x-operation-id-original: getBatchData
     post:
       tags:
       - Batch
       summary: Factset Returns the response for a Batch Request
       description: Return the response data for the underlying batch request that is specified by the id.
-      operationId: getBatchDataWithPost
+      operationId: postBatchV1Result
       requestBody:
         description: Batch Data Request Post Body
         content:
@@ -563,29 +573,34 @@ paths:
         '404':
           $ref: '#/components/responses/404'
       deprecated: false
+      x-operation-id-source: normalized
+      x-operation-id-original: getBatchDataWithPost
     servers:
     - url: https://api.factset.com/content
       description: Production
 components:
+  headers:
+    chain-id:
+      description: Unique identifier for the request. Also known as the chain id.
+      schema:
+        type: string
+        example: 5EFCCA8940CAEA6B
+    api-supported-versions:
+      description: the comma-separated list of supported major versions.
+      schema:
+        type: string
+        example: '1'
+    api-deprecated-versions:
+      description: the comma-separated list of deprecated major versions.
+      schema:
+        type: string
+        example: 1,2
+    api-version:
+      description: the full semantic version of the API.
+      schema:
+        type: string
+        example: 1.0.0
   examples:
-    BatchStatusDoneResponse:
-      description: Batch Status Done Response
-      value:
-        data:
-          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-          status: DONE
-          startTime: '2021-06-29T18:34:52.168Z'
-          endTime: '2021-06-29T18:34:55.402Z'
-          error: null
-    BatchStatusQueuedResponse:
-      description: Batch Status Queued Response
-      value:
-        data:
-          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-          status: QUEUED
-          startTime: '2021-06-29T18:34:52.168Z'
-          endTime: null
-          error: null
     time-series-singleId-singleItem:
       summary: Single Id and Single Data Item
       description: '`time-series` Request for Single Price Record for IBM
@@ -603,15 +618,24 @@ components:
             - '2020-07-09'
           dataType: DOUBLE
           objectType: TIMESERIES
-    BatchStatusFailedResponseTimeout:
-      description: Batch Status Failed Response - Timeout. The example response shows the result of checking the status of a batch request that took longer than 20 minutes to calculate and timed out.
+    BatchStatusQueuedResponse:
+      description: Batch Status Queued Response
       value:
         data:
           id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-          status: FAILED
+          status: QUEUED
           startTime: '2021-06-29T18:34:52.168Z'
-          endTime: '2021-06-29T18:44:55.402Z'
-          error: timeout
+          endTime: null
+          error: null
+    BatchStatusFailedResponseOther:
+      description: Batch Status Failed Response - Other. The example response shows the result of checking the status of a batch request that failed unexpectedly. If you encounter this error, please contact FactSet support.
+      value:
+        data:
+          id: 43839790-a64e-452a-b8f0-fc26117bd9f4
+          status: FAILED
+          startTime: '2023-09-20T13:37:13.653411'
+          endTime: '2023-09-20T13:38:25.841134'
+          error: Something went wrong. Contact FactSet for support.
     BatchResultExecutingResponse:
       description: Batch Result Executing Response
       value:
@@ -629,6 +653,15 @@ components:
           startTime: '2021-06-29T18:34:52.168Z'
           endTime: null
           error: null
+    BatchStatusFailedResponseMemoryLimit:
+      description: Batch Status Failed Response - MemoryLimit. The example response shows the result of checking the status of a batch request that exceeded the memory limit.
+      value:
+        data:
+          id: 0a0452e2-3937-441d-b376-f2733a938587
+          status: FAILED
+          startTime: '2023-09-15T00:07:46.501947'
+          endTime: '2023-09-15T00:08:53.936218'
+          error: The request size is too large. Try again with a smaller request.
     cross-sectional-singleId-singleItem:
       summary: Single Equity Id and Single Equity Data Item
       description: '`cross-sectional` Request for Single Price Record for IBM
@@ -654,32 +687,71 @@ components:
           code: Accepted
           title: Please check the status endpoint until the batch request has a status of DONE and then retrieve the results from the results endpoint.
           timestamp: '2022-01-18 18:29:59.189'
-    BatchStatusFailedResponseOther:
-      description: Batch Status Failed Response - Other. The example response shows the result of checking the status of a batch request that failed unexpectedly. If you encounter this error, please contact FactSet support.
+    BatchStatusFailedResponseTimeout:
+      description: Batch Status Failed Response - Timeout. The example response shows the result of checking the status of a batch request that took longer than 20 minutes to calculate and timed out.
       value:
         data:
-          id: 43839790-a64e-452a-b8f0-fc26117bd9f4
+          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
           status: FAILED
-          startTime: '2023-09-20T13:37:13.653411'
-          endTime: '2023-09-20T13:38:25.841134'
-          error: Something went wrong. Contact FactSet for support.
-    BatchStatusFailedResponseMemoryLimit:
-      description: Batch Status Failed Response - MemoryLimit. The example response shows the result of checking the status of a batch request that exceeded the memory limit.
-      value:
-        data:
-          id: 0a0452e2-3937-441d-b376-f2733a938587
-          status: FAILED
-          startTime: '2023-09-15T00:07:46.501947'
-          endTime: '2023-09-15T00:08:53.936218'
-          error: The request size is too large. Try again with a smaller request.
-    BatchStatusDoneResponse_2:
+          startTime: '2021-06-29T18:34:52.168Z'
+          endTime: '2021-06-29T18:44:55.402Z'
+          error: timeout
+    BatchStatusDoneResponse:
       description: Batch Status Done Response
       value:
         data:
           id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-          status: created
+          status: DONE
           startTime: '2021-06-29T18:34:52.168Z'
           endTime: '2021-06-29T18:34:55.402Z'
+          error: null
+    GlobalPricesResponsePricesOnly:
+      summary: Prices Response of FactSet (FDS-US) filtered to only return "price" field with dates.
+      value:
+        data:
+        - date: '2021-08-23'
+          requestId: FDS-USA
+          price: 366.61
+          fsymId: SQFMK3-R
+          currency: USD
+        - date: '2021-08-24'
+          requestId: FDS-USA
+          price: 367.64
+          fsymId: SQFMK3-R
+          currency: USD
+        - date: '2021-08-25'
+          requestId: FDS-USA
+          price: 376
+          fsymId: SQFMK3-R
+          currency: USD
+        - date: '2021-08-26'
+          requestId: FDS-USA
+          price: 374.01
+          fsymId: SQFMK3-R
+          currency: USD
+        - date: '2021-08-27'
+          requestId: FDS-USA
+          price: 376.58
+          fsymId: SQFMK3-R
+          currency: USD
+    annualizedDividendsResponse:
+      summary: Annualized Dividends Response of Apple (AAPL-US)
+      value:
+        data:
+        - fsymId: SJY281-R
+          eventId: JTHPFN-A
+          effectiveDate: '2022-03-11'
+          iadDefTradingAdj: 0.7584434
+          currency: USD
+          requestId: AAPL-US
+    BatchStatusQueuedResponse_2:
+      description: Batch Status Queued Response
+      value:
+        data:
+          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+          status: queued
+          startTime: '2021-06-29T18:34:52.168Z'
+          endTime: null
           error: null
     returnsResponseAll:
       summary: Returns Response of Google (GOOGL) and Apple (AAPL)
@@ -695,15 +767,25 @@ components:
           currency: USD
           totalReturn: 1.782245
           requestId: AAPL
-    BatchStatusQueuedResponse_2:
-      description: Batch Status Queued Response
+    sharesOutstanding:
+      summary: Shares Outstanding Response of FactSet (FDS-US)
       value:
         data:
-          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-          status: queued
-          startTime: '2021-06-29T18:34:52.168Z'
-          endTime: null
-          error: null
+        - fsymId: C6J726-S
+          date: '2023-08-10'
+          documentId: '956881'
+          requestId: C6J726-S
+          reportDate: '2022-08-02'
+          publicationDate: '2022-08-04'
+          fiscalYear: 2022
+          reportingPeriodDescription: 2nd Quarter
+          reportingPeriod: 3
+          description: Ordinary Shares
+          adrRatio: 1
+          adrFsymId: V9GGRZ-S
+          adrDescription: American Despository Shares
+          totalOutstanding: 980.22284
+          adrTotalOutstanding: 225.30467
     OrdinaryDividends:
       summary: Corporate Actions Ordinary Dividends (DVC)
       value:
@@ -762,16 +844,15 @@ components:
           dividendsSpecFlag: 0
           taxRate: 35
           requestId: V5W2SX-R
-    batchNotFound:
-      summary: Not Found
-      description: The requested item was not found.
+    BatchStatusExecutingResponse_2:
+      description: Batch Status Executing Response
       value:
-        errors:
-        - id: adb01824-252f-4420-b0c6
-          code: Not Found
-          links:
-            about: /factset-global-prices/v1
-          title: The Batch Request was not found. It has probably expired.
+        data:
+          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+          status: executing
+          startTime: '2021-06-29T18:34:52.168Z'
+          endTime: null
+          error: null
     BatchStatusFailedResponse:
       description: Batch Status Failed Response
       value:
@@ -784,73 +865,25 @@ components:
             id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
             code: GenericError
             title: the date parameter must be in YYYY-MM-DD format
-    BatchStatusExecutingResponse_2:
-      description: Batch Status Executing Response
+    batchNotFound:
+      summary: Not Found
+      description: The requested item was not found.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Not Found
+          links:
+            about: /factset-global-prices/v1
+          title: The Batch Request was not found. It has probably expired.
+    BatchStatusDoneResponse_2:
+      description: Batch Status Done Response
       value:
         data:
           id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-          status: executing
+          status: created
           startTime: '2021-06-29T18:34:52.168Z'
-          endTime: null
+          endTime: '2021-06-29T18:34:55.402Z'
           error: null
-    GlobalPricesResponsePricesOnly:
-      summary: Prices Response of FactSet (FDS-US) filtered to only return "price" field with dates.
-      value:
-        data:
-        - date: '2021-08-23'
-          requestId: FDS-USA
-          price: 366.61
-          fsymId: SQFMK3-R
-          currency: USD
-        - date: '2021-08-24'
-          requestId: FDS-USA
-          price: 367.64
-          fsymId: SQFMK3-R
-          currency: USD
-        - date: '2021-08-25'
-          requestId: FDS-USA
-          price: 376
-          fsymId: SQFMK3-R
-          currency: USD
-        - date: '2021-08-26'
-          requestId: FDS-USA
-          price: 374.01
-          fsymId: SQFMK3-R
-          currency: USD
-        - date: '2021-08-27'
-          requestId: FDS-USA
-          price: 376.58
-          fsymId: SQFMK3-R
-          currency: USD
-    sharesOutstanding:
-      summary: Shares Outstanding Response of FactSet (FDS-US)
-      value:
-        data:
-        - fsymId: C6J726-S
-          date: '2023-08-10'
-          documentId: '956881'
-          requestId: C6J726-S
-          reportDate: '2022-08-02'
-          publicationDate: '2022-08-04'
-          fiscalYear: 2022
-          reportingPeriodDescription: 2nd Quarter
-          reportingPeriod: 3
-          description: Ordinary Shares
-          adrRatio: 1
-          adrFsymId: V9GGRZ-S
-          adrDescription: American Despository Shares
-          totalOutstanding: 980.22284
-          adrTotalOutstanding: 225.30467
-    annualizedDividendsResponse:
-      summary: Annualized Dividends Response of Apple (AAPL-US)
-      value:
-        data:
-        - fsymId: SJY281-R
-          eventId: JTHPFN-A
-          effectiveDate: '2022-03-11'
-          iadDefTradingAdj: 0.7584434
-          currency: USD
-          requestId: AAPL-US
     singleSecurityPrices:
       summary: Single Price Record for AAPL as of March 29 2019
       description: Single Price Record for AAPL
@@ -908,15 +941,6 @@ components:
           startTime: '2021-06-29T18:34:52.168Z'
           endTime: '2021-06-29T18:34:55.402Z'
           error: Invalid format for startDate
-    notFound:
-      summary: Not Found
-      description: The requested item was not found.
-      value:
-        status: Not Found
-        timestamp: '2020-06-12T16:08:51.731Z'
-        path: /batch/v1/status
-        message: The Batch Request was not found. It has probably expired.
-        subErrors: null
     oneMonthSecurityPrices:
       summary: One month of daily prices for AAPL for March 2019
       description: One month of daily open, high, low, and close end-of-day prices and volume for AAPL for March 2019.
@@ -1132,34 +1156,41 @@ components:
           priceLow: 188.54
           volume: 23563.96
           requestId: AAPL
+    notFound:
+      summary: Not Found
+      description: The requested item was not found.
+      value:
+        status: Not Found
+        timestamp: '2020-06-12T16:08:51.731Z'
+        path: /batch/v1/status
+        message: The Batch Request was not found. It has probably expired.
+        subErrors: null
+  requestBodies:
+    batch-result-postBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BatchDataRequest'
+          examples:
+            BatchDataRequest:
+              summary: Batch Result Request
+              value:
+                data:
+                  id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+    batch-status-postBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BatchDataRequest'
+          examples:
+            BatchStatusRequest:
+              summary: Batch Status Request
+              value:
+                data:
+                  id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
   schemas:
-    BatchDataResponse:
-      title: Batch Data Response
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/BatchData'
-    BatchStatusResponse:
-      title: Batch Status Response
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/BatchStatus'
-    BatchDataRequest:
-      title: Batch Data Request
-      type: object
-      required:
-      - data
-      properties:
-        data:
-          type: object
-          properties:
-            id:
-              type: string
-              format: uuid
-              example: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-              description: Batch Request identifier.
-          example: example_value
     BatchStatus:
       title: Batch Status
       type: object
@@ -1197,6 +1228,14 @@ components:
           - 'null'
           example: The parameter 'formulas' is required and may not be empty.
           description: Error message.
+    BatchData:
+      title: Batch Data
+      description: 'The schema for the batched result is determined by the endpoint you used with the _batch_ parameter.
+
+        Please see the schema for that endpoint for the definition.
+
+        '
+      type: object
     error_detail:
       title: Error Object
       description: '`Error Object` is the response returned for an unsuccessful request.
@@ -1229,27 +1268,35 @@ components:
           - 'null'
           format: date-time
           example: '2020-08-01 11:09:41.918'
-    BatchData:
-      title: Batch Data
-      description: 'The schema for the batched result is determined by the endpoint you used with the _batch_ parameter.
-
-        Please see the schema for that endpoint for the definition.
-
-        '
-      type: object
-    batchResultResponse:
-      title: Batch Data Response
+    BatchDataRequest:
+      title: Batch Data Request
       type: object
       required:
       - data
       properties:
         data:
-          type: array
-          items:
-            $ref: '#/components/schemas/batchResult'
-          example: []
-    price:
-      title: Price Object
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              example: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+              description: Batch Request identifier.
+          example: example_value
+    BatchStatusResponse:
+      title: Batch Status Response
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/BatchStatus'
+    BatchDataResponse:
+      title: Batch Data Response
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/BatchData'
+    returns:
+      title: Returns Object
       type: object
       properties:
         fsymId:
@@ -1258,8 +1305,15 @@ components:
           - string
           - 'null'
           example: LCV42P-L
+        totalReturn:
+          description: Returns the data for the given input parameters.
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 0.927077
         date:
-          description: Ending date for the period expressed in YYYY-MM-DD format.
+          description: End date of the return. Date in YYYY-MM-DD format. Depending on Frequency and Calendar settings, this could represent the entire return period requested.
           type:
           - string
           - 'null'
@@ -1275,129 +1329,17 @@ components:
           description: Identifier that was used for the request.
           type: string
           example: DDD-USA
-      additionalProperties: true
-    batchResult:
-      title: Batch Data
-      anyOf:
-      - $ref: '#/components/schemas/price'
-      - $ref: '#/components/schemas/returns'
-      - $ref: '#/components/schemas/corporateAction'
-      - $ref: '#/components/schemas/annualizedDividendsObject'
-      - $ref: '#/components/schemas/sharesOutstandingResponseObject'
-    corporateAction:
-      title: Corporate Action Object
+    batchResultResponse:
+      title: Batch Data Response
       type: object
+      required:
+      - data
       properties:
-        fsymId:
-          description: Factset Regional Security Identifier. Six alpha-numeric characters, excluding vowels, with an -R suffix (XXXXXX-R). Identifies the security's best regional security data series per currency. For equities, all primary listings per region and currency are allocated a regional-level permanent identifier. The regional-level permanent identifier will be available once a SEDOL representing the region/currency has been allocated and the identifiers are on FactSet.
-          type:
-          - string
-          - 'null'
-          example: SJY281-R
-          x-fds-sdf: fsym_id
-          x-fds-dh: REGIONAL_FDS_ID
-        eventId:
-          description: FactSet identifier that uniquely identifies the Event.
-          type:
-          - string
-          - 'null'
-          example: JTHPFN-A
-          x-fds-sdf: ca_event_id
-          x-fds-dh: EVENT_ID
-        eventTypeCode:
-          description: 'Corporate Actions Event type code, possible values: [ DVC, DVCD, DRP, DVS, DVSS, BNS, BNSS, SPO, DSR, FSP, RSP, SPL ]'
-          type:
-          - string
-          - 'null'
-          x-fds-sdf: ca_event_type_code
-          x-fds-dh: EVENT_TYPE_CODE
-          example: example_value
-        eventTypeDesc:
-          description: Corporate Actions Event type description.
-          type:
-          - string
-          - 'null'
-          x-fds-sdf: null
-          x-fds-dh: EVENT_TYPE
-          example: example_value
-        divTypeCode:
-          description: 'Dividend Type Code. For code descriptions, visit [Online Assistant Page #8764] (https://oa.apps.factset.com/pages/8764).
-
-            '
-          type:
-          - string
-          - 'null'
-          x-fds-sdf: div_type_code
-          x-fds-dh: DIVTYPE_NUM
-          example: example_value
-        announcementDate:
-          description: Date Event was announced in YYYY-MM-DD format.
-          type:
-          - string
-          - 'null'
-          x-fds-sdf: announcement_date
-          x-fds-dh: ANNDATE
-          example: example_value
-        recordDate:
-          description: Date of Record for distribution in YYYY-MM-DD format.
-          type:
-          - string
-          - 'null'
-          x-fds-sdf: record_date
-          x-fds-dh: RECORD_DATE
-          example: example_value
-        payDate:
-          description: Date of Payment for distribution in YYYY-MM-DD format.
-          type:
-          - string
-          - 'null'
-          x-fds-sdf: pay_date
-          x-fds-dh: PAYDATE
-          example: example_value
-        effectiveDate:
-          description: Effective Date or Ex-Date of distribution in YYYY-MM-DD format.
-          type:
-          - string
-          - 'null'
-          x-fds-sdf: effective_date
-          x-fds-dh: EFFECTIVE_DATE
-          example: example_value
-        requestId:
-          description: Identifier that was used for the request.
-          type: string
-          example: AAPL-US
-      additionalProperties: true
-    BatchStatus_2:
-      title: Batch Status
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: the id of batch request.
-          example: abc123
-        startTime:
-          type: string
-          format: date-time
-          description: Time when the batch request is started. This is in Eastern Time Zone. The date-time format is expressed as [YYYY-MM-DD]T[HH:MM:SSS], following ISO 8601.
-          example: '2026-01-15T10:30:00Z'
-        endTime:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          description: Time when the batch request is ended. This is in Eastern Time Zone. The date-time format is expressed as [YYYY-MM-DD]T[HH:MM:SSS], following ISO 8601.
-          example: '2026-01-15T10:30:00Z'
-        status:
-          type: string
-          enum:
-          - queued
-          - executing
-          - created
-          - failed
-          example: queued
-        error:
-          $ref: '#/components/schemas/batchErrorObject'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/batchResult'
+          example: []
     annualizedDividendsObject:
       title: Annualized Dividends Object
       type: object
@@ -1442,6 +1384,65 @@ components:
           description: Identifier that was used for the request.
           type: string
           example: AAPL-US
+    BatchStatus_2:
+      title: Batch Status
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: the id of batch request.
+          example: abc123
+        startTime:
+          type: string
+          format: date-time
+          description: Time when the batch request is started. This is in Eastern Time Zone. The date-time format is expressed as [YYYY-MM-DD]T[HH:MM:SSS], following ISO 8601.
+          example: '2026-01-15T10:30:00Z'
+        endTime:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time when the batch request is ended. This is in Eastern Time Zone. The date-time format is expressed as [YYYY-MM-DD]T[HH:MM:SSS], following ISO 8601.
+          example: '2026-01-15T10:30:00Z'
+        status:
+          type: string
+          enum:
+          - queued
+          - executing
+          - created
+          - failed
+          example: queued
+        error:
+          $ref: '#/components/schemas/batchErrorObject'
+    price:
+      title: Price Object
+      type: object
+      properties:
+        fsymId:
+          description: FactSet Permanent Identifier. Six alpha-numeric characters, excluding vowels, with an -R suffix (XXXXXX-R) or a -L Suffix (XXXXXX-L).
+          type:
+          - string
+          - 'null'
+          example: LCV42P-L
+        date:
+          description: Ending date for the period expressed in YYYY-MM-DD format.
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2020-11-19'
+        currency:
+          type:
+          - string
+          - 'null'
+          description: 'Currency ISO code. For more details, visit [Online Assistant Page #1470](https://oa.apps.factset.com/pages/1470).'
+          example: USD
+        requestId:
+          description: Identifier that was used for the request.
+          type: string
+          example: DDD-USA
+      additionalProperties: true
     sharesOutstandingResponseObject:
       type: object
       title: Shares Outstanding Object
@@ -1552,55 +1553,14 @@ components:
           - 'null'
           example: 980.22284
       additionalProperties: false
-    batchErrorResponse:
-      type:
-      - object
-      - 'null'
-      title: Error Response
-      description: Error Default Response
-      properties:
-        errors:
-          type:
-          - array
-          - 'null'
-          description: An array containing errors
-          items:
-            $ref: '#/components/schemas/batchErrorObject'
-          example: []
-    returns:
-      title: Returns Object
-      type: object
-      properties:
-        fsymId:
-          description: FactSet Permanent Identifier. Six alpha-numeric characters, excluding vowels, with an -R suffix (XXXXXX-R) or a -L Suffix (XXXXXX-L).
-          type:
-          - string
-          - 'null'
-          example: LCV42P-L
-        totalReturn:
-          description: Returns the data for the given input parameters.
-          type:
-          - number
-          - 'null'
-          format: double
-          example: 0.927077
-        date:
-          description: End date of the return. Date in YYYY-MM-DD format. Depending on Frequency and Calendar settings, this could represent the entire return period requested.
-          type:
-          - string
-          - 'null'
-          format: date
-          example: '2020-11-19'
-        currency:
-          type:
-          - string
-          - 'null'
-          description: 'Currency ISO code. For more details, visit [Online Assistant Page #1470](https://oa.apps.factset.com/pages/1470).'
-          example: USD
-        requestId:
-          description: Identifier that was used for the request.
-          type: string
-          example: DDD-USA
+    batchResult:
+      title: Batch Data
+      anyOf:
+      - $ref: '#/components/schemas/price'
+      - $ref: '#/components/schemas/returns'
+      - $ref: '#/components/schemas/corporateAction'
+      - $ref: '#/components/schemas/annualizedDividendsObject'
+      - $ref: '#/components/schemas/sharesOutstandingResponseObject'
     batchErrorObject:
       type:
       - object
@@ -1633,17 +1593,131 @@ components:
           - string
           - 'null'
           example: Validation Error
-    BatchDataRequest_2:
-      title: Batch Data Request
+    batchErrorResponse:
+      type:
+      - object
+      - 'null'
+      title: Error Response
+      description: Error Default Response
+      properties:
+        errors:
+          type:
+          - array
+          - 'null'
+          description: An array containing errors
+          items:
+            $ref: '#/components/schemas/batchErrorObject'
+          example: []
+    corporateAction:
+      title: Corporate Action Object
       type: object
-      required:
-      - id
+      properties:
+        fsymId:
+          description: Factset Regional Security Identifier. Six alpha-numeric characters, excluding vowels, with an -R suffix (XXXXXX-R). Identifies the security's best regional security data series per currency. For equities, all primary listings per region and currency are allocated a regional-level permanent identifier. The regional-level permanent identifier will be available once a SEDOL representing the region/currency has been allocated and the identifiers are on FactSet.
+          type:
+          - string
+          - 'null'
+          example: SJY281-R
+          x-fds-sdf: fsym_id
+          x-fds-dh: REGIONAL_FDS_ID
+        eventId:
+          description: FactSet identifier that uniquely identifies the Event.
+          type:
+          - string
+          - 'null'
+          example: JTHPFN-A
+          x-fds-sdf: ca_event_id
+          x-fds-dh: EVENT_ID
+        eventTypeCode:
+          description: 'Corporate Actions Event type code, possible values: [ DVC, DVCD, DRP, DVS, DVSS, BNS, BNSS, SPO, DSR, FSP, RSP, SPL ]'
+          type:
+          - string
+          - 'null'
+          x-fds-sdf: ca_event_type_code
+          x-fds-dh: EVENT_TYPE_CODE
+          example: example_value
+        eventTypeDesc:
+          description: Corporate Actions Event type description.
+          type:
+          - string
+          - 'null'
+          x-fds-sdf: null
+          x-fds-dh: EVENT_TYPE
+          example: example_value
+        divTypeCode:
+          description: 'Dividend Type Code. For code descriptions, visit [Online Assistant Page #8764] (https://oa.apps.factset.com/pages/8764).
+
+            '
+          type:
+          - string
+          - 'null'
+          x-fds-sdf: div_type_code
+          x-fds-dh: DIVTYPE_NUM
+          example: example_value
+        announcementDate:
+          description: Date Event was announced in YYYY-MM-DD format.
+          type:
+          - string
+          - 'null'
+          x-fds-sdf: announcement_date
+          x-fds-dh: ANNDATE
+          example: example_value
+        recordDate:
+          description: Date of Record for distribution in YYYY-MM-DD format.
+          type:
+          - string
+          - 'null'
+          x-fds-sdf: record_date
+          x-fds-dh: RECORD_DATE
+          example: example_value
+        payDate:
+          description: Date of Payment for distribution in YYYY-MM-DD format.
+          type:
+          - string
+          - 'null'
+          x-fds-sdf: pay_date
+          x-fds-dh: PAYDATE
+          example: example_value
+        effectiveDate:
+          description: Effective Date or Ex-Date of distribution in YYYY-MM-DD format.
+          type:
+          - string
+          - 'null'
+          x-fds-sdf: effective_date
+          x-fds-dh: EFFECTIVE_DATE
+          example: example_value
+        requestId:
+          description: Identifier that was used for the request.
+          type: string
+          example: AAPL-US
+      additionalProperties: true
+    BatchStatus_3:
+      title: Batch Status
+      type: object
       properties:
         id:
           type: string
           format: uuid
-          example: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-          description: Batch Request identifier.
+          description: the id of batch request.
+        startTime:
+          type: string
+          format: date-time
+          description: Time when the batch request is started. This is in Eastern Time Zone. The date-time format is expressed as [YYYY-MM-DD]T[HH:MM:SSS], following ISO 8601.
+        endTime:
+          type: string
+          format: date-time
+          description: Time when the batch request is ended. This is in Eastern Time Zone. The date-time format is expressed as [YYYY-MM-DD]T[HH:MM:SSS], following ISO 8601.
+        status:
+          type: string
+          enum:
+          - QUEUED
+          - EXECUTING
+          - DONE
+          - FAILED
+        error:
+          type: string
+          example: Invalid Parameter (s)- curr. Please modify your request to use parameters outlined in the specification for this endpoint.
+          description: Error message.
     errorResponse:
       type: object
       title: Error Response
@@ -1683,33 +1757,17 @@ components:
               type: array
               items:
                 type: string
-    BatchStatus_3:
-      title: Batch Status
+    BatchDataRequest_2:
+      title: Batch Data Request
       type: object
+      required:
+      - id
       properties:
         id:
           type: string
           format: uuid
-          description: the id of batch request.
-        startTime:
-          type: string
-          format: date-time
-          description: Time when the batch request is started. This is in Eastern Time Zone. The date-time format is expressed as [YYYY-MM-DD]T[HH:MM:SSS], following ISO 8601.
-        endTime:
-          type: string
-          format: date-time
-          description: Time when the batch request is ended. This is in Eastern Time Zone. The date-time format is expressed as [YYYY-MM-DD]T[HH:MM:SSS], following ISO 8601.
-        status:
-          type: string
-          enum:
-          - QUEUED
-          - EXECUTING
-          - DONE
-          - FAILED
-        error:
-          type: string
-          example: Invalid Parameter (s)- curr. Please modify your request to use parameters outlined in the specification for this endpoint.
-          description: Error message.
+          example: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+          description: Batch Request identifier.
     BatchStatusRequest:
       title: Batch Status Request
       type: object
@@ -1721,52 +1779,6 @@ components:
           format: uuid
           example: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
           description: Batch Request identifier.
-  headers:
-    api-deprecated-versions:
-      description: the comma-separated list of deprecated major versions.
-      schema:
-        type: string
-        example: 1,2
-    api-supported-versions:
-      description: the comma-separated list of supported major versions.
-      schema:
-        type: string
-        example: '1'
-    api-version:
-      description: the full semantic version of the API.
-      schema:
-        type: string
-        example: 1.0.0
-    chain-id:
-      description: Unique identifier for the request. Also known as the chain id.
-      schema:
-        type: string
-        example: 5EFCCA8940CAEA6B
-  requestBodies:
-    batch-status-postBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/BatchDataRequest'
-          examples:
-            BatchStatusRequest:
-              summary: Batch Status Request
-              value:
-                data:
-                  id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-    batch-result-postBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/BatchDataRequest'
-          examples:
-            BatchDataRequest:
-              summary: Batch Result Request
-              value:
-                data:
-                  id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
   parameters:
     batchId:
       name: id

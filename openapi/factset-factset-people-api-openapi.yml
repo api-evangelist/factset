@@ -419,14 +419,15 @@ paths:
           $ref: '#/components/responses/500'
 components:
   schemas:
-    companyCompensationResponse:
-      title: Company Compensation Response
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/companyCompensation'
+    function:
+      type: string
+      enum:
+      - PEOPLE
+      - OFFICER
+      - DIRECTOR
+      default: PEOPLE
+      description: Controls the types of people returned based on high-level job functions. Filter by -   |function|description|  |||  |PEOPLE|Retrieve **ALL** Executives of a requested company|  |OFFICER|Retrieve only the Officers of a requested company|  |DIRECTOR|Retrieve only the Directors of a requested company|
+      example: DIRECTOR
     companyPeopleRequest:
       title: Company People Request
       type: object
@@ -437,14 +438,20 @@ components:
           $ref: '#/components/schemas/function'
       required:
       - ids
-    mbType:
-      description: Search based on the management and board types. The types include - |type|description|||||MB|Management & Board||MGMT|Management||BRD|Board|
-      type: string
-      enum:
-      - MB
-      - MGMT
-      - BRD
-      default: MB
+    peopleJobsRequest:
+      title: Jobs Request
+      type: object
+      properties:
+        ids:
+          $ref: '#/components/schemas/ids'
+        status:
+          $ref: '#/components/schemas/status'
+        level:
+          $ref: '#/components/schemas/level'
+        type:
+          $ref: '#/components/schemas/type'
+      required:
+      - ids
     companyCompensationRequest:
       title: Company Compensation Request
       type: object
@@ -453,137 +460,166 @@ components:
           $ref: '#/components/schemas/companyIds'
       required:
       - ids
-    companyCompensation:
-      title: Company Compensation
+    job:
+      title: Job
       type: object
-      description: List of executives and their compensation details for the specified company identifier.
+      description: Basic information about a person's `Job`.
       properties:
-        name:
-          description: FactSet Name of the person
+        companyCity:
+          description: City the job is located in.
           type:
           - string
           - 'null'
-          example: Tim Cook
+          example: Norwalk
+          x-fds-fql-formula: FPD_PERSON_JOBS(CITY)
+        companyId:
+          description: FactSet Identifier for the company.
+          type:
+          - string
+          - 'null'
+          example: 0016YD-E
+        companyName:
+          description: Name of the company.
+          type:
+          - string
+          - 'null'
+          example: FactSet Research Systems, Inc.
+          x-fds-fql-formula: FPD_PERSON_JOBS(CO_NAME)
+        jobEndDate:
+          description: Ending date for the Job.
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '0001-01-01'
+          x-fds-fql-formula: FPD_PERSON_JOBS(EDATE)
+        jobFunctionCode:
+          description: Job function code.
+          type:
+          - string
+          - 'null'
+          example: CEO
+          x-fds-fql-formula: FPD_PERSON_JOBS(JOB_FUNC_CODE)
+        jobFunctionName:
+          description: Description of the job.
+          type:
+          - string
+          - 'null'
+          example: Chief Executive Officer
+          x-fds-fql-formula: FPD_PERSON_JOBS(JOB_FUNC_DESC)
+        jobStartDate:
+          description: Starting date for the Job.
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2015-07-01'
+          x-fds-fql-formula: FPD_PERSON_JOBS(SDATE)
+        jobTitle:
+          description: Job Title
+          type:
+          - string
+          - 'null'
+          example: Chief Executive Officer & Director
+          x-fds-fql-formula: FPD_PERSON_JOBS(TITLE)
+        personId:
+          description: FactSet Entity Identifier for the Person.
+          type:
+          - string
+          - 'null'
+          example: 0DPHLH-E
+        requestId:
+          description: Original identifier used for the request.
+          type: string
+          example: 0DPHLH-E
+    companyPositions:
+      title: Company Positions
+      type: object
+      description: List of executives for the specified company identifier.
+      properties:
+        fsymId:
+          description: FactSet Identifier for the company.
+          type:
+          - string
+          - 'null'
+          example: 006XY7-E
         personId:
           description: Factset Entity Identifier for the Person
           type:
           - string
           - 'null'
-          example: 05F520-E
+          example: 05H8B8-E
+        name:
+          description: FactSet Name of the person
+          type:
+          - string
+          - 'null'
+          example: Elon Reeve Musk
         title:
           description: The requested Position Title
           type:
           - string
           - 'null'
-          example: Chief Executive Officer & Director
-          x-fds-fql-formula: FPD_CO_COMPENSATION(EXEC_TITLE)
-        salary:
-          description: Salary of the person. Expressed in USD and raw units.
+          example: Technoking of Tesla
+          x-fds-fql-formula: FPD_CO_PEOPLE_BY_POSITION(TITLE)
+        yearsAtFirm:
+          description: The number of years individual is at firm. For founders, this is since inception.
           type:
           - number
           - 'null'
-          format: integer
-          example: 525846
-          x-fds-fql-formula: FPD_CO_COMPENSATION(SALARY)
-        bonus:
-          description: Bonus of the executive during the fiscal year. Expressed in USD and raw units.
+          format: double
+          example: 17.78
+          x-fds-fql-formula: FPD_CO_PEOPLE_BY_POSITION(YRS_FIRM))
+        age:
+          description: The age of the person requested.
           type:
           - number
           - 'null'
           format: integer
           example: 48
-          x-fds-fql-formula: FPD_CO_COMPENSATION(BONUS)
-        stockAwards:
-          description: Stock awards for the person. Expressed in USD and raw units.
-          type:
-          - number
-          - 'null'
-          format: integer
-          example: null
-          x-fds-fql-formula: FPD_CO_COMPENSATION(STOCK_AWARDS)
-        optionsAwards:
-          description: Option Awards for the person. Expressed in USD and raw units.
-          type:
-          - number
-          - 'null'
-          format: integer
-          example: null
-          x-fds-fql-formula: FPD_CO_COMPENSATION(OPTION_AWARDS)
-        otherCompensation:
-          description: All the other compensations which are not explicitly defined as salary, bonus, stock awards, or options awards. Expressed in USD and raw units.
-          type:
-          - number
-          - 'null'
-          format: integer
-          example: 11200
-          x-fds-fql-formula: FPD_CO_COMPENSATION(ALL_OTHER_COMP)
-        totalCompensation:
-          description: The sum of all compensation for the requested person as reported by the company. Expressed in USD and raw units.
-          type:
-          - number
-          - 'null'
-          format: integer
-          example: 4719062
-          x-fds-fql-formula: FPD_CO_COMPENSATION(TOTAL_COMP)
-        nonEquityIncentivePlanComp:
-          description: All the earnings pursuant to awards under non-equity incentive plans. Expressed in USD and raw units.
-          type:
-          - number
-          - 'null'
-          format: integer
-          example: 10731000
-          x-fds-fql-formula: FPD_CO_COMPENSATION(NON_EQ_INCENTIVE_PLAN_COMP)
-        nonQualifiedCompEarnings:
-          description: All the other nonqualified defined contribution which are not tax qualified and other contributions. Expressed in USD and raw units.
-          type:
-          - number
-          - 'null'
-          format: integer
-          example: null
-        compensationYear:
-          description: The most recent year of compensation is expressed as 'YYYY' as opposed to 'YYYY-MM-DD' format.
+          x-fds-fql-formula: FPD_CO_PEOPLE_BY_POSITION(AGE))
+        gender:
+          description: The Gender of the person requested.
           type:
           - string
           - 'null'
-          example: '2020'
-          x-fds-fql-formula: FPD_CO_COMPENSATION(COMP_YEAR)
+          example: Male
+          x-fds-fql-formula: FPD_CO_PEOPLE_BY_POSITION(GENDER))
+        requestPosition:
+          description: The requested position code.
+          type:
+          - string
+          - 'null'
+          example: CEO
         requestId:
           description: Original identifier used for the request.
           type: string
           example: TSLA-US
-    companyPositionsRequest:
-      title: Company Positions Request
-      type: object
-      properties:
-        ids:
-          $ref: '#/components/schemas/companyIds'
-        position:
-          $ref: '#/components/schemas/position'
-      required:
-      - ids
-    type:
-      description: Select only Jobs of a certain type board member or employee.
-      enum:
-      - ALL
-      - BRD
-      - EMP
-      default: ALL
-    peopleProfilesRequest:
-      title: Profiles Request
-      type: object
-      properties:
-        ids:
-          $ref: '#/components/schemas/ids'
-      required:
-      - ids
-    peopleJobsResponse:
-      title: Jobs Response
+    companyPeopleResponse:
+      title: Company People Response
       type: object
       properties:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/job'
+            $ref: '#/components/schemas/companyPeople'
+    mbType:
+      description: Search based on the management and board types. The types include - |type|description|||||MB|Management & Board||MGMT|Management||BRD|Board|
+      type: string
+      enum:
+      - MB
+      - MGMT
+      - BRD
+      default: MB
+    status:
+      type: string
+      description: Select only Jobs with a certain status primary, active, or inactive.
+      enum:
+      - ALL
+      - PRIMARY
+      - ACTIVE
+      - INACTIVE
+      default: ALL
     profile:
       title: Profile
       type: object
@@ -727,6 +763,117 @@ components:
           - 'null'
           example: Frederick Philip Snow is Chief Executive Officer & Director at FactSet Research Systems, Inc. He is also on the board of FactSet Systems India Pvt Ltd., Quantopian, Inc. and Vermilion Holdings Ltd. and Member of CFA Institute. Mr. Snow received an undergraduate degree from the University of California, Berkeley and a graduate degree from Thunderbird School of Global Management.
           x-fds-fql-formula: FPD_PERSON('BIO')
+    position:
+      description: "Controls the position details returned for the requested company. By default, the service returns the CEO name, title, and ID for the requested company ids.\n  |position|description|\n  |||\n  |CHAIR|Chairman|\n  |CEO|Chief Executive Officer|\n  |PRES|President|\n  |COO|Chief Operating Officer|\n  |CFO|Chief Financial Officer|\n  |CTO|Chief Technology Officer|\n  |CIO|Chief Investment Officer|\n  |FOU|Founder(s)|\n  |CMP|Compliance Officer|\n  |ADM|Admin|\n  |IND|Independent Director|\n  |BRD|Directors/Board Members|\n  |IR|Investor Relations|\n  |LEG|Legal Counsel|\n  |TREAS|Treasurer|\n  |MKT|Sales and Marketing Managers|\n  |HR|Human Resources|\n"
+      enum:
+      - CHAIR
+      - CEO
+      - PRES
+      - COO
+      - CFO
+      - CTO
+      - CIO
+      - FOU
+      - CMP
+      - ADM
+      - IND
+      - BRD
+      - IR
+      - LEG
+      - TREAS
+      - MKT
+      - HR
+      default: CEO
+      example: FOU
+    companyPositionsResponse:
+      title: Company Positions Response
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/companyPositions'
+    level:
+      description: Select the level of detail only main Jobs or include other Jobs at a company.
+      type: string
+      enum:
+      - SUMMARY
+      - DETAIL
+      default: DETAIL
+    companyCompensationResponse:
+      title: Company Compensation Response
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/companyCompensation'
+    companyIds:
+      type: array
+      items:
+        type: string
+      minItems: 1
+      maxItems: 1000
+      description: 'The requested company identifier. FactSet Identifiers, tickers, CUSIP, SEDOL, and ISIN are accepted inputs. <p>***ids limit** =  1000 per request*</p> *<p>Make note, GET Method URL request lines are also limited to a total length of 8192 bytes (8KB). In cases where the service allows for thousands of ids, which may lead to exceeding this request line limit of 8KB, its advised for any requests with large request lines to be requested through the respective "POST" method.</p>*
+
+        '
+      example:
+      - AAPL-US
+    peopleJobsResponse:
+      title: Jobs Response
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/job'
+    companyStatsResponse:
+      title: Company Stats Response
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/companyStats'
+    ids:
+      type: array
+      items:
+        type: string
+      minItems: 1
+      maxItems: 1000
+      description: 'FactSet People Entity Ids.
+
+        '
+      example:
+      - 0DPHLH-E
+    companyPositionsRequest:
+      title: Company Positions Request
+      type: object
+      properties:
+        ids:
+          $ref: '#/components/schemas/companyIds'
+        position:
+          $ref: '#/components/schemas/position'
+      required:
+      - ids
+    companyStatsRequest:
+      title: Company Stats Request
+      type: object
+      properties:
+        ids:
+          $ref: '#/components/schemas/companyIds'
+        mbType:
+          $ref: '#/components/schemas/mbType'
+      required:
+      - ids
+    peopleProfilesRequest:
+      title: Profiles Request
+      type: object
+      properties:
+        ids:
+          $ref: '#/components/schemas/ids'
+      required:
+      - ids
     companyPeople:
       title: Company People
       type: object
@@ -808,17 +955,104 @@ components:
           - 'null'
           example: Chief Executive officer & Director
           x-fds-fql-formula: FPD_CO_PEOPLE_TITLES
-    ids:
-      type: array
-      items:
-        type: string
-      minItems: 1
-      maxItems: 1000
-      description: 'FactSet People Entity Ids.
-
-        '
-      example:
-      - 0DPHLH-E
+    companyCompensation:
+      title: Company Compensation
+      type: object
+      description: List of executives and their compensation details for the specified company identifier.
+      properties:
+        name:
+          description: FactSet Name of the person
+          type:
+          - string
+          - 'null'
+          example: Tim Cook
+        personId:
+          description: Factset Entity Identifier for the Person
+          type:
+          - string
+          - 'null'
+          example: 05F520-E
+        title:
+          description: The requested Position Title
+          type:
+          - string
+          - 'null'
+          example: Chief Executive Officer & Director
+          x-fds-fql-formula: FPD_CO_COMPENSATION(EXEC_TITLE)
+        salary:
+          description: Salary of the person. Expressed in USD and raw units.
+          type:
+          - number
+          - 'null'
+          format: integer
+          example: 525846
+          x-fds-fql-formula: FPD_CO_COMPENSATION(SALARY)
+        bonus:
+          description: Bonus of the executive during the fiscal year. Expressed in USD and raw units.
+          type:
+          - number
+          - 'null'
+          format: integer
+          example: 48
+          x-fds-fql-formula: FPD_CO_COMPENSATION(BONUS)
+        stockAwards:
+          description: Stock awards for the person. Expressed in USD and raw units.
+          type:
+          - number
+          - 'null'
+          format: integer
+          example: null
+          x-fds-fql-formula: FPD_CO_COMPENSATION(STOCK_AWARDS)
+        optionsAwards:
+          description: Option Awards for the person. Expressed in USD and raw units.
+          type:
+          - number
+          - 'null'
+          format: integer
+          example: null
+          x-fds-fql-formula: FPD_CO_COMPENSATION(OPTION_AWARDS)
+        otherCompensation:
+          description: All the other compensations which are not explicitly defined as salary, bonus, stock awards, or options awards. Expressed in USD and raw units.
+          type:
+          - number
+          - 'null'
+          format: integer
+          example: 11200
+          x-fds-fql-formula: FPD_CO_COMPENSATION(ALL_OTHER_COMP)
+        totalCompensation:
+          description: The sum of all compensation for the requested person as reported by the company. Expressed in USD and raw units.
+          type:
+          - number
+          - 'null'
+          format: integer
+          example: 4719062
+          x-fds-fql-formula: FPD_CO_COMPENSATION(TOTAL_COMP)
+        nonEquityIncentivePlanComp:
+          description: All the earnings pursuant to awards under non-equity incentive plans. Expressed in USD and raw units.
+          type:
+          - number
+          - 'null'
+          format: integer
+          example: 10731000
+          x-fds-fql-formula: FPD_CO_COMPENSATION(NON_EQ_INCENTIVE_PLAN_COMP)
+        nonQualifiedCompEarnings:
+          description: All the other nonqualified defined contribution which are not tax qualified and other contributions. Expressed in USD and raw units.
+          type:
+          - number
+          - 'null'
+          format: integer
+          example: null
+        compensationYear:
+          description: The most recent year of compensation is expressed as 'YYYY' as opposed to 'YYYY-MM-DD' format.
+          type:
+          - string
+          - 'null'
+          example: '2020'
+          x-fds-fql-formula: FPD_CO_COMPENSATION(COMP_YEAR)
+        requestId:
+          description: Original identifier used for the request.
+          type: string
+          example: TSLA-US
     companyStats:
       title: Company Statistics
       type: object
@@ -937,227 +1171,6 @@ components:
           description: Original identifier used for the request.
           type: string
           example: FDS
-    peopleJobsRequest:
-      title: Jobs Request
-      type: object
-      properties:
-        ids:
-          $ref: '#/components/schemas/ids'
-        status:
-          $ref: '#/components/schemas/status'
-        level:
-          $ref: '#/components/schemas/level'
-        type:
-          $ref: '#/components/schemas/type'
-      required:
-      - ids
-    companyPeopleResponse:
-      title: Company People Response
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/companyPeople'
-    status:
-      type: string
-      description: Select only Jobs with a certain status primary, active, or inactive.
-      enum:
-      - ALL
-      - PRIMARY
-      - ACTIVE
-      - INACTIVE
-      default: ALL
-    companyStatsResponse:
-      title: Company Stats Response
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/companyStats'
-    companyStatsRequest:
-      title: Company Stats Request
-      type: object
-      properties:
-        ids:
-          $ref: '#/components/schemas/companyIds'
-        mbType:
-          $ref: '#/components/schemas/mbType'
-      required:
-      - ids
-    position:
-      description: "Controls the position details returned for the requested company. By default, the service returns the CEO name, title, and ID for the requested company ids.\n  |position|description|\n  |||\n  |CHAIR|Chairman|\n  |CEO|Chief Executive Officer|\n  |PRES|President|\n  |COO|Chief Operating Officer|\n  |CFO|Chief Financial Officer|\n  |CTO|Chief Technology Officer|\n  |CIO|Chief Investment Officer|\n  |FOU|Founder(s)|\n  |CMP|Compliance Officer|\n  |ADM|Admin|\n  |IND|Independent Director|\n  |BRD|Directors/Board Members|\n  |IR|Investor Relations|\n  |LEG|Legal Counsel|\n  |TREAS|Treasurer|\n  |MKT|Sales and Marketing Managers|\n  |HR|Human Resources|\n"
-      enum:
-      - CHAIR
-      - CEO
-      - PRES
-      - COO
-      - CFO
-      - CTO
-      - CIO
-      - FOU
-      - CMP
-      - ADM
-      - IND
-      - BRD
-      - IR
-      - LEG
-      - TREAS
-      - MKT
-      - HR
-      default: CEO
-      example: FOU
-    companyPositionsResponse:
-      title: Company Positions Response
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/companyPositions'
-    companyPositions:
-      title: Company Positions
-      type: object
-      description: List of executives for the specified company identifier.
-      properties:
-        fsymId:
-          description: FactSet Identifier for the company.
-          type:
-          - string
-          - 'null'
-          example: 006XY7-E
-        personId:
-          description: Factset Entity Identifier for the Person
-          type:
-          - string
-          - 'null'
-          example: 05H8B8-E
-        name:
-          description: FactSet Name of the person
-          type:
-          - string
-          - 'null'
-          example: Elon Reeve Musk
-        title:
-          description: The requested Position Title
-          type:
-          - string
-          - 'null'
-          example: Technoking of Tesla
-          x-fds-fql-formula: FPD_CO_PEOPLE_BY_POSITION(TITLE)
-        yearsAtFirm:
-          description: The number of years individual is at firm. For founders, this is since inception.
-          type:
-          - number
-          - 'null'
-          format: double
-          example: 17.78
-          x-fds-fql-formula: FPD_CO_PEOPLE_BY_POSITION(YRS_FIRM))
-        age:
-          description: The age of the person requested.
-          type:
-          - number
-          - 'null'
-          format: integer
-          example: 48
-          x-fds-fql-formula: FPD_CO_PEOPLE_BY_POSITION(AGE))
-        gender:
-          description: The Gender of the person requested.
-          type:
-          - string
-          - 'null'
-          example: Male
-          x-fds-fql-formula: FPD_CO_PEOPLE_BY_POSITION(GENDER))
-        requestPosition:
-          description: The requested position code.
-          type:
-          - string
-          - 'null'
-          example: CEO
-        requestId:
-          description: Original identifier used for the request.
-          type: string
-          example: TSLA-US
-    job:
-      title: Job
-      type: object
-      description: Basic information about a person's `Job`.
-      properties:
-        companyCity:
-          description: City the job is located in.
-          type:
-          - string
-          - 'null'
-          example: Norwalk
-          x-fds-fql-formula: FPD_PERSON_JOBS(CITY)
-        companyId:
-          description: FactSet Identifier for the company.
-          type:
-          - string
-          - 'null'
-          example: 0016YD-E
-        companyName:
-          description: Name of the company.
-          type:
-          - string
-          - 'null'
-          example: FactSet Research Systems, Inc.
-          x-fds-fql-formula: FPD_PERSON_JOBS(CO_NAME)
-        jobEndDate:
-          description: Ending date for the Job.
-          type:
-          - string
-          - 'null'
-          format: date
-          example: '0001-01-01'
-          x-fds-fql-formula: FPD_PERSON_JOBS(EDATE)
-        jobFunctionCode:
-          description: Job function code.
-          type:
-          - string
-          - 'null'
-          example: CEO
-          x-fds-fql-formula: FPD_PERSON_JOBS(JOB_FUNC_CODE)
-        jobFunctionName:
-          description: Description of the job.
-          type:
-          - string
-          - 'null'
-          example: Chief Executive Officer
-          x-fds-fql-formula: FPD_PERSON_JOBS(JOB_FUNC_DESC)
-        jobStartDate:
-          description: Starting date for the Job.
-          type:
-          - string
-          - 'null'
-          format: date
-          example: '2015-07-01'
-          x-fds-fql-formula: FPD_PERSON_JOBS(SDATE)
-        jobTitle:
-          description: Job Title
-          type:
-          - string
-          - 'null'
-          example: Chief Executive Officer & Director
-          x-fds-fql-formula: FPD_PERSON_JOBS(TITLE)
-        personId:
-          description: FactSet Entity Identifier for the Person.
-          type:
-          - string
-          - 'null'
-          example: 0DPHLH-E
-        requestId:
-          description: Original identifier used for the request.
-          type: string
-          example: 0DPHLH-E
-    level:
-      description: Select the level of detail only main Jobs or include other Jobs at a company.
-      type: string
-      enum:
-      - SUMMARY
-      - DETAIL
-      default: DETAIL
     peopleProfilesResponse:
       title: Profiles Response
       type: object
@@ -1166,28 +1179,66 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/profile'
-    companyIds:
-      type: array
-      items:
-        type: string
-      minItems: 1
-      maxItems: 1000
-      description: 'The requested company identifier. FactSet Identifiers, tickers, CUSIP, SEDOL, and ISIN are accepted inputs. <p>***ids limit** =  1000 per request*</p> *<p>Make note, GET Method URL request lines are also limited to a total length of 8192 bytes (8KB). In cases where the service allows for thousands of ids, which may lead to exceeding this request line limit of 8KB, its advised for any requests with large request lines to be requested through the respective "POST" method.</p>*
-
-        '
-      example:
-      - AAPL-US
-    function:
-      type: string
+    type:
+      description: Select only Jobs of a certain type board member or employee.
       enum:
-      - PEOPLE
-      - OFFICER
-      - DIRECTOR
-      default: PEOPLE
-      description: Controls the types of people returned based on high-level job functions. Filter by -   |function|description|  |||  |PEOPLE|Retrieve **ALL** Executives of a requested company|  |OFFICER|Retrieve only the Officers of a requested company|  |DIRECTOR|Retrieve only the Directors of a requested company|
-      example: DIRECTOR
+      - ALL
+      - BRD
+      - EMP
+      default: ALL
   parameters:
-    entityId:
+    type:
+      name: type
+      description: Select only Jobs of a certain type board member or employee.
+      in: query
+      schema:
+        type: string
+        enum:
+        - ALL
+        - BRD
+        - EMP
+        default: ALL
+    jobFunction:
+      name: function
+      description: Controls the types of people returned based on high-level job functions. Filter by -   |function|description|  |||  |PEOPLE|Retrieve **ALL** Executives of a requested company|  |OFFICER|Retrieve only the Officers of a requested company|  |DIRECTOR|Retrieve only the Directors of a requested company|
+      in: query
+      schema:
+        type: string
+        enum:
+        - PEOPLE
+        - OFFICER
+        - DIRECTOR
+        example: PEOPLE
+        default: PEOPLE
+      required: false
+    position:
+      name: position
+      description: "Controls the position details returned for the requested company. By default, the service returns the CEO name, title, and ID for the requested company ids.\n  |position|description|\n  |||\n  |CHAIR|Chairman|\n  |CEO|Chief Executive Officer|\n  |PRES|President|\n  |COO|Chief Operating Officer|\n  |CFO|Chief Financial Officer|\n  |CTO|Chief Technology Officer|\n  |CIO|Chief Investment Officer|\n  |FOU|Founder(s)|\n  |CMP|Compliance Officer|\n  |ADM|Admin|\n  |IND|Independent Director|\n  |BRD|Directors/Board Members|\n  |IR|Investor Relations|\n  |LEG|Legal Counsel|\n  |TREAS|Treasurer|\n  |MKT|Sales and Marketing Managers|\n  |HR|Human Resources|\n"
+      in: query
+      schema:
+        type: string
+        enum:
+        - CHAIR
+        - CEO
+        - PRES
+        - COO
+        - CFO
+        - CTO
+        - CIO
+        - FOU
+        - CMP
+        - ADM
+        - IND
+        - BRD
+        - IR
+        - LEG
+        - TREAS
+        - MKT
+        - HR
+        example: FOU
+        default: CEO
+      required: false
+    profileEntityId:
       name: ids
       description: List of FactSet Person Entity identifier.
       in: query
@@ -1196,23 +1247,12 @@ components:
         items:
           type: string
         minItems: 1
-        maxItems: 1000
+        maxItems: 500
       required: true
       explode: false
       example:
       - 0DPHLH-E
       - 07MZV9-E
-    mbType:
-      name: mbType
-      description: Search based on the management and board types. The types include - |type|description|||||MB|Management & Board||MGMT|Management||BRD|Board|
-      in: query
-      schema:
-        type: string
-        enum:
-        - MB
-        - MGMT
-        - BRD
-        default: MB
     status:
       name: status
       description: Select only Jobs with a certain status primary, active, or inactive.
@@ -1224,17 +1264,6 @@ components:
         - PRIMARY
         - ACTIVE
         - INACTIVE
-        default: ALL
-    type:
-      name: type
-      description: Select only Jobs of a certain type board member or employee.
-      in: query
-      schema:
-        type: string
-        enum:
-        - ALL
-        - BRD
-        - EMP
         default: ALL
     companyId:
       name: ids
@@ -1263,6 +1292,17 @@ components:
       example:
       - AAPL-US
       - IBM-US
+    mbType:
+      name: mbType
+      description: Search based on the management and board types. The types include - |type|description|||||MB|Management & Board||MGMT|Management||BRD|Board|
+      in: query
+      schema:
+        type: string
+        enum:
+        - MB
+        - MGMT
+        - BRD
+        default: MB
     level:
       name: level
       description: Select the level of detail only main Jobs or include other Jobs at a company.
@@ -1273,47 +1313,7 @@ components:
         - SUMMARY
         - DETAIL
         default: DETAIL
-    position:
-      name: position
-      description: "Controls the position details returned for the requested company. By default, the service returns the CEO name, title, and ID for the requested company ids.\n  |position|description|\n  |||\n  |CHAIR|Chairman|\n  |CEO|Chief Executive Officer|\n  |PRES|President|\n  |COO|Chief Operating Officer|\n  |CFO|Chief Financial Officer|\n  |CTO|Chief Technology Officer|\n  |CIO|Chief Investment Officer|\n  |FOU|Founder(s)|\n  |CMP|Compliance Officer|\n  |ADM|Admin|\n  |IND|Independent Director|\n  |BRD|Directors/Board Members|\n  |IR|Investor Relations|\n  |LEG|Legal Counsel|\n  |TREAS|Treasurer|\n  |MKT|Sales and Marketing Managers|\n  |HR|Human Resources|\n"
-      in: query
-      schema:
-        type: string
-        enum:
-        - CHAIR
-        - CEO
-        - PRES
-        - COO
-        - CFO
-        - CTO
-        - CIO
-        - FOU
-        - CMP
-        - ADM
-        - IND
-        - BRD
-        - IR
-        - LEG
-        - TREAS
-        - MKT
-        - HR
-        example: FOU
-        default: CEO
-      required: false
-    jobFunction:
-      name: function
-      description: Controls the types of people returned based on high-level job functions. Filter by -   |function|description|  |||  |PEOPLE|Retrieve **ALL** Executives of a requested company|  |OFFICER|Retrieve only the Officers of a requested company|  |DIRECTOR|Retrieve only the Directors of a requested company|
-      in: query
-      schema:
-        type: string
-        enum:
-        - PEOPLE
-        - OFFICER
-        - DIRECTOR
-        example: PEOPLE
-        default: PEOPLE
-      required: false
-    profileEntityId:
+    entityId:
       name: ids
       description: List of FactSet Person Entity identifier.
       in: query
@@ -1322,7 +1322,7 @@ components:
         items:
           type: string
         minItems: 1
-        maxItems: 500
+        maxItems: 1000
       required: true
       explode: false
       example:

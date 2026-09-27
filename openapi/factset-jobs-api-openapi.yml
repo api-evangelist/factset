@@ -270,22 +270,125 @@ paths:
     - url: https://api.factset.com/universal-screening
 components:
   schemas:
-    accountsForJob:
+    accountsForJobAddProp:
+      description: The details of the account under the task in the object key
+      properties:
+        includeParent:
+          description: Indicates whether or not the parent portfolio is included as a separate portfolio when isSplit is true
+          type:
+          - boolean
+          - 'null'
+          example: true
+        isSplit:
+          description: Indicates whether the portfolio's components if any would be treated as individual portfolios when the job is run
+          type:
+          - boolean
+          - 'null'
+          example: true
+        latestComponentsOnly:
+          description: When selected, the ACTM/CSTM will be split and will only return components that are still held in the ACTM. I.e., when the end date is "Latest," it will not return components where the end date occurs before Latest.
+          type:
+          - boolean
+          - 'null'
+          example: true
+        level:
+          description: The number of levels when isSplit is true that the job will expand down to for a composite portfolio (CSTM or ACTM). "1" means only the first level will be expanded. "all" will be the value if all levels are expanded down.
+          type:
+          - string
+          - 'null'
+          example: example_value
+        portfolioId:
+          description: The full file path including portfolio name and type
+          type: string
+          example: '500123'
+      type: object
+    statusDescription:
+      description: Further details on the job's status
+      example: job has completed with success
+      title: statusDescription
+      type: string
+      maxLength: 500
+    tasksForJob:
+      description: A list of tasks for the given job
+      example:
+      - my_task_1
+      items:
+        example: my_task_1
+        type: string
+      title: tasksForJob
+      type: array
+      maxItems: 200
+    jobDetailsResponse:
+      description: Provides the requested details for the specified job and if no attributes are provided, full details will be given
+      properties:
+        data:
+          description: The main object in the jobDetailsResponse schema
+          properties:
+            accounts:
+              $ref: '#/components/schemas/accountsForJob'
+            documents:
+              $ref: '#/components/schemas/documentsForJob'
+            runs:
+              description: An array of information for each run
+              items:
+                $ref: '#/components/schemas/runsForJob'
+              type: array
+            tasks:
+              $ref: '#/components/schemas/tasksForJob'
+          type: object
+          example: example_value
+      title: jobDetailsResponse
+      type: object
+    documentsForJob:
       additionalProperties:
-        description: An array of the details of the account/s under the task/s in the object key/s
+        description: The tasks under each document
         items:
-          $ref: '#/components/schemas/accountsForJobAddProp'
+          type: string
         type: array
-      description: Please note for PI jobs you will only see portfolioId
+      description: Shows the documents for each job where relevant with a collection of tasks under each document
       example:
         my_task_1:
-        - includeParent: true
-          isSplit: true
-          latestComponentsOnly: true
-          level: string
-          portfolioId: string
-      title: accountsForJob
+        - Client:/equity/long_short/my PA document
+        my_task_2:
+        - Client:/equity/long_only/my PA document
+        - Client:/equity/long_short/my other PA document
+      title: documentsForJob
       type: object
+    clientErrorResponse:
+      description: The response schema for reporting errors
+      properties:
+        errors:
+          description: List of errors
+          items:
+            $ref: '#/components/schemas/error'
+          type: array
+          example: []
+      type: object
+    prbStatus:
+      description: The status of the job as per the application
+      enum:
+      - failed
+      - pending
+      - running
+      - soft
+      - stopped
+      - success
+      - warning
+      example: running
+      title: prbStatus
+      type: string
+    jobTypes:
+      description: PA - Portfolio Analysis, PUB - Publisher, ADF - Analytics DataFeed, PI - Portfolio Insight, PD - Portfolio Dashboard, Portfolio Vault - vault
+      enum:
+      - ADF
+      - PA
+      - PD
+      - PI
+      - PUB
+      - vault
+      example: vault
+      title: jobTypes
+      type: string
     runsForJob:
       description: Provides full details of when the job has been run
       example:
@@ -334,147 +437,21 @@ components:
           example: '2026-01-15T10:30:00Z'
       title: runsForJob
       type: object
-    documentsForJob:
+    accountsForJob:
       additionalProperties:
-        description: The tasks under each document
+        description: An array of the details of the account/s under the task/s in the object key/s
         items:
-          type: string
+          $ref: '#/components/schemas/accountsForJobAddProp'
         type: array
-      description: Shows the documents for each job where relevant with a collection of tasks under each document
+      description: Please note for PI jobs you will only see portfolioId
       example:
         my_task_1:
-        - Client:/equity/long_short/my PA document
-        my_task_2:
-        - Client:/equity/long_only/my PA document
-        - Client:/equity/long_short/my other PA document
-      title: documentsForJob
-      type: object
-    accountsForJobAddProp:
-      description: The details of the account under the task in the object key
-      properties:
-        includeParent:
-          description: Indicates whether or not the parent portfolio is included as a separate portfolio when isSplit is true
-          type:
-          - boolean
-          - 'null'
-          example: true
-        isSplit:
-          description: Indicates whether the portfolio's components if any would be treated as individual portfolios when the job is run
-          type:
-          - boolean
-          - 'null'
-          example: true
-        latestComponentsOnly:
-          description: When selected, the ACTM/CSTM will be split and will only return components that are still held in the ACTM. I.e., when the end date is "Latest," it will not return components where the end date occurs before Latest.
-          type:
-          - boolean
-          - 'null'
-          example: true
-        level:
-          description: The number of levels when isSplit is true that the job will expand down to for a composite portfolio (CSTM or ACTM). "1" means only the first level will be expanded. "all" will be the value if all levels are expanded down.
-          type:
-          - string
-          - 'null'
-          example: example_value
-        portfolioId:
-          description: The full file path including portfolio name and type
-          type: string
-          example: '500123'
-      type: object
-    statusDescription:
-      description: Further details on the job's status
-      example: job has completed with success
-      title: statusDescription
-      type: string
-      maxLength: 500
-    clientErrorResponse:
-      description: The response schema for reporting errors
-      properties:
-        errors:
-          description: List of errors
-          items:
-            $ref: '#/components/schemas/error'
-          type: array
-          example: []
-      type: object
-    prbStatus:
-      description: The status of the job as per the application
-      enum:
-      - failed
-      - pending
-      - running
-      - soft
-      - stopped
-      - success
-      - warning
-      example: running
-      title: prbStatus
-      type: string
-    jobDetailsResponse:
-      description: Provides the requested details for the specified job and if no attributes are provided, full details will be given
-      properties:
-        data:
-          description: The main object in the jobDetailsResponse schema
-          properties:
-            accounts:
-              $ref: '#/components/schemas/accountsForJob'
-            documents:
-              $ref: '#/components/schemas/documentsForJob'
-            runs:
-              description: An array of information for each run
-              items:
-                $ref: '#/components/schemas/runsForJob'
-              type: array
-            tasks:
-              $ref: '#/components/schemas/tasksForJob'
-          type: object
-          example: example_value
-      title: jobDetailsResponse
-      type: object
-    status:
-      description: The status of the job as per FactSets API standards
-      enum:
-      - cancelled
-      - created
-      - executing
-      - failed
-      - queued
-      example: queued
-      title: status
-      type: string
-    jobTypes:
-      description: PA - Portfolio Analysis, PUB - Publisher, ADF - Analytics DataFeed, PI - Portfolio Insight, PD - Portfolio Dashboard, Portfolio Vault - vault
-      enum:
-      - ADF
-      - PA
-      - PD
-      - PI
-      - PUB
-      - vault
-      example: vault
-      title: jobTypes
-      type: string
-    tasksForJob:
-      description: A list of tasks for the given job
-      example:
-      - my_task_1
-      items:
-        example: my_task_1
-        type: string
-      title: tasksForJob
-      type: array
-      maxItems: 200
-    errorSource:
-      description: The pointer and parameter of the error
-      properties:
-        parameter:
-          description: Indicates which path or URI query parameter caused the error
-          type: string
-          example: example_value
-        pointer:
-          description: Pointer to the associated entity in the request body
-          type: string
-          example: example_value
+        - includeParent: true
+          isSplit: true
+          latestComponentsOnly: true
+          level: string
+          portfolioId: string
+      title: accountsForJob
       type: object
     error:
       description: Full details of any error
@@ -498,6 +475,29 @@ components:
           type: string
           example: Example Title
       type: object
+    status:
+      description: The status of the job as per FactSets API standards
+      enum:
+      - cancelled
+      - created
+      - executing
+      - failed
+      - queued
+      example: queued
+      title: status
+      type: string
+    errorSource:
+      description: The pointer and parameter of the error
+      properties:
+        parameter:
+          description: Indicates which path or URI query parameter caused the error
+          type: string
+          example: example_value
+        pointer:
+          description: Pointer to the associated entity in the request body
+          type: string
+          example: example_value
+      type: object
     ErrorCode:
       description: Factset API specific error codes
       enum:
@@ -512,23 +512,11 @@ components:
       - universal_screening_parameterError
       - universal_screening_parameterWarning
       type: string
-    ErrorArray:
-      description: An array of errors
+    ActiveJobsData:
+      description: Object containing active jobs ids
       properties:
-        errors:
-          items:
-            $ref: '#/components/schemas/ErrorObject'
-          type: array
-          description: Array of Error Objects
-          example: []
-      type: object
-    ErrorObjectSource:
-      properties:
-        parameter:
-          type: string
-          example: example_value
-      description: For errors and warnings found in screens, contains the paramID the error/warning belongs to
-      type: object
+        data:
+          $ref: '#/components/schemas/ActiveJobIDs'
     ErrorObject:
       properties:
         code:
@@ -545,11 +533,23 @@ components:
           example: Example Title
       type: object
       description: Associated Error Objects
-    ActiveJobsData:
-      description: Object containing active jobs ids
+    ErrorObjectSource:
       properties:
-        data:
-          $ref: '#/components/schemas/ActiveJobIDs'
+        parameter:
+          type: string
+          example: example_value
+      description: For errors and warnings found in screens, contains the paramID the error/warning belongs to
+      type: object
+    ErrorArray:
+      description: An array of errors
+      properties:
+        errors:
+          items:
+            $ref: '#/components/schemas/ErrorObject'
+          type: array
+          description: Array of Error Objects
+          example: []
+      type: object
     ActiveJobIDs:
       properties:
         id:
@@ -564,6 +564,11 @@ components:
       description: Number of requests left for the time window.
       schema:
         type: string
+    X-FactSet-Api-Request-Key:
+      description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+      schema:
+        type: string
+        description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
     X-FactSet-Api-RateLimit-Limit:
       description: Number of allowed requests for the time window.
       schema:
@@ -573,22 +578,11 @@ components:
       schema:
         type: string
         description: FactSet's request key header.
-    X-FactSet-Api-Request-Key:
-      description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
-      schema:
-        type: string
-        description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
     X-FactSet-Api-RateLimit-Reset:
       description: Number of seconds remaining till rate limit resets.
       schema:
         type: string
   responses:
-    Error404Response:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorArray'
-      description: Job ID not found.
     Generic500ErrorResponse:
       description: Internal Server Error
       headers:
@@ -602,6 +596,12 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorArray'
       description: Invalid or missing authentication.
+    Error404Response:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorArray'
+      description: Job ID not found.
     ActiveJobsResponse:
       content:
         application/json:

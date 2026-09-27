@@ -185,6 +185,46 @@ components:
           description: Reason for cancelling the child order
           example: mistyped order quantity to be routed
       description: EMS Cancel Child Order
+    EMSChildOrdersResponseRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/EMSChildOrdersResponse'
+      description: EMS Response
+    EMSChildOrdersRoot:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/EMSChildOrders'
+    EMSCreateChildOrderRejectedInfo:
+      type: object
+      properties:
+        message:
+          type:
+          - string
+          - 'null'
+          description: Reason for rejection
+          example: 'Ticket does not exist for ticketid: null'
+        basketId:
+          type:
+          - string
+          - 'null'
+          description: Unique identifier assigned to basket order
+          example: FACTSET_OMS-100823_12345
+        ticketId:
+          type:
+          - string
+          - 'null'
+          description: Ticket Id for the child order
+          example: RKPW.3280015
+        symbol:
+          type:
+          - string
+          - 'null'
+          description: Ticker symbol
+          example: FDS-USA
     Error:
       type: object
       properties:
@@ -211,6 +251,11 @@ components:
         source:
           $ref: '#/components/schemas/ErrorSource'
       description: Error
+    EMSReplaceChildOrdersRoot:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/EMSReplaceChildOrders'
     EMSCreateChildOrdersResponse:
       type: object
       properties:
@@ -228,6 +273,32 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/EMSCreateChildOrderRejectedInfo'
           description: Rejected Orders. Key is the clientOrderId of the request.
+    EMSCreateChildOrdersResponseRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/EMSCreateChildOrdersResponse'
+      description: EMS Response
+    EMSChildOrdersResponse:
+      type: object
+      properties:
+        accepted:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            $ref: '#/components/schemas/EMSChildOrderInfo'
+          description: Accepted Orders. Key is the clientOrderId of the request.
+        rejected:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            $ref: '#/components/schemas/EMSChildOrderRejectedInfo'
+          description: Rejected Orders. Key is the clientOrderId of the request.
+      description: EMS Child Orders Response
     EMSChildOrder:
       required:
       - destination
@@ -422,15 +493,38 @@ components:
             type: string
           description: User defined fields
       description: EMS Child Orders
-    EMSCreateChildOrderRejectedInfo:
+    ErrorSource:
       type: object
       properties:
-        message:
+        pointer:
           type:
           - string
           - 'null'
-          description: Reason for rejection
-          example: 'Ticket does not exist for ticketid: null'
+          description: Pointer to the associated entity in the request body
+        parameter:
+          type:
+          - string
+          - 'null'
+          description: Indicates which path or URI query parameter caused the error
+      description: Error Source
+    ParentId:
+      required:
+      - basketId
+      - symbol
+      type: object
+      properties:
+        symbol:
+          type: string
+          description: Ticker symbol
+          example: FDS-USA
+        basketId:
+          type: string
+          description: Unique identifier assigned to basket order. Can be fetched from the WebSocket Order Update API.
+          example: FACTSET_OMS-100823_12345
+      description: Unique identifier to identify the parent order.
+    EMSCreateChildOrderInfo:
+      type: object
+      properties:
         basketId:
           type:
           - string
@@ -449,7 +543,51 @@ components:
           - 'null'
           description: Ticker symbol
           example: FDS-USA
-    EMSCancelChildOrders:
+    EMSChildOrderInfo:
+      type: object
+      properties:
+        ticketId:
+          type:
+          - string
+          - 'null'
+          description: Ticket Id for the child order
+          example: RKPW.3280015
+        symbol:
+          type:
+          - string
+          - 'null'
+          description: Ticker symbol
+          example: FDS-USA
+      description: EMS Child Order Info
+    TimeInForce:
+      type: object
+      properties:
+        tif:
+          enum:
+          - day
+          - goodTillCancel
+          - atTheOpening
+          - immediateOrCancel
+          - fillOrKill
+          - goodTillCrossing
+          - goodTillDate
+          - atc
+          type: string
+          description: 'Time in force: if goodTillDate, then Expire Time or Expire Date is a required field'
+        expireDate:
+          type:
+          - string
+          - 'null'
+          description: Expire date in YYYYMMDD format expressed in UTC
+          example: '20230823'
+        expireTime:
+          type:
+          - string
+          - 'null'
+          description: Expire time in YYYYMMDD-HH:MM:SS format expressed in UTC
+          example: 20230823-12:20:25
+      description: Time in Force
+    EMSReplaceChildOrders:
       required:
       - childOrders
       type: object
@@ -459,22 +597,29 @@ components:
           minItems: 1
           type: array
           items:
-            $ref: '#/components/schemas/EMSCancelChildOrder'
-      description: EMS Cancel Child Orders
-    ErrorSource:
+            $ref: '#/components/schemas/ReplaceChildOrder'
+    EMSChildOrderRejectedInfo:
       type: object
       properties:
-        pointer:
+        message:
           type:
           - string
           - 'null'
-          description: Pointer to the associated entity in the request body
-        parameter:
+          description: Reason for rejection
+          example: 'Ticket does not exist for ticketid: null'
+        ticketId:
           type:
           - string
           - 'null'
-          description: Indicates which path or URI query parameter caused the error
-      description: Error Source
+          description: Ticket Id for the child order
+          example: RKPW.3280015
+        symbol:
+          type:
+          - string
+          - 'null'
+          description: Ticker symbol
+          example: FDS-USA
+      description: EMS Child Order Rejected Info
     ReplaceChildOrder:
       required:
       - ticketId
@@ -643,140 +788,11 @@ components:
             type: string
           description: User defined fields
       description: EMS Replace Child Orders
-    EMSChildOrdersResponse:
-      type: object
-      properties:
-        accepted:
-          type:
-          - object
-          - 'null'
-          additionalProperties:
-            $ref: '#/components/schemas/EMSChildOrderInfo'
-          description: Accepted Orders. Key is the clientOrderId of the request.
-        rejected:
-          type:
-          - object
-          - 'null'
-          additionalProperties:
-            $ref: '#/components/schemas/EMSChildOrderRejectedInfo'
-          description: Rejected Orders. Key is the clientOrderId of the request.
-      description: EMS Child Orders Response
-    ParentId:
-      required:
-      - basketId
-      - symbol
-      type: object
-      properties:
-        symbol:
-          type: string
-          description: Ticker symbol
-          example: FDS-USA
-        basketId:
-          type: string
-          description: Unique identifier assigned to basket order. Can be fetched from the WebSocket Order Update API.
-          example: FACTSET_OMS-100823_12345
-      description: Unique identifier to identify the parent order.
-    EMSChildOrderInfo:
-      type: object
-      properties:
-        ticketId:
-          type:
-          - string
-          - 'null'
-          description: Ticket Id for the child order
-          example: RKPW.3280015
-        symbol:
-          type:
-          - string
-          - 'null'
-          description: Ticker symbol
-          example: FDS-USA
-      description: EMS Child Order Info
     EMSCancelChildOrdersRoot:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/EMSCancelChildOrders'
-    EMSChildOrderRejectedInfo:
-      type: object
-      properties:
-        message:
-          type:
-          - string
-          - 'null'
-          description: Reason for rejection
-          example: 'Ticket does not exist for ticketid: null'
-        ticketId:
-          type:
-          - string
-          - 'null'
-          description: Ticket Id for the child order
-          example: RKPW.3280015
-        symbol:
-          type:
-          - string
-          - 'null'
-          description: Ticker symbol
-          example: FDS-USA
-      description: EMS Child Order Rejected Info
-    EMSChildOrders:
-      required:
-      - childOrders
-      type: object
-      properties:
-        childOrders:
-          maxItems: 1
-          minItems: 1
-          type: array
-          items:
-            $ref: '#/components/schemas/EMSChildOrder'
-    EMSChildOrdersRoot:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/EMSChildOrders'
-    EMSCreateChildOrdersResponseRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/EMSCreateChildOrdersResponse'
-      description: EMS Response
-    EMSChildOrdersResponseRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/EMSChildOrdersResponse'
-      description: EMS Response
-    EMSCreateChildOrderInfo:
-      type: object
-      properties:
-        basketId:
-          type:
-          - string
-          - 'null'
-          description: Unique identifier assigned to basket order
-          example: FACTSET_OMS-100823_12345
-        ticketId:
-          type:
-          - string
-          - 'null'
-          description: Ticket Id for the child order
-          example: RKPW.3280015
-        symbol:
-          type:
-          - string
-          - 'null'
-          description: Ticker symbol
-          example: FDS-USA
-    EMSReplaceChildOrdersRoot:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/EMSReplaceChildOrders'
     ClientErrorResponse:
       type: object
       properties:
@@ -788,35 +804,7 @@ components:
             $ref: '#/components/schemas/Error'
           description: List of errors
       description: Client Error Response
-    TimeInForce:
-      type: object
-      properties:
-        tif:
-          enum:
-          - day
-          - goodTillCancel
-          - atTheOpening
-          - immediateOrCancel
-          - fillOrKill
-          - goodTillCrossing
-          - goodTillDate
-          - atc
-          type: string
-          description: 'Time in force: if goodTillDate, then Expire Time or Expire Date is a required field'
-        expireDate:
-          type:
-          - string
-          - 'null'
-          description: Expire date in YYYYMMDD format expressed in UTC
-          example: '20230823'
-        expireTime:
-          type:
-          - string
-          - 'null'
-          description: Expire time in YYYYMMDD-HH:MM:SS format expressed in UTC
-          example: 20230823-12:20:25
-      description: Time in Force
-    EMSReplaceChildOrders:
+    EMSChildOrders:
       required:
       - childOrders
       type: object
@@ -826,7 +814,19 @@ components:
           minItems: 1
           type: array
           items:
-            $ref: '#/components/schemas/ReplaceChildOrder'
+            $ref: '#/components/schemas/EMSChildOrder'
+    EMSCancelChildOrders:
+      required:
+      - childOrders
+      type: object
+      properties:
+        childOrders:
+          maxItems: 1
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/EMSCancelChildOrder'
+      description: EMS Cancel Child Orders
   securitySchemes:
     FactSetApiKey:
       type: http

@@ -137,6 +137,63 @@ paths:
           $ref: '#/components/responses/500'
 components:
   parameters:
+    segmentsMetrics:
+      name: metrics
+      in: query
+      required: true
+      explode: false
+      description: "Metrics are the data items available for business and geographic segments, where\n  * **SALES**  = Sales/Revenue - Total revenues from the business line/geographic region,\n  * **OPINC** = Operating Income/Loss - Operating income generated from the business line/geographic region,\n  * **ASSETS** = Total Assets - Total assets from the business line/geographic region,\n  * **DEP** = Depreciation Exp - Depreciation expense resulting from the business line/geographic segment,\n  * **CAPEX** = Capital Expenditures - Capital expenditures resulting from the business line/geographic region\n"
+      schema:
+        type: string
+        enum:
+        - SALES
+        - OPINC
+        - ASSETS
+        - DEP
+        - CAPEX
+        example: SALES
+    fiscalPeriodEnd:
+      name: fiscalPeriodEnd
+      in: query
+      required: false
+      schema:
+        type: string
+        example: '2018-03-01'
+      description: 'The fiscal period end expressed YYYY-MM-DD.  Calendar date that will fall back to the most recently completed period during resolution.
+
+        '
+    batch:
+      name: batch
+      in: query
+      description: 'Enables the ability to asynchronously "batch" the request, supporting a long-running request for up to 20 minutes. Upon requesting batch=Y, the service will respond with an HTTP Status Code of 202.
+
+        Once a batch request is submitted, use batch status to see if the job has been completed. Once completed, retrieve the results of the request via batch-result. When using Batch, ids limit is increased to 30000 ids per request, though limits on query string via GET method still apply. It''s advised to submit large lists of ids via POST method.
+
+        '
+      schema:
+        type: string
+        enum:
+        - Y
+        - N
+        default: N
+    segmentsPeriodicity:
+      name: periodicity
+      in: query
+      schema:
+        type: string
+        enum:
+        - ANN
+        - ANN_R
+        default: ANN
+      required: false
+      description: "Periodicity or frequency of the fiscal periods, where\n  * **ANN**  = Annual - Original,\n  * **ANN_R** = Annual - Latest - *Includes Restatements*\n"
+      examples:
+        ANN:
+          summary: ANN - Annual Original.
+          value: ANN
+        ANN_R:
+          summary: ANN_R - Annual Latest.
+          value: ANN_R
     idsBatchMax2000:
       name: ids
       in: query
@@ -178,38 +235,6 @@ components:
         GEO:
           summary: GEO - Geographic.
           value: GEO
-    segmentsPeriodicity:
-      name: periodicity
-      in: query
-      schema:
-        type: string
-        enum:
-        - ANN
-        - ANN_R
-        default: ANN
-      required: false
-      description: "Periodicity or frequency of the fiscal periods, where\n  * **ANN**  = Annual - Original,\n  * **ANN_R** = Annual - Latest - *Includes Restatements*\n"
-      examples:
-        ANN:
-          summary: ANN - Annual Original.
-          value: ANN
-        ANN_R:
-          summary: ANN_R - Annual Latest.
-          value: ANN_R
-    batch:
-      name: batch
-      in: query
-      description: 'Enables the ability to asynchronously "batch" the request, supporting a long-running request for up to 20 minutes. Upon requesting batch=Y, the service will respond with an HTTP Status Code of 202.
-
-        Once a batch request is submitted, use batch status to see if the job has been completed. Once completed, retrieve the results of the request via batch-result. When using Batch, ids limit is increased to 30000 ids per request, though limits on query string via GET method still apply. It''s advised to submit large lists of ids via POST method.
-
-        '
-      schema:
-        type: string
-        enum:
-        - Y
-        - N
-        default: N
     fiscalPeriodStart:
       name: fiscalPeriodStart
       in: query
@@ -220,265 +245,36 @@ components:
       description: 'The fiscal period start expressed as YYYY-MM-DD.  Calendar date that will fall back to the most recent completed period during resolution.
 
         '
-    segmentsMetrics:
-      name: metrics
-      in: query
-      required: true
-      explode: false
-      description: "Metrics are the data items available for business and geographic segments, where\n  * **SALES**  = Sales/Revenue - Total revenues from the business line/geographic region,\n  * **OPINC** = Operating Income/Loss - Operating income generated from the business line/geographic region,\n  * **ASSETS** = Total Assets - Total assets from the business line/geographic region,\n  * **DEP** = Depreciation Exp - Depreciation expense resulting from the business line/geographic segment,\n  * **CAPEX** = Capital Expenditures - Capital expenditures resulting from the business line/geographic region\n"
-      schema:
-        type: string
-        enum:
-        - SALES
-        - OPINC
-        - ASSETS
-        - DEP
-        - CAPEX
-        example: SALES
-    fiscalPeriodEnd:
-      name: fiscalPeriodEnd
-      in: query
-      required: false
-      schema:
-        type: string
-        example: '2018-03-01'
-      description: 'The fiscal period end expressed YYYY-MM-DD.  Calendar date that will fall back to the most recently completed period during resolution.
-
-        '
-  examples:
-    forbidden:
-      summary: Forbidden
-      description: The USERNAME-SERIAL attempted to request the endpoint/ID which is not authorized to access. The request was legal, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
-      value:
-        errors:
-        - id: adb01824-252f-4420-b0c6
-          code: Forbidden
-          links:
-            about: /factset-fundamentals/v2/{endpoint}
-          title: User is not authorized for the id requested, please reach out to FactSet for support
-    postBodyOfMultipleIdwithSingleMetricItemSegment:
-      summary: Multiple Companies' single metric item [SALES] details.
-      description: Post body request example to fetch details of the FDS-US, AAPL-US sales data for the period 2012-01-01 to 2014-01-01 on an annual basis with the final data Values.
-      value:
-        data:
-          ids:
-          - FDS-US
-          - AAPL-US
-          periodicity: ANN
-          fiscalPeriod:
-            start: '2012-01-01'
-            end: '2014-01-01'
-          metrics: SALES
-          segmentType: BUS
-    badRequestRequiredParameter:
-      summary: Bad Request - Required Parameter Missing
-      description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisk symbol in the specification file.
-      value:
-        errors:
-        - id: adb01824-252f-4420-b0c6
-          code: Bad Request
-          links:
-            about: /factset-fundamentals/v2/{endpoint}
-          title: The parameter 'ids' is required and may not be empty.
-    badRequestMoreThanOneFundamentalMetricId:
-      summary: Bad Request - More Than One Fundamental Metric Id
-      description: This error message occurs when the user is passing more than one metric as input.
-      value:
-        errors:
-        - id: adb01824-252f-4420-b0c6
-          code: Bad Request
-          links:
-            about: /factset-fundamentals/v2/fundamentals
-          title: 'getFdsFundamentals.metrics: size must be between 1 and 1'
-    batchSegmentsRequestPost:
-      summary: Batch Request for multiple companies single metric item [SALES] details.
-      description: Post body request example to fetch details of the FDS-US, AAPL-US sales data for the period 2012-01-01 to 2014-01-01 on an annual basis with the final data Values.
-      value:
-        data:
-          ids:
-          - FDS-US
-          - AAPL-US
-          periodicity: ANN
-          fiscalPeriod:
-            start: '2012-01-01'
-            end: '2014-01-01'
-          metrics: SALES
-          segmentType: BUS
-          batch: Y
-    badRequestDateFormat:
-      summary: Bad Request - Date Format
-      description: This bad request occurs when a request doesn't use the YYYY-MM-DD in the date parameters. To resolve this, convert your date to YYYY-MM-DD.
-      value:
-        errors:
-        - id: adb01824-252f-4420-b0c6
-          code: Bad Request
-          links:
-            about: /factset-fundamentals/v2/{endpoint}
-          title: 'The date parameter must be in the following date format: YYYY-MM-DD'
-    postBodyOfSingleIdwithSingleMetricItemSegment:
-      summary: AAPL-US company sales[SALES] data for the given time period
-      description: Requests the AAPL-US sales data for the period 2012-01-01 to 2014-01-01 on a quarterly basis with the preliminary data Values.
-      value:
-        data:
-          ids:
-          - AAPL-US
-          periodicity: ANN
-          fiscalPeriod:
-            start: '2012-01-01'
-            end: '2014-01-01'
-          metrics: SALES
-          segmentType: BUS
-    resultOfMultipleIdwithSingleMetricItemSegment:
-      summary: Result of Multiple Companies single metric item [SALES] details.
-      description: 'Results of the FDS-US, AAPL-US sales data for the period 2012-01-01 to 2014-01-01 on an annual basis with the final data Values.
-
-        '
-      value:
-        data:
-        - requestId: AAPL-US
-          fsymId: MH33D6-R
-          metric: SALES
-          date: 2012-09-28 00:00:00+00:00
-          label: iPhone
-          value: 141319
-        - requestId: FDS-US
-          fsymId: SQFMK3-R
-          metric: SALES
-          date: 2012-08-31 00:00:00+00:00
-          label: Integrated Financial Information & Analytical Applications"
-          value: 1221.179
-    notWritable:
-      summary: Internal Server Error - Not Writable
-      description: This error may be returned when the server encounters an error writing the JSON response.
-      value:
-        errors:
-        - id: adb01824-252f-4420-b0c6
-          code: Internal Server Error
-          links:
-            about: /factset-fundamentals/v2/{endpoint}
-          title: Error writing JSON output
-    unauthenticated:
-      summary: User Authentication Failed
-      description: This occurs when a user is not properly authenticated or recognized by the service. Please double-check the USERNAME-SERIAL and API-Key used to request and ensure you are within the IP range specified for the Key. Report the Issue under 401 error for help with troubleshooting.
-      value:
-        errors:
-        - id: adb01824-252f-4420-b0c6
-          code: User Authentication Failed
-          links:
-            about: /factset-fundamentals/v2/{endpoint}
-          title: User Authentication Failed.
-    resultOfSingleIdwithSingleMetricItemSegment:
-      summary: Result of Single Company single metric item [SALES] details.
-      description: 'Results of the AAPL-US sales data for the period 2012-01-01 to 2014-01-01 on an annual basis with the preliminary data Values.
-
-        '
-      value:
-        data:
-        - requestId: AAPL-US
-          fsymId: MH33D6-R
-          metric: SALES
-          date: 2012-09-28 00:00:00+00:00
-          label: iPhone
-          value: 141319
-        - requestId: AAPL-US
-          fsymId: MH33D6-R
-          metric: SALES
-          date: 2012-09-28 00:00:00+00:00
-          label: iPad
-          value: 19222
-    badRequestInvalidParameters:
-      summary: Bad Request - Passing invalid Fundamental Metric Id
-      description: This error message occurs when the user is passing Invalid Metric Id. Please use the helper endpoint */metrics* for the sample Fundamental Metric Id.
-      value:
-        errors:
-        - id: adb01824-252f-4420-b0c6
-          code: Bad Request
-          links:
-            about: /factset-fundamentals/v2/{endpoint}
-          title: 'Given input is not a valid value for parameter: `metrics`'
-    unsupportedMediaType:
-      summary: Unsupported Media Type
-      description: This bad request occurs when the media type passed in the request is not supported. Currently, the APIs only support 'application/json'.
-      value:
-        errors:
-        - id: adb01824-252f-4420-b0c6
-          code: Unsupported Media Type
-          links:
-            about: /factset-fundamentals/v2/{endpoint}
-          title: text/html media type is not supported. Supported media types are application/json.
-    generalException:
-      summary: Internal Server Error - General Exception
-      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
-      value:
-        errors:
-        - id: adb01824-252f-4420-b0c6
-          code: Internal Server Error
-          links:
-            about: /factset-fundamentals/v2/{endpoint}
-          title: Unexpected error
-    badRequestReadTimeout:
-      summary: Bad Request - Read Timeout
-      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
-      value:
-        errors:
-        - id: adb01824-252f-4420-b0c6
-          code: Bad Request
-          links:
-            about: /factset-fundamentals/v2/{endpoint}
-          title: The request took too long. Try again with a smaller request.
-    badRequestMalformedJSON:
-      summary: Bad Request - Malformed JSON Request
-      description: This error may be returned when the request body is specified as JSON. But is not in proper JSON format.
-      value:
-        errors:
-        - id: adb01824-252f-4420-b0c6
-          code: Bad Request
-          links:
-            about: /factset-fundamentals/v2/{endpoint}
-          title: Malformed JSON Request
-    BatchStatusAcceptedResponse:
-      description: Batch Status Accepted Response
-      value:
-        data:
-          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-          status: queued
-          startTime: '2021-06-29T18:34:52.168Z'
-          endTime: null
-          error:
-            id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-            code: GenericError
-            title: the date parameter must be in YYYY-MM-DD format
   schemas:
-    segmentsPeriodicity:
-      title: Periodicity
-      type: string
-      description: "Periodicity or frequency of the fiscal periods, where\n  * **ANN** = Annual Original,\n  * **ANN_R** = Annual Latest - *Includes Restatements*,\n"
-      enum:
-      - ANN
-      - ANN_R
-      default: ANN
-      example: ANN
-    segmentsMetrics:
-      title: Metrics
-      type: string
-      description: "Metrics are the data items available for business and geographic segments, where\n  * **SALES**  = Sales/Revenue - Total revenues from the business line/geographic region,\n  * **OPINC** = Operating Income/Loss - Operating income generated from the business line/geographic region,\n  * **ASSETS** = Total Assets - Total assets from the business line/geographic region,\n  * **DEP** = Depreciation Exp - Depreciation expense resulting from the business line/geographic segment,\n  * **CAPEX** = Capital Expenditures - Capital expenditures resulting from the business line/geographic region\n"
-      example: SALES
-    segmentValue:
-      description: 'Value of the data metric requested. Note that the type of value is ''object'', and depending on the data metric requested, the value could be an object representation of a string or double. '
-      oneOf:
-      - type:
-        - string
-        - 'null'
-      - type:
-        - number
-        - 'null'
-        format: double
-    BatchStatusResponse:
-      title: Batch Status Response
+    segmentRequestBody:
+      title: Segments Request Body
+      description: Segments request body elements
       type: object
       properties:
-        data:
-          $ref: '#/components/schemas/BatchStatus'
+        ids:
+          $ref: '#/components/schemas/idsBatchMax30000'
+        periodicity:
+          $ref: '#/components/schemas/segmentsPeriodicity'
+        fiscalPeriod:
+          $ref: '#/components/schemas/fundamentalFiscalPeriod'
+        metrics:
+          $ref: '#/components/schemas/segmentsMetrics'
+        segmentType:
+          $ref: '#/components/schemas/segmentType'
+        batch:
+          $ref: '#/components/schemas/batch'
+      required:
+      - ids
+      - metrics
+    idsBatchMax30000:
+      type: array
+      items:
+        type: string
+        minItems: 1
+        maxItems: 30000
+      description: "The requested list of security identifiers. Accepted ID types include Market Tickers, SEDOL, ISINs, CUSIPs, or FactSet Permanent Ids. \n<p>ids limit =  1000 per non-batch request / 30000 per batch request</p>\n"
+      example:
+      - FDS-US
     errorObject:
       type: object
       properties:
@@ -502,65 +298,6 @@ components:
           description: The plain text error message
           type: string
           example: Validation Error
-    segmentsRequest:
-      title: Segments Request Body
-      description: Segments request body elements
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/segmentRequestBody'
-      required:
-      - data
-    segmentsResponse:
-      type: object
-      title: Segments Response
-      description: Array of Segments Objects
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/segment'
-    segmentRequestBody:
-      title: Segments Request Body
-      description: Segments request body elements
-      type: object
-      properties:
-        ids:
-          $ref: '#/components/schemas/idsBatchMax30000'
-        periodicity:
-          $ref: '#/components/schemas/segmentsPeriodicity'
-        fiscalPeriod:
-          $ref: '#/components/schemas/fundamentalFiscalPeriod'
-        metrics:
-          $ref: '#/components/schemas/segmentsMetrics'
-        segmentType:
-          $ref: '#/components/schemas/segmentType'
-        batch:
-          $ref: '#/components/schemas/batch'
-      required:
-      - ids
-      - metrics
-    errorResponse:
-      type: object
-      title: Error Response
-      description: Error Default Response
-      properties:
-        errors:
-          type: array
-          description: An array containing errors
-          items:
-            $ref: '#/components/schemas/errorObject'
-    idsBatchMax30000:
-      type: array
-      items:
-        type: string
-        minItems: 1
-        maxItems: 30000
-      description: "The requested list of security identifiers. Accepted ID types include Market Tickers, SEDOL, ISINs, CUSIPs, or FactSet Permanent Ids. \n<p>ids limit =  1000 per non-batch request / 30000 per batch request</p>\n"
-      example:
-      - FDS-US
-    fundamentalFiscalPeriod:
-      $ref: '#/components/schemas/fiscalPeriod'
     BatchStatus:
       title: Batch Status
       type: object
@@ -588,21 +325,68 @@ components:
           - failed
         error:
           $ref: '#/components/schemas/batchErrorObject'
-    fiscalPeriod:
+    segmentsPeriodicity:
+      title: Periodicity
+      type: string
+      description: "Periodicity or frequency of the fiscal periods, where\n  * **ANN** = Annual Original,\n  * **ANN_R** = Annual Latest - *Includes Restatements*,\n"
+      enum:
+      - ANN
+      - ANN_R
+      default: ANN
+      example: ANN
+    segmentValue:
+      description: 'Value of the data metric requested. Note that the type of value is ''object'', and depending on the data metric requested, the value could be an object representation of a string or double. '
+      oneOf:
+      - type:
+        - string
+        - 'null'
+      - type:
+        - number
+        - 'null'
+        format: double
+    segmentsResponse:
       type: object
+      title: Segments Response
+      description: Array of Segments Objects
       properties:
-        start:
-          description: 'The fiscal period start expressed as YYYY-MM-DD.  Calendar date that will fall back to the most recently completed period during resolution.
-
-            '
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/segment'
+    fundamentalFiscalPeriod:
+      $ref: '#/components/schemas/fiscalPeriod'
+    errorResponse:
+      type: object
+      title: Error Response
+      description: Error Default Response
+      properties:
+        errors:
+          type: array
+          description: An array containing errors
+          items:
+            $ref: '#/components/schemas/errorObject'
+    segmentsMetrics:
+      title: Metrics
+      type: string
+      description: "Metrics are the data items available for business and geographic segments, where\n  * **SALES**  = Sales/Revenue - Total revenues from the business line/geographic region,\n  * **OPINC** = Operating Income/Loss - Operating income generated from the business line/geographic region,\n  * **ASSETS** = Total Assets - Total assets from the business line/geographic region,\n  * **DEP** = Depreciation Exp - Depreciation expense resulting from the business line/geographic segment,\n  * **CAPEX** = Capital Expenditures - Capital expenditures resulting from the business line/geographic region\n"
+      example: SALES
+    batchErrorObject:
+      type:
+      - object
+      - 'null'
+      properties:
+        id:
+          description: A UUID for this particular occurrence of the problem.
           type: string
-          example: '2012-01-01'
-        end:
+          example: adb01824-252f-4420-b0c6-35a1e3507ef5
+        code:
+          description: status
           type: string
-          description: 'The fiscal period end expressed YYYY-MM-DD.  Calendar date that will fall back to the most recent completed period during resolution.
-
-            '
-          example: '2014-01-01'
+          example: GenericError
+        title:
+          description: The plain text error message
+          type: string
+          example: Validation Error
     segment:
       title: Segment Object
       type: object
@@ -640,6 +424,21 @@ components:
           example: '2022-09-30'
         value:
           $ref: '#/components/schemas/segmentValue'
+    fiscalPeriod:
+      type: object
+      properties:
+        start:
+          description: 'The fiscal period start expressed as YYYY-MM-DD.  Calendar date that will fall back to the most recently completed period during resolution.
+
+            '
+          type: string
+          example: '2012-01-01'
+        end:
+          type: string
+          description: 'The fiscal period end expressed YYYY-MM-DD.  Calendar date that will fall back to the most recent completed period during resolution.
+
+            '
+          example: '2014-01-01'
     segmentType:
       title: segmentType
       type: string
@@ -658,43 +457,225 @@ components:
       - Y
       - N
       default: N
-    batchErrorObject:
-      type:
-      - object
-      - 'null'
+    segmentsRequest:
+      title: Segments Request Body
+      description: Segments request body elements
+      type: object
       properties:
-        id:
-          description: A UUID for this particular occurrence of the problem.
-          type: string
-          example: adb01824-252f-4420-b0c6-35a1e3507ef5
-        code:
-          description: status
-          type: string
-          example: GenericError
-        title:
-          description: The plain text error message
-          type: string
-          example: Validation Error
+        data:
+          $ref: '#/components/schemas/segmentRequestBody'
+      required:
+      - data
+    BatchStatusResponse:
+      title: Batch Status Response
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/BatchStatus'
+  examples:
+    badRequestMoreThanOneFundamentalMetricId:
+      summary: Bad Request - More Than One Fundamental Metric Id
+      description: This error message occurs when the user is passing more than one metric as input.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Bad Request
+          links:
+            about: /factset-fundamentals/v2/fundamentals
+          title: 'getFdsFundamentals.metrics: size must be between 1 and 1'
+    unsupportedMediaType:
+      summary: Unsupported Media Type
+      description: This bad request occurs when the media type passed in the request is not supported. Currently, the APIs only support 'application/json'.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Unsupported Media Type
+          links:
+            about: /factset-fundamentals/v2/{endpoint}
+          title: text/html media type is not supported. Supported media types are application/json.
+    postBodyOfSingleIdwithSingleMetricItemSegment:
+      summary: AAPL-US company sales[SALES] data for the given time period
+      description: Requests the AAPL-US sales data for the period 2012-01-01 to 2014-01-01 on a quarterly basis with the preliminary data Values.
+      value:
+        data:
+          ids:
+          - AAPL-US
+          periodicity: ANN
+          fiscalPeriod:
+            start: '2012-01-01'
+            end: '2014-01-01'
+          metrics: SALES
+          segmentType: BUS
+    notWritable:
+      summary: Internal Server Error - Not Writable
+      description: This error may be returned when the server encounters an error writing the JSON response.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Internal Server Error
+          links:
+            about: /factset-fundamentals/v2/{endpoint}
+          title: Error writing JSON output
+    batchSegmentsRequestPost:
+      summary: Batch Request for multiple companies single metric item [SALES] details.
+      description: Post body request example to fetch details of the FDS-US, AAPL-US sales data for the period 2012-01-01 to 2014-01-01 on an annual basis with the final data Values.
+      value:
+        data:
+          ids:
+          - FDS-US
+          - AAPL-US
+          periodicity: ANN
+          fiscalPeriod:
+            start: '2012-01-01'
+            end: '2014-01-01'
+          metrics: SALES
+          segmentType: BUS
+          batch: Y
+    badRequestMalformedJSON:
+      summary: Bad Request - Malformed JSON Request
+      description: This error may be returned when the request body is specified as JSON. But is not in proper JSON format.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Bad Request
+          links:
+            about: /factset-fundamentals/v2/{endpoint}
+          title: Malformed JSON Request
+    BatchStatusAcceptedResponse:
+      description: Batch Status Accepted Response
+      value:
+        data:
+          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+          status: queued
+          startTime: '2021-06-29T18:34:52.168Z'
+          endTime: null
+          error:
+            id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+            code: GenericError
+            title: the date parameter must be in YYYY-MM-DD format
+    postBodyOfMultipleIdwithSingleMetricItemSegment:
+      summary: Multiple Companies' single metric item [SALES] details.
+      description: Post body request example to fetch details of the FDS-US, AAPL-US sales data for the period 2012-01-01 to 2014-01-01 on an annual basis with the final data Values.
+      value:
+        data:
+          ids:
+          - FDS-US
+          - AAPL-US
+          periodicity: ANN
+          fiscalPeriod:
+            start: '2012-01-01'
+            end: '2014-01-01'
+          metrics: SALES
+          segmentType: BUS
+    badRequestRequiredParameter:
+      summary: Bad Request - Required Parameter Missing
+      description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisk symbol in the specification file.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Bad Request
+          links:
+            about: /factset-fundamentals/v2/{endpoint}
+          title: The parameter 'ids' is required and may not be empty.
+    forbidden:
+      summary: Forbidden
+      description: The USERNAME-SERIAL attempted to request the endpoint/ID which is not authorized to access. The request was legal, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Forbidden
+          links:
+            about: /factset-fundamentals/v2/{endpoint}
+          title: User is not authorized for the id requested, please reach out to FactSet for support
+    resultOfSingleIdwithSingleMetricItemSegment:
+      summary: Result of Single Company single metric item [SALES] details.
+      description: 'Results of the AAPL-US sales data for the period 2012-01-01 to 2014-01-01 on an annual basis with the preliminary data Values.
+
+        '
+      value:
+        data:
+        - requestId: AAPL-US
+          fsymId: MH33D6-R
+          metric: SALES
+          date: 2012-09-28 00:00:00+00:00
+          label: iPhone
+          value: 141319
+        - requestId: AAPL-US
+          fsymId: MH33D6-R
+          metric: SALES
+          date: 2012-09-28 00:00:00+00:00
+          label: iPad
+          value: 19222
+    badRequestReadTimeout:
+      summary: Bad Request - Read Timeout
+      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Bad Request
+          links:
+            about: /factset-fundamentals/v2/{endpoint}
+          title: The request took too long. Try again with a smaller request.
+    generalException:
+      summary: Internal Server Error - General Exception
+      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Internal Server Error
+          links:
+            about: /factset-fundamentals/v2/{endpoint}
+          title: Unexpected error
+    badRequestDateFormat:
+      summary: Bad Request - Date Format
+      description: This bad request occurs when a request doesn't use the YYYY-MM-DD in the date parameters. To resolve this, convert your date to YYYY-MM-DD.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Bad Request
+          links:
+            about: /factset-fundamentals/v2/{endpoint}
+          title: 'The date parameter must be in the following date format: YYYY-MM-DD'
+    badRequestInvalidParameters:
+      summary: Bad Request - Passing invalid Fundamental Metric Id
+      description: This error message occurs when the user is passing Invalid Metric Id. Please use the helper endpoint */metrics* for the sample Fundamental Metric Id.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Bad Request
+          links:
+            about: /factset-fundamentals/v2/{endpoint}
+          title: 'Given input is not a valid value for parameter: `metrics`'
+    unauthenticated:
+      summary: User Authentication Failed
+      description: This occurs when a user is not properly authenticated or recognized by the service. Please double-check the USERNAME-SERIAL and API-Key used to request and ensure you are within the IP range specified for the Key. Report the Issue under 401 error for help with troubleshooting.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: User Authentication Failed
+          links:
+            about: /factset-fundamentals/v2/{endpoint}
+          title: User Authentication Failed.
+    resultOfMultipleIdwithSingleMetricItemSegment:
+      summary: Result of Multiple Companies single metric item [SALES] details.
+      description: 'Results of the FDS-US, AAPL-US sales data for the period 2012-01-01 to 2014-01-01 on an annual basis with the final data Values.
+
+        '
+      value:
+        data:
+        - requestId: AAPL-US
+          fsymId: MH33D6-R
+          metric: SALES
+          date: 2012-09-28 00:00:00+00:00
+          label: iPhone
+          value: 141319
+        - requestId: FDS-US
+          fsymId: SQFMK3-R
+          metric: SALES
+          date: 2012-08-31 00:00:00+00:00
+          label: Integrated Financial Information & Analytical Applications"
+          value: 1221.179
   responses:
-    '400':
-      description: Bad Request. This can occur for several reasons. Please review the "message" for more details.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/errorResponse'
-          examples:
-            Bad Request - Date Format:
-              $ref: '#/components/examples/badRequestDateFormat'
-            Bad Request - Missing Required Parameter:
-              $ref: '#/components/examples/badRequestRequiredParameter'
-            Bad Request - Invalid Parameter:
-              $ref: '#/components/examples/badRequestInvalidParameters'
-            Bad Request - More Than One Fundamental Metric Id:
-              $ref: '#/components/examples/badRequestMoreThanOneFundamentalMetricId'
-            Bad Request - Malformed JSON:
-              $ref: '#/components/examples/badRequestMalformedJSON'
-            Bad Request - Read Timeout:
-              $ref: '#/components/examples/badRequestReadTimeout'
     '415':
       description: Unsupported Media Type. This error may be returned when the caller sends a resource in a format that is not accepted by the server. This can be fixed by ensuring that the Content-Type header is set to the correct value. In this instance, "application/json" would be the appropriate value.
       content:
@@ -704,15 +685,6 @@ components:
           examples:
             Bad Request - Unsupported Media Type:
               $ref: '#/components/examples/unsupportedMediaType'
-    '401':
-      description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the **Report Issue** in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/errorResponse'
-          examples:
-            Bad Request - Date Format:
-              $ref: '#/components/examples/unauthenticated'
     '403':
       description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was legal, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
       content:
@@ -733,6 +705,34 @@ components:
               $ref: '#/components/examples/notWritable'
             Internal Server Error - General Exception:
               $ref: '#/components/examples/generalException'
+    '400':
+      description: Bad Request. This can occur for several reasons. Please review the "message" for more details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/badRequestDateFormat'
+            Bad Request - Missing Required Parameter:
+              $ref: '#/components/examples/badRequestRequiredParameter'
+            Bad Request - Invalid Parameter:
+              $ref: '#/components/examples/badRequestInvalidParameters'
+            Bad Request - More Than One Fundamental Metric Id:
+              $ref: '#/components/examples/badRequestMoreThanOneFundamentalMetricId'
+            Bad Request - Malformed JSON:
+              $ref: '#/components/examples/badRequestMalformedJSON'
+            Bad Request - Read Timeout:
+              $ref: '#/components/examples/badRequestReadTimeout'
+    '401':
+      description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the **Report Issue** in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/unauthenticated'
   securitySchemes:
     FactSetOAuth2:
       type: oauth2

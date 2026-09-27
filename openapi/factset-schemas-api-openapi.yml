@@ -70,6 +70,28 @@ paths:
       operationId: getSchemasById
       x-operation-id-source: derived
 components:
+  parameters:
+    resourceId:
+      name: id
+      description: ID of resource.
+      in: path
+      schema:
+        type: string
+      required: true
+    count:
+      name: count
+      description: Maximum resource count. The server will not return more resources than this value, although it may return fewer.
+      in: query
+      schema:
+        type: integer
+      required: false
+    startIndex:
+      name: startIndex
+      description: Result start index. The one-based index of the first result to be returned in the list of resources. For example, to exclude the first two resources, use a *startIndex* value of 3. This parameter has a default value of 1. This index applies *after* any resource filtration has been applied as specified by the *filter* argument.
+      in: query
+      schema:
+        type: integer
+      required: false
   schemas:
     SchemaList:
       type: object
@@ -291,29 +313,24 @@ components:
       - id
       - name
       - attributes
-  parameters:
-    startIndex:
-      name: startIndex
-      description: Result start index. The one-based index of the first result to be returned in the list of resources. For example, to exclude the first two resources, use a *startIndex* value of 3. This parameter has a default value of 1. This index applies *after* any resource filtration has been applied as specified by the *filter* argument.
-      in: query
-      schema:
-        type: integer
-      required: false
-    count:
-      name: count
-      description: Maximum resource count. The server will not return more resources than this value, although it may return fewer.
-      in: query
-      schema:
-        type: integer
-      required: false
-    resourceId:
-      name: id
-      description: ID of resource.
-      in: path
-      schema:
-        type: string
-      required: true
   responses:
+    unauthorizedError:
+      description: User has not been authenticated.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: FactSet.net credentials are missing or invalid.
+            status: '401'
+    schemasSuccess:
+      description: Success.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/SchemaList'
     internalServerError:
       description: Internal server error.
       content:
@@ -331,29 +348,12 @@ components:
             - urn:ietf:params:scim:api:messages:2.0:Error
             detail: FIN_WEALTH-999999 is not authorized to use the FactSet SCIM API.
             status: '403'
-    unauthorizedError:
-      description: User has not been authenticated.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            schemas:
-            - urn:ietf:params:scim:api:messages:2.0:Error
-            detail: FactSet.net credentials are missing or invalid.
-            status: '401'
     schemaSuccess:
       description: Success.
       content:
         application/scim+json:
           schema:
             $ref: '#/components/schemas/Schema'
-    schemasSuccess:
-      description: Success.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/SchemaList'
   securitySchemes:
     basicAuth:
       type: http

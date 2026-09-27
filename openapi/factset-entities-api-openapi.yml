@@ -126,127 +126,32 @@ paths:
       summary: Post event entities
       x-summary-source: derived
 components:
-  headers:
-    RateLimit-Limit:
-      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
-      schema:
-        type: integer
-        example: 5
-    Api-Supported-Versions:
-      description: Comma-separated list of supported major versions.
-      schema:
-        type: string
-        example: '1'
-    RateLimit-Remaining:
-      description: Remaining number of requests in the current time window.
-      schema:
-        type: integer
-        example: 4
-    RateLimit-Reset:
-      description: Time remaining (in seconds) until the quota is reset.
-      schema:
-        type: integer
-        example: 1000
-    Api-Version:
-      description: Full semantic version of the API.
-      schema:
-        type: string
-        example: 1.0.0
   schemas:
-    DateTime:
-      type: string
-      format: date-time
-      description: A date/time string in ISO 8601 format.
-      example: '2021-01-01T00:00:00Z'
-    RelevanceScoreRange:
-      type: object
-      description: 'Represents a valid range for user relevancy score for signal events. The upper bound of the range is represented by the attribute **gt** or **gte**. The lower bound of the range is presented by **lt** or **lte** The range can contain either of the bounds or both. e.g. { "gt": 0.4, "lt": 0.8 }
-
-        '
-      minProperties: 1
-      properties:
-        gt:
-          type: number
-          format: float
-          example: 42.5
-        gte:
-          type: number
-          format: float
-          example: 42.5
-        lt:
-          type: number
-          format: float
-          example: 42.5
-        lte:
-          type: number
-          format: float
-          example: 42.5
-    DateTimeInterval:
-      type: object
-      description: 'Represents a valid date/time (UTC) interval. The upper bound of the interval is represented by the attribute **gt** or **gte**. The lower bound of the interval is presented by **lt** or **lte** The interval can contain either of the bounds or both. e.g. { "gt": "2021-05-01T00:00:00.000Z", "lt": "2021-05-08T00:00:00.000Z" }
-
-        '
-      minProperties: 1
-      properties:
-        gt:
-          $ref: '#/components/schemas/DateTime'
-        gte:
-          $ref: '#/components/schemas/DateTime'
-        lt:
-          $ref: '#/components/schemas/DateTime'
-        lte:
-          $ref: '#/components/schemas/DateTime'
-    errorResponse:
+    errorItem:
       type: object
       required:
-      - message
+      - id
+      - code
+      - title
       properties:
-        message:
+        id:
           type: string
-          description: A short description of the error.
-          example: There was an error processing your request. Please try again later.
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/errorItem'
-          description: Optional list of errors. e.g. Validation errors for multiple parameters
-          example: []
-    rateLimitResponse:
-      title: Rate Limit Error Object
-      description: Error returned if any of the user's rate limit have been reached.
-      properties:
-        message:
+          format: uuid
+          example: abc123
+        code:
           type: string
-          example: API rate limit exceeded
-    eventsEntitiesPost:
-      type: object
-      properties:
-        created:
-          allOf:
-          - $ref: '#/components/schemas/DateTimeInterval'
-          description: A date/time (UTC) interval for filtering signal events based on their creation date. Defaults to NOW - 7 days if omitted. Users with limited access can only provide the default or a smaller date window.
-          example: example_value
-        updated:
-          allOf:
-          - $ref: '#/components/schemas/DateTimeInterval'
-          description: A date/time (UTC) interval for filtering signal events based on their last updated date. Defaults to NOW - 7 days if omitted. Users with limited access can only provide the default or a smaller date window.
-          example: example_value
-        signalIds:
+          example: parameterError
+        title:
           type: string
-          description: Comma delimited string of signalIds
-          example: dilutionTrigger,freeCashFlow
-        themes:
+          example: Invalid type/value
+        detail:
           type: string
-          description: Comma delimited string of theme ids. Full list of signal themes can be viewed at /themes.
-          example: example_value
-        categories:
-          type: string
-          description: Comma delimited string of category ids. Full list of signal categories can be viewed at /categories.
-          example: example_value
-        userRelevanceScore:
-          allOf:
-          - $ref: '#/components/schemas/RelevanceScoreRange'
-          description: A range for filtering signal events based on their relevancy score.
+          example: Value must be a valid UTC date/time that conforms to ISO 8601 format
+        source:
+          type: object
+          properties:
+            parameter:
+              type: string
           example: example_value
     screenMeta:
       type: object
@@ -279,32 +184,41 @@ components:
               type: string
               description: Describes why the response was sent with an incomplete list of entities.
           example: example_value
-    errorItem:
+    errorResponse:
       type: object
       required:
-      - id
-      - code
-      - title
+      - message
       properties:
-        id:
+        message:
           type: string
-          format: uuid
-          example: abc123
-        code:
-          type: string
-          example: parameterError
-        title:
-          type: string
-          example: Invalid type/value
-        detail:
-          type: string
-          example: Value must be a valid UTC date/time that conforms to ISO 8601 format
-        source:
-          type: object
-          properties:
-            parameter:
-              type: string
-          example: example_value
+          description: A short description of the error.
+          example: There was an error processing your request. Please try again later.
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errorItem'
+          description: Optional list of errors. e.g. Validation errors for multiple parameters
+          example: []
+    DateTime:
+      type: string
+      format: date-time
+      description: A date/time string in ISO 8601 format.
+      example: '2021-01-01T00:00:00Z'
+    DateTimeInterval:
+      type: object
+      description: 'Represents a valid date/time (UTC) interval. The upper bound of the interval is represented by the attribute **gt** or **gte**. The lower bound of the interval is presented by **lt** or **lte** The interval can contain either of the bounds or both. e.g. { "gt": "2021-05-01T00:00:00.000Z", "lt": "2021-05-08T00:00:00.000Z" }
+
+        '
+      minProperties: 1
+      properties:
+        gt:
+          $ref: '#/components/schemas/DateTime'
+        gte:
+          $ref: '#/components/schemas/DateTime'
+        lt:
+          $ref: '#/components/schemas/DateTime'
+        lte:
+          $ref: '#/components/schemas/DateTime'
     eventsEntities:
       type: object
       required:
@@ -325,7 +239,110 @@ components:
           items:
             $ref: '#/components/schemas/errorItem'
           example: []
+    eventsEntitiesPost:
+      type: object
+      properties:
+        created:
+          allOf:
+          - $ref: '#/components/schemas/DateTimeInterval'
+          description: A date/time (UTC) interval for filtering signal events based on their creation date. Defaults to NOW - 7 days if omitted. Users with limited access can only provide the default or a smaller date window.
+          example: example_value
+        updated:
+          allOf:
+          - $ref: '#/components/schemas/DateTimeInterval'
+          description: A date/time (UTC) interval for filtering signal events based on their last updated date. Defaults to NOW - 7 days if omitted. Users with limited access can only provide the default or a smaller date window.
+          example: example_value
+        signalIds:
+          type: string
+          description: Comma delimited string of signalIds
+          example: dilutionTrigger,freeCashFlow
+        themes:
+          type: string
+          description: Comma delimited string of theme ids. Full list of signal themes can be viewed at /themes.
+          example: example_value
+        categories:
+          type: string
+          description: Comma delimited string of category ids. Full list of signal categories can be viewed at /categories.
+          example: example_value
+        userRelevanceScore:
+          allOf:
+          - $ref: '#/components/schemas/RelevanceScoreRange'
+          description: A range for filtering signal events based on their relevancy score.
+          example: example_value
+    RelevanceScoreRange:
+      type: object
+      description: 'Represents a valid range for user relevancy score for signal events. The upper bound of the range is represented by the attribute **gt** or **gte**. The lower bound of the range is presented by **lt** or **lte** The range can contain either of the bounds or both. e.g. { "gt": 0.4, "lt": 0.8 }
+
+        '
+      minProperties: 1
+      properties:
+        gt:
+          type: number
+          format: float
+          example: 42.5
+        gte:
+          type: number
+          format: float
+          example: 42.5
+        lt:
+          type: number
+          format: float
+          example: 42.5
+        lte:
+          type: number
+          format: float
+          example: 42.5
+    rateLimitResponse:
+      title: Rate Limit Error Object
+      description: Error returned if any of the user's rate limit have been reached.
+      properties:
+        message:
+          type: string
+          example: API rate limit exceeded
+  examples:
+    bothBounds:
+      value:
+        gt: '2022-01-01T00:00:00.000Z'
+        lt: '2022-01-02T00:00:00.000Z'
+    upperBound:
+      value:
+        lt: '2022-01-02T00:00:00.000Z'
+    lowerBound:
+      value:
+        gt: '2022-01-01T00:00:00.000Z'
+  headers:
+    RateLimit-Remaining:
+      description: Remaining number of requests in the current time window.
+      schema:
+        type: integer
+        example: 4
+    Api-Supported-Versions:
+      description: Comma-separated list of supported major versions.
+      schema:
+        type: string
+        example: '1'
+    RateLimit-Limit:
+      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
+      schema:
+        type: integer
+        example: 5
+    RateLimit-Reset:
+      description: Time remaining (in seconds) until the quota is reset.
+      schema:
+        type: integer
+        example: 1000
+    Api-Version:
+      description: Full semantic version of the API.
+      schema:
+        type: string
+        example: 1.0.0
   parameters:
+    themesParam:
+      name: themes
+      in: query
+      schema:
+        type: string
+      description: Comma delimited string of theme ids. Full list of signal themes can be viewed at /themes.
     createdParam:
       name: created
       in: query
@@ -343,6 +360,29 @@ components:
           $ref: '#/components/examples/upperBound'
         bothBounds:
           $ref: '#/components/examples/bothBounds'
+    updatedParam:
+      name: updated
+      in: query
+      schema:
+        $ref: '#/components/schemas/DateTimeInterval'
+      style: deepObject
+      explode: true
+      description: A date/time (UTC) interval for filtering signal events based on their last updated date. Defaults to NOW - 7 days if omitted. Users with limited access can only provide the default or a smaller date window.
+      examples:
+        default:
+          value: {}
+        lowerBound:
+          $ref: '#/components/examples/lowerBound'
+        upperBound:
+          $ref: '#/components/examples/upperBound'
+        bothBounds:
+          $ref: '#/components/examples/bothBounds'
+    categoriesParam:
+      name: categories
+      in: query
+      schema:
+        type: string
+      description: Comma delimited string of category ids. Full list of signal categories can be viewed at /categories.
     signalIdsParam:
       name: signalIds
       in: query
@@ -369,46 +409,6 @@ components:
           value:
             gt: 0
             lt: 1
-    updatedParam:
-      name: updated
-      in: query
-      schema:
-        $ref: '#/components/schemas/DateTimeInterval'
-      style: deepObject
-      explode: true
-      description: A date/time (UTC) interval for filtering signal events based on their last updated date. Defaults to NOW - 7 days if omitted. Users with limited access can only provide the default or a smaller date window.
-      examples:
-        default:
-          value: {}
-        lowerBound:
-          $ref: '#/components/examples/lowerBound'
-        upperBound:
-          $ref: '#/components/examples/upperBound'
-        bothBounds:
-          $ref: '#/components/examples/bothBounds'
-    themesParam:
-      name: themes
-      in: query
-      schema:
-        type: string
-      description: Comma delimited string of theme ids. Full list of signal themes can be viewed at /themes.
-    categoriesParam:
-      name: categories
-      in: query
-      schema:
-        type: string
-      description: Comma delimited string of category ids. Full list of signal categories can be viewed at /categories.
-  examples:
-    bothBounds:
-      value:
-        gt: '2022-01-01T00:00:00.000Z'
-        lt: '2022-01-02T00:00:00.000Z'
-    lowerBound:
-      value:
-        gt: '2022-01-01T00:00:00.000Z'
-    upperBound:
-      value:
-        lt: '2022-01-02T00:00:00.000Z'
   securitySchemes:
     basicAuth:
       type: http

@@ -102,36 +102,69 @@ paths:
       - $ref: '#/components/parameters/formType'
       - $ref: '#/components/parameters/accession'
 components:
-  examples:
-    ServerErrorDetails:
-      summary: Sample Error Response
-      value:
-        errors:
-        - code: Internal Server Error
-          title: An unexpected error happened.
-          id: 7af3d86ca5954503b9244f2620fcf5eb
-    ErrorDetails:
-      summary: Sample Error Response
-      value:
-        errors:
-        - code: Bad Request
-          title: parameterError:['_paginationLimit'] is not a valid parameter(s).
-          id: 7af3d86ca5954503b9244f2620fcf5eb
-    AuthErrorDetails:
-      summary: Sample Error Response
-      value:
-        errors:
-        - code: Not Authenticated
-          title: Unauthenticated USERNAME-SERIAL.
-          id: fd5a51ff-02cf-48ec-b9b1-913d64863b0
-    AuthorizationErrorDetails:
-      summary: Sample Error Response
-      value:
-        errors:
-        - code: Forbidden
-          title: USERNAME-SERIAL does not have permission.
-          id: 7af3d86ca5954503b9244f2620fcf5eb
   parameters:
+    searchText:
+      schema:
+        type: string
+      in: query
+      name: searchText
+      example: Updates
+      description: Restricts the search to include only document stories which include the text searched.
+    paginationOffset:
+      schema:
+        type: integer
+        format: int32
+      in: query
+      name: paginationOffset
+      description: Page number of the results to return.
+    timezone:
+      schema:
+        type: string
+        default: America/New_York
+      in: query
+      name: timezone
+      description: Time zone to return story dates and times. Time zones are in POSIX format and automatically adjusted for daylight savings.
+    formType:
+      schema:
+        type: string
+      in: query
+      description: Restricts the search to include any form types of EDGAR.
+      name: formType
+      required: false
+    ids:
+      schema:
+        type: array
+        items:
+          type: string
+      in: query
+      name: ids
+      examples:
+        oneId:
+          summary: One identifier
+          value:
+          - MODN-US
+        multipleIds:
+          summary: Multiple Identifiers
+          value:
+          - MODN-US
+          - OSIS-US
+      description: Requested symbols or securities.  This is a comma-separated list with a maximum limit of 1000.  Each symbol can be a FactSet exchange symbol, CUSIP, or SEDOL.
+      explode: false
+    categories:
+      schema:
+        type: array
+        items:
+          type: string
+      in: query
+      name: categories
+      example:
+      - CN:US
+      - LN:EN
+      description: 'Code for categories to include.  This is a comma-separated list. Use the ```/helper``` endpoint to get the list of available categories.
+
+
+        Default = All categories.'
+      explode: false
     endDate:
       schema:
         type: string
@@ -140,6 +173,38 @@ components:
       name: endDate
       example: '20231223'
       description: End Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
+    primaryId:
+      schema:
+        type: string
+        enum:
+        - Y
+        - N
+        default: N
+      in: query
+      name: primaryId
+      description: 'Type of identifier search
+
+        * Y - Returns headlines of stories that have the search ID(s) as the Primary ID.
+
+        * N - Returns headlines of stories that mention/refer to the ID(s).'
+    sort:
+      schema:
+        type: string
+        enum:
+        - asc
+        - desc
+        default: desc
+      in: query
+      name: sort
+      description: "Sorting the results in chronological (oldest to newest) or reverse chronological (newest to oldest) order. \n\n *  desc - sorting results in reverse chronological (descending) order. This is the default value if\n    the sort parameter isn’t used in the query\n    \n *   asc - sorting results in chronological (ascending) order. If a start date is not specified, the\n   API has a 10-year searching limitation. "
+    startDate:
+      schema:
+        type: string
+        default: '0'
+      in: query
+      name: startDate
+      example: '20231222'
+      description: Start Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
     sourcesOne:
       schema:
         type: array
@@ -160,25 +225,13 @@ components:
           - FFR
       description: Code for document source to include.  This is a comma-separated list. Use the ```/helper``` endpoint to get the list of available sources.
       explode: false
-    ids:
+    accession:
       schema:
-        type: array
-        items:
-          type: string
+        type: string
       in: query
-      name: ids
-      examples:
-        oneId:
-          summary: One identifier
-          value:
-          - MODN-US
-        multipleIds:
-          summary: Multiple Identifiers
-          value:
-          - MODN-US
-          - OSIS-US
-      description: Requested symbols or securities.  This is a comma-separated list with a maximum limit of 1000.  Each symbol can be a FactSet exchange symbol, CUSIP, or SEDOL.
-      explode: false
+      description: A unique identifier given to each EDGAR filings document. e.g. accession=0001013237-21-000069&sources=EDG
+      name: accession
+      required: false
     paginationLimit:
       schema:
         type: integer
@@ -188,89 +241,78 @@ components:
       name: paginationLimit
       example: 20
       description: Number of results to return per page.
-    timezone:
-      schema:
-        type: string
-        default: America/New_York
-      in: query
-      name: timezone
-      description: Time zone to return story dates and times. Time zones are in POSIX format and automatically adjusted for daylight savings.
-    startDate:
-      schema:
-        type: string
-        default: '0'
-      in: query
-      name: startDate
-      example: '20231222'
-      description: Start Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
-    paginationOffset:
-      schema:
-        type: integer
-        format: int32
-      in: query
-      name: paginationOffset
-      description: Page number of the results to return.
-    accession:
-      schema:
-        type: string
-      in: query
-      description: A unique identifier given to each EDGAR filings document. e.g. accession=0001013237-21-000069&sources=EDG
-      name: accession
-      required: false
-    primaryId:
-      schema:
-        type: string
-        enum:
-        - Y
-        - N
-        default: N
-      in: query
-      name: primaryId
-      description: 'Type of identifier search
-
-        * Y - Returns headlines of stories that have the search ID(s) as the Primary ID.
-
-        * N - Returns headlines of stories that mention/refer to the ID(s).'
-    searchText:
-      schema:
-        type: string
-      in: query
-      name: searchText
-      example: Updates
-      description: Restricts the search to include only document stories which include the text searched.
-    sort:
-      schema:
-        type: string
-        enum:
-        - asc
-        - desc
-        default: desc
-      in: query
-      name: sort
-      description: "Sorting the results in chronological (oldest to newest) or reverse chronological (newest to oldest) order. \n\n *  desc - sorting results in reverse chronological (descending) order. This is the default value if\n    the sort parameter isn’t used in the query\n    \n *   asc - sorting results in chronological (ascending) order. If a start date is not specified, the\n   API has a 10-year searching limitation. "
-    categories:
-      schema:
-        type: array
-        items:
-          type: string
-      in: query
-      name: categories
-      example:
-      - CN:US
-      - LN:EN
-      description: 'Code for categories to include.  This is a comma-separated list. Use the ```/helper``` endpoint to get the list of available categories.
-
-
-        Default = All categories.'
-      explode: false
-    formType:
-      schema:
-        type: string
-      in: query
-      description: Restricts the search to include any form types of EDGAR.
-      name: formType
-      required: false
+  examples:
+    ServerErrorDetails:
+      summary: Sample Error Response
+      value:
+        errors:
+        - code: Internal Server Error
+          title: An unexpected error happened.
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    AuthErrorDetails:
+      summary: Sample Error Response
+      value:
+        errors:
+        - code: Not Authenticated
+          title: Unauthenticated USERNAME-SERIAL.
+          id: fd5a51ff-02cf-48ec-b9b1-913d64863b0
+    ErrorDetails:
+      summary: Sample Error Response
+      value:
+        errors:
+        - code: Bad Request
+          title: parameterError:['_paginationLimit'] is not a valid parameter(s).
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    AuthorizationErrorDetails:
+      summary: Sample Error Response
+      value:
+        errors:
+        - code: Forbidden
+          title: USERNAME-SERIAL does not have permission.
+          id: 7af3d86ca5954503b9244f2620fcf5eb
   schemas:
+    ErrorResponse:
+      type: object
+      description: Error Response Object
+      properties:
+        errors:
+          type: array
+          description: Errors Array Object
+          items:
+            $ref: '#/components/schemas/ErrorExample'
+    InvestmentResearch:
+      description: Filings Response Object
+      type: object
+      properties:
+        data:
+          type: array
+          description: Data Array Object
+          items:
+            $ref: '#/components/schemas/InvestmentResearchObject'
+        meta:
+          type: object
+          description: Meta Object
+          properties:
+            pagination:
+              type: object
+              description: Pagination Object
+              properties:
+                isEstimatedTotal:
+                  type: boolean
+                  description: This field acts as a flag for the exact count of results and is defaulted to false as the API should always return the exact count of results.
+    ErrorExample:
+      type: object
+      description: Error Example Object
+      properties:
+        code:
+          description: Specifies the error code.
+          type: string
+        title:
+          description: ' Specifies the error message.'
+          type: string
+        id:
+          description: Specifies the id.
+          type: string
     InvestmentResearchObject:
       type: object
       properties:
@@ -307,48 +349,6 @@ components:
         documentId:
           type: string
           description: Unique identifier for a document.
-    ErrorResponse:
-      type: object
-      description: Error Response Object
-      properties:
-        errors:
-          type: array
-          description: Errors Array Object
-          items:
-            $ref: '#/components/schemas/ErrorExample'
-    ErrorExample:
-      type: object
-      description: Error Example Object
-      properties:
-        code:
-          description: Specifies the error code.
-          type: string
-        title:
-          description: ' Specifies the error message.'
-          type: string
-        id:
-          description: Specifies the id.
-          type: string
-    InvestmentResearch:
-      description: Filings Response Object
-      type: object
-      properties:
-        data:
-          type: array
-          description: Data Array Object
-          items:
-            $ref: '#/components/schemas/InvestmentResearchObject'
-        meta:
-          type: object
-          description: Meta Object
-          properties:
-            pagination:
-              type: object
-              description: Pagination Object
-              properties:
-                isEstimatedTotal:
-                  type: boolean
-                  description: This field acts as a flag for the exact count of results and is defaulted to false as the API should always return the exact count of results.
   securitySchemes:
     FactSetOAuth2:
       type: oauth2

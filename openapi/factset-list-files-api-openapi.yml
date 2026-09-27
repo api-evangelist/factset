@@ -120,7 +120,7 @@ paths:
     get:
       tags:
       - List Files
-      operationId: get-v1-list-files
+      operationId: getListFiles
       description: 'List-Files end point provides the delta & full files in a reverse chronological order by default for all the schemas & bundles subscribed by the client
 
 
@@ -162,6 +162,8 @@ paths:
                   $ref: '#/components/examples/list-files_400ResponseExample'
       summary: Get v1 list files
       x-summary-source: derived
+      x-operation-id-source: normalized
+      x-operation-id-original: get-v1-list-files
     servers:
     - url: https://api.factset.com/bulk-documents/sdf/v1
 components:
@@ -195,44 +197,6 @@ components:
       properties:
         isPartial:
           type: boolean
-    pagination:
-      title: paginationobjects
-      description: List of pagination objects
-      type: object
-      properties:
-        total:
-          description: Total number of files the API returns for a particular query
-          type: integer
-        is EstimatedTotal:
-          description: Boolean value that represents whether the total count of files returned is exact or an estimate. This is defaulted to  False as the API should always return the exact count
-          type: boolean
-        limit:
-          description: Number of results returned per page
-          type: integer
-        offset:
-          description: The flag indicating the position in the results array if additional results are available beyond the default value or the value in paginationLimit parameter (if used). This value is passed in the _paginationOffset parameter to retreieve subsequent results
-          type: integer
-    list-files_400Response:
-      properties:
-        id:
-          description: request id
-          type: string
-        error_message:
-          description: message describing the error
-          type: string
-    list-files_200Response:
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/dataresponseitems'
-        meta:
-          type: object
-          properties:
-            pagination:
-              $ref: '#/components/schemas/pagination'
-            partial:
-              $ref: '#/components/schemas/partial'
     dataresponseitems:
       description: Array of data objects
       type: object
@@ -274,7 +238,55 @@ components:
         fileSize:
           description: file size of the particular bundle
           type: string
+    list-files_200Response:
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/dataresponseitems'
+        meta:
+          type: object
+          properties:
+            pagination:
+              $ref: '#/components/schemas/pagination'
+            partial:
+              $ref: '#/components/schemas/partial'
+    list-files_400Response:
+      properties:
+        id:
+          description: request id
+          type: string
+        error_message:
+          description: message describing the error
+          type: string
+    pagination:
+      title: paginationobjects
+      description: List of pagination objects
+      type: object
+      properties:
+        total:
+          description: Total number of files the API returns for a particular query
+          type: integer
+        is EstimatedTotal:
+          description: Boolean value that represents whether the total count of files returned is exact or an estimate. This is defaulted to  False as the API should always return the exact count
+          type: boolean
+        limit:
+          description: Number of results returned per page
+          type: integer
+        offset:
+          description: The flag indicating the position in the results array if additional results are available beyond the default value or the value in paginationLimit parameter (if used). This value is passed in the _paginationOffset parameter to retreieve subsequent results
+          type: integer
   parameters:
+    schema:
+      name: schema
+      in: query
+      description: 'schema name</p> </p> **Example: acta_v1, fgp_v1, yn_v1**
+
+
+        QFL:- To query QFL data, please use value:   **qfl_v1** '
+      required: false
+      schema:
+        type: string
     _paginationLimit:
       name: _paginationLimit
       in: query
@@ -306,36 +318,6 @@ components:
       required: false
       schema:
         type: string
-    _paginationOffset:
-      name: _paginationOffset
-      in: query
-      description: Specifies the starting point for pagination. This parameter is used to identify the beginning of next set of results
-      required: false
-      schema:
-        type: integer
-        default: 0
-    endDate:
-      name: endDate
-      in: query
-      description: 'The latest date of the feed file the API should fetch for based on the fileTimestamp
-
-
-        If startDate and endDate parameters are not specified in the request, this endpoint returns past 10 days data by default.
-
-
-        endDate can be in absolute- YYYY-MM-DD or relative date:- 0 for today'
-      required: false
-      schema:
-        type: string
-    _sort:
-      name: _sort
-      in: query
-      description: Enables to get the data in ascending or descending order based on startTime. Results are in reverse chronological order if this parameter is not used
-      required: false
-      schema:
-        type: string
-        enum:
-        - startDate
     type:
       name: type
       in: query
@@ -353,6 +335,36 @@ components:
         enum:
         - full
         - delta
+    endDate:
+      name: endDate
+      in: query
+      description: 'The latest date of the feed file the API should fetch for based on the fileTimestamp
+
+
+        If startDate and endDate parameters are not specified in the request, this endpoint returns past 10 days data by default.
+
+
+        endDate can be in absolute- YYYY-MM-DD or relative date:- 0 for today'
+      required: false
+      schema:
+        type: string
+    _paginationOffset:
+      name: _paginationOffset
+      in: query
+      description: Specifies the starting point for pagination. This parameter is used to identify the beginning of next set of results
+      required: false
+      schema:
+        type: integer
+        default: 0
+    _sort:
+      name: _sort
+      in: query
+      description: Enables to get the data in ascending or descending order based on startTime. Results are in reverse chronological order if this parameter is not used
+      required: false
+      schema:
+        type: string
+        enum:
+        - startDate
     bundle:
       name: bundle
       in: query
@@ -364,16 +376,6 @@ components:
         - For QFL its the factor group name
 
         - If this parameter is not passed in the request, all the the factor families & factor groups subscribed to by the user are returned. - Supports comma separated list of multiple factor groups'
-      required: false
-      schema:
-        type: string
-    schema:
-      name: schema
-      in: query
-      description: 'schema name</p> </p> **Example: acta_v1, fgp_v1, yn_v1**
-
-
-        QFL:- To query QFL data, please use value:   **qfl_v1** '
       required: false
       schema:
         type: string

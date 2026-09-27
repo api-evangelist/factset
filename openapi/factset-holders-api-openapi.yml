@@ -86,72 +86,129 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
-  schemas:
-    ErrorObject:
-      type: object
-      properties:
-        id:
-          type: string
-          example: abc123
-        code:
-          type: string
-          example: example_value
-        title:
-          type: string
-          example: Example Title
-        links:
-          type: object
-          properties:
-            about:
-              type: string
-          example: example_value
-        detail:
-          type: string
-          example: example_value
-        source:
-          type: object
-          properties:
-            parameter:
-              type: string
-          example: example_value
-    ErrorResponse:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorObject'
-          example: []
-        meta:
-          $ref: '#/components/schemas/Meta'
-    Response:
-      type: object
-      properties:
-        data:
-          title: STACH
-          description: Returns a STACH 2.0 row organized package
-          example: example_value
-        meta:
-          $ref: '#/components/schemas/Meta'
-    Meta:
-      type: object
-      additionalProperties:
-        type: string
+  responses:
+    429TooManyRequests:
+      description: Too many requests - this API is rate-limited to 20 requests per second. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    400BadRequest:
+      description: Bad Request. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+        Api-Supported-Versions:
+          schema:
+            type: string
+          description: Supported API versions
+        Api-Version:
+          schema:
+            type: string
+          description: API version (semantic versioning)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            idRequiredParameterError:
+              $ref: '#/components/examples/idRequiredParameterError'
+            idInvalidParameterError:
+              $ref: '#/components/examples/idInvalidParameterError'
+            parameterErrorAssetType:
+              $ref: '#/components/examples/parameterErrorAssetType'
+            parameterErrorHolderType:
+              $ref: '#/components/examples/parameterErrorHolderType'
+            parameterErrorTopn:
+              $ref: '#/components/examples/parameterErrorTopn'
+            parameterErrorDate:
+              $ref: '#/components/examples/parameterErrorDate'
+    404NotFound:
+      description: Not found. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            endpointNotFound:
+              $ref: '#/components/examples/endpointNotFound'
+    200OKStach:
+      description: Expected response; returns JSON data containing STACH 2.0 row organized package format
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+        Api-Supported-Versions:
+          schema:
+            type: string
+          description: Supported API versions (semantic versioning)
+        Api-Version:
+          schema:
+            type: string
+          description: API version (semantic versioning)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Response'
+          examples:
+            default200ResponseExample:
+              $ref: '#/components/examples/default200Response'
+            debtHolders200ResponseExample:
+              $ref: '#/components/examples/debtHolders200Response'
+            noData200ResponseExample:
+              $ref: '#/components/examples/noData200Response'
+    500InternalServerError:
+      description: Server error. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            genericServerError:
+              $ref: '#/components/examples/genericServerError'
+    401Unauthorized:
+      description: Missing or invalid authentication. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For further assistance, file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    503ServiceUnavailable:
+      description: Service unavailable. Typically a timeout, or result of a rejected request to prevent service overload. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    403Forbidden:
+      description: User is forbidden access with current credentials. Reach out to your local FactSet Account Manager for assistance, or file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            notAuthorized:
+              $ref: '#/components/examples/notAuthorized'
   examples:
-    notAuthorized:
-      summary: not authorized
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: notAuthorized
-          title: User is forbidden access with current credentials. For access, contact your FactSet sales representative
-    idInvalidParameterError:
-      summary: generic parameter error (invalid parameter)
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: parameterError
-          title: 'Invalid parameter(s): ''id'''
     debtHolders200Response:
       summary: (dummy data- debt holders)
       value:
@@ -283,6 +340,30 @@ components:
         - id: 39314614-e607-465a-ba95-5bb79c362e23
           code: parameterError
           title: 'Invalid parameter: ''asset_type'''
+    parameterErrorHolderType:
+      summary: holder type parameter error
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Invalid parameter: ''holder_type'''
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: holderType parameter value is invalid with assetType DEBT. Only holderType INSTITUTIONS or FUNDS are valid when returning assetType DEBT.
+    notAuthorized:
+      summary: not authorized
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: notAuthorized
+          title: User is forbidden access with current credentials. For access, contact your FactSet sales representative
+    parameterErrorTopn:
+      summary: topn parameter error
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Invalid parameter: ''topn'''
     noData200Response:
       summary: (debt holders - no data case)
       value:
@@ -346,6 +427,13 @@ components:
           fsymId: DT59Y2-R
           noData: true
           message: There is no data for this request.
+    genericServerError:
+      summary: generic server error
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: genericServerError
+          title: Unexpected error processing request
     default200Response:
       summary: (dummy data - equity holders)
       value:
@@ -591,23 +679,13 @@ components:
         meta:
           requestId: FDS-US
           fsymId: SQFMK3-R
-    parameterErrorHolderType:
-      summary: holder type parameter error
+    idInvalidParameterError:
+      summary: generic parameter error (invalid parameter)
       value:
         errors:
         - id: 39314614-e607-465a-ba95-5bb79c362e23
           code: parameterError
-          title: 'Invalid parameter: ''holder_type'''
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: parameterError
-          title: holderType parameter value is invalid with assetType DEBT. Only holderType INSTITUTIONS or FUNDS are valid when returning assetType DEBT.
-    parameterErrorTopn:
-      summary: topn parameter error
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: parameterError
-          title: 'Invalid parameter: ''topn'''
+          title: 'Invalid parameter(s): ''id'''
     endpointNotFound:
       summary: endpoint not found
       value:
@@ -629,135 +707,57 @@ components:
         - id: 39314614-e607-465a-ba95-5bb79c362e23
           code: parameterError
           title: 'Invalid parameter: ''date'''
-    genericServerError:
-      summary: generic server error
-      value:
+  schemas:
+    ErrorObject:
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        code:
+          type: string
+          example: example_value
+        title:
+          type: string
+          example: Example Title
+        links:
+          type: object
+          properties:
+            about:
+              type: string
+          example: example_value
+        detail:
+          type: string
+          example: example_value
+        source:
+          type: object
+          properties:
+            parameter:
+              type: string
+          example: example_value
+    Meta:
+      type: object
+      additionalProperties:
+        type: string
+    Response:
+      type: object
+      properties:
+        data:
+          title: STACH
+          description: Returns a STACH 2.0 row organized package
+          example: example_value
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ErrorResponse:
+      type: object
+      properties:
         errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: genericServerError
-          title: Unexpected error processing request
-  responses:
-    404NotFound:
-      description: Not found. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            endpointNotFound:
-              $ref: '#/components/examples/endpointNotFound'
-    401Unauthorized:
-      description: Missing or invalid authentication. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For further assistance, file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-    503ServiceUnavailable:
-      description: Service unavailable. Typically a timeout, or result of a rejected request to prevent service overload. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-    429TooManyRequests:
-      description: Too many requests - this API is rate-limited to 20 requests per second. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-    500InternalServerError:
-      description: Server error. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            genericServerError:
-              $ref: '#/components/examples/genericServerError'
-    400BadRequest:
-      description: Bad Request. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-        Api-Supported-Versions:
-          schema:
-            type: string
-          description: Supported API versions
-        Api-Version:
-          schema:
-            type: string
-          description: API version (semantic versioning)
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            idRequiredParameterError:
-              $ref: '#/components/examples/idRequiredParameterError'
-            idInvalidParameterError:
-              $ref: '#/components/examples/idInvalidParameterError'
-            parameterErrorAssetType:
-              $ref: '#/components/examples/parameterErrorAssetType'
-            parameterErrorHolderType:
-              $ref: '#/components/examples/parameterErrorHolderType'
-            parameterErrorTopn:
-              $ref: '#/components/examples/parameterErrorTopn'
-            parameterErrorDate:
-              $ref: '#/components/examples/parameterErrorDate'
-    200OKStach:
-      description: Expected response; returns JSON data containing STACH 2.0 row organized package format
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-        Api-Supported-Versions:
-          schema:
-            type: string
-          description: Supported API versions (semantic versioning)
-        Api-Version:
-          schema:
-            type: string
-          description: API version (semantic versioning)
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Response'
-          examples:
-            default200ResponseExample:
-              $ref: '#/components/examples/default200Response'
-            debtHolders200ResponseExample:
-              $ref: '#/components/examples/debtHolders200Response'
-            noData200ResponseExample:
-              $ref: '#/components/examples/noData200Response'
-    403Forbidden:
-      description: User is forbidden access with current credentials. Reach out to your local FactSet Account Manager for assistance, or file an issue under "Connectivty - 401 or 403 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            notAuthorized:
-              $ref: '#/components/examples/notAuthorized'
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorObject'
+          example: []
+        meta:
+          $ref: '#/components/schemas/Meta'
   securitySchemes:
     basicAuth:
       type: http

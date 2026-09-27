@@ -81,24 +81,15 @@ paths:
                   $ref: '#/components/examples/serverErrorDetails'
 components:
   schemas:
-    meta:
-      title: Meta
-      description: Array of metadata objects.
+    AuthStatus:
       type: object
+      description: specifies the error message fields in the response
       properties:
-        pagination:
-          $ref: '#/components/schemas/pagination'
-    pagination:
-      title: PaginationItems
-      description: List of pagination objects
-      type: object
-      properties:
-        total:
-          description: Total number of files the API returns for a particular query.
-          type: integer
-        isEstimatedTotal:
-          description: Boolean value that represents whether the total count of files returned is exact or an estimate. This is defaulted to “False” as the API should always return the exact count.
-          type: boolean
+        errors:
+          type: array
+          description: An array containing errors
+          items:
+            $ref: '#/components/schemas/errorExample'
     LinkupFiles:
       type: object
       title: LinkUp Object
@@ -126,15 +117,13 @@ components:
           description: Download link for daily file from LinkUp on various job postings.
           type: string
           example: https://fdss3-unstructured-data-delivery-linkup-prod.s3.amazonaws.com/2022/10/raw_daily_v2_2022-10-16.xml?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=REDACTED_AWS_ACCESS_KEY_ID%2F20221017%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20221017T151252Z&X-Amz-Expires=1800&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjED8aCXVzLWVhc3QtMSJGMEQCIEYZImk3I5of13kAbNkbWW7Ib0NnLkesTPO5lWMHbh83AiBuQMuFxXGRP9vcTAyCukgNzakuGUl40YqIKLAUZQ4axyruAggYEAEaDDk2NjI4MjExNjQyNSIMvMcMv4%2F0uRNVeQFUKssCh7n9%2BG6jIll%2BYG76a6NmKEz5Re6eeoDDS9%2FyyoP%2FvyBzJ9WRkvOY%2BuGsRbavlXr8tCUW%2F4trNJiukntRN8xKd66JRioQC9kTXEeGYeEIk3g7kcHBrG1yvPx1iY96XXPn5%2BW%2Bw%2FSZJluWWM0glYRnsJ01HBmS6VW%2Fad7x3guxP6QZz%2BReASeNjpvI60lc4qkasb9sCGy6wggC2KmMfQuQfGcrTqMF71%2F0LRzD12Jw1Drgyr7HH12r3k5w16x7sTJqxmEy4ovuUIV7R0AyMhBAsbPWAnrMrZmMndQyP5ZfDuqaIkmx2VZzX0NdIzYOhSMrgUjJNLJT6VKbolXJpVe4bQN5ZDMa88mi6Xol6v8IbxVNBjKhi8cVN3bVFg2TFbXNVMdu%2FewIO6nVbYMb7qtKORM4aeELr5xlFkPdHwdw7G0KdKAGpXtP9MeDQDCv17WaBjqfAegRsmgqBZGqhRXL4Y3YXWjpzURSMl4EHsltSr6%2FdNNbwe%2Fm8DdnmKQI0%2BBkLCPpIYwT0tzW4FwW4GwcUtpcZ7V5fAoHsQ4Wu2jKX2x1plTd9G2WU5CAnPn7OCKCH9zyj8Ck38L0GMBpfP3ltc0BwrlvX0Swuw33PvgB4iPsE6yR9vrF55oKwkgRn4WczoiBf3MJmhmmTades7odetEUpQ%3D%3D&X-Amz-Signature=a9221535699761e4d574b950778cc4d2460a952e9e9a5d532fb921e67483a74c
-    AuthStatus:
+    meta:
+      title: Meta
+      description: Array of metadata objects.
       type: object
-      description: specifies the error message fields in the response
       properties:
-        errors:
-          type: array
-          description: An array containing errors
-          items:
-            $ref: '#/components/schemas/errorExample'
+        pagination:
+          $ref: '#/components/schemas/pagination'
     errorExample:
       type: object
       description: Specifies the fields in the error message
@@ -148,6 +137,17 @@ components:
         id:
           description: Specifies the id
           type: string
+    pagination:
+      title: PaginationItems
+      description: List of pagination objects
+      type: object
+      properties:
+        total:
+          description: Total number of files the API returns for a particular query.
+          type: integer
+        isEstimatedTotal:
+          description: Boolean value that represents whether the total count of files returned is exact or an estimate. This is defaulted to “False” as the API should always return the exact count.
+          type: boolean
     LinkUpResponse:
       type: object
       title: Linkup Response.
@@ -180,6 +180,17 @@ components:
         type: string
         format: date
       example: '2020-01-01'
+    type:
+      name: type
+      in: query
+      description: Used to provide the full job descriptions when value "full" is used for this parameter.
+      required: false
+      schema:
+        type: string
+        enum:
+        - full
+        - delta
+        default: delta
     endDate:
       name: endDate
       in: query
@@ -209,24 +220,13 @@ components:
         type: integer
         minimum: 0
         default: 0
-    type:
-      name: type
-      in: query
-      description: Used to provide the full job descriptions when value "full" is used for this parameter.
-      required: false
-      schema:
-        type: string
-        enum:
-        - full
-        - delta
-        default: delta
   examples:
-    ErrorDetails:
+    AuthorizationErrorDetails:
       summary: sample error response
       value:
         errors:
-        - code: Bad Request
-          title: parameterError:['_paginationLimit'] is not a valid parameter(s)
+        - code: Forbidden
+          title: USERNAME-SERIAL does not have permission
           id: 7af3d86ca5954503b9244f2620fcf5eb
     sampleLinkUpResponse:
       summary: Sample Response
@@ -255,12 +255,12 @@ components:
         - code: Not Authenticated
           title: Unauthenticated USERNAME-SERIAL
           id: fd5a51ff-02cf-48ec-b9b1-913d64863b0
-    AuthorizationErrorDetails:
+    ErrorDetails:
       summary: sample error response
       value:
         errors:
-        - code: Forbidden
-          title: USERNAME-SERIAL does not have permission
+        - code: Bad Request
+          title: parameterError:['_paginationLimit'] is not a valid parameter(s)
           id: 7af3d86ca5954503b9244f2620fcf5eb
   securitySchemes:
     FactSetOAuth2:

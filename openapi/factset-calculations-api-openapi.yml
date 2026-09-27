@@ -1968,20 +1968,65 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    QuantCalculationParameters:
+    CalculationStatus:
       type: object
       properties:
-        universe:
-          $ref: '#/components/schemas/OneOfQuantUniverse'
-        dates:
-          $ref: '#/components/schemas/OneOfQuantDates'
-        formulas:
-          $ref: '#/components/schemas/OneOfQuantFormulasArray'
-        jobDescription:
+        calculationid:
           type:
           - string
           - 'null'
+          description: Calculation's identifier
+          example: '500123'
+        status:
+          enum:
+          - Queued
+          - Executing
+          - Completed
+          - Cancelled
+          type: string
+          description: Calculation's status
+          example: Queued
+        units:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            $ref: '#/components/schemas/CalculationUnitStatus'
+          description: Number of calculation units in batch.
           example: example_value
+    CalculationUnitStatusMeta:
+      type: object
+      properties:
+        info:
+          type:
+          - string
+          - 'null'
+          description: The Info URL of the calculation.
+          example: example_value
+    OneOfQuantFormulasArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/OneOfQuantFormulas'
+    CalculationStatusMeta:
+      type: object
+      properties:
+        units:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            $ref: '#/components/schemas/CalculationUnitStatusMeta'
+          description: Meta of calculation units in batch.
+          example: example_value
+    OneOfQuantDates:
+      oneOf:
+      - $ref: '#/components/schemas/QuantFdsDate'
+      - $ref: '#/components/schemas/QuantDateList'
+      discriminator:
+        propertyName: source
+        mapping:
+          FdsDate: '#/components/schemas/QuantFdsDate'
+          DateList: '#/components/schemas/QuantDateList'
     QuantDate:
       required:
       - calendar
@@ -2031,44 +2076,294 @@ components:
           example: example_value
         source:
           $ref: '#/components/schemas/ErrorSource'
-    OneOfQuantDates:
+    CalculationsSummary:
+      type: object
+      properties:
+        status:
+          enum:
+          - Queued
+          - Executing
+          - Completed
+          - Cancelled
+          type: string
+          description: Last poll status of the calculation.
+          example: Queued
+        units:
+          type: integer
+          description: Number of calculation units in batch.
+          format: int32
+          example: 10
+        requestTime:
+          type: string
+          description: Request time of calculation.
+          format: date-time
+          example: '2026-01-15T10:30:00Z'
+        lastPollTime:
+          type: string
+          description: Last poll time of calculation.
+          format: date-time
+          example: '2026-01-15T10:30:00Z'
+    QuantScreeningExpression:
+      required:
+      - expr
+      - name
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/QuantFormula'
+      properties:
+        expr:
+          type: string
+          example: example_value
+        name:
+          type: string
+          example: Example Title
+        dateOffset:
+          type:
+          - string
+          - 'null'
+          example: example_value
+    QuantUniverse:
+      required:
+      - source
+      type: object
+      properties:
+        source:
+          enum:
+          - ScreeningExpressionUniverse
+          - UniversalScreenUniverse
+          - IdentifierUniverse
+          type: string
+          example: ScreeningExpressionUniverse
+    OneOfQuantUniverse:
       oneOf:
-      - $ref: '#/components/schemas/QuantFdsDate'
-      - $ref: '#/components/schemas/QuantDateList'
+      - $ref: '#/components/schemas/QuantUniversalScreenUniverse'
+      - $ref: '#/components/schemas/QuantScreeningExpressionUniverse'
+      - $ref: '#/components/schemas/QuantIdentifierUniverse'
       discriminator:
         propertyName: source
         mapping:
-          FdsDate: '#/components/schemas/QuantFdsDate'
-          DateList: '#/components/schemas/QuantDateList'
-    PaginationInfo:
+          UniversalScreenUniverse: '#/components/schemas/QuantUniversalScreenUniverse'
+          ScreeningExpressionUniverse: '#/components/schemas/QuantScreeningExpressionUniverse'
+          IdentifierUniverse: '#/components/schemas/QuantIdentifierUniverse'
+    QuantScreeningExpressionUniverse:
+      required:
+      - universeExpr
+      - universeType
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/QuantUniverse'
+      properties:
+        universeExpr:
+          type: string
+          example: example_value
+        universeType:
+          enum:
+          - Equity
+          - Debt
+          type: string
+          example: Equity
+        securityExpr:
+          type:
+          - string
+          - 'null'
+          example: example_value
+    QuantDateList:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/QuantDate'
+      properties:
+        dates:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          example: []
+    QuantUniversalScreenUniverse:
+      required:
+      - screen
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/QuantUniverse'
+      properties:
+        screen:
+          type: string
+          example: example_value
+    OneOfQuantFormulas:
+      oneOf:
+      - $ref: '#/components/schemas/QuantScreeningExpression'
+      - $ref: '#/components/schemas/QuantFqlExpression'
+      - $ref: '#/components/schemas/QuantUniversalScreenParameter'
+      - $ref: '#/components/schemas/QuantAllUniversalScreenParameters'
+      discriminator:
+        propertyName: source
+        mapping:
+          ScreeningExpression: '#/components/schemas/QuantScreeningExpression'
+          FqlExpression: '#/components/schemas/QuantFqlExpression'
+          UniversalScreenParameter: '#/components/schemas/QuantUniversalScreenParameter'
+          AllUniversalScreenParameters: '#/components/schemas/QuantAllUniversalScreenParameters'
+    CalculationStatusRoot:
+      required:
+      - data
       type: object
       properties:
-        pageNumber:
-          type: integer
-          format: int32
-          example: 10
-        pageSize:
-          type: integer
-          format: int32
-          example: 10
-        totalPages:
-          type: integer
-          format: int32
-          example: 10
-        totalCalculations:
-          type: integer
-          format: int32
-          example: 10
-        nextPage:
+        data:
+          $ref: '#/components/schemas/CalculationStatus'
+        meta:
+          $ref: '#/components/schemas/CalculationStatusMeta'
+    ErrorSource:
+      type: object
+      properties:
+        pointer:
           type:
           - string
           - 'null'
           example: example_value
-        previousPage:
+        parameter:
           type:
           - string
           - 'null'
           example: example_value
+    QuantUniversalScreenParameter:
+      required:
+      - name
+      - referenceName
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/QuantFormula'
+      properties:
+        referenceName:
+          type: string
+          example: example_value
+        name:
+          type: string
+          example: Example Title
+    CalculationsSummaryRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/CalculationsSummary'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    QuantCalculationMeta:
+      type: object
+      properties:
+        allowArrayData:
+          type: boolean
+          example: true
+        contentorganization:
+          enum:
+          - None
+          - Row
+          - Column
+          - SimplifiedRow
+          type: string
+          default: SimplifiedRow
+          deprecated: true
+          example: None
+        stachContentOrganization:
+          enum:
+          - None
+          - Row
+          - Column
+          - SimplifiedRow
+          type: string
+          default: SimplifiedRow
+          example: None
+        contenttype:
+          enum:
+          - Json
+          - Binary
+          type: string
+          default: Json
+          deprecated: true
+          example: Json
+        format:
+          enum:
+          - JsonStach
+          - Table
+          - Tableau
+          - BinaryStach
+          - Bison
+          - Binary
+          - Pdf
+          - Pptx
+          - Feather
+          type: string
+          default: JsonStach
+          example: JsonStach
+    QuantCalculationParametersRoot:
+      type: object
+      properties:
+        data:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            $ref: '#/components/schemas/QuantCalculationParameters'
+          description: List of calculation parameters.
+          example: example_value
+        meta:
+          $ref: '#/components/schemas/QuantCalculationMeta'
+    QuantFqlExpression:
+      required:
+      - expr
+      - name
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/QuantFormula'
+      properties:
+        expr:
+          type: string
+          example: example_value
+        name:
+          type: string
+          example: Example Title
+        dateOffset:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        isArrayReturnType:
+          type:
+          - boolean
+          - 'null'
+          example: true
+    QuantIdentifierUniverse:
+      required:
+      - identifiers
+      - universeType
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/QuantUniverse'
+      properties:
+        universeType:
+          enum:
+          - Equity
+          - Debt
+          type: string
+          example: Equity
+        identifiers:
+          type: array
+          items:
+            type: string
+          example: []
+    ObjectRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          example: example_value
+        meta:
+          example: example_value
+    PaginationMeta:
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/PaginationInfo'
     QuantFormula:
       required:
       - source
@@ -2082,6 +2377,48 @@ components:
           - AllUniversalScreenParameters
           type: string
           example: ScreeningExpression
+    QuantFdsDate:
+      required:
+      - endDate
+      - startDate
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/QuantDate'
+      properties:
+        startDate:
+          type: string
+          example: example_value
+        endDate:
+          type: string
+          example: example_value
+    ClientErrorResponse:
+      type: object
+      properties:
+        errors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Error'
+          example: []
+    QuantCalculationParameters:
+      type: object
+      properties:
+        universe:
+          $ref: '#/components/schemas/OneOfQuantUniverse'
+        dates:
+          $ref: '#/components/schemas/OneOfQuantDates'
+        formulas:
+          $ref: '#/components/schemas/OneOfQuantFormulasArray'
+        jobDescription:
+          type:
+          - string
+          - 'null'
+          example: example_value
+    QuantAllUniversalScreenParameters:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/QuantFormula'
     CalculationUnitStatus:
       type: object
       properties:
@@ -2130,372 +2467,35 @@ components:
             type: string
           description: The warnings in a calculation unit.
           example: []
-    QuantScreeningExpressionUniverse:
-      required:
-      - universeExpr
-      - universeType
-      type: object
-      allOf:
-      - $ref: '#/components/schemas/QuantUniverse'
-      properties:
-        universeExpr:
-          type: string
-          example: example_value
-        universeType:
-          enum:
-          - Equity
-          - Debt
-          type: string
-          example: Equity
-        securityExpr:
-          type:
-          - string
-          - 'null'
-          example: example_value
-    CalculationStatusRoot:
-      required:
-      - data
+    PaginationInfo:
       type: object
       properties:
-        data:
-          $ref: '#/components/schemas/CalculationStatus'
-        meta:
-          $ref: '#/components/schemas/CalculationStatusMeta'
-    ObjectRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          example: example_value
-        meta:
-          example: example_value
-    QuantFdsDate:
-      required:
-      - endDate
-      - startDate
-      type: object
-      allOf:
-      - $ref: '#/components/schemas/QuantDate'
-      properties:
-        startDate:
-          type: string
-          example: example_value
-        endDate:
-          type: string
-          example: example_value
-    QuantFqlExpression:
-      required:
-      - expr
-      - name
-      type: object
-      allOf:
-      - $ref: '#/components/schemas/QuantFormula'
-      properties:
-        expr:
-          type: string
-          example: example_value
-        name:
-          type: string
-          example: Example Title
-        dateOffset:
-          type:
-          - string
-          - 'null'
-          example: example_value
-        isArrayReturnType:
-          type:
-          - boolean
-          - 'null'
-          example: true
-    ErrorSource:
-      type: object
-      properties:
-        pointer:
-          type:
-          - string
-          - 'null'
-          example: example_value
-        parameter:
-          type:
-          - string
-          - 'null'
-          example: example_value
-    CalculationsSummary:
-      type: object
-      properties:
-        status:
-          enum:
-          - Queued
-          - Executing
-          - Completed
-          - Cancelled
-          type: string
-          description: Last poll status of the calculation.
-          example: Queued
-        units:
+        pageNumber:
           type: integer
-          description: Number of calculation units in batch.
           format: int32
           example: 10
-        requestTime:
-          type: string
-          description: Request time of calculation.
-          format: date-time
-          example: '2026-01-15T10:30:00Z'
-        lastPollTime:
-          type: string
-          description: Last poll time of calculation.
-          format: date-time
-          example: '2026-01-15T10:30:00Z'
-    CalculationsSummaryRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/CalculationsSummary'
-        meta:
-          $ref: '#/components/schemas/PaginationMeta'
-    QuantScreeningExpression:
-      required:
-      - expr
-      - name
-      type: object
-      allOf:
-      - $ref: '#/components/schemas/QuantFormula'
-      properties:
-        expr:
-          type: string
-          example: example_value
-        name:
-          type: string
-          example: Example Title
-        dateOffset:
+        pageSize:
+          type: integer
+          format: int32
+          example: 10
+        totalPages:
+          type: integer
+          format: int32
+          example: 10
+        totalCalculations:
+          type: integer
+          format: int32
+          example: 10
+        nextPage:
           type:
           - string
           - 'null'
           example: example_value
-    QuantAllUniversalScreenParameters:
-      type: object
-      allOf:
-      - $ref: '#/components/schemas/QuantFormula'
-    QuantUniversalScreenParameter:
-      required:
-      - name
-      - referenceName
-      type: object
-      allOf:
-      - $ref: '#/components/schemas/QuantFormula'
-      properties:
-        referenceName:
-          type: string
-          example: example_value
-        name:
-          type: string
-          example: Example Title
-    OneOfQuantFormulasArray:
-      type: array
-      items:
-        $ref: '#/components/schemas/OneOfQuantFormulas'
-    QuantUniversalScreenUniverse:
-      required:
-      - screen
-      type: object
-      allOf:
-      - $ref: '#/components/schemas/QuantUniverse'
-      properties:
-        screen:
-          type: string
-          example: example_value
-    QuantDateList:
-      type: object
-      allOf:
-      - $ref: '#/components/schemas/QuantDate'
-      properties:
-        dates:
-          type:
-          - array
-          - 'null'
-          items:
-            type: string
-          example: []
-    OneOfQuantFormulas:
-      oneOf:
-      - $ref: '#/components/schemas/QuantScreeningExpression'
-      - $ref: '#/components/schemas/QuantFqlExpression'
-      - $ref: '#/components/schemas/QuantUniversalScreenParameter'
-      - $ref: '#/components/schemas/QuantAllUniversalScreenParameters'
-      discriminator:
-        propertyName: source
-        mapping:
-          ScreeningExpression: '#/components/schemas/QuantScreeningExpression'
-          FqlExpression: '#/components/schemas/QuantFqlExpression'
-          UniversalScreenParameter: '#/components/schemas/QuantUniversalScreenParameter'
-          AllUniversalScreenParameters: '#/components/schemas/QuantAllUniversalScreenParameters'
-    PaginationMeta:
-      type: object
-      properties:
-        pagination:
-          $ref: '#/components/schemas/PaginationInfo'
-    OneOfQuantUniverse:
-      oneOf:
-      - $ref: '#/components/schemas/QuantUniversalScreenUniverse'
-      - $ref: '#/components/schemas/QuantScreeningExpressionUniverse'
-      - $ref: '#/components/schemas/QuantIdentifierUniverse'
-      discriminator:
-        propertyName: source
-        mapping:
-          UniversalScreenUniverse: '#/components/schemas/QuantUniversalScreenUniverse'
-          ScreeningExpressionUniverse: '#/components/schemas/QuantScreeningExpressionUniverse'
-          IdentifierUniverse: '#/components/schemas/QuantIdentifierUniverse'
-    CalculationUnitStatusMeta:
-      type: object
-      properties:
-        info:
+        previousPage:
           type:
           - string
           - 'null'
-          description: The Info URL of the calculation.
           example: example_value
-    QuantCalculationMeta:
-      type: object
-      properties:
-        allowArrayData:
-          type: boolean
-          example: true
-        contentorganization:
-          enum:
-          - None
-          - Row
-          - Column
-          - SimplifiedRow
-          type: string
-          default: SimplifiedRow
-          deprecated: true
-          example: None
-        stachContentOrganization:
-          enum:
-          - None
-          - Row
-          - Column
-          - SimplifiedRow
-          type: string
-          default: SimplifiedRow
-          example: None
-        contenttype:
-          enum:
-          - Json
-          - Binary
-          type: string
-          default: Json
-          deprecated: true
-          example: Json
-        format:
-          enum:
-          - JsonStach
-          - Table
-          - Tableau
-          - BinaryStach
-          - Bison
-          - Binary
-          - Pdf
-          - Pptx
-          - Feather
-          type: string
-          default: JsonStach
-          example: JsonStach
-    CalculationStatus:
-      type: object
-      properties:
-        calculationid:
-          type:
-          - string
-          - 'null'
-          description: Calculation's identifier
-          example: '500123'
-        status:
-          enum:
-          - Queued
-          - Executing
-          - Completed
-          - Cancelled
-          type: string
-          description: Calculation's status
-          example: Queued
-        units:
-          type:
-          - object
-          - 'null'
-          additionalProperties:
-            $ref: '#/components/schemas/CalculationUnitStatus'
-          description: Number of calculation units in batch.
-          example: example_value
-    QuantCalculationParametersRoot:
-      type: object
-      properties:
-        data:
-          type:
-          - object
-          - 'null'
-          additionalProperties:
-            $ref: '#/components/schemas/QuantCalculationParameters'
-          description: List of calculation parameters.
-          example: example_value
-        meta:
-          $ref: '#/components/schemas/QuantCalculationMeta'
-    ClientErrorResponse:
-      type: object
-      properties:
-        errors:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Error'
-          example: []
-    QuantUniverse:
-      required:
-      - source
-      type: object
-      properties:
-        source:
-          enum:
-          - ScreeningExpressionUniverse
-          - UniversalScreenUniverse
-          - IdentifierUniverse
-          type: string
-          example: ScreeningExpressionUniverse
-    CalculationStatusMeta:
-      type: object
-      properties:
-        units:
-          type:
-          - object
-          - 'null'
-          additionalProperties:
-            $ref: '#/components/schemas/CalculationUnitStatusMeta'
-          description: Meta of calculation units in batch.
-          example: example_value
-    QuantIdentifierUniverse:
-      required:
-      - identifiers
-      - universeType
-      type: object
-      allOf:
-      - $ref: '#/components/schemas/QuantUniverse'
-      properties:
-        universeType:
-          enum:
-          - Equity
-          - Debt
-          type: string
-          example: Equity
-        identifiers:
-          type: array
-          items:
-            type: string
-          example: []
   securitySchemes:
     FactSetApiKey:
       type: http
