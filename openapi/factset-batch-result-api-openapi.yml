@@ -59,31 +59,16 @@ paths:
       deprecated: false
 components:
   schemas:
-    batchResult:
-      title: Batch Data
-      oneOf:
-      - $ref: '#/components/schemas/fundamental'
-      - $ref: '#/components/schemas/segment'
-    batchResultResponse:
-      title: Batch Data Response
+    errorResponse:
       type: object
-      required:
-      - data
+      title: Error Response
+      description: Error Default Response
       properties:
-        data:
+        errors:
           type: array
+          description: An array containing errors
           items:
-            $ref: '#/components/schemas/batchResult'
-    segmentValue:
-      description: 'Value of the data metric requested. Note that the type of value is ''object'', and depending on the data metric requested, the value could be an object representation of a string or double. '
-      oneOf:
-      - type:
-        - string
-        - 'null'
-      - type:
-        - number
-        - 'null'
-        format: double
+            $ref: '#/components/schemas/errorObject'
     fundamental:
       title: Fundamental Object
       type: object
@@ -182,56 +167,6 @@ components:
           example: USD
         value:
           $ref: '#/components/schemas/fundamentalValue'
-    batchErrorObject:
-      type:
-      - object
-      - 'null'
-      properties:
-        id:
-          description: A UUID for this particular occurrence of the problem.
-          type: string
-          example: adb01824-252f-4420-b0c6-35a1e3507ef5
-        code:
-          description: status
-          type: string
-          example: GenericError
-        title:
-          description: The plain text error message
-          type: string
-          example: Validation Error
-    fundamentalValue:
-      description: 'Value of the data metric requested. Note that the type of value is ''object'', and depending on the data metric requested, the value could be an object representation of a string or double. '
-      oneOf:
-      - type:
-        - string
-        - 'null'
-      - type:
-        - number
-        - 'null'
-        format: double
-    errorObject:
-      type: object
-      properties:
-        id:
-          description: A UUID for this particular occurrence of the problem.
-          type: string
-          example: adb01824-252f-4420-b0c6-35a1e3507ef5
-        code:
-          description: status
-          type: string
-          example: Bad Request
-        links:
-          description: The Endpoint path {package}/version/{endpoint}
-          type: object
-          properties:
-            about:
-              description: details.
-              type: string
-              example: /factset-fundamentals/v1/{endpoint}
-        title:
-          description: The plain text error message
-          type: string
-          example: Validation Error
     segment:
       title: Segment Object
       type: object
@@ -269,16 +204,67 @@ components:
           example: '2022-09-30'
         value:
           $ref: '#/components/schemas/segmentValue'
-    errorResponse:
-      type: object
-      title: Error Response
-      description: Error Default Response
+    batchErrorObject:
+      type:
+      - object
+      - 'null'
       properties:
-        errors:
-          type: array
-          description: An array containing errors
-          items:
-            $ref: '#/components/schemas/errorObject'
+        id:
+          description: A UUID for this particular occurrence of the problem.
+          type: string
+          example: adb01824-252f-4420-b0c6-35a1e3507ef5
+        code:
+          description: status
+          type: string
+          example: GenericError
+        title:
+          description: The plain text error message
+          type: string
+          example: Validation Error
+    errorObject:
+      type: object
+      properties:
+        id:
+          description: A UUID for this particular occurrence of the problem.
+          type: string
+          example: adb01824-252f-4420-b0c6-35a1e3507ef5
+        code:
+          description: status
+          type: string
+          example: Bad Request
+        links:
+          description: The Endpoint path {package}/version/{endpoint}
+          type: object
+          properties:
+            about:
+              description: details.
+              type: string
+              example: /factset-fundamentals/v1/{endpoint}
+        title:
+          description: The plain text error message
+          type: string
+          example: Validation Error
+    segmentValue:
+      description: 'Value of the data metric requested. Note that the type of value is ''object'', and depending on the data metric requested, the value could be an object representation of a string or double. '
+      oneOf:
+      - type:
+        - string
+        - 'null'
+      - type:
+        - number
+        - 'null'
+        format: double
+    batchResult:
+      title: Batch Data
+      oneOf:
+      - $ref: '#/components/schemas/fundamental'
+      - $ref: '#/components/schemas/segment'
+    BatchStatusResponse:
+      title: Batch Status Response
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/BatchStatus'
     BatchStatus:
       title: Batch Status
       type: object
@@ -306,50 +292,27 @@ components:
           - failed
         error:
           $ref: '#/components/schemas/batchErrorObject'
-    BatchStatusResponse:
-      title: Batch Status Response
+    batchResultResponse:
+      title: Batch Data Response
       type: object
+      required:
+      - data
       properties:
         data:
-          $ref: '#/components/schemas/BatchStatus'
+          type: array
+          items:
+            $ref: '#/components/schemas/batchResult'
+    fundamentalValue:
+      description: 'Value of the data metric requested. Note that the type of value is ''object'', and depending on the data metric requested, the value could be an object representation of a string or double. '
+      oneOf:
+      - type:
+        - string
+        - 'null'
+      - type:
+        - number
+        - 'null'
+        format: double
   examples:
-    BatchStatusQueuedResponse:
-      description: Batch Status Queued Response
-      value:
-        data:
-          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-          status: queued
-          startTime: '2021-06-29T18:34:52.168Z'
-          endTime: null
-          error: null
-    notFound:
-      summary: Not Found
-      description: The requested item was not found.
-      value:
-        status: Not Found
-        timestamp: '2020-06-12T16:08:51.731Z'
-        path: /factset-fundamentals/v2/{endpoint}
-        message: The Batch Request was not found. It has probably expired.
-        subErrors: null
-    resultOfSingleIdwithSingleMetricItemSegment:
-      summary: Result of Single Company single metric item [SALES] details.
-      description: 'Results of the AAPL-US sales data for the period 2012-01-01 to 2014-01-01 on an annual basis with the preliminary data Values.
-
-        '
-      value:
-        data:
-        - requestId: AAPL-US
-          fsymId: MH33D6-R
-          metric: SALES
-          date: 2012-09-28 00:00:00+00:00
-          label: iPhone
-          value: 141319
-        - requestId: AAPL-US
-          fsymId: MH33D6-R
-          metric: SALES
-          date: 2012-09-28 00:00:00+00:00
-          label: iPad
-          value: 19222
     resultOfSingleIdwithMultipleMetricItem:
       summary: Result of Single Company and Multiple Metrics [FF_SALES, FF_PE]
       description: 'Results of the FDS-US Quarterly Sales and Price to Earnings data as of 2020-05-31
@@ -383,6 +346,34 @@ components:
           updateType: Final
           currency: USD
           value: 31.6769162623484
+    BatchStatusQueuedResponse:
+      description: Batch Status Queued Response
+      value:
+        data:
+          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+          status: queued
+          startTime: '2021-06-29T18:34:52.168Z'
+          endTime: null
+          error: null
+    resultOfSingleIdwithSingleMetricItemSegment:
+      summary: Result of Single Company single metric item [SALES] details.
+      description: 'Results of the AAPL-US sales data for the period 2012-01-01 to 2014-01-01 on an annual basis with the preliminary data Values.
+
+        '
+      value:
+        data:
+        - requestId: AAPL-US
+          fsymId: MH33D6-R
+          metric: SALES
+          date: 2012-09-28 00:00:00+00:00
+          label: iPhone
+          value: 141319
+        - requestId: AAPL-US
+          fsymId: MH33D6-R
+          metric: SALES
+          date: 2012-09-28 00:00:00+00:00
+          label: iPad
+          value: 19222
     BatchStatusExecutingResponse:
       description: Batch Status Executing Response
       value:
@@ -392,6 +383,15 @@ components:
           startTime: '2021-06-29T18:34:52.168Z'
           endTime: null
           error: null
+    notFound:
+      summary: Not Found
+      description: The requested item was not found.
+      value:
+        status: Not Found
+        timestamp: '2020-06-12T16:08:51.731Z'
+        path: /factset-fundamentals/v2/{endpoint}
+        message: The Batch Request was not found. It has probably expired.
+        subErrors: null
   parameters:
     batchId:
       name: id

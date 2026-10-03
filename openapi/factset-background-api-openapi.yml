@@ -259,7 +259,186 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
+  schemas:
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
+    LanguageMember:
+      type: string
+      format: isoLanguage
+      description: ISO 639-1 code of the language.
+      maxLength: 2
+      minLength: 2
+    PostInstrumentBackgroundTextTypeListRequest:
+      x-property-sort:
+      - data
+      - meta
+      description: Request Body
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - filter
+          description: The data member contains the request's primary data.
+          properties:
+            filter:
+              type: object
+              x-property-sort:
+              - ids
+              description: Criteria that filter the items in the response list; only items that match all of the criteria are returned.
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: number
+                    format: id32
+                    x-positive: true
+                  maxItems: 100
+                  uniqueItems: true
+                  description: Identifiers of background text types.
+          example: example_value
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+            language:
+              $ref: '#/components/schemas/LanguageMember'
+          x-property-sort:
+          - attributes
+          - language
+          example: example_value
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+      maxItems: 50
+      uniqueItems: true
+    PostBasicBackgroundTextTypeListRequest:
+      x-property-sort:
+      - data
+      - meta
+      description: Request Body
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - filter
+          description: The data member contains the request's primary data.
+          properties:
+            filter:
+              type: object
+              x-property-sort:
+              - ids
+              description: Criteria that filter the items in the response list; only items that match all of the criteria are returned.
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: number
+                    format: id32
+                    x-positive: true
+                  minItems: 1
+                  maxItems: 100
+                  uniqueItems: true
+                  description: List of background text type identifiers. Invalid identifiers result in an error.
+          example: example_value
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+          - attributes
+          example: example_value
   responses:
+    GetInstrumentBackgroundTextList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  idInstrument:
+                    type:
+                    - string
+                    - 'null'
+                    format: id64
+                    x-positive: true
+                    description: MDG identifier of the instrument.
+                  sourceIdentifier:
+                    type:
+                    - string
+                    - 'null'
+                    description: Identifier used in the request.
+                  texts:
+                    description: Background texts of the instrument.
+                    type: array
+                    items:
+                      type: object
+                      x-property-sort:
+                      - type
+                      - body
+                      properties:
+                        type:
+                          type: object
+                          x-property-sort:
+                          - id
+                          - name
+                          description: Type of background text.
+                          properties:
+                            id:
+                              type:
+                              - number
+                              - 'null'
+                              format: id32
+                              x-positive: true
+                              description: Identifier of the type.
+                            name:
+                              type:
+                              - string
+                              - 'null'
+                              format: localizedString
+                              description: Name of the type.
+                        body:
+                          type:
+                          - string
+                          - 'null'
+                          format: localizedString
+                          description: Body of the background text.
+                description: Background texts of the instrument, sorted by increasing type identifier value.
+                x-property-sort:
+                - idInstrument
+                - sourceIdentifier
+                - texts
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
     GetInstrumentLegalEntityBackgroundTextList200Response:
       description: Successful Response
       content:
@@ -375,7 +554,7 @@ components:
             x-property-sort:
             - data
             - meta
-    GetInstrumentBackgroundTextList200Response:
+    PostInstrumentBackgroundTextTypeList200Response:
       description: Successful Response
       content:
         application/json:
@@ -383,60 +562,34 @@ components:
             type: object
             properties:
               data:
-                type: object
-                properties:
-                  idInstrument:
-                    type:
-                    - string
-                    - 'null'
-                    format: id64
-                    x-positive: true
-                    description: MDG identifier of the instrument.
-                  sourceIdentifier:
-                    type:
-                    - string
-                    - 'null'
-                    description: Identifier used in the request.
-                  texts:
-                    description: Background texts of the instrument.
-                    type: array
-                    items:
-                      type: object
-                      x-property-sort:
-                      - type
-                      - body
-                      properties:
-                        type:
-                          type: object
-                          x-property-sort:
-                          - id
-                          - name
-                          description: Type of background text.
-                          properties:
-                            id:
-                              type:
-                              - number
-                              - 'null'
-                              format: id32
-                              x-positive: true
-                              description: Identifier of the type.
-                            name:
-                              type:
-                              - string
-                              - 'null'
-                              format: localizedString
-                              description: Name of the type.
-                        body:
-                          type:
-                          - string
-                          - 'null'
-                          format: localizedString
-                          description: Body of the background text.
-                description: Background texts of the instrument, sorted by increasing type identifier value.
-                x-property-sort:
-                - idInstrument
-                - sourceIdentifier
-                - texts
+                type: array
+                description: List of background text types, sorted by increasing identifier value.
+                items:
+                  type: object
+                  x-property-sort:
+                  - id
+                  - name
+                  - description
+                  properties:
+                    id:
+                      type:
+                      - number
+                      - 'null'
+                      format: id32
+                      x-positive: true
+                      description: Identifier of a type.
+                    name:
+                      type:
+                      - string
+                      - 'null'
+                      format: localizedString
+                      description: Name of the type.
+                    description:
+                      type:
+                      - string
+                      - 'null'
+                      format: localizedString
+                      description: Description of the type.
               meta:
                 type: object
                 description: The meta member contains the meta information of the response.
@@ -493,159 +646,6 @@ components:
             x-property-sort:
             - data
             - meta
-    PostInstrumentBackgroundTextTypeList200Response:
-      description: Successful Response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: array
-                description: List of background text types, sorted by increasing identifier value.
-                items:
-                  type: object
-                  x-property-sort:
-                  - id
-                  - name
-                  - description
-                  properties:
-                    id:
-                      type:
-                      - number
-                      - 'null'
-                      format: id32
-                      x-positive: true
-                      description: Identifier of a type.
-                    name:
-                      type:
-                      - string
-                      - 'null'
-                      format: localizedString
-                      description: Name of the type.
-                    description:
-                      type:
-                      - string
-                      - 'null'
-                      format: localizedString
-                      description: Description of the type.
-              meta:
-                type: object
-                description: The meta member contains the meta information of the response.
-                properties:
-                  status:
-                    $ref: '#/components/schemas/StatusObject'
-                x-property-sort:
-                - status
-            x-property-sort:
-            - data
-            - meta
-  schemas:
-    AttributesMember:
-      type: array
-      description: Limit the attributes returned in the response to the specified set.
-      items:
-        type: string
-        maxLength: 100
-      maxItems: 50
-      uniqueItems: true
-    PostInstrumentBackgroundTextTypeListRequest:
-      x-property-sort:
-      - data
-      - meta
-      description: Request Body
-      type: object
-      properties:
-        data:
-          type: object
-          x-property-sort:
-          - filter
-          description: The data member contains the request's primary data.
-          properties:
-            filter:
-              type: object
-              x-property-sort:
-              - ids
-              description: Criteria that filter the items in the response list; only items that match all of the criteria are returned.
-              properties:
-                ids:
-                  type: array
-                  items:
-                    type: number
-                    format: id32
-                    x-positive: true
-                  maxItems: 100
-                  uniqueItems: true
-                  description: Identifiers of background text types.
-          example: example_value
-        meta:
-          type: object
-          description: The meta member contains the meta information of the request.
-          properties:
-            attributes:
-              $ref: '#/components/schemas/AttributesMember'
-            language:
-              $ref: '#/components/schemas/LanguageMember'
-          x-property-sort:
-          - attributes
-          - language
-          example: example_value
-    PostBasicBackgroundTextTypeListRequest:
-      x-property-sort:
-      - data
-      - meta
-      description: Request Body
-      type: object
-      properties:
-        data:
-          type: object
-          x-property-sort:
-          - filter
-          description: The data member contains the request's primary data.
-          properties:
-            filter:
-              type: object
-              x-property-sort:
-              - ids
-              description: Criteria that filter the items in the response list; only items that match all of the criteria are returned.
-              properties:
-                ids:
-                  type: array
-                  items:
-                    type: number
-                    format: id32
-                    x-positive: true
-                  minItems: 1
-                  maxItems: 100
-                  uniqueItems: true
-                  description: List of background text type identifiers. Invalid identifiers result in an error.
-          example: example_value
-        meta:
-          type: object
-          description: The meta member contains the meta information of the request.
-          properties:
-            attributes:
-              $ref: '#/components/schemas/AttributesMember'
-          x-property-sort:
-          - attributes
-          example: example_value
-    StatusObject:
-      type: object
-      properties:
-        code:
-          type: number
-          format: int32
-          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
-          example: 42.5
-      description: The status member contains the status code of the response.
-      required:
-      - code
-    LanguageMember:
-      type: string
-      format: isoLanguage
-      description: ISO 639-1 code of the language.
-      maxLength: 2
-      minLength: 2
   securitySchemes:
     FactSetOAuth2:
       type: oauth2

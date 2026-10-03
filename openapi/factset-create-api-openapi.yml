@@ -176,31 +176,23 @@ paths:
                 $ref: '#/components/schemas/Error'
 components:
   examples:
-    RateLimitExceededErrorExample:
-      value:
-        message: API rate limit exceeded
-    401UnauthorizedErrorExample:
-      value: Authentication Failed
     CreateChatRequestExample:
       value:
         data:
           query: What is Tesla's enterprise value?
+    RateLimitExceededErrorExample:
+      value:
+        message: API rate limit exceeded
     403ForbiddenErrorExample:
       value: 'Client does not have the required CACCESS: {00QAI}, Request key: 65CA96B3129489A6'
+    401UnauthorizedErrorExample:
+      value: Authentication Failed
     CreateChatResponseExample:
       value:
         data:
           conversationId: 9c1031c2-5463-47ae-81b3-126a68f0c2a6
           status: executing
   schemas:
-    RateLimitExceededError:
-      description: Error response when rate limit has been exceeded.
-      type: object
-      properties:
-        message:
-          type: string
-          enum:
-          - API rate limit exceeded
     Error:
       description: Wrapper containing metadata and appropriate errors as thrown by the API
       type: object
@@ -209,6 +201,20 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ErrorObject'
+    CreateChatResponse:
+      description: Response from `/create` containing the chat ID and executing status
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            conversationId:
+              type: string
+              format: uuid
+            status:
+              type: string
+              enum:
+              - executing
     CreateChatRequest:
       description: Request body containing the query to be sent to the LLM
       properties:
@@ -224,23 +230,14 @@ components:
       required:
       - data
       type: object
-    403ForbiddenError:
-      description: Error response for a user without entitlements to the API.
-      type: string
-    CreateChatResponse:
-      description: Response from `/create` containing the chat ID and executing status
+    RateLimitExceededError:
+      description: Error response when rate limit has been exceeded.
       type: object
       properties:
-        data:
-          type: object
-          properties:
-            conversationId:
-              type: string
-              format: uuid
-            status:
-              type: string
-              enum:
-              - executing
+        message:
+          type: string
+          enum:
+          - API rate limit exceeded
     ErrorObject:
       description: Represents a single error, with error name and identifiers
       type: object
@@ -251,6 +248,9 @@ components:
           type: string
         code:
           type: string
+    403ForbiddenError:
+      description: Error response for a user without entitlements to the API.
+      type: string
     401UnauthorizedError:
       description: Error response for a user without authentication to use the API.
       type: string

@@ -243,7 +243,244 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
+  schemas:
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
   responses:
+    GetInstrumentCouponInterestRateTypeList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  type: object
+                  x-property-sort:
+                  - id
+                  - name
+                  - description
+                  properties:
+                    id:
+                      type:
+                      - number
+                      - 'null'
+                      format: id32
+                      x-positive: true
+                      description: Identifier of the type.
+                    name:
+                      type:
+                      - string
+                      - 'null'
+                      format: localizedString
+                      description: Name of the type.
+                    description:
+                      type:
+                      - string
+                      - 'null'
+                      format: localizedString
+                      description: Description of the type.
+                description: List of interest rate types.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
+    GetInstrumentCouponList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  idInstrument:
+                    type:
+                    - string
+                    - 'null'
+                    format: id64
+                    x-positive: true
+                    description: MDG identifier of the instrument.
+                  sourceIdentifier:
+                    type:
+                    - string
+                    - 'null'
+                    description: Identifier used in the request.
+                  currency:
+                    type: object
+                    x-property-sort:
+                    - id
+                    - code
+                    - isoCode
+                    description: 'Main currency of the coupon payments. See endpoint `/basic/valueUnit/currency/main/list` for possible values. '
+                    properties:
+                      id:
+                        type:
+                        - number
+                        - 'null'
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the main currency.
+                      code:
+                        type:
+                        - string
+                        - 'null'
+                        description: 'Code of the currency: If assigned, a code according to ISO 4217, otherwise a local code.'
+                      isoCode:
+                        type:
+                        - string
+                        - 'null'
+                        description: ISO 4217 code of the value unit. Empty if the ISO 4217 standard does not define a code for the currency.
+                  coupons:
+                    type: array
+                    items:
+                      type: object
+                      x-property-sort:
+                      - period
+                      - paymentDate
+                      - interestRate
+                      properties:
+                        period:
+                          type:
+                          - object
+                          - 'null'
+                          format: dateRange
+                          properties:
+                            start:
+                              type:
+                              - string
+                              - 'null'
+                              format: date
+                              description: Starting date.
+                            end:
+                              type:
+                              - string
+                              - 'null'
+                              format: date
+                              description: Ending date (inclusive).
+                          x-property-sort:
+                          - start
+                          - end
+                          required:
+                          - start
+                          - end
+                          description: Coupon period.
+                        paymentDate:
+                          type:
+                          - string
+                          - 'null'
+                          format: date
+                          description: Payment date of the coupon, usually 2 days after the ending date of the coupon period. For the latter, see attribute `coupons.period.end`.
+                        interestRate:
+                          type: object
+                          x-property-sort:
+                          - type
+                          - annualized
+                          - periodic
+                          description: Interest rate for the coupon period.
+                          properties:
+                            type:
+                              type: object
+                              x-property-sort:
+                              - id
+                              - name
+                              description: Type of the interest rate. See endpoint `/instrument/coupon/interestRate/type/list` for possible values.
+                              properties:
+                                id:
+                                  type:
+                                  - number
+                                  - 'null'
+                                  format: id32
+                                  x-positive: true
+                                  description: Identifier of the type.
+                                name:
+                                  type:
+                                  - string
+                                  - 'null'
+                                  format: localizedString
+                                  description: Name of the type.
+                            annualized:
+                              type: object
+                              x-property-sort:
+                              - fixed
+                              - minimum
+                              - maximum
+                              description: Interest rate on an annual basis. Minimum/maximum interest rates and a fixed interest rate are, in general, mutually exclusive. However, for an instrument with a variable interest rate (i.e. the attribute `coupons.interestRate.type` has the value 4 or 6), a fixed interest rate might be provided if already determined for the respective period (current or past).
+                              properties:
+                                fixed:
+                                  type:
+                                  - number
+                                  - 'null'
+                                  format: relativeValue
+                                  description: Fixed interest rate.
+                                minimum:
+                                  type:
+                                  - number
+                                  - 'null'
+                                  format: relativeValue
+                                  description: Minimum interest rate.
+                                maximum:
+                                  type:
+                                  - number
+                                  - 'null'
+                                  format: relativeValue
+                                  description: Maximum interest rate.
+                            periodic:
+                              type: object
+                              x-property-sort:
+                              - fixed
+                              - amount
+                              description: Interest rate based on the coupon period, i.e. not annualized. Period-based data is not available for instruments with a variable interest rate (i.e. the attribute `coupons.interestRate.type` has the value 4 or 6).
+                              properties:
+                                fixed:
+                                  type:
+                                  - number
+                                  - 'null'
+                                  format: relativeValue
+                                  description: Fixed interest rate. For coupon periods different from one year, the value differs from the fixed annualized interest rate (see attribute `coupons.interestRate.annualized.fixed`).
+                                amount:
+                                  type:
+                                  - number
+                                  - 'null'
+                                  format: real
+                                  description: Coupon amount corresponding to the fixed interest rate (see attribute `coupons.interestRate.periodic.fixed`). The attribute is available only for instruments with a declared nominal value, e.g. securitized derivatives.
+                    description: List of coupons in chronological order.
+                description: List of coupons and currency details.
+                x-property-sort:
+                - idInstrument
+                - sourceIdentifier
+                - currency
+                - coupons
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
     GetInstrumentCouponKeyDataGet200Response:
       description: Successful Response
       content:
@@ -450,243 +687,6 @@ components:
             x-property-sort:
             - data
             - meta
-    GetInstrumentCouponList200Response:
-      description: Successful Response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: object
-                properties:
-                  idInstrument:
-                    type:
-                    - string
-                    - 'null'
-                    format: id64
-                    x-positive: true
-                    description: MDG identifier of the instrument.
-                  sourceIdentifier:
-                    type:
-                    - string
-                    - 'null'
-                    description: Identifier used in the request.
-                  currency:
-                    type: object
-                    x-property-sort:
-                    - id
-                    - code
-                    - isoCode
-                    description: 'Main currency of the coupon payments. See endpoint `/basic/valueUnit/currency/main/list` for possible values. '
-                    properties:
-                      id:
-                        type:
-                        - number
-                        - 'null'
-                        format: id32
-                        x-positive: true
-                        description: Identifier of the main currency.
-                      code:
-                        type:
-                        - string
-                        - 'null'
-                        description: 'Code of the currency: If assigned, a code according to ISO 4217, otherwise a local code.'
-                      isoCode:
-                        type:
-                        - string
-                        - 'null'
-                        description: ISO 4217 code of the value unit. Empty if the ISO 4217 standard does not define a code for the currency.
-                  coupons:
-                    type: array
-                    items:
-                      type: object
-                      x-property-sort:
-                      - period
-                      - paymentDate
-                      - interestRate
-                      properties:
-                        period:
-                          type:
-                          - object
-                          - 'null'
-                          format: dateRange
-                          properties:
-                            start:
-                              type:
-                              - string
-                              - 'null'
-                              format: date
-                              description: Starting date.
-                            end:
-                              type:
-                              - string
-                              - 'null'
-                              format: date
-                              description: Ending date (inclusive).
-                          x-property-sort:
-                          - start
-                          - end
-                          required:
-                          - start
-                          - end
-                          description: Coupon period.
-                        paymentDate:
-                          type:
-                          - string
-                          - 'null'
-                          format: date
-                          description: Payment date of the coupon, usually 2 days after the ending date of the coupon period. For the latter, see attribute `coupons.period.end`.
-                        interestRate:
-                          type: object
-                          x-property-sort:
-                          - type
-                          - annualized
-                          - periodic
-                          description: Interest rate for the coupon period.
-                          properties:
-                            type:
-                              type: object
-                              x-property-sort:
-                              - id
-                              - name
-                              description: Type of the interest rate. See endpoint `/instrument/coupon/interestRate/type/list` for possible values.
-                              properties:
-                                id:
-                                  type:
-                                  - number
-                                  - 'null'
-                                  format: id32
-                                  x-positive: true
-                                  description: Identifier of the type.
-                                name:
-                                  type:
-                                  - string
-                                  - 'null'
-                                  format: localizedString
-                                  description: Name of the type.
-                            annualized:
-                              type: object
-                              x-property-sort:
-                              - fixed
-                              - minimum
-                              - maximum
-                              description: Interest rate on an annual basis. Minimum/maximum interest rates and a fixed interest rate are, in general, mutually exclusive. However, for an instrument with a variable interest rate (i.e. the attribute `coupons.interestRate.type` has the value 4 or 6), a fixed interest rate might be provided if already determined for the respective period (current or past).
-                              properties:
-                                fixed:
-                                  type:
-                                  - number
-                                  - 'null'
-                                  format: relativeValue
-                                  description: Fixed interest rate.
-                                minimum:
-                                  type:
-                                  - number
-                                  - 'null'
-                                  format: relativeValue
-                                  description: Minimum interest rate.
-                                maximum:
-                                  type:
-                                  - number
-                                  - 'null'
-                                  format: relativeValue
-                                  description: Maximum interest rate.
-                            periodic:
-                              type: object
-                              x-property-sort:
-                              - fixed
-                              - amount
-                              description: Interest rate based on the coupon period, i.e. not annualized. Period-based data is not available for instruments with a variable interest rate (i.e. the attribute `coupons.interestRate.type` has the value 4 or 6).
-                              properties:
-                                fixed:
-                                  type:
-                                  - number
-                                  - 'null'
-                                  format: relativeValue
-                                  description: Fixed interest rate. For coupon periods different from one year, the value differs from the fixed annualized interest rate (see attribute `coupons.interestRate.annualized.fixed`).
-                                amount:
-                                  type:
-                                  - number
-                                  - 'null'
-                                  format: real
-                                  description: Coupon amount corresponding to the fixed interest rate (see attribute `coupons.interestRate.periodic.fixed`). The attribute is available only for instruments with a declared nominal value, e.g. securitized derivatives.
-                    description: List of coupons in chronological order.
-                description: List of coupons and currency details.
-                x-property-sort:
-                - idInstrument
-                - sourceIdentifier
-                - currency
-                - coupons
-              meta:
-                type: object
-                description: The meta member contains the meta information of the response.
-                properties:
-                  status:
-                    $ref: '#/components/schemas/StatusObject'
-                x-property-sort:
-                - status
-            x-property-sort:
-            - data
-            - meta
-    GetInstrumentCouponInterestRateTypeList200Response:
-      description: Successful Response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: array
-                items:
-                  type: object
-                  x-property-sort:
-                  - id
-                  - name
-                  - description
-                  properties:
-                    id:
-                      type:
-                      - number
-                      - 'null'
-                      format: id32
-                      x-positive: true
-                      description: Identifier of the type.
-                    name:
-                      type:
-                      - string
-                      - 'null'
-                      format: localizedString
-                      description: Name of the type.
-                    description:
-                      type:
-                      - string
-                      - 'null'
-                      format: localizedString
-                      description: Description of the type.
-                description: List of interest rate types.
-              meta:
-                type: object
-                description: The meta member contains the meta information of the response.
-                properties:
-                  status:
-                    $ref: '#/components/schemas/StatusObject'
-                x-property-sort:
-                - status
-            x-property-sort:
-            - data
-            - meta
-  schemas:
-    StatusObject:
-      type: object
-      properties:
-        code:
-          type: number
-          format: int32
-          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
-          example: 42.5
-      description: The status member contains the status code of the response.
-      required:
-      - code
   securitySchemes:
     FactSetOAuth2:
       type: oauth2

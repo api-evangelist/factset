@@ -28067,26 +28067,25 @@ paths:
     - url: https://api.factset.com
 components:
   schemas:
-    DocumentModel:
+    MetaRequestModel:
       type: object
+      description: Meta request model which includes pagination controls
       properties:
-        url:
-          type: string
-          description: The resolved URL pointing to the location of the underlying report
-          example: https://api.factset.com/analytics/datastore/cargo/v1/groups/a4186c50f8e74f979d271dd22298c901/objects/fe875bc4150542dea6bc237663a01a0d
-        productType:
-          type: string
-          description: string property to denote what Product created this document.
-          example: Publisher
-        tags:
+        pagination:
           type: object
-          description: The documents tags, represented in a key value format with the tag name as the key; and the tag's value as the value
-          example:
-            account: TEST_ACCOUNT.ACCT
-            benchmark: TEST_BENCHMARK
-          additionalProperties:
-            $ref: '#/components/schemas/StringOrNumberTagValue'
-      description: Document model
+          properties:
+            offset:
+              type: integer
+              example: 0
+            limit:
+              type: integer
+              example: 10
+    TagResponse:
+      type: object
+      description: Response object for a single tag
+      properties:
+        data:
+          $ref: '#/components/schemas/TagModel'
     DocumentRequest:
       type: object
       description: ''
@@ -28112,6 +28111,22 @@ components:
                 benchmark: TEST_BENCHMARK
               additionalProperties:
                 type: string
+    MetaModel:
+      type: object
+      description: Meta model which includes pagination information
+      properties:
+        pagination:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: Total number of entries in the result set
+              example: 1
+            isEstimatedTotal:
+              type: boolean
+              description: Flag indicating that the value of total is estimated
+              example: false
+          description: Pagination attributes for the offset-based pagination strategy
     ProductTypeListResponse:
       type: object
       description: Response object for a list of documents
@@ -28142,57 +28157,10 @@ components:
                 benchmark: TEST_BENCHMARK
               additionalProperties:
                 type: string
-    DocumentListResponse:
-      type: object
-      description: Response object for a list of documents
-      properties:
-        meta:
-          $ref: '#/components/schemas/MetaModel'
-        data:
-          type: array
-          description: Array of documents
-          items:
-            $ref: '#/components/schemas/DocumentModel'
-    MetaRequestModel:
-      type: object
-      description: Meta request model which includes pagination controls
-      properties:
-        pagination:
-          type: object
-          properties:
-            offset:
-              type: integer
-              example: 0
-            limit:
-              type: integer
-              example: 10
-    TagListResponse:
-      type: object
-      description: Response object for a list of tags
-      properties:
-        meta:
-          $ref: '#/components/schemas/MetaModel'
-        data:
-          type: array
-          description: Array of tags
-          items:
-            $ref: '#/components/schemas/TagModel'
-    MetaModel:
-      type: object
-      description: Meta model which includes pagination information
-      properties:
-        pagination:
-          type: object
-          properties:
-            total:
-              type: integer
-              description: Total number of entries in the result set
-              example: 1
-            isEstimatedTotal:
-              type: boolean
-              description: Flag indicating that the value of total is estimated
-              example: false
-          description: Pagination attributes for the offset-based pagination strategy
+    StringOrNumberTagValue:
+      oneOf:
+      - type: string
+      - type: number
     TagValuesListResponse:
       type: object
       description: Response object for a list of tag values
@@ -28207,6 +28175,28 @@ components:
           example:
           - TEST_ACCOUNT.ACCT
           - CLIENT.ACCT
+    TagListResponse:
+      type: object
+      description: Response object for a list of tags
+      properties:
+        meta:
+          $ref: '#/components/schemas/MetaModel'
+        data:
+          type: array
+          description: Array of tags
+          items:
+            $ref: '#/components/schemas/TagModel'
+    DocumentListResponse:
+      type: object
+      description: Response object for a list of documents
+      properties:
+        meta:
+          $ref: '#/components/schemas/MetaModel'
+        data:
+          type: array
+          description: Array of documents
+          items:
+            $ref: '#/components/schemas/DocumentModel'
     TagModel:
       type: object
       properties:
@@ -28223,16 +28213,53 @@ components:
           - date
           - datetime
       description: Tags model
-    TagResponse:
+    DocumentModel:
       type: object
-      description: Response object for a single tag
+      properties:
+        url:
+          type: string
+          description: The resolved URL pointing to the location of the underlying report
+          example: https://api.factset.com/analytics/datastore/cargo/v1/groups/a4186c50f8e74f979d271dd22298c901/objects/fe875bc4150542dea6bc237663a01a0d
+        productType:
+          type: string
+          description: string property to denote what Product created this document.
+          example: Publisher
+        tags:
+          type: object
+          description: The documents tags, represented in a key value format with the tag name as the key; and the tag's value as the value
+          example:
+            account: TEST_ACCOUNT.ACCT
+            benchmark: TEST_BENCHMARK
+          additionalProperties:
+            $ref: '#/components/schemas/StringOrNumberTagValue'
+      description: Document model
+    CalculationInfo:
+      type: object
+      properties:
+        id:
+          type: string
+    ClientErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+    Currency:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of currency.
+    CurrencyRoot:
+      type: object
       properties:
         data:
-          $ref: '#/components/schemas/TagModel'
-    StringOrNumberTagValue:
-      oneOf:
-      - type: string
-      - type: number
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Currency'
+    OptimizerCalculationMeta:
+      type: object
     Optimization:
       type: object
       properties:
@@ -28245,115 +28272,6 @@ components:
         cashflow:
           type: string
           description: Cash flow
-    Error:
-      type: object
-      properties:
-        id:
-          type: string
-        detail:
-          type: string
-        source:
-          $ref: '#/components/schemas/ErrorSource'
-    AxiomaEquityOptimizationParameters:
-      required:
-      - outputTypes
-      - strategy
-      type: object
-      properties:
-        strategy:
-          $ref: '#/components/schemas/OptimizerStrategy'
-        account:
-          $ref: '#/components/schemas/OptimizerAccount'
-        optimization:
-          $ref: '#/components/schemas/Optimization'
-        outputTypes:
-          $ref: '#/components/schemas/OptimizerOutputTypes'
-    OptimizerStrategy:
-      required:
-      - id
-      type: object
-      properties:
-        id:
-          type: string
-          description: OptimizerStrategy document path
-        overrides:
-          $ref: '#/components/schemas/OptimizerStrategyOverrides'
-    OptimizerOptimalHoldings:
-      type: object
-      properties:
-        identifierType:
-          enum:
-          - Asset
-          - Cusip
-          - Isin
-          - RiskModel
-          - SedolChk
-          - Sedol
-          - SymbologyCusip
-          - Ticker
-          - TickerRegion
-          - User
-          type: string
-          description: Identifier type
-        includeCash:
-          type: boolean
-          description: Include cash
-        excludeZero:
-          type: boolean
-          description: Exclude zero
-    AccountDirectoriesRoot:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/AccountDirectories'
-    Currency:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Name of currency.
-    DocumentDirectories:
-      type: object
-      properties:
-        documents:
-          type: array
-          items:
-            type: string
-        directories:
-          type: array
-          items:
-            type: string
-          description: List of directories.
-    AccountDirectories:
-      type: object
-      properties:
-        accounts:
-          type: array
-          items:
-            type: string
-          description: List of account and composite files.
-        directories:
-          type: array
-          items:
-            type: string
-          description: List of directories.
-    CalculationInfo:
-      type: object
-      properties:
-        id:
-          type: string
-    CalculationInfoRoot:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/CalculationInfo'
-    ErrorSource:
-      type: object
-      properties:
-        pointer:
-          type: string
-        parameter:
-          type: string
     OptimizerStrategyOverrides:
       type: object
       properties:
@@ -28377,6 +28295,173 @@ components:
         transactionCost:
           type: string
           description: Transaction cost
+    Error:
+      type: object
+      properties:
+        id:
+          type: string
+        detail:
+          type: string
+        source:
+          $ref: '#/components/schemas/ErrorSource'
+    AxiomaEquityOptimizationParameters:
+      required:
+      - outputTypes
+      - strategy
+      type: object
+      properties:
+        strategy:
+          $ref: '#/components/schemas/OptimizerStrategy'
+        account:
+          $ref: '#/components/schemas/OptimizerAccount'
+        optimization:
+          $ref: '#/components/schemas/Optimization'
+        outputTypes:
+          $ref: '#/components/schemas/OptimizerOutputTypes'
+    DocumentDirectories:
+      type: object
+      properties:
+        documents:
+          type: array
+          items:
+            type: string
+        directories:
+          type: array
+          items:
+            type: string
+          description: List of directories.
+    OptimizerOutputTypes:
+      type: object
+      properties:
+        trades:
+          $ref: '#/components/schemas/OptimizerTradesList'
+        optimal:
+          $ref: '#/components/schemas/OptimizerOptimalHoldings'
+        account:
+          $ref: '#/components/schemas/OptimalPortfolio'
+    OptimizerAccountOverrides:
+      type: object
+      properties:
+        portfolio:
+          type: string
+          description: Portfolio
+        benchmark:
+          type: string
+          description: Benchmark
+        riskModelId:
+          type: string
+          description: Risk model
+        currency:
+          type: string
+          description: Currency
+    OptimizerTradesList:
+      type: object
+      properties:
+        identifierType:
+          enum:
+          - Asset
+          - Cusip
+          - Isin
+          - RiskModel
+          - SedolChk
+          - Sedol
+          - SymbologyCusip
+          - Ticker
+          - TickerRegion
+          - User
+          type: string
+          description: Identifier type
+        includeCash:
+          type: boolean
+          description: Include cash
+    AccountDirectoriesRoot:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/AccountDirectories'
+    ErrorSource:
+      type: object
+      properties:
+        pointer:
+          type: string
+        parameter:
+          type: string
+    DocumentDirectoriesRoot:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DocumentDirectories'
+    OptimizerAccount:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Account path
+        overrides:
+          $ref: '#/components/schemas/OptimizerAccountOverrides'
+    CalculationInfoRoot:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/CalculationInfo'
+    AccountDirectories:
+      type: object
+      properties:
+        accounts:
+          type: array
+          items:
+            type: string
+          description: List of account and composite files.
+        directories:
+          type: array
+          items:
+            type: string
+          description: List of directories.
+    OptimizerOptimalHoldings:
+      type: object
+      properties:
+        identifierType:
+          enum:
+          - Asset
+          - Cusip
+          - Isin
+          - RiskModel
+          - SedolChk
+          - Sedol
+          - SymbologyCusip
+          - Ticker
+          - TickerRegion
+          - User
+          type: string
+          description: Identifier type
+        includeCash:
+          type: boolean
+          description: Include cash
+        excludeZero:
+          type: boolean
+          description: Exclude zero
+    AxiomaEquityOptimizationParametersRoot:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/AxiomaEquityOptimizationParameters'
+        meta:
+          $ref: '#/components/schemas/OptimizerCalculationMeta'
+    OptimizerStrategy:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          description: OptimizerStrategy document path
+        overrides:
+          $ref: '#/components/schemas/OptimizerStrategyOverrides'
+    ObjectRoot:
+      type: object
+      properties:
+        data:
+          type: object
     OptimalPortfolio:
       type: object
       properties:
@@ -28403,91 +28488,36 @@ components:
           - appendSecurities
           type: string
           description: Action if ofdb date exists
-    OptimizerOutputTypes:
+    CalculationInfo_2:
       type: object
       properties:
-        trades:
-          $ref: '#/components/schemas/OptimizerTradesList'
-        optimal:
-          $ref: '#/components/schemas/OptimizerOptimalHoldings'
+        calculationId:
+          type: string
+          description: Calculation identifier
+    AFIOptimizationParameters:
+      required:
+      - outputTypes
+      - strategy
+      type: object
+      properties:
+        strategy:
+          $ref: '#/components/schemas/AFIOptimizerStrategy'
         account:
-          $ref: '#/components/schemas/OptimalPortfolio'
-    OptimizerCalculationMeta:
-      type: object
-    ObjectRoot:
+          $ref: '#/components/schemas/OptimizerAccount'
+        optimization:
+          $ref: '#/components/schemas/Optimization'
+        outputTypes:
+          $ref: '#/components/schemas/OptimizerOutputTypes'
+    AFIOptimizerStrategy:
+      required:
+      - id
       type: object
       properties:
-        data:
-          type: object
-    OptimizerAccount:
-      type: object
-      properties:
+        overrides:
+          $ref: '#/components/schemas/AFIOptimizerStrategyOverrides'
         id:
           type: string
-          description: Account path
-        overrides:
-          $ref: '#/components/schemas/OptimizerAccountOverrides'
-    ClientErrorResponse:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/Error'
-    OptimizerTradesList:
-      type: object
-      properties:
-        identifierType:
-          enum:
-          - Asset
-          - Cusip
-          - Isin
-          - RiskModel
-          - SedolChk
-          - Sedol
-          - SymbologyCusip
-          - Ticker
-          - TickerRegion
-          - User
-          type: string
-          description: Identifier type
-        includeCash:
-          type: boolean
-          description: Include cash
-    DocumentDirectoriesRoot:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/DocumentDirectories'
-    AxiomaEquityOptimizationParametersRoot:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/AxiomaEquityOptimizationParameters'
-        meta:
-          $ref: '#/components/schemas/OptimizerCalculationMeta'
-    CurrencyRoot:
-      type: object
-      properties:
-        data:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/Currency'
-    OptimizerAccountOverrides:
-      type: object
-      properties:
-        portfolio:
-          type: string
-          description: Portfolio
-        benchmark:
-          type: string
-          description: Benchmark
-        riskModelId:
-          type: string
-          description: Risk model
-        currency:
-          type: string
-          description: Currency
+          description: OptimizerStrategy document path
     AFIOptimizationParametersRoot:
       type: object
       properties:
@@ -28508,12 +28538,15 @@ components:
           items:
             type: string
           description: List of directories.
-    CalculationInfo_2:
+    DocumentDirectoriesRoot_2:
+      required:
+      - data
       type: object
       properties:
-        calculationId:
-          type: string
-          description: Calculation identifier
+        data:
+          $ref: '#/components/schemas/DocumentDirectories_2'
+        meta:
+          type: object
     CalculationInfoRoot_2:
       required:
       - data
@@ -28521,29 +28554,6 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/CalculationInfo_2'
-        meta:
-          type: object
-    AFIOptimizationParameters:
-      required:
-      - outputTypes
-      - strategy
-      type: object
-      properties:
-        strategy:
-          $ref: '#/components/schemas/AFIOptimizerStrategy'
-        account:
-          $ref: '#/components/schemas/OptimizerAccount'
-        optimization:
-          $ref: '#/components/schemas/Optimization'
-        outputTypes:
-          $ref: '#/components/schemas/OptimizerOutputTypes'
-    ObjectRoot_2:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
         meta:
           type: object
     AFIOptimizerStrategyOverrides:
@@ -28569,25 +28579,31 @@ components:
         transactionCost:
           type: string
           description: Transaction cost
-    AFIOptimizerStrategy:
-      required:
-      - id
-      type: object
-      properties:
-        overrides:
-          $ref: '#/components/schemas/AFIOptimizerStrategyOverrides'
-        id:
-          type: string
-          description: OptimizerStrategy document path
-    DocumentDirectoriesRoot_2:
+    ObjectRoot_2:
       required:
       - data
       type: object
       properties:
         data:
-          $ref: '#/components/schemas/DocumentDirectories_2'
+          type: object
         meta:
           type: object
+    CalculationInfo_3:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Calculation identifier
+    ConstraintAction:
+      type: object
+      properties:
+        item1:
+          type: string
+        item2:
+          enum:
+          - Disable
+          - Enable
+          type: string
     BPMOptimizerStrategyOverrides:
       type: object
       properties:
@@ -28608,13 +28624,22 @@ components:
           description: 'Transaction cost
 
             Can be set to "" for local'
-    AccountDirectoriesRoot_2:
+    CurrencyRoot_2:
       required:
       - data
       type: object
       properties:
         data:
-          $ref: '#/components/schemas/AccountDirectories'
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Currency'
+    BPMOptimizationParametersRoot:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/BPMOptimizationParameters'
+        meta:
+          $ref: '#/components/schemas/OptimizerCalculationMeta'
     DocumentDirectories_3:
       type: object
       properties:
@@ -28628,51 +28653,6 @@ components:
           items:
             type: string
           description: List of directories.
-    CalculationInfo_3:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Calculation identifier
-    CalculationInfoRoot_3:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/CalculationInfo_3'
-    BPMOptimizerStrategyAlphaOverride:
-      type: object
-      properties:
-        formula:
-          type: string
-        returnType:
-          enum:
-          - Excess
-          - Total
-          - Active
-          - Residual
-          - Exceptional
-          type: string
-        returnMultiplier:
-          type: string
-    ObjectRoot_3:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
-    BPMOptimizerStrategy:
-      required:
-      - id
-      type: object
-      properties:
-        overrides:
-          $ref: '#/components/schemas/BPMOptimizerStrategyOverrides'
-        id:
-          type: string
-          description: OptimizerStrategy document path
     BPMOptimization:
       type: object
       properties:
@@ -28691,16 +28671,13 @@ components:
         cashflow:
           type: string
           description: Cash flow
-    ConstraintAction:
+    AccountDirectoriesRoot_2:
+      required:
+      - data
       type: object
       properties:
-        item1:
-          type: string
-        item2:
-          enum:
-          - Disable
-          - Enable
-          type: string
+        data:
+          $ref: '#/components/schemas/AccountDirectories'
     DocumentDirectoriesRoot_3:
       required:
       - data
@@ -28708,22 +28685,13 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/DocumentDirectories_3'
-    CurrencyRoot_2:
+    CalculationInfoRoot_3:
       required:
       - data
       type: object
       properties:
         data:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/Currency'
-    BPMOptimizationParametersRoot:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/BPMOptimizationParameters'
-        meta:
-          $ref: '#/components/schemas/OptimizerCalculationMeta'
+          $ref: '#/components/schemas/CalculationInfo_3'
     BPMOptimizationParameters:
       required:
       - outputTypes
@@ -28738,6 +28706,38 @@ components:
           $ref: '#/components/schemas/OptimizerAccount'
         outputTypes:
           $ref: '#/components/schemas/OptimizerOutputTypes'
+    BPMOptimizerStrategyAlphaOverride:
+      type: object
+      properties:
+        formula:
+          type: string
+        returnType:
+          enum:
+          - Excess
+          - Total
+          - Active
+          - Residual
+          - Exceptional
+          type: string
+        returnMultiplier:
+          type: string
+    BPMOptimizerStrategy:
+      required:
+      - id
+      type: object
+      properties:
+        overrides:
+          $ref: '#/components/schemas/BPMOptimizerStrategyOverrides'
+        id:
+          type: string
+          description: OptimizerStrategy document path
+    ObjectRoot_3:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
     FIABCalculationStatus:
       type: object
       properties:
@@ -28772,6 +28772,28 @@ components:
           items:
             $ref: '#/components/schemas/EventSummary'
           example: []
+    FIABIdentifier:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          description: User's FactSet account path.
+          example: abc123
+    FIABCalculationStatusSummary:
+      type: object
+      properties:
+        requesttime:
+          type: string
+          description: Request time of calculation.
+          format: date-time
+          example: '2026-01-15T10:30:00Z'
+        lastpolltime:
+          type: string
+          description: Last poll time of calculation.
+          format: date-time
+          example: '2026-01-15T10:30:00Z'
     FIABDateParameters:
       required:
       - enddate
@@ -28787,28 +28809,6 @@ components:
           description: Calculation's end date.
           example: example_value
       description: The date parameters for FIAB calculations.
-    FIABCalculationStatusSummary:
-      type: object
-      properties:
-        requesttime:
-          type: string
-          description: Request time of calculation.
-          format: date-time
-          example: '2026-01-15T10:30:00Z'
-        lastpolltime:
-          type: string
-          description: Last poll time of calculation.
-          format: date-time
-          example: '2026-01-15T10:30:00Z'
-    FIABIdentifier:
-      required:
-      - id
-      type: object
-      properties:
-        id:
-          type: string
-          description: User's FactSet account path.
-          example: abc123
     EventSummary:
       type: object
       properties:
@@ -28848,6 +28848,50 @@ components:
 
             configure analytics assumptions and settings. Expects a GUI-style path (Client:/foo/bar)'
           example: example_value
+    CalculationInfo_4:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Calculation identifier
+          example: abc123
+    ConstraintAction_2:
+      type: object
+      properties:
+        item1:
+          type: string
+          example: example_value
+        item2:
+          enum:
+          - Disable
+          - Enable
+          type: string
+          example: Disable
+    ClientErrorResponse_2:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error_2'
+          example: []
+    Currency_2:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of currency.
+          example: Example Title
+    CurrencyRoot_3:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Currency_2'
+          example: example_value
     Optimization_2:
       type: object
       properties:
@@ -28863,13 +28907,6 @@ components:
           type: string
           description: Cash flow
           example: example_value
-    NPOOptimizationParametersRoot:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/NPOOptimizationParameters'
-        meta:
-          $ref: '#/components/schemas/OptimizerCalculationMeta'
     Error_2:
       type: object
       properties:
@@ -28881,6 +28918,136 @@ components:
           example: example_value
         source:
           $ref: '#/components/schemas/ErrorSource_2'
+    NPOOptimizerStrategy:
+      required:
+      - id
+      type: object
+      properties:
+        overrides:
+          $ref: '#/components/schemas/NPOOptimizerStrategyOverrides'
+        id:
+          type: string
+          description: OptimizerStrategy document path
+          example: abc123
+    OptimizerAccountOverrides_2:
+      type: object
+      properties:
+        portfolio:
+          type: string
+          description: Portfolio
+          example: example_value
+        benchmark:
+          type: string
+          description: Benchmark
+          example: example_value
+        riskModelId:
+          type: string
+          description: Risk model
+          example: '500123'
+        currency:
+          type: string
+          description: Currency
+          example: example_value
+    OptimizerTradesList_2:
+      type: object
+      properties:
+        identifierType:
+          enum:
+          - Asset
+          - Cusip
+          - Isin
+          - RiskModel
+          - SedolChk
+          - Sedol
+          - SymbologyCusip
+          - Ticker
+          - TickerRegion
+          - User
+          type: string
+          description: Identifier type
+          example: Asset
+        includeCash:
+          type: boolean
+          description: Include cash
+          example: true
+    DocumentDirectories_4:
+      type: object
+      properties:
+        documents:
+          type: array
+          items:
+            type: string
+          description: List of documents
+          example: []
+        directories:
+          type: array
+          items:
+            type: string
+          description: List of directories.
+          example: []
+    ErrorSource_2:
+      type: object
+      properties:
+        pointer:
+          type: string
+          example: example_value
+        parameter:
+          type: string
+          example: example_value
+    DocumentDirectoriesRoot_4:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DocumentDirectories_4'
+    OptimizerAccount_2:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Account path
+          example: abc123
+        overrides:
+          $ref: '#/components/schemas/OptimizerAccountOverrides_2'
+    CalculationInfoRoot_4:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/CalculationInfo_4'
+    NPOOptimizerStrategyOverrides:
+      type: object
+      properties:
+        objective:
+          type: object
+          additionalProperties:
+            type: object
+          description: Objective parameters
+          example: example_value
+        constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConstraintAction_2'
+          description: List of constraints
+          example: []
+        tax:
+          type: string
+          description: 'Tax
+
+            Can be set to "" for local'
+          example: example_value
+        transactionCost:
+          type: string
+          description: 'Transaction cost
+
+            Can be set to "" for local'
+          example: example_value
+        alpha:
+          type: string
+          description: Alpha
+          example: example_value
     NPOOptimizationParameters:
       required:
       - outputTypes
@@ -28921,50 +29088,13 @@ components:
           type: boolean
           description: Exclude zero
           example: true
-    Currency_2:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Name of currency.
-          example: Example Title
-    DocumentDirectories_4:
-      type: object
-      properties:
-        documents:
-          type: array
-          items:
-            type: string
-          description: List of documents
-          example: []
-        directories:
-          type: array
-          items:
-            type: string
-          description: List of directories.
-          example: []
-    CalculationInfo_4:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Calculation identifier
-          example: abc123
-    CalculationInfoRoot_4:
+    ObjectRoot_4:
       required:
       - data
       type: object
       properties:
         data:
-          $ref: '#/components/schemas/CalculationInfo_4'
-    ErrorSource_2:
-      type: object
-      properties:
-        pointer:
-          type: string
-          example: example_value
-        parameter:
-          type: string
+          type: object
           example: example_value
     OptimalPortfolio_2:
       type: object
@@ -28997,152 +29127,252 @@ components:
           type: string
           description: Action if ofdb date exists
           example: abort
-    ObjectRoot_4:
-      required:
-      - data
+    NPOOptimizationParametersRoot:
       type: object
       properties:
         data:
-          type: object
-          example: example_value
-    OptimizerAccount_2:
+          $ref: '#/components/schemas/NPOOptimizationParameters'
+        meta:
+          $ref: '#/components/schemas/OptimizerCalculationMeta'
+    PACalculationGroup:
       type: object
       properties:
         id:
-          type: string
-          description: Account path
-          example: abc123
-        overrides:
-          $ref: '#/components/schemas/OptimizerAccountOverrides_2'
-    ConstraintAction_2:
-      type: object
-      properties:
-        item1:
-          type: string
-          example: example_value
-        item2:
-          enum:
-          - Disable
-          - Enable
-          type: string
-          example: Disable
-    ClientErrorResponse_2:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/Error_2'
-          example: []
-    NPOOptimizerStrategy:
-      required:
-      - id
-      type: object
-      properties:
-        overrides:
-          $ref: '#/components/schemas/NPOOptimizerStrategyOverrides'
-        id:
-          type: string
-          description: OptimizerStrategy document path
-          example: abc123
-    OptimizerTradesList_2:
-      type: object
-      properties:
-        identifierType:
-          enum:
-          - Asset
-          - Cusip
-          - Isin
-          - RiskModel
-          - SedolChk
-          - Sedol
-          - SymbologyCusip
-          - Ticker
-          - TickerRegion
-          - User
-          type: string
-          description: Identifier type
-          example: Asset
-        includeCash:
-          type: boolean
-          description: Include cash
-          example: true
-    DocumentDirectoriesRoot_4:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/DocumentDirectories_4'
-    CurrencyRoot_3:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/Currency_2'
-          example: example_value
-    OptimizerAccountOverrides_2:
-      type: object
-      properties:
-        portfolio:
-          type: string
-          description: Portfolio
-          example: example_value
-        benchmark:
-          type: string
-          description: Benchmark
-          example: example_value
-        riskModelId:
-          type: string
-          description: Risk model
-          example: '500123'
-        currency:
-          type: string
-          description: Currency
-          example: example_value
-    NPOOptimizerStrategyOverrides:
-      type: object
-      properties:
-        objective:
-          type: object
-          additionalProperties:
-            type: object
-          description: Objective parameters
-          example: example_value
-        constraints:
-          type: array
-          items:
-            $ref: '#/components/schemas/ConstraintAction_2'
-          description: List of constraints
-          example: []
-        tax:
-          type: string
-          description: 'Tax
-
-            Can be set to "" for local'
-          example: example_value
-        transactionCost:
-          type: string
-          description: 'Transaction cost
-
-            Can be set to "" for local'
-          example: example_value
-        alpha:
-          type: string
-          description: Alpha
-          example: example_value
-    CalculationStatus:
-      type: object
-      properties:
-        calculationid:
           type:
           - string
           - 'null'
-          description: Calculation's identifier
+          description: FactSet-defined or User-defined Group identifier.
+          example: abc123
+        frequency:
+          type:
+          - string
+          - 'null'
+          description: Grouping frequency
+          example: example_value
+    LinkedPATemplateRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/LinkedPATemplate'
+        meta:
+          example: example_value
+    TemplatedPAComponentSummaryRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/TemplatedPAComponentSummary'
+          example: example_value
+        meta:
+          example: example_value
+    ColumnStatistic:
+      type: object
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+          description: Column Statistic Name
+          example: Example Title
+    Currency_3:
+      type: object
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+          description: Name of currency.
+          example: Example Title
+    DateParametersSummary:
+      type: object
+      properties:
+        startdate:
+          type:
+          - string
+          - 'null'
+          description: Start date in YYYYMMDD format.
+          example: example_value
+        enddate:
+          type:
+          - string
+          - 'null'
+          description: End date in YYYYMMDD format.
+          example: example_value
+    DateParametersSummaryRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DateParametersSummary'
+        meta:
+          example: example_value
+    PACalculationParameters:
+      required:
+      - componentid
+      type: object
+      properties:
+        componentid:
+          type: string
+          description: The PA Engine component identifier to analyze.
           example: '500123'
+        accounts:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/PAIdentifier'
+          description: List of accounts.
+          example: []
+        benchmarks:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/PAIdentifier'
+          description: List of benchmarks.
+          example: []
+        dates:
+          $ref: '#/components/schemas/PADateParameters'
+        groups:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/PACalculationGroup'
+          description: List of groupings for the PA calculation. This will take precedence over the groupings saved in the PA document.
+          example: []
+        currencyisocode:
+          type:
+          - string
+          - 'null'
+          description: Currency ISO code for calculation.
+          example: example_value
+        columns:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/PACalculationColumn'
+          description: List of columns for the PA calculation. This will take precedence over the columns saved in the PA document.
+          example: []
+        datasources:
+          $ref: '#/components/schemas/PACalculationDataSources'
+        componentdetail:
+          type:
+          - string
+          - 'null'
+          description: Component detail type for the PA component. It can be GROUPS or GROUPSALL or TOTALS or SECURITIES.
+          example: example_value
+    UnlinkedPATemplateParameters:
+      required:
+      - directory
+      - templateTypeId
+      type: object
+      properties:
+        directory:
+          type: string
+          description: The directory to create an unlinked PA template
+          example: example_value
+        templateTypeId:
+          type: string
+          description: Template type id
+          example: '500123'
+        description:
+          type:
+          - string
+          - 'null'
+          description: Template description
+          example: A sample description.
+        accounts:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/PAIdentifier'
+          description: List of accounts
+          example: []
+        benchmarks:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/PAIdentifier'
+          description: List of benchmarks
+          example: []
+        columns:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/PACalculationColumn'
+          description: List of columns for the PA calculation
+          example: []
+        dates:
+          $ref: '#/components/schemas/PADateParameters'
+        groups:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/PACalculationGroup'
+          description: List of groupings for the PA calculation
+          example: []
+        datasources:
+          $ref: '#/components/schemas/PACalculationDataSources'
+        currencyisocode:
+          type:
+          - string
+          - 'null'
+          description: Currency ISO code for calculation.
+          example: example_value
+        componentdetail:
+          type:
+          - string
+          - 'null'
+          description: PA storage type. It can be GROUPS or GROUPSALL or TOTALS or SECURITIES.
+          example: example_value
+        content:
+          $ref: '#/components/schemas/TemplateContentTypes'
+    ErrorSource_3:
+      type: object
+      properties:
+        pointer:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        parameter:
+          type:
+          - string
+          - 'null'
+          example: example_value
+    DocumentDirectoriesRoot_5:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DocumentDirectories_5'
+        meta:
+          example: example_value
+    UnlinkedPATemplatePostSummaryRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/UnlinkedPATemplatePostSummary'
+        meta:
+          example: example_value
+    CalculationsSummary:
+      type: object
+      properties:
         status:
           enum:
           - Queued
@@ -29150,26 +29380,532 @@ components:
           - Completed
           - Cancelled
           type: string
-          description: Calculation's status
+          description: Last poll status of the calculation.
           example: Queued
         units:
-          type:
-          - object
-          - 'null'
-          additionalProperties:
-            $ref: '#/components/schemas/CalculationUnitStatus'
+          type: integer
           description: Number of calculation units in batch.
-          example: example_value
-    CalculationStatusMeta:
+          format: int32
+          example: 10
+        requestTime:
+          type: string
+          description: Request time of calculation.
+          format: date-time
+          example: '2026-01-15T10:30:00Z'
+        lastPollTime:
+          type: string
+          description: Last poll time of calculation.
+          format: date-time
+          example: '2026-01-15T10:30:00Z'
+    PACalculationPricingSource:
       type: object
       properties:
-        units:
+        id:
+          type:
+          - string
+          - 'null'
+          description: Pricing source identifier
+          example: abc123
+    LinkedPATemplateParametersRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/LinkedPATemplateParameters'
+        meta:
+          example: example_value
+    FrequencyRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Frequency'
+          example: example_value
+        meta:
+          example: example_value
+    UnlinkedPATemplateRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/UnlinkedPATemplate'
+        meta:
+          example: example_value
+    LinkedPATemplateUpdateParametersRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/LinkedPATemplateUpdateParameters'
+        meta:
+          example: example_value
+    Column:
+      type: object
+      properties:
+        defaultstatisticsids:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: Column statistic Id
+          example: []
+        name:
+          type:
+          - string
+          - 'null'
+          description: Column Name
+          example: Example Title
+        directory:
+          type:
+          - string
+          - 'null'
+          description: Column Directory
+          example: example_value
+        category:
+          type:
+          - string
+          - 'null'
+          description: Column Category
+          example: example_value
+    TemplatedPAComponentSummary:
+      type: object
+      properties:
+        description:
+          type:
+          - string
+          - 'null'
+          example: A sample description.
+        name:
+          type:
+          - string
+          - 'null'
+          example: Example Title
+        parentTemplateId:
+          type:
+          - string
+          - 'null'
+          example: '500123'
+        type:
+          type:
+          - string
+          - 'null'
+          example: example_value
+    LinkedPATemplatePostSummary:
+      type: object
+      properties:
+        id:
+          type:
+          - string
+          - 'null'
+          description: Template id.
+          example: abc123
+        description:
+          type:
+          - string
+          - 'null'
+          description: Template description.
+          example: A sample description.
+        name:
+          type:
+          - string
+          - 'null'
+          description: Template name.
+          example: Example Title
+        parentComponentId:
+          type:
+          - string
+          - 'null'
+          description: Template parent tile.
+          example: '500123'
+    PAComponent:
+      type: object
+      properties:
+        id:
+          type:
+          - string
+          - 'null'
+          description: Component identifier.
+          example: abc123
+        accounts:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/PAIdentifier'
+          description: List of accounts saved in the PA document.
+          example: []
+        benchmarks:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/PAIdentifier'
+          description: List of benchmarks saved in the PA document.
+          example: []
+        currencyisocode:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        dates:
+          $ref: '#/components/schemas/PADateParameters'
+        snapshot:
+          type: boolean
+          description: Is the component type snapshot or subperiod.
+          example: true
+        path:
+          type:
+          - string
+          - 'null'
+          description: The path to the document
+          example: example_value
+        name:
+          type:
+          - string
+          - 'null'
+          description: Component name.
+          example: Example Title
+        category:
+          type:
+          - string
+          - 'null'
+          description: Component category.
+          example: example_value
+    UnlinkedPATemplateParametersRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/UnlinkedPATemplateParameters'
+        meta:
+          example: example_value
+    ColumnRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Column'
+        meta:
+          example: example_value
+    ObjectRoot_5:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          example: example_value
+        meta:
+          example: example_value
+    UnlinkedPATemplateCategoryAndType:
+      type: object
+      properties:
+        category:
+          type:
+          - string
+          - 'null'
+          description: Unlinked template category
+          example: example_value
+        name:
+          type:
+          - string
+          - 'null'
+          description: Unlinked template type
+          example: Example Title
+    LinkedPATemplateUpdateParameters:
+      type: object
+      properties:
+        parentComponentId:
+          type:
+          - string
+          - 'null'
+          description: Parent component id
+          example: '500123'
+        description:
+          type:
+          - string
+          - 'null'
+          description: Template description
+          example: A sample description.
+        content:
+          $ref: '#/components/schemas/TemplateContentTypes'
+    UnlinkedPATemplateCategoryAndTypeRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/UnlinkedPATemplateCategoryAndType'
+          example: example_value
+        meta:
+          example: example_value
+    TemplatedPAComponent:
+      type: object
+      properties:
+        id:
+          type:
+          - string
+          - 'null'
+          example: abc123
+        directory:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        snapshot:
+          type: boolean
+          example: true
+        componentData:
+          $ref: '#/components/schemas/PAComponentData'
+        description:
+          type:
+          - string
+          - 'null'
+          example: A sample description.
+        name:
+          type:
+          - string
+          - 'null'
+          example: Example Title
+        parentTemplateId:
+          type:
+          - string
+          - 'null'
+          example: '500123'
+        type:
+          type:
+          - string
+          - 'null'
+          example: example_value
+    UnlinkedPATemplateGroupDetails:
+      type: object
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+          description: Unlinked template group name
+          example: Example Title
+        id:
+          type:
+          - string
+          - 'null'
+          description: FactSet-defined or User-defined Group identifier.
+          example: abc123
+        frequency:
+          type:
+          - string
+          - 'null'
+          description: Grouping frequency
+          example: example_value
+    GroupRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Group'
+          example: example_value
+        meta:
+          example: example_value
+    UnlinkedPATemplateCategoryAndTypeDetailsRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/UnlinkedPATemplateCategoryAndTypeDetails'
+        meta:
+          example: example_value
+    PACalculationParametersRoot:
+      type: object
+      properties:
+        data:
           type:
           - object
           - 'null'
           additionalProperties:
-            $ref: '#/components/schemas/CalculationUnitStatusMeta'
-          description: Meta of calculation units in batch.
+            $ref: '#/components/schemas/PACalculationParameters'
+          description: List of calculation parameters.
+          example: example_value
+        meta:
+          $ref: '#/components/schemas/CalculationMeta'
+    PACalculationDataSources:
+      type: object
+      properties:
+        portfoliopricingsources:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/PACalculationPricingSource'
+          description: List of portfilio pricing source for the PA calculation
+          example: []
+        benchmarkpricingsources:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/PACalculationPricingSource'
+          description: List of benchmark pricing source for the PA calculation
+          example: []
+        useportfoliopricingsourcesforbenchmark:
+          type:
+          - boolean
+          - 'null'
+          description: Use portfolio pricing sources for benchmark
+          example: true
+    DocumentDirectories_5:
+      type: object
+      properties:
+        documents:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: List of documents
+          example: []
+        directories:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: List of directories.
+          example: []
+    CalculationUnitStatus:
+      type: object
+      properties:
+        status:
+          enum:
+          - Queued
+          - Executing
+          - Success
+          - Failed
+          - Cancelled
+          type: string
+          description: The status of calculation unit.
+          example: Queued
+        errors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Error_3'
+          description: The error in a calculation unit.
+          example: []
+        result:
+          type:
+          - string
+          - 'null'
+          description: The result URL of the calculation.
+          example: example_value
+        progress:
+          type:
+          - string
+          - 'null'
+          description: The progress of the calculation unit.
+          example: example_value
+        points:
+          type:
+          - integer
+          - 'null'
+          description: The points for the calculation unit.
+          format: int32
+          example: 10
+        warnings:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: The warnings in a calculation unit.
+          example: []
+    TemplatedPAComponentParametersRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/TemplatedPAComponentParameters'
+        meta:
+          example: example_value
+    ColumnSummary:
+      type: object
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+          description: Column Name
+          example: Example Title
+        directory:
+          type:
+          - string
+          - 'null'
+          description: Column Directory
+          example: example_value
+        category:
+          type:
+          - string
+          - 'null'
+          description: Column Category
+          example: example_value
+      description: Column settings (name, directory, category)
+    UnlinkedPATemplateSummary:
+      type: object
+      properties:
+        description:
+          type:
+          - string
+          - 'null'
+          description: Template description.
+          example: A sample description.
+        name:
+          type:
+          - string
+          - 'null'
+          description: Template name.
+          example: Example Title
+        category:
+          type:
+          - string
+          - 'null'
+          description: Unlinked template category
+          example: example_value
+    CalculationUnitStatusMeta:
+      type: object
+      properties:
+        info:
+          type:
+          - string
+          - 'null'
+          description: The Info URL of the calculation.
+          example: example_value
+    ComponentSummaryRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ComponentSummary'
+          example: example_value
+        meta:
           example: example_value
     PACalculationColumn:
       type: object
@@ -29188,15 +29924,363 @@ components:
             type: string
           description: Column Statistic identifier
           example: []
-    UnlinkedPATemplateCategoryAndTypeDetailsRoot:
+    TemplateContentTypes:
+      type: object
+      properties:
+        mandatory:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: Template mandatory fields
+          example: []
+        optional:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: Template optional fields
+          example: []
+        locked:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: Template locked fields
+          example: []
+    LinkedPATemplate:
+      type: object
+      properties:
+        directory:
+          type:
+          - string
+          - 'null'
+          description: Template directory.
+          example: example_value
+        snapshot:
+          type: boolean
+          description: snapshot.
+          example: true
+        content:
+          $ref: '#/components/schemas/TemplateContentTypes'
+        id:
+          type:
+          - string
+          - 'null'
+          description: Template id.
+          example: abc123
+        description:
+          type:
+          - string
+          - 'null'
+          description: Template description.
+          example: A sample description.
+        name:
+          type:
+          - string
+          - 'null'
+          description: Template name.
+          example: Example Title
+        parentComponentId:
+          type:
+          - string
+          - 'null'
+          description: Template parent tile.
+          example: '500123'
+    PAComponentRoot:
       required:
       - data
       type: object
       properties:
         data:
-          $ref: '#/components/schemas/UnlinkedPATemplateCategoryAndTypeDetails'
+          $ref: '#/components/schemas/PAComponent'
         meta:
           example: example_value
+    TemplatedPAComponentRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/TemplatedPAComponent'
+        meta:
+          example: example_value
+    UnlinkedPATemplateUpdateParameters:
+      type: object
+      properties:
+        description:
+          type:
+          - string
+          - 'null'
+          description: Template description
+          example: A sample description.
+        accounts:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/PAIdentifier'
+          description: List of accounts
+          example: []
+        benchmarks:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/PAIdentifier'
+          description: List of benchmarks
+          example: []
+        columns:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/PACalculationColumn'
+          description: List of columns for the PA calculation
+          example: []
+        dates:
+          $ref: '#/components/schemas/PADateParameters'
+        groups:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/PACalculationGroup'
+          description: List of groupings for the PA calculation
+          example: []
+        datasources:
+          $ref: '#/components/schemas/PACalculationDataSources'
+        currencyisocode:
+          type:
+          - string
+          - 'null'
+          description: Currency ISO code for calculation.
+          example: example_value
+        componentdetail:
+          type:
+          - string
+          - 'null'
+          description: PA storage type. It can be GROUPS or GROUPSALL or TOTALS or SECURITIES.
+          example: example_value
+        content:
+          $ref: '#/components/schemas/TemplateContentTypes'
+    PAPricingSource:
+      type: object
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+          description: Pricing source Name
+          example: Example Title
+        directory:
+          type:
+          - string
+          - 'null'
+          description: Pricing source directory
+          example: example_value
+        category:
+          type:
+          - string
+          - 'null'
+          description: Pricing source category
+          example: example_value
+    TemplatedPAComponentUpdateParameters:
+      type: object
+      properties:
+        parentTemplateId:
+          type:
+          - string
+          - 'null'
+          description: Parent template id
+          example: '500123'
+        description:
+          type:
+          - string
+          - 'null'
+          description: Component description.
+          example: A sample description.
+        componentData:
+          $ref: '#/components/schemas/PAComponentData'
+    Group:
+      type: object
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+          description: Group Name
+          example: Example Title
+        directory:
+          type:
+          - string
+          - 'null'
+          description: Group Directory
+          example: example_value
+        category:
+          type:
+          - string
+          - 'null'
+          description: Group Category
+          example: example_value
+    LinkedPATemplateSummaryRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/LinkedPATemplateSummary'
+          example: example_value
+        meta:
+          example: example_value
+    ColumnStatisticRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ColumnStatistic'
+          example: example_value
+        meta:
+          example: example_value
+    LinkedPATemplateParameters:
+      required:
+      - directory
+      - parentComponentId
+      type: object
+      properties:
+        directory:
+          type: string
+          description: The directory to create a linked PA template
+          example: example_value
+        parentComponentId:
+          type: string
+          description: Parent component id
+          example: '500123'
+        description:
+          type:
+          - string
+          - 'null'
+          description: Template description
+          example: A sample description.
+        content:
+          $ref: '#/components/schemas/TemplateContentTypes'
+    LinkedPATemplateSummary:
+      type: object
+      properties:
+        description:
+          type:
+          - string
+          - 'null'
+          description: Template description.
+          example: A sample description.
+        name:
+          type:
+          - string
+          - 'null'
+          description: Template name.
+          example: Example Title
+        parentComponentId:
+          type:
+          - string
+          - 'null'
+          description: Template parent tile.
+          example: '500123'
+    UnlinkedPATemplatePostSummary:
+      type: object
+      properties:
+        id:
+          type:
+          - string
+          - 'null'
+          description: Template id.
+          example: abc123
+        description:
+          type:
+          - string
+          - 'null'
+          description: Template description.
+          example: A sample description.
+        name:
+          type:
+          - string
+          - 'null'
+          description: Template name.
+          example: Example Title
+        category:
+          type:
+          - string
+          - 'null'
+          description: Unlinked template category
+          example: example_value
+    ClientErrorResponse_3:
+      type: object
+      properties:
+        errors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Error_3'
+          example: []
+    PaginationInfo:
+      type: object
+      properties:
+        pageNumber:
+          type: integer
+          format: int32
+          example: 10
+        pageSize:
+          type: integer
+          format: int32
+          example: 10
+        totalPages:
+          type: integer
+          format: int32
+          example: 10
+        totalCalculations:
+          type: integer
+          format: int32
+          example: 10
+        nextPage:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        previousPage:
+          type:
+          - string
+          - 'null'
+          example: example_value
+    TemplatedPAComponentParameters:
+      required:
+      - directory
+      - parentTemplateId
+      type: object
+      properties:
+        directory:
+          type: string
+          description: Directory to create templated components
+          example: example_value
+        parentTemplateId:
+          type: string
+          description: Parent template id
+          example: '500123'
+        description:
+          type:
+          - string
+          - 'null'
+          description: Component description.
+          example: A sample description.
+        componentData:
+          $ref: '#/components/schemas/PAComponentData'
     UnlinkedPATemplateColumnDetails:
       type: object
       properties:
@@ -29220,65 +30304,6 @@ components:
             type: string
           description: Column Statistic identifier
           example: []
-    PAPricingSource:
-      type: object
-      properties:
-        name:
-          type:
-          - string
-          - 'null'
-          description: Pricing source Name
-          example: Example Title
-        directory:
-          type:
-          - string
-          - 'null'
-          description: Pricing source directory
-          example: example_value
-        category:
-          type:
-          - string
-          - 'null'
-          description: Pricing source category
-          example: example_value
-    LinkedPATemplateUpdateParametersRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/LinkedPATemplateUpdateParameters'
-        meta:
-          example: example_value
-    TemplatedPAComponentUpdateParameters:
-      type: object
-      properties:
-        parentTemplateId:
-          type:
-          - string
-          - 'null'
-          description: Parent template id
-          example: '500123'
-        description:
-          type:
-          - string
-          - 'null'
-          description: Component description.
-          example: A sample description.
-        componentData:
-          $ref: '#/components/schemas/PAComponentData'
-    ColumnStatisticRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/ColumnStatistic'
-          example: example_value
-        meta:
-          example: example_value
     UnlinkedPATemplate:
       type: object
       properties:
@@ -29372,37 +30397,16 @@ components:
           - 'null'
           description: Unlinked template category
           example: example_value
-    LinkedPATemplateSummaryRoot:
+    TemplatedPAComponentUpdateParametersRoot:
       required:
       - data
       type: object
       properties:
         data:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/LinkedPATemplateSummary'
-          example: example_value
+          $ref: '#/components/schemas/TemplatedPAComponentUpdateParameters'
         meta:
           example: example_value
-    CalculationStatusRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/CalculationStatus'
-        meta:
-          $ref: '#/components/schemas/CalculationStatusMeta'
-    ColumnRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/Column'
-        meta:
-          example: example_value
-    TemplatedPAComponent:
+    TemplatedPAComponentPostSummary:
       type: object
       properties:
         id:
@@ -29410,16 +30414,6 @@ components:
           - string
           - 'null'
           example: abc123
-        directory:
-          type:
-          - string
-          - 'null'
-          example: example_value
-        snapshot:
-          type: boolean
-          example: true
-        componentData:
-          $ref: '#/components/schemas/PAComponentData'
         description:
           type:
           - string
@@ -29439,6 +30433,223 @@ components:
           type:
           - string
           - 'null'
+          example: example_value
+    UnlinkedPATemplateSummaryRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/UnlinkedPATemplateSummary'
+          example: example_value
+        meta:
+          example: example_value
+    CalculationStatusRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/CalculationStatus'
+        meta:
+          $ref: '#/components/schemas/CalculationStatusMeta'
+    Frequency:
+      type: object
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+          description: Frequency name.
+          example: Example Title
+    LinkedPATemplatePostSummaryRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/LinkedPATemplatePostSummary'
+        meta:
+          example: example_value
+    CalculationsSummaryRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/CalculationsSummary'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    CalculationMeta:
+      type: object
+      properties:
+        contentorganization:
+          enum:
+          - None
+          - Row
+          - Column
+          - SimplifiedRow
+          type: string
+          default: SimplifiedRow
+          deprecated: true
+          example: None
+        stachContentOrganization:
+          enum:
+          - None
+          - Row
+          - Column
+          - SimplifiedRow
+          type: string
+          default: SimplifiedRow
+          example: None
+        contenttype:
+          enum:
+          - Json
+          - Binary
+          type: string
+          default: Json
+          deprecated: true
+          example: Json
+        format:
+          enum:
+          - JsonStach
+          - Table
+          - Tableau
+          - BinaryStach
+          - Bison
+          - Binary
+          - Pdf
+          - Pptx
+          - Feather
+          type: string
+          default: JsonStach
+          example: JsonStach
+    CalculationStatus:
+      type: object
+      properties:
+        calculationid:
+          type:
+          - string
+          - 'null'
+          description: Calculation's identifier
+          example: '500123'
+        status:
+          enum:
+          - Queued
+          - Executing
+          - Completed
+          - Cancelled
+          type: string
+          description: Calculation's status
+          example: Queued
+        units:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            $ref: '#/components/schemas/CalculationUnitStatus'
+          description: Number of calculation units in batch.
+          example: example_value
+    CurrencyRoot_4:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Currency_3'
+          example: example_value
+        meta:
+          example: example_value
+    Error_3:
+      type: object
+      properties:
+        id:
+          type:
+          - string
+          - 'null'
+          example: abc123
+        code:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        title:
+          type:
+          - string
+          - 'null'
+          example: Example Title
+        detail:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        source:
+          $ref: '#/components/schemas/ErrorSource_3'
+    TemplatedPAComponentPostSummaryRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/TemplatedPAComponentPostSummary'
+        meta:
+          example: example_value
+    UnlinkedPATemplateCategoryAndTypeDetails:
+      type: object
+      properties:
+        id:
+          type:
+          - string
+          - 'null'
+          description: Type Id
+          example: abc123
+        columns:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/UnlinkedPATemplateColumnDetails'
+          description: List of default columns
+          example: []
+        groups:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/UnlinkedPATemplateGroupDetails'
+          description: List of default groupings
+          example: []
+        snapshot:
+          type: boolean
+          description: Snapshot
+          example: true
+        category:
+          type:
+          - string
+          - 'null'
+          description: Unlinked template category
+          example: example_value
+        name:
+          type:
+          - string
+          - 'null'
+          description: Unlinked template type
+          example: Example Title
+    PAPricingSourceRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/PAPricingSource'
+          example: example_value
+        meta:
           example: example_value
     PADateParameters:
       required:
@@ -29461,371 +30672,6 @@ components:
           description: Calculation's frequency.
           example: example_value
       description: The date parameters for PA calculation.
-    LinkedPATemplateParametersRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/LinkedPATemplateParameters'
-        meta:
-          example: example_value
-    ClientErrorResponse_3:
-      type: object
-      properties:
-        errors:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Error_3'
-          example: []
-    TemplatedPAComponentRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/TemplatedPAComponent'
-        meta:
-          example: example_value
-    PaginationInfo:
-      type: object
-      properties:
-        pageNumber:
-          type: integer
-          format: int32
-          example: 10
-        pageSize:
-          type: integer
-          format: int32
-          example: 10
-        totalPages:
-          type: integer
-          format: int32
-          example: 10
-        totalCalculations:
-          type: integer
-          format: int32
-          example: 10
-        nextPage:
-          type:
-          - string
-          - 'null'
-          example: example_value
-        previousPage:
-          type:
-          - string
-          - 'null'
-          example: example_value
-    DateParametersSummary:
-      type: object
-      properties:
-        startdate:
-          type:
-          - string
-          - 'null'
-          description: Start date in YYYYMMDD format.
-          example: example_value
-        enddate:
-          type:
-          - string
-          - 'null'
-          description: End date in YYYYMMDD format.
-          example: example_value
-    UnlinkedPATemplatePostSummary:
-      type: object
-      properties:
-        id:
-          type:
-          - string
-          - 'null'
-          description: Template id.
-          example: abc123
-        description:
-          type:
-          - string
-          - 'null'
-          description: Template description.
-          example: A sample description.
-        name:
-          type:
-          - string
-          - 'null'
-          description: Template name.
-          example: Example Title
-        category:
-          type:
-          - string
-          - 'null'
-          description: Unlinked template category
-          example: example_value
-    TemplatedPAComponentParametersRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/TemplatedPAComponentParameters'
-        meta:
-          example: example_value
-    LinkedPATemplate:
-      type: object
-      properties:
-        directory:
-          type:
-          - string
-          - 'null'
-          description: Template directory.
-          example: example_value
-        snapshot:
-          type: boolean
-          description: snapshot.
-          example: true
-        content:
-          $ref: '#/components/schemas/TemplateContentTypes'
-        id:
-          type:
-          - string
-          - 'null'
-          description: Template id.
-          example: abc123
-        description:
-          type:
-          - string
-          - 'null'
-          description: Template description.
-          example: A sample description.
-        name:
-          type:
-          - string
-          - 'null'
-          description: Template name.
-          example: Example Title
-        parentComponentId:
-          type:
-          - string
-          - 'null'
-          description: Template parent tile.
-          example: '500123'
-    Currency_3:
-      type: object
-      properties:
-        name:
-          type:
-          - string
-          - 'null'
-          description: Name of currency.
-          example: Example Title
-    UnlinkedPATemplateUpdateParametersRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/UnlinkedPATemplateUpdateParameters'
-        meta:
-          example: example_value
-    LinkedPATemplateParameters:
-      required:
-      - directory
-      - parentComponentId
-      type: object
-      properties:
-        directory:
-          type: string
-          description: The directory to create a linked PA template
-          example: example_value
-        parentComponentId:
-          type: string
-          description: Parent component id
-          example: '500123'
-        description:
-          type:
-          - string
-          - 'null'
-          description: Template description
-          example: A sample description.
-        content:
-          $ref: '#/components/schemas/TemplateContentTypes'
-    ErrorSource_3:
-      type: object
-      properties:
-        pointer:
-          type:
-          - string
-          - 'null'
-          example: example_value
-        parameter:
-          type:
-          - string
-          - 'null'
-          example: example_value
-    PACalculationParameters:
-      required:
-      - componentid
-      type: object
-      properties:
-        componentid:
-          type: string
-          description: The PA Engine component identifier to analyze.
-          example: '500123'
-        accounts:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/PAIdentifier'
-          description: List of accounts.
-          example: []
-        benchmarks:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/PAIdentifier'
-          description: List of benchmarks.
-          example: []
-        dates:
-          $ref: '#/components/schemas/PADateParameters'
-        groups:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/PACalculationGroup'
-          description: List of groupings for the PA calculation. This will take precedence over the groupings saved in the PA document.
-          example: []
-        currencyisocode:
-          type:
-          - string
-          - 'null'
-          description: Currency ISO code for calculation.
-          example: example_value
-        columns:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/PACalculationColumn'
-          description: List of columns for the PA calculation. This will take precedence over the columns saved in the PA document.
-          example: []
-        datasources:
-          $ref: '#/components/schemas/PACalculationDataSources'
-        componentdetail:
-          type:
-          - string
-          - 'null'
-          description: Component detail type for the PA component. It can be GROUPS or GROUPSALL or TOTALS or SECURITIES.
-          example: example_value
-    FrequencyRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/Frequency'
-          example: example_value
-        meta:
-          example: example_value
-    ObjectRoot_5:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          example: example_value
-        meta:
-          example: example_value
-    TemplatedPAComponentSummary:
-      type: object
-      properties:
-        description:
-          type:
-          - string
-          - 'null'
-          example: A sample description.
-        name:
-          type:
-          - string
-          - 'null'
-          example: Example Title
-        parentTemplateId:
-          type:
-          - string
-          - 'null'
-          example: '500123'
-        type:
-          type:
-          - string
-          - 'null'
-          example: example_value
-    UnlinkedPATemplateParametersRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/UnlinkedPATemplateParameters'
-        meta:
-          example: example_value
-    TemplatedPAComponentSummaryRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/TemplatedPAComponentSummary'
-          example: example_value
-        meta:
-          example: example_value
-    DocumentDirectoriesRoot_5:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/DocumentDirectories_5'
-        meta:
-          example: example_value
-    TemplatedPAComponentParameters:
-      required:
-      - directory
-      - parentTemplateId
-      type: object
-      properties:
-        directory:
-          type: string
-          description: Directory to create templated components
-          example: example_value
-        parentTemplateId:
-          type: string
-          description: Parent template id
-          example: '500123'
-        description:
-          type:
-          - string
-          - 'null'
-          description: Component description.
-          example: A sample description.
-        componentData:
-          $ref: '#/components/schemas/PAComponentData'
-    CurrencyRoot_4:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/Currency_3'
-          example: example_value
-        meta:
-          example: example_value
     PAComponentData:
       type: object
       properties:
@@ -29877,417 +30723,11 @@ components:
           - 'null'
           description: PA Storage type. It can be GROUPS or GROUPSALL or TOTALS or SECURITIES.
           example: example_value
-    Error_3:
+    PaginationMeta:
       type: object
       properties:
-        id:
-          type:
-          - string
-          - 'null'
-          example: abc123
-        code:
-          type:
-          - string
-          - 'null'
-          example: example_value
-        title:
-          type:
-          - string
-          - 'null'
-          example: Example Title
-        detail:
-          type:
-          - string
-          - 'null'
-          example: example_value
-        source:
-          $ref: '#/components/schemas/ErrorSource_3'
-    LinkedPATemplatePostSummary:
-      type: object
-      properties:
-        id:
-          type:
-          - string
-          - 'null'
-          description: Template id.
-          example: abc123
-        description:
-          type:
-          - string
-          - 'null'
-          description: Template description.
-          example: A sample description.
-        name:
-          type:
-          - string
-          - 'null'
-          description: Template name.
-          example: Example Title
-        parentComponentId:
-          type:
-          - string
-          - 'null'
-          description: Template parent tile.
-          example: '500123'
-    PAComponent:
-      type: object
-      properties:
-        id:
-          type:
-          - string
-          - 'null'
-          description: Component identifier.
-          example: abc123
-        accounts:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/PAIdentifier'
-          description: List of accounts saved in the PA document.
-          example: []
-        benchmarks:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/PAIdentifier'
-          description: List of benchmarks saved in the PA document.
-          example: []
-        currencyisocode:
-          type:
-          - string
-          - 'null'
-          example: example_value
-        dates:
-          $ref: '#/components/schemas/PADateParameters'
-        snapshot:
-          type: boolean
-          description: Is the component type snapshot or subperiod.
-          example: true
-        path:
-          type:
-          - string
-          - 'null'
-          description: The path to the document
-          example: example_value
-        name:
-          type:
-          - string
-          - 'null'
-          description: Component name.
-          example: Example Title
-        category:
-          type:
-          - string
-          - 'null'
-          description: Component category.
-          example: example_value
-    UnlinkedPATemplateUpdateParameters:
-      type: object
-      properties:
-        description:
-          type:
-          - string
-          - 'null'
-          description: Template description
-          example: A sample description.
-        accounts:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/PAIdentifier'
-          description: List of accounts
-          example: []
-        benchmarks:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/PAIdentifier'
-          description: List of benchmarks
-          example: []
-        columns:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/PACalculationColumn'
-          description: List of columns for the PA calculation
-          example: []
-        dates:
-          $ref: '#/components/schemas/PADateParameters'
-        groups:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/PACalculationGroup'
-          description: List of groupings for the PA calculation
-          example: []
-        datasources:
-          $ref: '#/components/schemas/PACalculationDataSources'
-        currencyisocode:
-          type:
-          - string
-          - 'null'
-          description: Currency ISO code for calculation.
-          example: example_value
-        componentdetail:
-          type:
-          - string
-          - 'null'
-          description: PA storage type. It can be GROUPS or GROUPSALL or TOTALS or SECURITIES.
-          example: example_value
-        content:
-          $ref: '#/components/schemas/TemplateContentTypes'
-    CalculationsSummary:
-      type: object
-      properties:
-        status:
-          enum:
-          - Queued
-          - Executing
-          - Completed
-          - Cancelled
-          type: string
-          description: Last poll status of the calculation.
-          example: Queued
-        units:
-          type: integer
-          description: Number of calculation units in batch.
-          format: int32
-          example: 10
-        requestTime:
-          type: string
-          description: Request time of calculation.
-          format: date-time
-          example: '2026-01-15T10:30:00Z'
-        lastPollTime:
-          type: string
-          description: Last poll time of calculation.
-          format: date-time
-          example: '2026-01-15T10:30:00Z'
-    PACalculationGroup:
-      type: object
-      properties:
-        id:
-          type:
-          - string
-          - 'null'
-          description: FactSet-defined or User-defined Group identifier.
-          example: abc123
-        frequency:
-          type:
-          - string
-          - 'null'
-          description: Grouping frequency
-          example: example_value
-    Frequency:
-      type: object
-      properties:
-        name:
-          type:
-          - string
-          - 'null'
-          description: Frequency name.
-          example: Example Title
-    LinkedPATemplatePostSummaryRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/LinkedPATemplatePostSummary'
-        meta:
-          example: example_value
-    ComponentSummaryRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/ComponentSummary'
-          example: example_value
-        meta:
-          example: example_value
-    PAPricingSourceRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/PAPricingSource'
-          example: example_value
-        meta:
-          example: example_value
-    UnlinkedPATemplateCategoryAndType:
-      type: object
-      properties:
-        category:
-          type:
-          - string
-          - 'null'
-          description: Unlinked template category
-          example: example_value
-        name:
-          type:
-          - string
-          - 'null'
-          description: Unlinked template type
-          example: Example Title
-    CalculationsSummaryRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/CalculationsSummary'
-        meta:
-          $ref: '#/components/schemas/PaginationMeta'
-    PAComponentRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/PAComponent'
-        meta:
-          example: example_value
-    UnlinkedPATemplateRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/UnlinkedPATemplate'
-        meta:
-          example: example_value
-    ColumnSummaryRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/ColumnSummary'
-          example: example_value
-        meta:
-          example: example_value
-    TemplatedPAComponentUpdateParametersRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/TemplatedPAComponentUpdateParameters'
-        meta:
-          example: example_value
-    PACalculationPricingSource:
-      type: object
-      properties:
-        id:
-          type:
-          - string
-          - 'null'
-          description: Pricing source identifier
-          example: abc123
-    TemplateContentTypes:
-      type: object
-      properties:
-        mandatory:
-          type:
-          - array
-          - 'null'
-          items:
-            type: string
-          description: Template mandatory fields
-          example: []
-        optional:
-          type:
-          - array
-          - 'null'
-          items:
-            type: string
-          description: Template optional fields
-          example: []
-        locked:
-          type:
-          - array
-          - 'null'
-          items:
-            type: string
-          description: Template locked fields
-          example: []
-    PACalculationParametersRoot:
-      type: object
-      properties:
-        data:
-          type:
-          - object
-          - 'null'
-          additionalProperties:
-            $ref: '#/components/schemas/PACalculationParameters'
-          description: List of calculation parameters.
-          example: example_value
-        meta:
-          $ref: '#/components/schemas/CalculationMeta'
-    UnlinkedPATemplateSummaryRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/UnlinkedPATemplateSummary'
-          example: example_value
-        meta:
-          example: example_value
-    Column:
-      type: object
-      properties:
-        defaultstatisticsids:
-          type:
-          - array
-          - 'null'
-          items:
-            type: string
-          description: Column statistic Id
-          example: []
-        name:
-          type:
-          - string
-          - 'null'
-          description: Column Name
-          example: Example Title
-        directory:
-          type:
-          - string
-          - 'null'
-          description: Column Directory
-          example: example_value
-        category:
-          type:
-          - string
-          - 'null'
-          description: Column Category
-          example: example_value
-    TemplatedPAComponentPostSummaryRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/TemplatedPAComponentPostSummary'
-        meta:
-          example: example_value
+        pagination:
+          $ref: '#/components/schemas/PaginationInfo'
     ComponentSummary:
       type: object
       properties:
@@ -30303,210 +30743,16 @@ components:
           - 'null'
           description: Component category.
           example: example_value
-    LinkedPATemplateRoot:
-      required:
-      - data
+    CalculationStatusMeta:
       type: object
       properties:
-        data:
-          $ref: '#/components/schemas/LinkedPATemplate'
-        meta:
-          example: example_value
-    TemplatedPAComponentPostSummary:
-      type: object
-      properties:
-        id:
+        units:
           type:
-          - string
+          - object
           - 'null'
-          example: abc123
-        description:
-          type:
-          - string
-          - 'null'
-          example: A sample description.
-        name:
-          type:
-          - string
-          - 'null'
-          example: Example Title
-        parentTemplateId:
-          type:
-          - string
-          - 'null'
-          example: '500123'
-        type:
-          type:
-          - string
-          - 'null'
-          example: example_value
-    CalculationUnitStatusMeta:
-      type: object
-      properties:
-        info:
-          type:
-          - string
-          - 'null'
-          description: The Info URL of the calculation.
-          example: example_value
-    PACalculationDataSources:
-      type: object
-      properties:
-        portfoliopricingsources:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/PACalculationPricingSource'
-          description: List of portfilio pricing source for the PA calculation
-          example: []
-        benchmarkpricingsources:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/PACalculationPricingSource'
-          description: List of benchmark pricing source for the PA calculation
-          example: []
-        useportfoliopricingsourcesforbenchmark:
-          type:
-          - boolean
-          - 'null'
-          description: Use portfolio pricing sources for benchmark
-          example: true
-    UnlinkedPATemplateSummary:
-      type: object
-      properties:
-        description:
-          type:
-          - string
-          - 'null'
-          description: Template description.
-          example: A sample description.
-        name:
-          type:
-          - string
-          - 'null'
-          description: Template name.
-          example: Example Title
-        category:
-          type:
-          - string
-          - 'null'
-          description: Unlinked template category
-          example: example_value
-    UnlinkedPATemplateCategoryAndTypeRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
           additionalProperties:
-            $ref: '#/components/schemas/UnlinkedPATemplateCategoryAndType'
-          example: example_value
-        meta:
-          example: example_value
-    UnlinkedPATemplateParameters:
-      required:
-      - directory
-      - templateTypeId
-      type: object
-      properties:
-        directory:
-          type: string
-          description: The directory to create an unlinked PA template
-          example: example_value
-        templateTypeId:
-          type: string
-          description: Template type id
-          example: '500123'
-        description:
-          type:
-          - string
-          - 'null'
-          description: Template description
-          example: A sample description.
-        accounts:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/PAIdentifier'
-          description: List of accounts
-          example: []
-        benchmarks:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/PAIdentifier'
-          description: List of benchmarks
-          example: []
-        columns:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/PACalculationColumn'
-          description: List of columns for the PA calculation
-          example: []
-        dates:
-          $ref: '#/components/schemas/PADateParameters'
-        groups:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/PACalculationGroup'
-          description: List of groupings for the PA calculation
-          example: []
-        datasources:
-          $ref: '#/components/schemas/PACalculationDataSources'
-        currencyisocode:
-          type:
-          - string
-          - 'null'
-          description: Currency ISO code for calculation.
-          example: example_value
-        componentdetail:
-          type:
-          - string
-          - 'null'
-          description: PA storage type. It can be GROUPS or GROUPSALL or TOTALS or SECURITIES.
-          example: example_value
-        content:
-          $ref: '#/components/schemas/TemplateContentTypes'
-    DocumentDirectories_5:
-      type: object
-      properties:
-        documents:
-          type:
-          - array
-          - 'null'
-          items:
-            type: string
-          description: List of documents
-          example: []
-        directories:
-          type:
-          - array
-          - 'null'
-          items:
-            type: string
-          description: List of directories.
-          example: []
-    GroupRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/Group'
-          example: example_value
-        meta:
+            $ref: '#/components/schemas/CalculationUnitStatusMeta'
+          description: Meta of calculation units in batch.
           example: example_value
     PAIdentifier:
       required:
@@ -30523,273 +30769,56 @@ components:
           - 'null'
           description: Holdings Mode can be B&H, TBR, OMS, EXT or VLT.
           example: example_value
-    UnlinkedPATemplateCategoryAndTypeDetails:
-      type: object
-      properties:
-        id:
-          type:
-          - string
-          - 'null'
-          description: Type Id
-          example: abc123
-        columns:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/UnlinkedPATemplateColumnDetails'
-          description: List of default columns
-          example: []
-        groups:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/UnlinkedPATemplateGroupDetails'
-          description: List of default groupings
-          example: []
-        snapshot:
-          type: boolean
-          description: Snapshot
-          example: true
-        category:
-          type:
-          - string
-          - 'null'
-          description: Unlinked template category
-          example: example_value
-        name:
-          type:
-          - string
-          - 'null'
-          description: Unlinked template type
-          example: Example Title
-    ColumnSummary:
-      type: object
-      properties:
-        name:
-          type:
-          - string
-          - 'null'
-          description: Column Name
-          example: Example Title
-        directory:
-          type:
-          - string
-          - 'null'
-          description: Column Directory
-          example: example_value
-        category:
-          type:
-          - string
-          - 'null'
-          description: Column Category
-          example: example_value
-      description: Column settings (name, directory, category)
-    UnlinkedPATemplateGroupDetails:
-      type: object
-      properties:
-        name:
-          type:
-          - string
-          - 'null'
-          description: Unlinked template group name
-          example: Example Title
-        id:
-          type:
-          - string
-          - 'null'
-          description: FactSet-defined or User-defined Group identifier.
-          example: abc123
-        frequency:
-          type:
-          - string
-          - 'null'
-          description: Grouping frequency
-          example: example_value
-    DateParametersSummaryRoot:
+    ColumnSummaryRoot:
       required:
       - data
       type: object
       properties:
         data:
-          $ref: '#/components/schemas/DateParametersSummary'
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ColumnSummary'
+          example: example_value
         meta:
           example: example_value
-    CalculationMeta:
-      type: object
-      properties:
-        contentorganization:
-          enum:
-          - None
-          - Row
-          - Column
-          - SimplifiedRow
-          type: string
-          default: SimplifiedRow
-          deprecated: true
-          example: None
-        stachContentOrganization:
-          enum:
-          - None
-          - Row
-          - Column
-          - SimplifiedRow
-          type: string
-          default: SimplifiedRow
-          example: None
-        contenttype:
-          enum:
-          - Json
-          - Binary
-          type: string
-          default: Json
-          deprecated: true
-          example: Json
-        format:
-          enum:
-          - JsonStach
-          - Table
-          - Tableau
-          - BinaryStach
-          - Bison
-          - Binary
-          - Pdf
-          - Pptx
-          - Feather
-          type: string
-          default: JsonStach
-          example: JsonStach
-    LinkedPATemplateUpdateParameters:
-      type: object
-      properties:
-        parentComponentId:
-          type:
-          - string
-          - 'null'
-          description: Parent component id
-          example: '500123'
-        description:
-          type:
-          - string
-          - 'null'
-          description: Template description
-          example: A sample description.
-        content:
-          $ref: '#/components/schemas/TemplateContentTypes'
-    ColumnStatistic:
-      type: object
-      properties:
-        name:
-          type:
-          - string
-          - 'null'
-          description: Column Statistic Name
-          example: Example Title
-    Group:
-      type: object
-      properties:
-        name:
-          type:
-          - string
-          - 'null'
-          description: Group Name
-          example: Example Title
-        directory:
-          type:
-          - string
-          - 'null'
-          description: Group Directory
-          example: example_value
-        category:
-          type:
-          - string
-          - 'null'
-          description: Group Category
-          example: example_value
-    UnlinkedPATemplatePostSummaryRoot:
+    UnlinkedPATemplateUpdateParametersRoot:
       required:
       - data
       type: object
       properties:
         data:
-          $ref: '#/components/schemas/UnlinkedPATemplatePostSummary'
+          $ref: '#/components/schemas/UnlinkedPATemplateUpdateParameters'
         meta:
           example: example_value
-    PaginationMeta:
+    CalculationInfo_5:
       type: object
       properties:
-        pagination:
-          $ref: '#/components/schemas/PaginationInfo'
-    LinkedPATemplateSummary:
-      type: object
-      properties:
-        description:
-          type:
-          - string
-          - 'null'
-          description: Template description.
-          example: A sample description.
-        name:
-          type:
-          - string
-          - 'null'
-          description: Template name.
-          example: Example Title
-        parentComponentId:
-          type:
-          - string
-          - 'null'
-          description: Template parent tile.
-          example: '500123'
-    CalculationUnitStatus:
-      type: object
-      properties:
-        status:
-          enum:
-          - Queued
-          - Executing
-          - Success
-          - Failed
-          - Cancelled
+        id:
           type: string
-          description: The status of calculation unit.
-          example: Queued
+          example: abc123
+    ClientErrorResponse_4:
+      type: object
+      properties:
         errors:
-          type:
-          - array
-          - 'null'
+          type: array
           items:
-            $ref: '#/components/schemas/Error_3'
-          description: The error in a calculation unit.
+            $ref: '#/components/schemas/Error_4'
           example: []
-        result:
-          type:
-          - string
-          - 'null'
-          description: The result URL of the calculation.
+    Currency_4:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of currency.
+          example: Example Title
+    CurrencyRoot_5:
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Currency_4'
           example: example_value
-        progress:
-          type:
-          - string
-          - 'null'
-          description: The progress of the calculation unit.
-          example: example_value
-        points:
-          type:
-          - integer
-          - 'null'
-          description: The points for the calculation unit.
-          format: int32
-          example: 10
-        warnings:
-          type:
-          - array
-          - 'null'
-          items:
-            type: string
-          description: The warnings in a calculation unit.
-          example: []
     Optimization_3:
       type: object
       properties:
@@ -30804,117 +30833,6 @@ components:
         cashflow:
           type: string
           description: Cash flow
-          example: example_value
-    Error_4:
-      type: object
-      properties:
-        id:
-          type: string
-          example: abc123
-        detail:
-          type: string
-          example: example_value
-        source:
-          $ref: '#/components/schemas/ErrorSource_4'
-    OptimizerStrategy_2:
-      required:
-      - id
-      type: object
-      properties:
-        id:
-          type: string
-          description: OptimizerStrategy document path
-          example: abc123
-        overrides:
-          $ref: '#/components/schemas/OptimizerStrategyOverrides_2'
-    FPOOptimizationParameters:
-      required:
-      - outputTypes
-      - strategy
-      type: object
-      properties:
-        account:
-          $ref: '#/components/schemas/FPOAccount'
-        strategy:
-          $ref: '#/components/schemas/OptimizerStrategy_2'
-        optimization:
-          $ref: '#/components/schemas/Optimization_3'
-        outputTypes:
-          $ref: '#/components/schemas/OptimizerOutputTypes'
-    OptimizerOptimalHoldings_3:
-      type: object
-      properties:
-        identifierType:
-          enum:
-          - Asset
-          - Cusip
-          - Isin
-          - RiskModel
-          - SedolChk
-          - Sedol
-          - SymbologyCusip
-          - Ticker
-          - TickerRegion
-          - User
-          type: string
-          description: Identifier type
-          example: Asset
-        includeCash:
-          type: boolean
-          description: Include cash
-          example: true
-        excludeZero:
-          type: boolean
-          description: Exclude zero
-          example: true
-    Currency_4:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Name of currency.
-          example: Example Title
-    DocumentDirectories_6:
-      type: object
-      properties:
-        documents:
-          type: array
-          items:
-            type: string
-          example: []
-        directories:
-          type: array
-          items:
-            type: string
-          description: List of directories.
-          example: []
-    CalculationInfo_5:
-      type: object
-      properties:
-        id:
-          type: string
-          example: abc123
-    FPOAccount:
-      required:
-      - paDocument
-      type: object
-      properties:
-        paDocument:
-          $ref: '#/components/schemas/PaDoc'
-        id:
-          type: string
-          description: Account path
-          example: abc123
-        overrides:
-          $ref: '#/components/schemas/OptimizerAccountOverrides_3'
-    ErrorSource_4:
-      type: object
-      properties:
-        pointer:
-          type: string
-          example: example_value
-        parameter:
-          type: string
           example: example_value
     OptimizerStrategyOverrides_2:
       type: object
@@ -30944,6 +30862,134 @@ components:
           type: string
           description: Transaction cost
           example: example_value
+    Error_4:
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        detail:
+          type: string
+          example: example_value
+        source:
+          $ref: '#/components/schemas/ErrorSource_4'
+    DocumentDirectories_6:
+      type: object
+      properties:
+        documents:
+          type: array
+          items:
+            type: string
+          example: []
+        directories:
+          type: array
+          items:
+            type: string
+          description: List of directories.
+          example: []
+    OptimizerAccountOverrides_3:
+      type: object
+      properties:
+        portfolio:
+          type: string
+          description: Portfolio
+          example: example_value
+        benchmark:
+          type: string
+          description: Benchmark
+          example: example_value
+        riskModelId:
+          type: string
+          description: Risk model
+          example: '500123'
+        currency:
+          type: string
+          description: Currency
+          example: example_value
+    OptimizerTradesList_3:
+      type: object
+      properties:
+        identifierType:
+          enum:
+          - Asset
+          - Cusip
+          - Isin
+          - RiskModel
+          - SedolChk
+          - Sedol
+          - SymbologyCusip
+          - Ticker
+          - TickerRegion
+          - User
+          type: string
+          description: Identifier type
+          example: Asset
+        includeCash:
+          type: boolean
+          description: Include cash
+          example: true
+    ErrorSource_4:
+      type: object
+      properties:
+        pointer:
+          type: string
+          example: example_value
+        parameter:
+          type: string
+          example: example_value
+    FPOOptimizationParameters:
+      required:
+      - outputTypes
+      - strategy
+      type: object
+      properties:
+        account:
+          $ref: '#/components/schemas/FPOAccount'
+        strategy:
+          $ref: '#/components/schemas/OptimizerStrategy_2'
+        optimization:
+          $ref: '#/components/schemas/Optimization_3'
+        outputTypes:
+          $ref: '#/components/schemas/OptimizerOutputTypes'
+    FPOAccount:
+      required:
+      - paDocument
+      type: object
+      properties:
+        paDocument:
+          $ref: '#/components/schemas/PaDoc'
+        id:
+          type: string
+          description: Account path
+          example: abc123
+        overrides:
+          $ref: '#/components/schemas/OptimizerAccountOverrides_3'
+    OptimizerOptimalHoldings_3:
+      type: object
+      properties:
+        identifierType:
+          enum:
+          - Asset
+          - Cusip
+          - Isin
+          - RiskModel
+          - SedolChk
+          - Sedol
+          - SymbologyCusip
+          - Ticker
+          - TickerRegion
+          - User
+          type: string
+          description: Identifier type
+          example: Asset
+        includeCash:
+          type: boolean
+          description: Include cash
+          example: true
+        excludeZero:
+          type: boolean
+          description: Exclude zero
+          example: true
     PaDoc:
       required:
       - id
@@ -30953,6 +30999,23 @@ components:
           type: string
           description: PA document path
           example: abc123
+    OptimizerStrategy_2:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          description: OptimizerStrategy document path
+          example: abc123
+        overrides:
+          $ref: '#/components/schemas/OptimizerStrategyOverrides_2'
+    ObjectRoot_6:
+      type: object
+      properties:
+        data:
+          type: object
+          example: example_value
     OptimalPortfolio_3:
       type: object
       properties:
@@ -30984,12 +31047,6 @@ components:
           type: string
           description: Action if ofdb date exists
           example: abort
-    ObjectRoot_6:
-      type: object
-      properties:
-        data:
-          type: object
-          example: example_value
     FPOOptimizationParametersRoot:
       type: object
       properties:
@@ -30997,77 +31054,6 @@ components:
           $ref: '#/components/schemas/FPOOptimizationParameters'
         meta:
           $ref: '#/components/schemas/OptimizerCalculationMeta'
-    ClientErrorResponse_4:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/Error_4'
-          example: []
-    OptimizerTradesList_3:
-      type: object
-      properties:
-        identifierType:
-          enum:
-          - Asset
-          - Cusip
-          - Isin
-          - RiskModel
-          - SedolChk
-          - Sedol
-          - SymbologyCusip
-          - Ticker
-          - TickerRegion
-          - User
-          type: string
-          description: Identifier type
-          example: Asset
-        includeCash:
-          type: boolean
-          description: Include cash
-          example: true
-    CurrencyRoot_5:
-      type: object
-      properties:
-        data:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/Currency_4'
-          example: example_value
-    OptimizerAccountOverrides_3:
-      type: object
-      properties:
-        portfolio:
-          type: string
-          description: Portfolio
-          example: example_value
-        benchmark:
-          type: string
-          description: Benchmark
-          example: example_value
-        riskModelId:
-          type: string
-          description: Risk model
-          example: '500123'
-        currency:
-          type: string
-          description: Currency
-          example: example_value
-    FileUploadStatus:
-      properties:
-        id:
-          type: string
-          description: The unique ID for this upload
-          example: abc123
-        status:
-          type: string
-          enum:
-          - pending
-          - failed
-          - completed
-          - running
-          example: pending
     CalculationStatus_2:
       properties:
         id:
@@ -31091,7 +31077,21 @@ components:
           type: string
           description: Notebook file to be executed. Only notebooks in the Client directory are currently supported.
           example: example_value
-    SMRetrieveResponseRoot:
+    FileUploadStatus:
+      properties:
+        id:
+          type: string
+          description: The unique ID for this upload
+          example: abc123
+        status:
+          type: string
+          enum:
+          - pending
+          - failed
+          - completed
+          - running
+          example: pending
+    SMCreateParametersRoot:
       required:
       - data
       type: object
@@ -31099,7 +31099,43 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/SMRetrieveResponse'
+            $ref: '#/components/schemas/SMCreateParameters'
+          example: []
+        meta:
+          type:
+          - object
+          - 'null'
+          example: example_value
+    SMDeleteResponse:
+      type: object
+      properties:
+        securityName:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        status:
+          enum:
+          - success
+          - failure
+          type: string
+          example: success
+        errors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/SMError'
+          example: []
+    SMRetrieveParametersRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SMRetrieveParameters'
           example: []
         meta:
           type:
@@ -31132,34 +31168,6 @@ components:
           - string
           - 'null'
           example: Bond
-    SMCreateResponse:
-      type: object
-      properties:
-        securityName:
-          type:
-          - string
-          - 'null'
-          example: example_value
-        status:
-          enum:
-          - success
-          - failure
-          type: string
-          example: success
-        warnings:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/SMWarning'
-          example: []
-        errors:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/SMError'
-          example: []
     OneOfSMFields:
       oneOf:
       - $ref: '#/components/schemas/SMBondFields'
@@ -31169,19 +31177,12 @@ components:
         mapping:
           Bond: '#/components/schemas/SMBondFields'
           CCF: '#/components/schemas/SMCustomCashFlowFields'
-    SMDeleteResponseRoot:
-      required:
-      - data
+    SMWarning:
       type: object
       properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/SMDeleteResponse'
-          example: []
-        meta:
+        detail:
           type:
-          - object
+          - string
           - 'null'
           example: example_value
     SMDeleteParametersRoot:
@@ -31199,50 +31200,6 @@ components:
           - object
           - 'null'
           example: example_value
-    SMCreateResponseRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/SMCreateResponse'
-          example: []
-        meta:
-          type:
-          - object
-          - 'null'
-          example: example_value
-    SMCreateParameters:
-      required:
-      - fields
-      - securityName
-      type: object
-      properties:
-        securityName:
-          type: string
-          example: example_value
-        location:
-          type:
-          - string
-          - 'null'
-          example: example_value
-        asofdate:
-          type:
-          - string
-          - 'null'
-          example: example_value
-        fields:
-          $ref: '#/components/schemas/OneOfSMFields'
-    SMError:
-      type: object
-      properties:
-        detail:
-          type:
-          - string
-          - 'null'
-          example: example_value
     OneOfFieldsFields:
       oneOf:
       - $ref: '#/components/schemas/SMBondFields'
@@ -31252,6 +31209,29 @@ components:
         mapping:
           Bond: '#/components/schemas/SMBondFields'
           CCF: '#/components/schemas/SMCustomCashFlowFields'
+    SMRetrieveResponseRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SMRetrieveResponse'
+          example: []
+        meta:
+          type:
+          - object
+          - 'null'
+          example: example_value
+    SMError:
+      type: object
+      properties:
+        detail:
+          type:
+          - string
+          - 'null'
+          example: example_value
     SMCustomCashFlowFields:
       type: object
       allOf:
@@ -31422,20 +31402,14 @@ components:
           - string
           - 'null'
           example: example_value
-    SMRetrieveResponse:
+    SMDeleteParameters:
+      required:
+      - securityName
       type: object
       properties:
         securityName:
-          type:
-          - string
-          - 'null'
-          example: example_value
-        status:
-          enum:
-          - success
-          - failure
           type: string
-          example: success
+          example: example_value
         location:
           type:
           - string
@@ -31446,15 +31420,14 @@ components:
           - string
           - 'null'
           example: example_value
-        fields:
-          $ref: '#/components/schemas/OneOfFieldsFields'
-        errors:
+        securityType:
+          enum:
+          - Bond
+          - CCF
           type:
-          - array
+          - string
           - 'null'
-          items:
-            $ref: '#/components/schemas/SMError'
-          example: []
+          example: Bond
     SMBondFields:
       type: object
       allOf:
@@ -32200,54 +32173,7 @@ components:
           - boolean
           - 'null'
           example: true
-    SMDeleteResponse:
-      type: object
-      properties:
-        securityName:
-          type:
-          - string
-          - 'null'
-          example: example_value
-        status:
-          enum:
-          - success
-          - failure
-          type: string
-          example: success
-        errors:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/SMError'
-          example: []
-    SMDeleteParameters:
-      required:
-      - securityName
-      type: object
-      properties:
-        securityName:
-          type: string
-          example: example_value
-        location:
-          type:
-          - string
-          - 'null'
-          example: example_value
-        asofdate:
-          type:
-          - string
-          - 'null'
-          example: example_value
-        securityType:
-          enum:
-          - Bond
-          - CCF
-          type:
-          - string
-          - 'null'
-          example: Bond
-    SMRetrieveParametersRoot:
+    SMCreateResponseRoot:
       required:
       - data
       type: object
@@ -32255,14 +32181,14 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/SMRetrieveParameters'
+            $ref: '#/components/schemas/SMCreateResponse'
           example: []
         meta:
           type:
           - object
           - 'null'
           example: example_value
-    SMCreateParametersRoot:
+    SMDeleteResponseRoot:
       required:
       - data
       type: object
@@ -32270,7 +32196,7 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/SMCreateParameters'
+            $ref: '#/components/schemas/SMDeleteResponse'
           example: []
         meta:
           type:
@@ -32288,219 +32214,93 @@ components:
           - CCF
           type: string
           example: Bond
-    SMWarning:
+    SMRetrieveResponse:
       type: object
       properties:
-        detail:
+        securityName:
           type:
           - string
           - 'null'
           example: example_value
-    SPARCalculationParameters:
-      required:
-      - componentid
-      type: object
-      properties:
-        componentid:
+        status:
+          enum:
+          - success
+          - failure
           type: string
-          description: The SPAR Engine component identifier to analyze.
-          example: '500123'
-        accounts:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/SPARIdentifier'
-          description: List of accounts for SPAR calculation.
-          example: []
-        benchmark:
-          $ref: '#/components/schemas/SPARIdentifier'
-        dates:
-          $ref: '#/components/schemas/SPARDateParameters'
-        currencyisocode:
-          type:
-          - string
-          - 'null'
-          description: Currency ISO code for calculation.
-          example: example_value
-    Error_5:
-      type: object
-      properties:
-        id:
-          type:
-          - string
-          - 'null'
-          example: abc123
-        code:
+          example: success
+        location:
           type:
           - string
           - 'null'
           example: example_value
-        title:
-          type:
-          - string
-          - 'null'
-          example: Example Title
-        detail:
+        asofdate:
           type:
           - string
           - 'null'
           example: example_value
-        source:
-          $ref: '#/components/schemas/ErrorSource_5'
-    SPARComponentRoot:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/SPARComponent'
-    SPARIdentifier:
-      required:
-      - id
-      type: object
-      properties:
-        id:
-          type: string
-          description: User's FactSet account OR benchmark id.
-          example: abc123
-        returntype:
-          type:
-          - string
-          - 'null'
-          description: Benchmark return type.
-          example: example_value
-        prefix:
-          type:
-          - string
-          - 'null'
-          description: Benchmark prefix.
-          example: example_value
-      description: The account/benchmark parameter for SPAR calculation.
-    Currency_5:
-      type: object
-      properties:
-        name:
-          type:
-          - string
-          - 'null'
-          description: Name of currency.
-          example: Example Title
-    DocumentDirectories_7:
-      type: object
-      properties:
-        documents:
-          type:
-          - array
-          - 'null'
-          items:
-            type: string
-          description: List of documents
-          example: []
-        directories:
-          type:
-          - array
-          - 'null'
-          items:
-            type: string
-          description: List of directories.
-          example: []
-    SPARCalculationParametersRoot:
-      type: object
-      properties:
-        data:
-          type:
-          - object
-          - 'null'
-          additionalProperties:
-            $ref: '#/components/schemas/SPARCalculationParameters'
-          description: List of calculation parameters.
-          example: example_value
-        meta:
-          $ref: '#/components/schemas/CalculationMeta'
-    SPARBenchmarkRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/SPARBenchmark'
-        meta:
-          example: example_value
-    ErrorSource_5:
-      type: object
-      properties:
-        pointer:
-          type:
-          - string
-          - 'null'
-          example: example_value
-        parameter:
-          type:
-          - string
-          - 'null'
-          example: example_value
-    SPARBenchmark:
-      type: object
-      properties:
-        id:
-          type:
-          - string
-          - 'null'
-          description: Benchmark identifier
-          example: abc123
-        name:
-          type:
-          - string
-          - 'null'
-          description: Benchmark Name
-          example: Example Title
-        identifiers:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/SPARIdentifier'
-          description: List of SPAR identifiers
-          example: []
-    ObjectRoot_7:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          example: example_value
-        meta:
-          example: example_value
-    ClientErrorResponse_5:
-      type: object
-      properties:
+        fields:
+          $ref: '#/components/schemas/OneOfFieldsFields'
         errors:
           type:
           - array
           - 'null'
           items:
-            $ref: '#/components/schemas/Error_5'
+            $ref: '#/components/schemas/SMError'
           example: []
-    DocumentDirectoriesRoot_6:
+    SMCreateResponse:
+      type: object
+      properties:
+        securityName:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        status:
+          enum:
+          - success
+          - failure
+          type: string
+          example: success
+        warnings:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/SMWarning'
+          example: []
+        errors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/SMError'
+          example: []
+    SMCreateParameters:
       required:
-      - data
+      - fields
+      - securityName
+      type: object
+      properties:
+        securityName:
+          type: string
+          example: example_value
+        location:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        asofdate:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        fields:
+          $ref: '#/components/schemas/OneOfSMFields'
+    SPARComponentRoot:
       type: object
       properties:
         data:
-          $ref: '#/components/schemas/DocumentDirectories_7'
-        meta:
-          example: example_value
-    CurrencyRoot_6:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/Currency_5'
-          example: example_value
-        meta:
-          example: example_value
+          $ref: '#/components/schemas/SPARComponent'
     SPARComponent:
       type: object
       properties:
@@ -32544,6 +32344,94 @@ components:
           - 'null'
           description: Component category.
           example: example_value
+    ClientErrorResponse_5:
+      type: object
+      properties:
+        errors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Error_5'
+          example: []
+    Currency_5:
+      type: object
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+          description: Name of currency.
+          example: Example Title
+    CurrencyRoot_6:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Currency_5'
+          example: example_value
+        meta:
+          example: example_value
+    Error_5:
+      type: object
+      properties:
+        id:
+          type:
+          - string
+          - 'null'
+          example: abc123
+        code:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        title:
+          type:
+          - string
+          - 'null'
+          example: Example Title
+        detail:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        source:
+          $ref: '#/components/schemas/ErrorSource_5'
+    DocumentDirectories_7:
+      type: object
+      properties:
+        documents:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: List of documents
+          example: []
+        directories:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: List of directories.
+          example: []
+    SPARCalculationParametersRoot:
+      type: object
+      properties:
+        data:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            $ref: '#/components/schemas/SPARCalculationParameters'
+          description: List of calculation parameters.
+          example: example_value
+        meta:
+          $ref: '#/components/schemas/CalculationMeta'
     CalculationUnitStatus_2:
       type: object
       properties:
@@ -32592,6 +32480,51 @@ components:
             type: string
           description: The warnings in a calculation unit.
           example: []
+    ErrorSource_5:
+      type: object
+      properties:
+        pointer:
+          type:
+          - string
+          - 'null'
+          example: example_value
+        parameter:
+          type:
+          - string
+          - 'null'
+          example: example_value
+    SPARBenchmark:
+      type: object
+      properties:
+        id:
+          type:
+          - string
+          - 'null'
+          description: Benchmark identifier
+          example: abc123
+        name:
+          type:
+          - string
+          - 'null'
+          description: Benchmark Name
+          example: Example Title
+        identifiers:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/SPARIdentifier'
+          description: List of SPAR identifiers
+          example: []
+    DocumentDirectoriesRoot_6:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DocumentDirectories_7'
+        meta:
+          example: example_value
     SPARDateParameters:
       required:
       - enddate
@@ -32612,154 +32545,73 @@ components:
           description: Calculation's frequency.
           example: example_value
       description: The date parameters for SPAR calculation.
-    FIReferenceSecurity:
+    SPARCalculationParameters:
+      required:
+      - componentid
       type: object
       properties:
-        securityType:
-          type:
-          - string
-          - 'null'
-          description: Reference Security Type
-        securityName:
-          type:
-          - string
-          - 'null'
-          description: Reference Security Name
-        calcFromMethod:
-          type:
-          - string
-          - 'null'
-          description: 'Reference Calculation Method.
-
-            Methods : Active Spread, Actual Spread, Actual Spread To Worst Call, OAS, Price, Yield, Yield To No Call, Act/Act Yield To No Call, Bond Equivalent Yield,
-
-            Yield To Worst Call, Discount Yield, Discount Margin, Implied Volatility, Bullet Spread, Bullet Spread To Worst Call, Pricing Matrix'
-        calcFromValue:
-          type:
-          - number
-          - 'null'
-          description: Reference CalcFromValue
-          format: double
-        prepay:
-          $ref: '#/components/schemas/FIReferencePrepay'
-        settlement:
-          type:
-          - string
-          - 'null'
-          description: Reference Settlement Date
-    FIServicerAdvancesForSecurities:
-      type: object
-      properties:
-        principal:
-          type: number
-          description: Principal
-          format: double
-        interest:
-          type: number
-          description: Interest
-          format: double
-        advanceType:
-          enum:
-          - Advances All
-          - Advances All But Newly Liqdtd
-          - Does Not Advance
-          - Principal Only
-          - Interest Only
+        componentid:
           type: string
-          description: Advance Type
-    FIAttributionForJobSettings:
+          description: The SPAR Engine component identifier to analyze.
+          example: '500123'
+        accounts:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/SPARIdentifier'
+          description: List of accounts for SPAR calculation.
+          example: []
+        benchmark:
+          $ref: '#/components/schemas/SPARIdentifier'
+        dates:
+          $ref: '#/components/schemas/SPARDateParameters'
+        currencyisocode:
+          type:
+          - string
+          - 'null'
+          description: Currency ISO code for calculation.
+          example: example_value
+    SPARBenchmarkRoot:
+      required:
+      - data
       type: object
       properties:
-        startDate:
-          type:
-          - string
-          - 'null'
-          description: Start Date
-        endDate:
-          type:
-          - string
-          - 'null'
-          description: End Date
-    FIBalloonExtension:
+        data:
+          $ref: '#/components/schemas/SPARBenchmark'
+        meta:
+          example: example_value
+    ObjectRoot_7:
+      required:
+      - data
       type: object
       properties:
-        months:
-          type: integer
-          description: Months
-          format: int32
-        percentage:
-          type: number
-          description: Percentage
-          format: double
-        amortizationType:
-          enum:
-          - Loan_Amort_None
-          - Loan_Amort_Regular
-          - Loan_Amort_Default
-          type: string
-          description: Amortization Type
-        units:
-          type:
-          - string
-          - 'null'
-          description: Units
-        couponStepup:
-          type: number
-          description: Coupon Stepup
-          format: double
-    Error_6:
+        data:
+          example: example_value
+        meta:
+          example: example_value
+    SPARIdentifier:
+      required:
+      - id
       type: object
       properties:
         id:
-          type:
-          - string
-          - 'null'
-        code:
-          type:
-          - string
-          - 'null'
-        title:
-          type:
-          - string
-          - 'null'
-        detail:
-          type:
-          - string
-          - 'null'
-        source:
-          $ref: '#/components/schemas/ErrorSource_6'
-    FICashflows:
-      type: object
-      properties:
-        optionalRedemptionCallWhenUnits:
-          enum:
-          - Manual
-          - Never
-          - ASAP
-          - Date
-          - Deal Closing
-          - Settle Date
           type: string
-          description: OptionalRedemptionCallWhenUnits
-        optionalRedemptionCallWhen:
-          type: integer
-          description: OptionalRedemptionCallWhen
-          format: int32
-        recoveryLag:
-          type: integer
-          description: RecoveryLag
-          format: int32
-    FIMarketEnvironment:
-      type: object
-      properties:
-        ratePath:
-          enum:
-          - FLAT
-          - FORWARD
-          - FLAT & FORWARD
-          type: string
-          description: Rate Path
-          default: FLAT & FORWARD
+          description: User's FactSet account OR benchmark id.
+          example: abc123
+        returntype:
+          type:
+          - string
+          - 'null'
+          description: Benchmark return type.
+          example: example_value
+        prefix:
+          type:
+          - string
+          - 'null'
+          description: Benchmark prefix.
+          example: example_value
+      description: The account/benchmark parameter for SPAR calculation.
     CalculationInfo_6:
       type: object
       properties:
@@ -32768,26 +32620,29 @@ components:
           - string
           - 'null'
           description: Calculation identifier
-    FIPrepayLockout:
+    FIDiscountCurveInfo:
       type: object
       properties:
-        pointsAbove:
-          enum:
-          - ANY
-          - NO_LOCKOUT
-          - NUMERIC
-          type: string
-          description: Points Above
-        ymAbove:
-          enum:
-          - ANY
-          - NO_LOCKOUT
-          - NUMERIC
-          type: string
-          description: Ym Above
-    FIMunicipalBonds:
+        category:
+          type:
+          - string
+          - 'null'
+        name:
+          type:
+          - string
+          - 'null'
+        currency:
+          type:
+          - string
+          - 'null'
+    FIMunicipalBondsForJobSettings:
       type: object
       properties:
+        allowSinkForInstallmentPayment:
+          type:
+          - boolean
+          - 'null'
+          description: Allow Sink For Installment Payment
         ignoreSinkingFund:
           type:
           - boolean
@@ -32798,75 +32653,27 @@ components:
           - boolean
           - 'null'
           description: Anticipate Sink Schedule
-    CalculationInfoRoot_5:
-      required:
-      - data
+    FIServicerAdvances:
       type: object
       properties:
-        data:
-          $ref: '#/components/schemas/CalculationInfo_6'
-        meta: {}
-    ErrorSource_6:
-      type: object
-      properties:
-        pointer:
-          type:
-          - string
-          - 'null'
-        parameter:
-          type:
-          - string
-          - 'null'
-    FIJobSettings:
-      required:
-      - asOfDate
-      type: object
-      properties:
-        asOfDate:
+        advanceType:
+          enum:
+          - Advances All
+          - Advances All But Newly Liqdtd
+          - Does Not Advance
+          - Principal Only
+          - Interest Only
           type: string
-          description: As of date
-        partialDurationMonths:
+          description: Advance Type
+    ClientErrorResponse_6:
+      type: object
+      properties:
+        errors:
           type:
           - array
           - 'null'
           items:
-            type: integer
-            format: int32
-          description: Partial duration months
-        callMethod:
-          enum:
-          - No Call
-          - Intrinsic Value
-          - First Call
-          - First Par
-          type:
-          - string
-          - 'null'
-          description: Call Method
-        settlement:
-          type:
-          - string
-          - 'null'
-          description: Settlement Date
-        calcFromMethod:
-          type:
-          - string
-          - 'null'
-          description: 'Calculation Method.
-
-            Methods : Active Spread, Actual Spread, Actual Spread To Worst Call, OAS, Price, Yield, Yield To No Call, Act/Act Yield To No Call, Bond Equivalent Yield,
-
-            Yield To Worst Call, Discount Yield, Discount Margin, Implied Volatility, Bullet Spread, Bullet Spread To Worst Call, Pricing Matrix'
-        bankLoans:
-          $ref: '#/components/schemas/FIBankLoans'
-        municipalBonds:
-          $ref: '#/components/schemas/FIMunicipalBondsForJobSettings'
-        marketEnvironment:
-          $ref: '#/components/schemas/FIMarketEnvironment'
-        structuredProducts:
-          $ref: '#/components/schemas/FIStructuredProductsForJobSettings'
-        attribution:
-          $ref: '#/components/schemas/FIAttributionForJobSettings'
+            $ref: '#/components/schemas/Error_6'
     CalculationMeta_2:
       type: object
       properties:
@@ -32907,63 +32714,37 @@ components:
           - Feather
           type: string
           default: JsonStach
-    FIReferencePrepay:
+    FIDiscountCurveInfoRoot:
+      required:
+      - data
       type: object
       properties:
-        prepayName:
+        data:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/FIDiscountCurveInfo'
+        meta: {}
+    Error_6:
+      type: object
+      properties:
+        id:
           type:
           - string
           - 'null'
-          description: Reference Prepay Name
-    FIMunicipalBondsForJobSettings:
-      type: object
-      properties:
-        allowSinkForInstallmentPayment:
-          type:
-          - boolean
-          - 'null'
-          description: Allow Sink For Installment Payment
-        ignoreSinkingFund:
-          type:
-          - boolean
-          - 'null'
-          description: Ignore Sinking Fund Schedule
-        useAnticipatedSinkSchedule:
-          type:
-          - boolean
-          - 'null'
-          description: Anticipate Sink Schedule
-    FIDiscountCurveInfo:
-      type: object
-      properties:
-        category:
+        code:
           type:
           - string
           - 'null'
-        name:
+        title:
           type:
           - string
           - 'null'
-        currency:
+        detail:
           type:
           - string
           - 'null'
-    FILoss:
-      type: object
-      properties:
-        lossName:
-          type:
-          - string
-          - 'null'
-          description: Loss Name
-    FIBankLoans:
-      type: object
-      properties:
-        ignoreSinkingFund:
-          type:
-          - boolean
-          - 'null'
-          description: Ignore Sinking Fund
+        source:
+          $ref: '#/components/schemas/ErrorSource_6'
     FIStructuredProductsForJobSettings:
       type: object
       properties:
@@ -32990,96 +32771,27 @@ components:
           $ref: '#/components/schemas/FICashflows'
         balloonExtension:
           $ref: '#/components/schemas/FIBalloonExtension'
-    ObjectRoot_8:
-      required:
-      - data
+    FICashflows:
       type: object
       properties:
-        data: {}
-        meta: {}
-    FICalculationParameters:
-      required:
-      - calculations
-      - jobSettings
-      - securities
-      type: object
-      properties:
-        securities:
-          type: array
-          items:
-            $ref: '#/components/schemas/FISecurity'
-          description: List of securities
-        calculations:
-          type: array
-          items:
-            type: string
-          description: List of calculations
-        jobSettings:
-          $ref: '#/components/schemas/FIJobSettings'
-    FIStructuredProductsForSecurities:
-      type: object
-      properties:
-        servicerAdvances:
-          $ref: '#/components/schemas/FIServicerAdvancesForSecurities'
-        ignoreFinancialGuarantee:
-          type:
-          - string
-          - 'null'
-          description: Ignore Financial Guarantee
-        cleanUpCallMethod:
-          type:
-          - boolean
-          - 'null'
-          description: Cleanup Call Method
-        doOPTRedeem:
-          type:
-          - string
-          - 'null'
-          description: Do OPT Redeem
-        prepayLockout:
-          $ref: '#/components/schemas/FIPrepayLockout'
-        cashflows:
-          $ref: '#/components/schemas/FICashflows'
-        balloonExtension:
-          $ref: '#/components/schemas/FIBalloonExtension'
-    ClientErrorResponse_6:
-      type: object
-      properties:
-        errors:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Error_6'
-    FICalculationParametersRoot:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/FICalculationParameters'
-        meta:
-          $ref: '#/components/schemas/CalculationMeta_2'
-    FIDiscountCurveInfoRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/FIDiscountCurveInfo'
-        meta: {}
-    FIServicerAdvances:
-      type: object
-      properties:
-        advanceType:
+        optionalRedemptionCallWhenUnits:
           enum:
-          - Advances All
-          - Advances All But Newly Liqdtd
-          - Does Not Advance
-          - Principal Only
-          - Interest Only
+          - Manual
+          - Never
+          - ASAP
+          - Date
+          - Deal Closing
+          - Settle Date
           type: string
-          description: Advance Type
+          description: OptionalRedemptionCallWhenUnits
+        optionalRedemptionCallWhen:
+          type: integer
+          description: OptionalRedemptionCallWhen
+          format: int32
+        recoveryLag:
+          type: integer
+          description: RecoveryLag
+          format: int32
     FIPrepay:
       type: object
       properties:
@@ -33088,43 +32800,6 @@ components:
           - string
           - 'null'
           description: Prepay Name
-    FIAttributionForSecurities:
-      type: object
-      properties:
-        startPrice:
-          type:
-          - number
-          - 'null'
-          description: Start Price
-          format: double
-        endPrice:
-          type:
-          - number
-          - 'null'
-          description: End Price
-          format: double
-        startSpread:
-          type:
-          - number
-          - 'null'
-          description: Start Spread
-          format: double
-        endSpread:
-          type:
-          - number
-          - 'null'
-          description: End Spread
-          format: double
-        pricingMethod:
-          enum:
-          - Inputted Price
-          - Pricing Matrix
-          - Actual Spread
-          - OAS
-          type:
-          - string
-          - 'null'
-          description: Pricing Method
     FISecurity:
       required:
       - calcFromValue
@@ -33209,19 +32884,331 @@ components:
           - string
           - 'null'
           description: Discount curve
-    PubCalculationMeta:
-      type: object
-    PubIdentifier:
-      required:
-      - id
+    FIMarketEnvironment:
       type: object
       properties:
-        id:
+        ratePath:
+          enum:
+          - FLAT
+          - FORWARD
+          - FLAT & FORWARD
           type: string
-          description: User's FactSet account path OR benchmark.
-        holdingsmode:
+          description: Rate Path
+          default: FLAT & FORWARD
+    ErrorSource_6:
+      type: object
+      properties:
+        pointer:
+          type:
+          - string
+          - 'null'
+        parameter:
+          type:
+          - string
+          - 'null'
+    FIPrepayLockout:
+      type: object
+      properties:
+        pointsAbove:
+          enum:
+          - ANY
+          - NO_LOCKOUT
+          - NUMERIC
           type: string
-          description: Holdings Mode can be B&H, TBR, OMS or EXT.
+          description: Points Above
+        ymAbove:
+          enum:
+          - ANY
+          - NO_LOCKOUT
+          - NUMERIC
+          type: string
+          description: Ym Above
+    FIJobSettings:
+      required:
+      - asOfDate
+      type: object
+      properties:
+        asOfDate:
+          type: string
+          description: As of date
+        partialDurationMonths:
+          type:
+          - array
+          - 'null'
+          items:
+            type: integer
+            format: int32
+          description: Partial duration months
+        callMethod:
+          enum:
+          - No Call
+          - Intrinsic Value
+          - First Call
+          - First Par
+          type:
+          - string
+          - 'null'
+          description: Call Method
+        settlement:
+          type:
+          - string
+          - 'null'
+          description: Settlement Date
+        calcFromMethod:
+          type:
+          - string
+          - 'null'
+          description: 'Calculation Method.
+
+            Methods : Active Spread, Actual Spread, Actual Spread To Worst Call, OAS, Price, Yield, Yield To No Call, Act/Act Yield To No Call, Bond Equivalent Yield,
+
+            Yield To Worst Call, Discount Yield, Discount Margin, Implied Volatility, Bullet Spread, Bullet Spread To Worst Call, Pricing Matrix'
+        bankLoans:
+          $ref: '#/components/schemas/FIBankLoans'
+        municipalBonds:
+          $ref: '#/components/schemas/FIMunicipalBondsForJobSettings'
+        marketEnvironment:
+          $ref: '#/components/schemas/FIMarketEnvironment'
+        structuredProducts:
+          $ref: '#/components/schemas/FIStructuredProductsForJobSettings'
+        attribution:
+          $ref: '#/components/schemas/FIAttributionForJobSettings'
+    CalculationInfoRoot_5:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/CalculationInfo_6'
+        meta: {}
+    FIServicerAdvancesForSecurities:
+      type: object
+      properties:
+        principal:
+          type: number
+          description: Principal
+          format: double
+        interest:
+          type: number
+          description: Interest
+          format: double
+        advanceType:
+          enum:
+          - Advances All
+          - Advances All But Newly Liqdtd
+          - Does Not Advance
+          - Principal Only
+          - Interest Only
+          type: string
+          description: Advance Type
+    FIBalloonExtension:
+      type: object
+      properties:
+        months:
+          type: integer
+          description: Months
+          format: int32
+        percentage:
+          type: number
+          description: Percentage
+          format: double
+        amortizationType:
+          enum:
+          - Loan_Amort_None
+          - Loan_Amort_Regular
+          - Loan_Amort_Default
+          type: string
+          description: Amortization Type
+        units:
+          type:
+          - string
+          - 'null'
+          description: Units
+        couponStepup:
+          type: number
+          description: Coupon Stepup
+          format: double
+    FIReferencePrepay:
+      type: object
+      properties:
+        prepayName:
+          type:
+          - string
+          - 'null'
+          description: Reference Prepay Name
+    FIStructuredProductsForSecurities:
+      type: object
+      properties:
+        servicerAdvances:
+          $ref: '#/components/schemas/FIServicerAdvancesForSecurities'
+        ignoreFinancialGuarantee:
+          type:
+          - string
+          - 'null'
+          description: Ignore Financial Guarantee
+        cleanUpCallMethod:
+          type:
+          - boolean
+          - 'null'
+          description: Cleanup Call Method
+        doOPTRedeem:
+          type:
+          - string
+          - 'null'
+          description: Do OPT Redeem
+        prepayLockout:
+          $ref: '#/components/schemas/FIPrepayLockout'
+        cashflows:
+          $ref: '#/components/schemas/FICashflows'
+        balloonExtension:
+          $ref: '#/components/schemas/FIBalloonExtension'
+    FIAttributionForJobSettings:
+      type: object
+      properties:
+        startDate:
+          type:
+          - string
+          - 'null'
+          description: Start Date
+        endDate:
+          type:
+          - string
+          - 'null'
+          description: End Date
+    FILoss:
+      type: object
+      properties:
+        lossName:
+          type:
+          - string
+          - 'null'
+          description: Loss Name
+    FIAttributionForSecurities:
+      type: object
+      properties:
+        startPrice:
+          type:
+          - number
+          - 'null'
+          description: Start Price
+          format: double
+        endPrice:
+          type:
+          - number
+          - 'null'
+          description: End Price
+          format: double
+        startSpread:
+          type:
+          - number
+          - 'null'
+          description: Start Spread
+          format: double
+        endSpread:
+          type:
+          - number
+          - 'null'
+          description: End Spread
+          format: double
+        pricingMethod:
+          enum:
+          - Inputted Price
+          - Pricing Matrix
+          - Actual Spread
+          - OAS
+          type:
+          - string
+          - 'null'
+          description: Pricing Method
+    FICalculationParametersRoot:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/FICalculationParameters'
+        meta:
+          $ref: '#/components/schemas/CalculationMeta_2'
+    FIMunicipalBonds:
+      type: object
+      properties:
+        ignoreSinkingFund:
+          type:
+          - boolean
+          - 'null'
+          description: Ignore Sinking Fund Schedule
+        useAnticipatedSinkSchedule:
+          type:
+          - boolean
+          - 'null'
+          description: Anticipate Sink Schedule
+    ObjectRoot_8:
+      required:
+      - data
+      type: object
+      properties:
+        data: {}
+        meta: {}
+    FICalculationParameters:
+      required:
+      - calculations
+      - jobSettings
+      - securities
+      type: object
+      properties:
+        securities:
+          type: array
+          items:
+            $ref: '#/components/schemas/FISecurity'
+          description: List of securities
+        calculations:
+          type: array
+          items:
+            type: string
+          description: List of calculations
+        jobSettings:
+          $ref: '#/components/schemas/FIJobSettings'
+    FIReferenceSecurity:
+      type: object
+      properties:
+        securityType:
+          type:
+          - string
+          - 'null'
+          description: Reference Security Type
+        securityName:
+          type:
+          - string
+          - 'null'
+          description: Reference Security Name
+        calcFromMethod:
+          type:
+          - string
+          - 'null'
+          description: 'Reference Calculation Method.
+
+            Methods : Active Spread, Actual Spread, Actual Spread To Worst Call, OAS, Price, Yield, Yield To No Call, Act/Act Yield To No Call, Bond Equivalent Yield,
+
+            Yield To Worst Call, Discount Yield, Discount Margin, Implied Volatility, Bullet Spread, Bullet Spread To Worst Call, Pricing Matrix'
+        calcFromValue:
+          type:
+          - number
+          - 'null'
+          description: Reference CalcFromValue
+          format: double
+        prepay:
+          $ref: '#/components/schemas/FIReferencePrepay'
+        settlement:
+          type:
+          - string
+          - 'null'
+          description: Reference Settlement Date
+    FIBankLoans:
+      type: object
+      properties:
+        ignoreSinkingFund:
+          type:
+          - boolean
+          - 'null'
+          description: Ignore Sinking Fund
     CalculationStatus_3:
       type: object
       properties:
@@ -33239,6 +33226,18 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/CalculationUnitStatus_3'
           description: Number of calculation units in batch.
+    PubCalculationParametersRoot:
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/PubCalculationParameters'
+          description: List of calculation parameters.
+        meta:
+          $ref: '#/components/schemas/PubCalculationMeta'
+    PubCalculationMeta:
+      type: object
     PubCalculationParameters:
       required:
       - account
@@ -33265,21 +33264,6 @@ components:
           type: string
           description: Calculation's end date or as of date.
       description: The date parameters for Publisher calculation.
-    PubCalculationParametersRoot:
-      type: object
-      properties:
-        data:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/PubCalculationParameters'
-          description: List of calculation parameters.
-        meta:
-          $ref: '#/components/schemas/PubCalculationMeta'
-    CalculationStatusRoot_2:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/CalculationStatus_3'
     CalculationUnitStatus_3:
       type: object
       properties:
@@ -33303,47 +33287,67 @@ components:
         progress:
           type: string
           description: The progress of the calculation unit.
-    CalculationStatus_4:
+    CalculationStatusRoot_2:
       type: object
       properties:
-        calculationid:
-          type:
-          - string
-          - 'null'
-          description: Calculation's identifier
-        status:
-          enum:
-          - Queued
-          - Executing
-          - Completed
-          - Cancelled
+        data:
+          $ref: '#/components/schemas/CalculationStatus_3'
+    PubIdentifier:
+      required:
+      - id
+      type: object
+      properties:
+        id:
           type: string
-          description: Calculation's status
-        units:
-          type:
-          - object
-          - 'null'
-          additionalProperties:
-            $ref: '#/components/schemas/CalculationUnitStatus_4'
-          description: Number of calculation units in batch.
-    CalculationUnitStatusMeta_2:
+          description: User's FactSet account path OR benchmark.
+        holdingsmode:
+          type: string
+          description: Holdings Mode can be B&H, TBR, OMS or EXT.
+    Frequency_2:
       type: object
       properties:
-        info:
+        name:
           type:
           - string
           - 'null'
-          description: The Info URL of the calculation.
-    CalculationStatusMeta_2:
+          description: Frequency name.
+    VaultComponent:
       type: object
       properties:
-        units:
+        id:
           type:
-          - object
+          - string
           - 'null'
-          additionalProperties:
-            $ref: '#/components/schemas/CalculationUnitStatusMeta_2'
-          description: Meta of calculation units in batch.
+          description: Vault component identifier
+        account:
+          $ref: '#/components/schemas/VaultIdentifier'
+        benchmark:
+          $ref: '#/components/schemas/VaultIdentifier'
+        currencyisocode:
+          type:
+          - string
+          - 'null'
+          description: Currency iso code saved in the document
+        dates:
+          $ref: '#/components/schemas/VaultDateParameters'
+        snapshot:
+          type: boolean
+          description: Snapshot
+        path:
+          type:
+          - string
+          - 'null'
+          description: The path to the document
+        name:
+          type:
+          - string
+          - 'null'
+          description: Component name.
+        category:
+          type:
+          - string
+          - 'null'
+          description: Component category.
     VaultDateParameters:
       required:
       - enddate
@@ -33362,155 +33366,37 @@ components:
           type: string
           description: Calculation's frequency.
       description: The date parameters for Vault calculation
-    Error_7:
+    ClientErrorResponse_7:
       type: object
       properties:
-        id:
-          type:
-          - string
-          - 'null'
-        code:
-          type:
-          - string
-          - 'null'
-        title:
-          type:
-          - string
-          - 'null'
-        detail:
-          type:
-          - string
-          - 'null'
-        source:
-          $ref: '#/components/schemas/ErrorSource_7'
-    VaultConfiguration:
-      type: object
-      properties:
-        name:
-          type:
-          - string
-          - 'null'
-          description: Configuration name.
-        accounts:
-          type:
-          - object
-          - 'null'
-          additionalProperties:
-            $ref: '#/components/schemas/ConfigurationAccount'
-    CalculationsSummary_2:
-      type: object
-      properties:
-        status:
-          enum:
-          - Queued
-          - Executing
-          - Completed
-          - Cancelled
-          type: string
-          description: Last poll status of the calculation.
-        units:
-          type: integer
-          description: Number of calculation units in batch.
-          format: int32
-        requestTime:
-          type: string
-          description: Request time of calculation.
-          format: date-time
-        lastPollTime:
-          type: string
-          description: Last poll time of calculation.
-          format: date-time
-    VaultIdentifier:
-      required:
-      - id
-      type: object
-      properties:
-        id:
-          type: string
-          description: User's FactSet account path OR benchmark.
-      description: The account/benchmark parameter for Vault calculation.
-    DocumentDirectories_8:
-      type: object
-      properties:
-        documents:
+        errors:
           type:
           - array
           - 'null'
           items:
-            type: string
-          description: List of documents
-        directories:
-          type:
-          - array
-          - 'null'
-          items:
-            type: string
-          description: List of directories.
-    Frequency_2:
-      type: object
-      properties:
-        name:
-          type:
-          - string
-          - 'null'
-          description: Frequency name.
-    VaultConfigurationSummary:
-      type: object
-      properties:
-        name:
-          type:
-          - string
-          - 'null'
-          description: Configuration name.
-    ComponentSummaryRoot_2:
+            $ref: '#/components/schemas/Error_7'
+    VaultCalculationParameters:
       required:
-      - data
+      - account
+      - componentid
+      - configid
       type: object
       properties:
-        data:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/ComponentSummary_2'
-        meta: {}
-    VaultCalculationParametersRoot:
-      type: object
-      properties:
-        data:
-          type:
-          - object
-          - 'null'
-          additionalProperties:
-            $ref: '#/components/schemas/VaultCalculationParameters'
-          description: List of calculation parameters.
-        meta:
-          $ref: '#/components/schemas/CalculationMeta_3'
-    ErrorSource_7:
-      type: object
-      properties:
-        pointer:
+        componentid:
+          type: string
+          description: The Vault component identifier to analyze.
+        account:
+          $ref: '#/components/schemas/VaultIdentifier'
+        dates:
+          $ref: '#/components/schemas/VaultDateParameters'
+        configid:
+          type: string
+          description: Vault Configuration identifier.
+        componentdetail:
           type:
           - string
           - 'null'
-        parameter:
-          type:
-          - string
-          - 'null'
-    DateParametersSummaryRoot_2:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/DateParametersSummary_2'
-        meta: {}
-    VaultConfigurationRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/VaultConfiguration'
-        meta: {}
+          description: Component detail type for the Vault component. It can be GROUPS or GROUPSALL or TOTALS or SECURITIES.
     CalculationMeta_3:
       type: object
       properties:
@@ -33551,163 +33437,105 @@ components:
           - Feather
           type: string
           default: JsonStach
-    PaginationInfo_2:
+    CalculationStatus_4:
       type: object
       properties:
-        pageNumber:
-          type: integer
-          format: int32
-        pageSize:
-          type: integer
-          format: int32
-        totalPages:
-          type: integer
-          format: int32
-        totalCalculations:
-          type: integer
-          format: int32
-        nextPage:
+        calculationid:
           type:
           - string
           - 'null'
-        previousPage:
-          type:
-          - string
-          - 'null'
-    VaultCalculationParameters:
-      required:
-      - account
-      - componentid
-      - configid
-      type: object
-      properties:
-        componentid:
+          description: Calculation's identifier
+        status:
+          enum:
+          - Queued
+          - Executing
+          - Completed
+          - Cancelled
           type: string
-          description: The Vault component identifier to analyze.
-        account:
-          $ref: '#/components/schemas/VaultIdentifier'
-        dates:
-          $ref: '#/components/schemas/VaultDateParameters'
-        configid:
-          type: string
-          description: Vault Configuration identifier.
-        componentdetail:
+          description: Calculation's status
+        units:
           type:
-          - string
+          - object
           - 'null'
-          description: Component detail type for the Vault component. It can be GROUPS or GROUPSALL or TOTALS or SECURITIES.
-    FrequencyRoot_2:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
           additionalProperties:
-            $ref: '#/components/schemas/Frequency_2'
-        meta: {}
-    ConfigurationAccount:
+            $ref: '#/components/schemas/CalculationUnitStatus_4'
+          description: Number of calculation units in batch.
+    DateParametersSummary_2:
       type: object
       properties:
-        benchmarkCode:
+        startdate:
           type:
           - string
           - 'null'
-          description: Benchmark code.
-        benchmarkName:
+          description: Start date in YYYYMMDD format.
+        enddate:
           type:
           - string
           - 'null'
-          description: Benchmark name.
-        maxEndDate:
-          type:
-          - string
-          - 'null'
-          description: Maximum end date.
-        minStartDate:
-          type:
-          - string
-          - 'null'
-          description: Minimum start date.
-        lockingDate:
-          type:
-          - string
-          - 'null'
-          description: Locking date.
-        name:
-          type:
-          - string
-          - 'null'
-          description: Account name.
-    ObjectRoot_9:
+          description: End date in YYYYMMDD format.
+    VaultIdentifier:
       required:
-      - data
+      - id
       type: object
       properties:
-        data: {}
-        meta: {}
-    VaultComponent:
+        id:
+          type: string
+          description: User's FactSet account path OR benchmark.
+      description: The account/benchmark parameter for Vault calculation.
+    Error_7:
       type: object
       properties:
         id:
           type:
           - string
           - 'null'
-          description: Vault component identifier
-        account:
-          $ref: '#/components/schemas/VaultIdentifier'
-        benchmark:
-          $ref: '#/components/schemas/VaultIdentifier'
-        currencyisocode:
+        code:
           type:
           - string
           - 'null'
-          description: Currency iso code saved in the document
-        dates:
-          $ref: '#/components/schemas/VaultDateParameters'
-        snapshot:
-          type: boolean
-          description: Snapshot
-        path:
+        title:
           type:
           - string
           - 'null'
-          description: The path to the document
-        name:
+        detail:
           type:
           - string
           - 'null'
-          description: Component name.
-        category:
-          type:
-          - string
-          - 'null'
-          description: Component category.
-    VaultComponentRoot:
+        source:
+          $ref: '#/components/schemas/ErrorSource_7'
+    DateParametersSummaryRoot_2:
       required:
       - data
       type: object
       properties:
         data:
-          $ref: '#/components/schemas/VaultComponent'
+          $ref: '#/components/schemas/DateParametersSummary_2'
         meta: {}
-    ClientErrorResponse_7:
+    VaultConfigurationRoot:
+      required:
+      - data
       type: object
       properties:
-        errors:
+        data:
+          $ref: '#/components/schemas/VaultConfiguration'
+        meta: {}
+    DocumentDirectories_8:
+      type: object
+      properties:
+        documents:
           type:
           - array
           - 'null'
           items:
-            $ref: '#/components/schemas/Error_7'
-    DocumentDirectoriesRoot_7:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/DocumentDirectories_8'
-        meta: {}
+            type: string
+          description: List of documents
+        directories:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: List of directories.
     VaultConfigurationSummaryRoot:
       required:
       - data
@@ -33718,19 +33546,6 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/VaultConfigurationSummary'
         meta: {}
-    ComponentSummary_2:
-      type: object
-      properties:
-        name:
-          type:
-          - string
-          - 'null'
-          description: Component name.
-        category:
-          type:
-          - string
-          - 'null'
-          description: Component category.
     CalculationUnitStatus_4:
       type: object
       properties:
@@ -33773,19 +33588,204 @@ components:
           items:
             type: string
           description: The warnings in a calculation unit.
-    DateParametersSummary_2:
+    ErrorSource_7:
       type: object
       properties:
-        startdate:
+        pointer:
           type:
           - string
           - 'null'
-          description: Start date in YYYYMMDD format.
-        enddate:
+        parameter:
           type:
           - string
           - 'null'
-          description: End date in YYYYMMDD format.
+    DocumentDirectoriesRoot_7:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DocumentDirectories_8'
+        meta: {}
+    CalculationsSummary_2:
+      type: object
+      properties:
+        status:
+          enum:
+          - Queued
+          - Executing
+          - Completed
+          - Cancelled
+          type: string
+          description: Last poll status of the calculation.
+        units:
+          type: integer
+          description: Number of calculation units in batch.
+          format: int32
+        requestTime:
+          type: string
+          description: Request time of calculation.
+          format: date-time
+        lastPollTime:
+          type: string
+          description: Last poll time of calculation.
+          format: date-time
+    CalculationUnitStatusMeta_2:
+      type: object
+      properties:
+        info:
+          type:
+          - string
+          - 'null'
+          description: The Info URL of the calculation.
+    FrequencyRoot_2:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Frequency_2'
+        meta: {}
+    ComponentSummaryRoot_2:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ComponentSummary_2'
+        meta: {}
+    PaginationInfo_2:
+      type: object
+      properties:
+        pageNumber:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        totalPages:
+          type: integer
+          format: int32
+        totalCalculations:
+          type: integer
+          format: int32
+        nextPage:
+          type:
+          - string
+          - 'null'
+        previousPage:
+          type:
+          - string
+          - 'null'
+    VaultConfigurationSummary:
+      type: object
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+          description: Configuration name.
+    VaultComponentRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/VaultComponent'
+        meta: {}
+    VaultConfiguration:
+      type: object
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+          description: Configuration name.
+        accounts:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            $ref: '#/components/schemas/ConfigurationAccount'
+    VaultCalculationParametersRoot:
+      type: object
+      properties:
+        data:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            $ref: '#/components/schemas/VaultCalculationParameters'
+          description: List of calculation parameters.
+        meta:
+          $ref: '#/components/schemas/CalculationMeta_3'
+    ComponentSummary_2:
+      type: object
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+          description: Component name.
+        category:
+          type:
+          - string
+          - 'null'
+          description: Component category.
+    CalculationStatusMeta_2:
+      type: object
+      properties:
+        units:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            $ref: '#/components/schemas/CalculationUnitStatusMeta_2'
+          description: Meta of calculation units in batch.
+    ConfigurationAccount:
+      type: object
+      properties:
+        benchmarkCode:
+          type:
+          - string
+          - 'null'
+          description: Benchmark code.
+        benchmarkName:
+          type:
+          - string
+          - 'null'
+          description: Benchmark name.
+        maxEndDate:
+          type:
+          - string
+          - 'null'
+          description: Maximum end date.
+        minStartDate:
+          type:
+          - string
+          - 'null'
+          description: Minimum start date.
+        lockingDate:
+          type:
+          - string
+          - 'null'
+          description: Locking date.
+        name:
+          type:
+          - string
+          - 'null'
+          description: Account name.
+    ObjectRoot_9:
+      required:
+      - data
+      type: object
+      properties:
+        data: {}
+        meta: {}
   securitySchemes:
     basicAuth:
       type: http

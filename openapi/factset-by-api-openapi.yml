@@ -243,50 +243,23 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
-    AttributesMember:
-      type: array
-      description: Limit the attributes returned in the response to the specified set.
-      items:
-        type: string
-        maxLength: 100
-      maxItems: 50
-      uniqueItems: true
-    PostNotationCrossReferenceFactSetIdentifierListByFactSetIdentifierRequest:
-      x-property-sort:
-      - data
-      - meta
-      description: Request Body
-      required:
-      - data
+    StatusObject:
       type: object
       properties:
-        data:
-          type: object
-          x-property-sort:
-          - symbologyIdentifier
-          description: The data member contains the request's primary data.
-          properties:
-            symbologyIdentifier:
-              type: string
-              pattern: ^[B-DF-HJ-NP-TV-Z0-9]{6}-[SLR]$|[A-Z0-9.#&*+]{1,47}-[A-Z0-9]{2,4}$
-              maxLength: 50
-              minLength: 4
-              description: FactSet Symbology Identifier. See the endpoint description for valid FactSet Symbology Identifier types.
-          required:
-          - symbologyIdentifier
-          example: example_value
-        meta:
-          type: object
-          description: The meta member contains the meta information of the request.
-          properties:
-            attributes:
-              $ref: '#/components/schemas/AttributesMember'
-            language:
-              $ref: '#/components/schemas/LanguageMember'
-          x-property-sort:
-          - attributes
-          - language
-          example: example_value
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
+    LanguageMember:
+      type: string
+      format: isoLanguage
+      description: ISO 639-1 code of the language.
+      maxLength: 2
+      minLength: 2
     PostNotationCrossReferenceFactSetIdentifierListByInstrumentRequest:
       x-property-sort:
       - data
@@ -362,23 +335,6 @@ components:
           - attributes
           - language
           example: example_value
-    StatusObject:
-      type: object
-      properties:
-        code:
-          type: number
-          format: int32
-          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
-          example: 42.5
-      description: The status member contains the status code of the response.
-      required:
-      - code
-    LanguageMember:
-      type: string
-      format: isoLanguage
-      description: ISO 639-1 code of the language.
-      maxLength: 2
-      minLength: 2
     OffsetBasedPaginationOutputObject:
       type: object
       description: Pagination attributes for the offset-based pagination strategy.
@@ -398,6 +354,50 @@ components:
       x-property-sort:
       - total
       - isEstimatedTotal
+    PostNotationCrossReferenceFactSetIdentifierListByFactSetIdentifierRequest:
+      x-property-sort:
+      - data
+      - meta
+      description: Request Body
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - symbologyIdentifier
+          description: The data member contains the request's primary data.
+          properties:
+            symbologyIdentifier:
+              type: string
+              pattern: ^[B-DF-HJ-NP-TV-Z0-9]{6}-[SLR]$|[A-Z0-9.#&*+]{1,47}-[A-Z0-9]{2,4}$
+              maxLength: 50
+              minLength: 4
+              description: FactSet Symbology Identifier. See the endpoint description for valid FactSet Symbology Identifier types.
+          required:
+          - symbologyIdentifier
+          example: example_value
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+            language:
+              $ref: '#/components/schemas/LanguageMember'
+          x-property-sort:
+          - attributes
+          - language
+          example: example_value
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+      maxItems: 50
+      uniqueItems: true
   responses:
     PostNotationCrossReferenceFactSetIdentifierListByInstrument200Response:
       description: Successful Response
@@ -559,109 +559,6 @@ components:
                     $ref: '#/components/schemas/StatusObject'
                 x-property-sort:
                 - status
-            x-property-sort:
-            - data
-            - meta
-    GetCategoryListBySystem200Response:
-      description: Successful Response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: object
-                properties:
-                  categories:
-                    type: array
-                    items:
-                      type: object
-                      x-property-sort:
-                      - id
-                      - code
-                      - name
-                      - description
-                      - active
-                      - level
-                      - parent
-                      properties:
-                        id:
-                          type:
-                          - number
-                          - 'null'
-                          format: id32
-                          x-positive: true
-                          description: Identifier of the category.
-                        code:
-                          type:
-                          - string
-                          - 'null'
-                          description: Code commonly used for this category.
-                        name:
-                          type:
-                          - string
-                          - 'null'
-                          format: localizedString
-                          description: Name of the category.
-                        description:
-                          type:
-                          - string
-                          - 'null'
-                          format: localizedString
-                          description: Description of the category.
-                        active:
-                          type:
-                          - boolean
-                          - 'null'
-                          description: Indicates whether this category is active.
-                        level:
-                          type: object
-                          x-property-sort:
-                          - id
-                          - number
-                          description: Category level.
-                          properties:
-                            id:
-                              type:
-                              - number
-                              - 'null'
-                              format: id32
-                              x-positive: true
-                              description: Identifier of the category level.
-                            number:
-                              type:
-                              - number
-                              - 'null'
-                              format: int32
-                              description: Number of the category level starting with 1, indicating the distance to the root of the category hierarchy.
-                        parent:
-                          type: object
-                          x-property-sort:
-                          - id
-                          description: Parent category. The attributes of the parent category are `null` if this category is on the first level.
-                          properties:
-                            id:
-                              type:
-                              - number
-                              - 'null'
-                              format: id32
-                              x-positive: true
-                              description: Identifier of the category.
-                    description: List of categories.
-                description: List of the categories.
-                x-property-sort:
-                - categories
-              meta:
-                type: object
-                description: The meta member contains the meta information of the response.
-                properties:
-                  status:
-                    $ref: '#/components/schemas/StatusObject'
-                  pagination:
-                    $ref: '#/components/schemas/OffsetBasedPaginationOutputObject'
-                x-property-sort:
-                - status
-                - pagination
             x-property-sort:
             - data
             - meta
@@ -839,6 +736,109 @@ components:
                     $ref: '#/components/schemas/StatusObject'
                 x-property-sort:
                 - status
+            x-property-sort:
+            - data
+            - meta
+    GetCategoryListBySystem200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items:
+                      type: object
+                      x-property-sort:
+                      - id
+                      - code
+                      - name
+                      - description
+                      - active
+                      - level
+                      - parent
+                      properties:
+                        id:
+                          type:
+                          - number
+                          - 'null'
+                          format: id32
+                          x-positive: true
+                          description: Identifier of the category.
+                        code:
+                          type:
+                          - string
+                          - 'null'
+                          description: Code commonly used for this category.
+                        name:
+                          type:
+                          - string
+                          - 'null'
+                          format: localizedString
+                          description: Name of the category.
+                        description:
+                          type:
+                          - string
+                          - 'null'
+                          format: localizedString
+                          description: Description of the category.
+                        active:
+                          type:
+                          - boolean
+                          - 'null'
+                          description: Indicates whether this category is active.
+                        level:
+                          type: object
+                          x-property-sort:
+                          - id
+                          - number
+                          description: Category level.
+                          properties:
+                            id:
+                              type:
+                              - number
+                              - 'null'
+                              format: id32
+                              x-positive: true
+                              description: Identifier of the category level.
+                            number:
+                              type:
+                              - number
+                              - 'null'
+                              format: int32
+                              description: Number of the category level starting with 1, indicating the distance to the root of the category hierarchy.
+                        parent:
+                          type: object
+                          x-property-sort:
+                          - id
+                          description: Parent category. The attributes of the parent category are `null` if this category is on the first level.
+                          properties:
+                            id:
+                              type:
+                              - number
+                              - 'null'
+                              format: id32
+                              x-positive: true
+                              description: Identifier of the category.
+                    description: List of categories.
+                description: List of the categories.
+                x-property-sort:
+                - categories
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                  pagination:
+                    $ref: '#/components/schemas/OffsetBasedPaginationOutputObject'
+                x-property-sort:
+                - status
+                - pagination
             x-property-sort:
             - data
             - meta

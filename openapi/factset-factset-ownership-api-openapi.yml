@@ -166,6 +166,27 @@ paths:
           $ref: '#/components/responses/500'
 components:
   schemas:
+    assetType:
+      description: Select type of assets returned, whereby EQ = Equity, FI = Fixed Income, and ALL = all asset types.
+      type: string
+      enum:
+      - ALL
+      - EQ
+      - FI
+      default: EQ
+    idHolders:
+      description: Security Requested for Holders information.
+      type: array
+      items:
+        type: string
+      minItems: 1
+      maxItems: 1
+      example:
+      - FDS-US
+    requestedDate:
+      description: Date of holdings expressed in YYYY-MM-DD format.
+      type: string
+      example: '2019-09-30'
     fundHolding:
       title: Fund Holding
       description: fundHolding response object
@@ -255,23 +276,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/fundHolding'
-    fundHoldingsRequest:
-      title: Holdings Request
-      description: Holdings Request
-      type: object
-      properties:
-        ids:
-          $ref: '#/components/schemas/idFundHoldings'
-        date:
-          $ref: '#/components/schemas/requestedDate'
-        topn:
-          $ref: '#/components/schemas/topn'
-        assetType:
-          $ref: '#/components/schemas/assetType'
-        currency:
-          $ref: '#/components/schemas/currency'
-      required:
-      - ids
+    currency:
+      description: Currency code for adjusting prices. Default is Local. For a list of currency ISO codes, visit [Online Assistant Page 1470](https://oa.apps.factset.com/pages/1470).
+      type: string
+      example: USD
     holderType:
       type: string
       enum:
@@ -282,14 +290,42 @@ components:
       - B
       default: F
       description: "Controls the Holder Type of the data returned. By default, the service will return Institutional Holders. Requesting All Holders is not currently supported. Only a single Holder Type is allowed per request.\n  * **F** = Institutions\n  * **M** = Mutual Funds\n  * **S** =  Insiders/Stakeholders\n  * **FS** = Institutions/Insiders\n  * **B** = Beneficial Owners\n"
-    assetType:
-      description: Select type of assets returned, whereby EQ = Equity, FI = Fixed Income, and ALL = all asset types.
-      type: string
-      enum:
-      - ALL
-      - EQ
-      - FI
-      default: EQ
+    securityHoldersRequest:
+      title: Security Holders Request
+      description: Security Holders Request
+      type: object
+      properties:
+        ids:
+          $ref: '#/components/schemas/idHolders'
+        holderType:
+          $ref: '#/components/schemas/holderType'
+        date:
+          $ref: '#/components/schemas/requestedDate'
+        topn:
+          $ref: '#/components/schemas/topn'
+        currency:
+          $ref: '#/components/schemas/currency'
+      required:
+      - ids
+    securityHoldersResponse:
+      title: Security Holders Response
+      type: object
+      description: securityHolders response
+      properties:
+        data:
+          description: Array of Security Holders
+          type: array
+          items:
+            $ref: '#/components/schemas/securityHolders'
+    idFundHoldings:
+      description: List of Fund identifiers.
+      type: array
+      items:
+        type: string
+      minItems: 1
+      maxItems: 10
+      example:
+      - FDIVX-US
     errorResponse:
       type: object
       description: error description
@@ -330,33 +366,28 @@ components:
               type: array
               items:
                 type: string
-    securityHoldersRequest:
-      title: Security Holders Request
-      description: Security Holders Request
+    topn:
+      description: Limits number of holdings or holders displayed by the top *n* securities. Default is ALL, or use integer to limit number.
+      type: string
+      default: ALL
+      example: 5
+    fundHoldingsRequest:
+      title: Holdings Request
+      description: Holdings Request
       type: object
       properties:
         ids:
-          $ref: '#/components/schemas/idHolders'
-        holderType:
-          $ref: '#/components/schemas/holderType'
+          $ref: '#/components/schemas/idFundHoldings'
         date:
           $ref: '#/components/schemas/requestedDate'
         topn:
           $ref: '#/components/schemas/topn'
+        assetType:
+          $ref: '#/components/schemas/assetType'
         currency:
           $ref: '#/components/schemas/currency'
       required:
       - ids
-    securityHoldersResponse:
-      title: Security Holders Response
-      type: object
-      description: securityHolders response
-      properties:
-        data:
-          description: Array of Security Holders
-          type: array
-          items:
-            $ref: '#/components/schemas/securityHolders'
     securityHolders:
       title: Security Holders
       description: Security Holders response object
@@ -453,113 +484,17 @@ components:
             '
           type: string
           example: FDS-US
-    idHolders:
-      description: Security Requested for Holders information.
-      type: array
-      items:
-        type: string
-      minItems: 1
-      maxItems: 1
-      example:
-      - FDS-US
-    currency:
-      description: Currency code for adjusting prices. Default is Local. For a list of currency ISO codes, visit [Online Assistant Page 1470](https://oa.apps.factset.com/pages/1470).
-      type: string
-      example: USD
-    requestedDate:
-      description: Date of holdings expressed in YYYY-MM-DD format.
-      type: string
-      example: '2019-09-30'
-    idFundHoldings:
-      description: List of Fund identifiers.
-      type: array
-      items:
-        type: string
-      minItems: 1
-      maxItems: 10
-      example:
-      - FDIVX-US
-    topn:
-      description: Limits number of holdings or holders displayed by the top *n* securities. Default is ALL, or use integer to limit number.
-      type: string
-      default: ALL
-      example: 5
   examples:
-    singleSecurityHolder:
-      summary: The Top 5 Mutual Fund holder of FDS-US as of 2020-06-30.
-      description: The Top 5 Mutual Fund Holder of FDS-US as of 2020-06-30. Since the request specified mutual fund as the holder type, the response will include the mutual fund and its related mutual funds. To request other holder types change the holderType parameter.
+    MultipleIdentifiersPostRequest:
+      summary: Request body to fetch the Equity Fund-Holdings Details
+      description: The given post request body help to fetch the VTI-US,FDIVX-US top 5 Equity type fund-holding details till the date 2020-01-01.
       value:
-        data:
-        - adjHolding: 1240000,
-          adjMarketValue: 415251200,
-          currency: USD
-          date: '2020-08-31'
-          fsymId: SQFMK3-R
-          holderEntityId: 04B8QD-E
-          holderId: M4000376
-          holderName: Baron Growth Fund
-          holderType: Mutual Fund
-          investorType: Open-End Fund
-          percentOutstanding: 3.2637
-          requestId: FDS-US
-          source: US Fund (N-30D)
-          weightClose: 5.6182
-        - adjHolding: 1064539
-          adjMarketValue: 356492820.32
-          currency: USD
-          date: '2020-09-30'
-          fsymId: SQFMK3-R
-          holderEntityId: 04BF4M-E
-          holderId: M4004630
-          holderName: Vanguard Total Stock Market Index Fund
-          holderType: Mutual Fund
-          investorType: Open-End Fund
-          percentOutstanding: 2.8019
-          requestId: FDS-US
-          source: US Fund (N-30D)
-          weightClose: 0.0382
-        - adjHolding: 998453
-          adjMarketValue: 334361940.64
-          currency: USD
-          date: '2020-09-30'
-          fsymId: SQFMK3-R
-          holderEntityId: 04BHCW-E
-          holderId: M4006777
-          holderName: iShares Core S&P Mid Cap ETF
-          holderType: Mutual Fund
-          investorType: Exchange Traded Fund
-          percentOutstanding: 2.628
-          requestId: FDS-US
-          source: US Fund (N-30D)
-          weightClose: 0.7701
-        - adjHolding: 876793
-          adjMarketValue: 293620439.84
-          currency: USD
-          date: '2020-09-30'
-          fsymId: SQFMK3-R
-          holderEntityId: 04BFYD-E
-          holderId: M4005398
-          holderName: Vanguard Mid Cap Index Fund
-          holderType: Mutual Fund
-          investorType: Open-End Fund
-          percentOutstanding: 2.3077
-          requestId: FDS-US
-          source: US Fund (N-30D)
-          weightClose: 0.2607
-        - adjHolding: 728381
-          adjMarketValue: 243920229.28
-          currency: USD
-          date: '2020-03-31'
-          fsymId: SQFMK3-R
-          holderEntityId: 04BSJN-E
-          holderId: M4015574
-          holderName: Morgan Stanley Invt. Fds. - Global Brands Fund
-          holderType: Mutual Fund
-          investorType: Open-End Fund
-          percentOutstanding: 1.9171
-          requestId: FDS-US
-          source: Non-US portfolio
-          weightClose: 1.4245
+        ids:
+        - VTI-US
+        - FDIVX-US
+        date: '2019-12-31'
+        topn: 5
+        assetType: EQ
     badRequestFutureDate:
       summary: Bad Request - Future Date
       description: This error message occurs when a future date is requested in the date parameters. Please revise your request to include dates as of today's current date or any prior historical date.
@@ -569,14 +504,23 @@ components:
         path: /factset-ownership/v1/{end-point}
         message: 'The use of future dates for date parameter(s) is not applicable. Please revise your request to include dates up to today''s current date. '
         subErrors: null
-    unsupportedMediaType:
-      summary: Unsupported Media Type
-      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
+    unauthenticated:
+      summary: User Authentication Failed
+      description: This occurs when a user is not properly authenticated or recognized by the service. Please double check the USERNAME-SERIAL and API-Key used to request and ensure you are within the IP range specified for the Key. Report Issue under 401 error for help with troubleshooting.
       value:
-        status: Unsupported Media Type
-        timestamp: '2019-11-05 09:42:27.237'
+        status: User Authentication Failed
+        timestamp: '2019-10-31 16:08:07.945'
         path: /factset-ownership/v1/{endpoint}
-        message: text/html media type is not supported. Supported media types are application/json
+        message: User Authentication Failed.
+        subErrors: null
+    badRequestInvalidParameters:
+      summary: Bad Request - Invalid Parameters
+      description: This error message occurs when a request parameter is used in which is not recognized by the service. Please revise your request to include only the parameters listed in the specification. Typical causes are spelling mistakes and use of improper casing.
+      value:
+        status: Bad Request
+        timestamp: '2020-08-03 12:02:47.804'
+        path: /factset-ownership/v1/{end-point}
+        message: 'Invalid Parameter (s): dated. Please modify your request to use parameters outlined in the specification for this endpoint.'
         subErrors: null
     top5InsidersRequest:
       summary: Requesting the latest available top 5 insiders and stakeholders for TSLA-US
@@ -586,24 +530,6 @@ components:
         - TSLA-US
         topn: 5
         holderType: S
-    notWritable:
-      summary: Internal Server Error - Not Writable
-      description: This error may be returned when the server encounters an error writing the JSON response.
-      value:
-        status: Internal Server Error
-        timestamp: '2019-11-05 09:48:29.18'
-        path: /factset-ownership/v1/{endpoint}
-        message: Error writing JSON output
-        subErrors: null
-    badRequestMalformedJSON:
-      summary: Bad Request - Malformed JSON Request
-      description: This error may be returned when the request body is specified as JSON, but is not in proper JSON format.
-      value:
-        status: Bad Request
-        timestamp: '2020-08-03 12:03:34.409'
-        path: /factset-ownership/v1/{end-point}
-        message: Malformed JSON Request
-        subErrors: null
     singleIdentiferPostRequest:
       summary: Request body to fetch the Top 5 Equity Holdings in VTI-US as of 2019 Year-End.
       description: The given post request body fetches the Top 5 Equity Holdings in the Vanguard Total Stock Index ETF as of 2019-12-31.
@@ -613,6 +539,34 @@ components:
         date: '2019-12-31'
         topn: 5
         assetType: EQ
+    forbidden:
+      summary: Forbidden
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      value:
+        status: Forbidden
+        timestamp: '2020-06-12 16:08:51.731'
+        path: /factset-ownership/v1/{endpoint}
+        message: USERNAME-SERIAL does not have permission to use /factset-ownership/v1/{endpoint}
+        subErrors: null
+    singleSecurityHolderPostRequest:
+      summary: Requesting the Top Institution Holder of FDS-US as of 2020-06-30.
+      description: Requesting the Top Institution Holder of FDS-US as of 2020-06-30.
+      value:
+        ids:
+        - FDS-US
+        date: '2020-06-30'
+        topn: 1
+        holderType: F
+        currency: USD
+    badRequestDateFormat:
+      summary: Bad Request - Date Format
+      description: This bad request occurs when a request doesn't use the YYYY-MM-DD in the date parameters. To resolve, convert your date to YYYY-MM-DD.
+      value:
+        status: Bad Request
+        timestamp: '2020-08-03 12:00:31.777'
+        path: /factset-ownership/v1/{end-point}
+        message: 'The date parameter(s) must be in the following date format: YYYY-MM-DD. '
+        subErrors: null
     badRequestRequiredParameter:
       summary: Bad Request - Required Parameter Missing
       description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisks symbol in the specification file.
@@ -621,6 +575,24 @@ components:
         timestamp: '2020-08-03 12:01:06.553'
         path: /factset-ownership/v1/{end-point}
         message: The parameter 'ids' is required and may not be empty.
+        subErrors: null
+    notWritable:
+      summary: Internal Server Error - Not Writable
+      description: This error may be returned when the server encounters an error writing the JSON response.
+      value:
+        status: Internal Server Error
+        timestamp: '2019-11-05 09:48:29.18'
+        path: /factset-ownership/v1/{endpoint}
+        message: Error writing JSON output
+        subErrors: null
+    badRequestReadTimeout:
+      summary: Bad Request - Read Timeout
+      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
+      value:
+        status: Bad Request
+        timestamp: '2019-11-04 16:18:38.949'
+        path: /factset-ownership/v1/{end-point}
+        message: The request took too long. Try again with a smaller request.
         subErrors: null
     singleIdentifer:
       summary: VTI-US Top 5 Equities Held as of 2019-12-31
@@ -687,33 +659,6 @@ components:
           fsymRegionalId: DBNXVB-R
           securityName: BERKSHIRE HATHAWAY INC  CL B
           securityTicker: BRK.B-US
-    forbidden:
-      summary: Forbidden
-      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
-      value:
-        status: Forbidden
-        timestamp: '2020-06-12 16:08:51.731'
-        path: /factset-ownership/v1/{endpoint}
-        message: USERNAME-SERIAL does not have permission to use /factset-ownership/v1/{endpoint}
-        subErrors: null
-    badRequestReadTimeout:
-      summary: Bad Request - Read Timeout
-      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
-      value:
-        status: Bad Request
-        timestamp: '2019-11-04 16:18:38.949'
-        path: /factset-ownership/v1/{end-point}
-        message: The request took too long. Try again with a smaller request.
-        subErrors: null
-    generalException:
-      summary: Internal Server Error - General Exception
-      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
-      value:
-        status: Internal Server Error
-        timestamp: '2019-11-01 10:36:01.944'
-        path: /factset-ownership/v1/{endpoint}
-        message: Unexpected error
-        subErrors: null
     insiderTop5Holders:
       summary: Top 5 Institution holders for FDS-US as of 2020-06-30.
       description: Top 5 Institution holders for FDS-US as of 2020-06-30.
@@ -789,44 +734,6 @@ components:
           requestId: FDS-US
           source: 13F Form
           weightClose: 1.8401
-    singleSecurityHolderPostRequest:
-      summary: Requesting the Top Institution Holder of FDS-US as of 2020-06-30.
-      description: Requesting the Top Institution Holder of FDS-US as of 2020-06-30.
-      value:
-        ids:
-        - FDS-US
-        date: '2020-06-30'
-        topn: 1
-        holderType: F
-        currency: USD
-    badRequestDateFormat:
-      summary: Bad Request - Date Format
-      description: This bad request occurs when a request doesn't use the YYYY-MM-DD in the date parameters. To resolve, convert your date to YYYY-MM-DD.
-      value:
-        status: Bad Request
-        timestamp: '2020-08-03 12:00:31.777'
-        path: /factset-ownership/v1/{end-point}
-        message: 'The date parameter(s) must be in the following date format: YYYY-MM-DD. '
-        subErrors: null
-    MultipleIdentifiersPostRequest:
-      summary: Request body to fetch the Equity Fund-Holdings Details
-      description: The given post request body help to fetch the VTI-US,FDIVX-US top 5 Equity type fund-holding details till the date 2020-01-01.
-      value:
-        ids:
-        - VTI-US
-        - FDIVX-US
-        date: '2019-12-31'
-        topn: 5
-        assetType: EQ
-    badRequestInvalidParameters:
-      summary: Bad Request - Invalid Parameters
-      description: This error message occurs when a request parameter is used in which is not recognized by the service. Please revise your request to include only the parameters listed in the specification. Typical causes are spelling mistakes and use of improper casing.
-      value:
-        status: Bad Request
-        timestamp: '2020-08-03 12:02:47.804'
-        path: /factset-ownership/v1/{end-point}
-        message: 'Invalid Parameter (s): dated. Please modify your request to use parameters outlined in the specification for this endpoint.'
-        subErrors: null
     multipleIdentifiers:
       summary: Top 5 Equity Holdings for VTI-US, MABAX, and NZF as of 2019-12-31
       description: The Top 5 Equity Holdings of VTI-US, MABAX, and NZF as of 2019-12-31.
@@ -1012,34 +919,109 @@ components:
           fsymRegionalId: Q9MW50-R
           securityName: BLACKROCK MUNIHOLDINGS FUND INC
           securityTicker: MHD-US
-    unauthenticated:
-      summary: User Authentication Failed
-      description: This occurs when a user is not properly authenticated or recognized by the service. Please double check the USERNAME-SERIAL and API-Key used to request and ensure you are within the IP range specified for the Key. Report Issue under 401 error for help with troubleshooting.
+    badRequestMalformedJSON:
+      summary: Bad Request - Malformed JSON Request
+      description: This error may be returned when the request body is specified as JSON, but is not in proper JSON format.
       value:
-        status: User Authentication Failed
-        timestamp: '2019-10-31 16:08:07.945'
+        status: Bad Request
+        timestamp: '2020-08-03 12:03:34.409'
+        path: /factset-ownership/v1/{end-point}
+        message: Malformed JSON Request
+        subErrors: null
+    singleSecurityHolder:
+      summary: The Top 5 Mutual Fund holder of FDS-US as of 2020-06-30.
+      description: The Top 5 Mutual Fund Holder of FDS-US as of 2020-06-30. Since the request specified mutual fund as the holder type, the response will include the mutual fund and its related mutual funds. To request other holder types change the holderType parameter.
+      value:
+        data:
+        - adjHolding: 1240000,
+          adjMarketValue: 415251200,
+          currency: USD
+          date: '2020-08-31'
+          fsymId: SQFMK3-R
+          holderEntityId: 04B8QD-E
+          holderId: M4000376
+          holderName: Baron Growth Fund
+          holderType: Mutual Fund
+          investorType: Open-End Fund
+          percentOutstanding: 3.2637
+          requestId: FDS-US
+          source: US Fund (N-30D)
+          weightClose: 5.6182
+        - adjHolding: 1064539
+          adjMarketValue: 356492820.32
+          currency: USD
+          date: '2020-09-30'
+          fsymId: SQFMK3-R
+          holderEntityId: 04BF4M-E
+          holderId: M4004630
+          holderName: Vanguard Total Stock Market Index Fund
+          holderType: Mutual Fund
+          investorType: Open-End Fund
+          percentOutstanding: 2.8019
+          requestId: FDS-US
+          source: US Fund (N-30D)
+          weightClose: 0.0382
+        - adjHolding: 998453
+          adjMarketValue: 334361940.64
+          currency: USD
+          date: '2020-09-30'
+          fsymId: SQFMK3-R
+          holderEntityId: 04BHCW-E
+          holderId: M4006777
+          holderName: iShares Core S&P Mid Cap ETF
+          holderType: Mutual Fund
+          investorType: Exchange Traded Fund
+          percentOutstanding: 2.628
+          requestId: FDS-US
+          source: US Fund (N-30D)
+          weightClose: 0.7701
+        - adjHolding: 876793
+          adjMarketValue: 293620439.84
+          currency: USD
+          date: '2020-09-30'
+          fsymId: SQFMK3-R
+          holderEntityId: 04BFYD-E
+          holderId: M4005398
+          holderName: Vanguard Mid Cap Index Fund
+          holderType: Mutual Fund
+          investorType: Open-End Fund
+          percentOutstanding: 2.3077
+          requestId: FDS-US
+          source: US Fund (N-30D)
+          weightClose: 0.2607
+        - adjHolding: 728381
+          adjMarketValue: 243920229.28
+          currency: USD
+          date: '2020-03-31'
+          fsymId: SQFMK3-R
+          holderEntityId: 04BSJN-E
+          holderId: M4015574
+          holderName: Morgan Stanley Invt. Fds. - Global Brands Fund
+          holderType: Mutual Fund
+          investorType: Open-End Fund
+          percentOutstanding: 1.9171
+          requestId: FDS-US
+          source: Non-US portfolio
+          weightClose: 1.4245
+    generalException:
+      summary: Internal Server Error - General Exception
+      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
+      value:
+        status: Internal Server Error
+        timestamp: '2019-11-01 10:36:01.944'
         path: /factset-ownership/v1/{endpoint}
-        message: User Authentication Failed.
+        message: Unexpected error
+        subErrors: null
+    unsupportedMediaType:
+      summary: Unsupported Media Type
+      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
+      value:
+        status: Unsupported Media Type
+        timestamp: '2019-11-05 09:42:27.237'
+        path: /factset-ownership/v1/{endpoint}
+        message: text/html media type is not supported. Supported media types are application/json
         subErrors: null
   responses:
-    '415':
-      description: Unsupported Media Type. This error may be returned when the caller sends a resource in a format that is not accepted by the server. This can be fixed by ensuring that Content-Type header is set to the correct value. In this instance, "application/json" would be the appropriate value.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/errorResponse'
-          examples:
-            Bad Request - Date Format:
-              $ref: '#/components/examples/unsupportedMediaType'
-    '403':
-      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/errorResponse'
-          examples:
-            Bad Request - Date Format:
-              $ref: '#/components/examples/forbidden'
     '500':
       description: Internal Server Error.
       content:
@@ -1070,6 +1052,24 @@ components:
               $ref: '#/components/examples/badRequestMalformedJSON'
             Bad Request - Read Timeout:
               $ref: '#/components/examples/badRequestReadTimeout'
+    '415':
+      description: Unsupported Media Type. This error may be returned when the caller sends a resource in a format that is not accepted by the server. This can be fixed by ensuring that Content-Type header is set to the correct value. In this instance, "application/json" would be the appropriate value.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/unsupportedMediaType'
+    '403':
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/forbidden'
     '401':
       description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the **Report Issue** in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
       content:
@@ -1080,6 +1080,13 @@ components:
             Bad Request - Date Format:
               $ref: '#/components/examples/unauthenticated'
   parameters:
+    currency:
+      name: currency
+      in: query
+      schema:
+        type: string
+      description: Currency code for adjusting prices. Default is Local. For a list of currency ISO codes, visit [Online Assistant Page 1470](https://oa.apps.factset.com/pages/1470).
+      example: USD
     requestedDate:
       name: date
       in: query
@@ -1088,26 +1095,32 @@ components:
       required: false
       description: Date of holdings expressed in YYYY-MM-DD format. The fund-holdings endpoint will default to latest month-end close.
       example: '2019-12-31'
-    assetType:
-      name: assetType
-      schema:
-        type: string
-        default: EQ
-        enum:
-        - ALL
-        - EQ
-        - FI
-      description: "Filter holdings by the following major asset classes -\n  * **EQ**  = Equity\n  * **FI** = Fixed Income\n  * **ALL** = ALL\n"
+    topn:
+      name: topn
+      description: Limits number of holdings or holders displayed by the top *n* securities based on positions Market Value. Default is ALL, otherwise use number to limit number.
       in: query
       required: false
-      example: EQ
-    currency:
-      name: currency
-      in: query
       schema:
         type: string
-      description: Currency code for adjusting prices. Default is Local. For a list of currency ISO codes, visit [Online Assistant Page 1470](https://oa.apps.factset.com/pages/1470).
-      example: USD
+        default: ALL
+      example: 5
+    idHolders:
+      name: ids
+      description: Requested list of security identifiers. <p>***ids limit** =  1 per request*</p>.
+      in: query
+      schema:
+        type: array
+        items:
+          type: string
+        minItems: 1
+        maxItems: 1
+      required: true
+      explode: false
+      examples:
+        singleSecurityIdentifer:
+          summary: Requesting Holders information for FDS-US
+          value:
+          - FDS-US
     idFundHoldings:
       name: ids
       description: List of requested fund identifiers. <p>***ids limit** =  10 per request*</p>
@@ -1131,15 +1144,19 @@ components:
           - VTI-USA
           - MABAX
           - NZF
-    topn:
-      name: topn
-      description: Limits number of holdings or holders displayed by the top *n* securities based on positions Market Value. Default is ALL, otherwise use number to limit number.
-      in: query
-      required: false
+    assetType:
+      name: assetType
       schema:
         type: string
-        default: ALL
-      example: 5
+        default: EQ
+        enum:
+        - ALL
+        - EQ
+        - FI
+      description: "Filter holdings by the following major asset classes -\n  * **EQ**  = Equity\n  * **FI** = Fixed Income\n  * **ALL** = ALL\n"
+      in: query
+      required: false
+      example: EQ
     holderType:
       name: holderType
       in: query
@@ -1153,23 +1170,6 @@ components:
         - B
         default: F
       description: "Controls the Holder Type of the data returned. By default, the service will return Institutional Holders. Requesting All Holders is not currently supported. Only a single Holder Type is allowed per request.\n  * **F** = Institutions\n  * **M** = Mutual Funds\n  * **S** =  Insiders/Stakeholders\n  * **FS** = Institutions/Insiders\n  * **B** = Beneficial Owners\n"
-    idHolders:
-      name: ids
-      description: Requested list of security identifiers. <p>***ids limit** =  1 per request*</p>.
-      in: query
-      schema:
-        type: array
-        items:
-          type: string
-        minItems: 1
-        maxItems: 1
-      required: true
-      explode: false
-      examples:
-        singleSecurityIdentifer:
-          summary: Requesting Holders information for FDS-US
-          value:
-          - FDS-US
   securitySchemes:
     BasicAuth:
       type: http

@@ -132,6 +132,23 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
+    LanguageMember:
+      type: string
+      format: isoLanguage
+      description: ISO 639-1 code of the language.
+      maxLength: 2
+      minLength: 2
     PostNotationCrossReferenceListByISINRequest:
       x-property-sort:
       - data
@@ -207,25 +224,6 @@ components:
           - attributes
           - language
           example: example_value
-    AttributesMember:
-      type: array
-      description: Limit the attributes returned in the response to the specified set.
-      items:
-        type: string
-        maxLength: 100
-      maxItems: 50
-      uniqueItems: true
-    StatusObject:
-      type: object
-      properties:
-        code:
-          type: number
-          format: int32
-          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
-          example: 42.5
-      description: The status member contains the status code of the response.
-      required:
-      - code
     PostInstrumentCrossReferenceListByISINRequest:
       x-property-sort:
       - data
@@ -262,13 +260,90 @@ components:
           x-property-sort:
           - attributes
           example: example_value
-    LanguageMember:
-      type: string
-      format: isoLanguage
-      description: ISO 639-1 code of the language.
-      maxLength: 2
-      minLength: 2
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+      maxItems: 50
+      uniqueItems: true
   responses:
+    GetInstrumentCrossReferenceGetByISIN200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  id:
+                    type:
+                    - string
+                    - 'null'
+                    format: id64
+                    x-positive: true
+                    description: Identifier of the instrument.
+                  fsym:
+                    type: object
+                    x-property-sort:
+                    - security
+                    description: Instrument-level FactSet identifier of the financial instrument used primarily in FactSet products other than the MDG.
+                    properties:
+                      security:
+                        type: object
+                        x-property-sort:
+                        - permanentIdentifier
+                        description: Security-level identifier.
+                        properties:
+                          permanentIdentifier:
+                            type:
+                            - string
+                            - 'null'
+                            description: FactSet Permanent Identifier for an instrument. The format is six alpha numeric characters, excluding vowels, with an S suffix (XXXXXX-S).
+                  validity:
+                    type:
+                    - object
+                    - 'null'
+                    format: timeRange
+                    properties:
+                      start:
+                        type:
+                        - string
+                        - 'null'
+                        format: datetime
+                        description: The starting point of the time range (inclusive).
+                      end:
+                        type:
+                        - string
+                        - 'null'
+                        format: datetime
+                        description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
+                    x-property-sort:
+                    - start
+                    - end
+                    required:
+                    - start
+                    - end
+                    description: Time range that this translation is valid for.
+                description: Instrument response.
+                x-property-sort:
+                - id
+                - fsym
+                - validity
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
     PostInstrumentCrossReferenceListByISIN200Response:
       description: Successful Response
       content:
@@ -522,81 +597,6 @@ components:
                               - boolean
                               - 'null'
                               description: Indicates whether the notation is in the primary region of the security (`true`) or not (`false`).
-              meta:
-                type: object
-                description: The meta member contains the meta information of the response.
-                properties:
-                  status:
-                    $ref: '#/components/schemas/StatusObject'
-                x-property-sort:
-                - status
-            x-property-sort:
-            - data
-            - meta
-    GetInstrumentCrossReferenceGetByISIN200Response:
-      description: Successful Response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: object
-                properties:
-                  id:
-                    type:
-                    - string
-                    - 'null'
-                    format: id64
-                    x-positive: true
-                    description: Identifier of the instrument.
-                  fsym:
-                    type: object
-                    x-property-sort:
-                    - security
-                    description: Instrument-level FactSet identifier of the financial instrument used primarily in FactSet products other than the MDG.
-                    properties:
-                      security:
-                        type: object
-                        x-property-sort:
-                        - permanentIdentifier
-                        description: Security-level identifier.
-                        properties:
-                          permanentIdentifier:
-                            type:
-                            - string
-                            - 'null'
-                            description: FactSet Permanent Identifier for an instrument. The format is six alpha numeric characters, excluding vowels, with an S suffix (XXXXXX-S).
-                  validity:
-                    type:
-                    - object
-                    - 'null'
-                    format: timeRange
-                    properties:
-                      start:
-                        type:
-                        - string
-                        - 'null'
-                        format: datetime
-                        description: The starting point of the time range (inclusive).
-                      end:
-                        type:
-                        - string
-                        - 'null'
-                        format: datetime
-                        description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
-                    x-property-sort:
-                    - start
-                    - end
-                    required:
-                    - start
-                    - end
-                    description: Time range that this translation is valid for.
-                description: Instrument response.
-                x-property-sort:
-                - id
-                - fsym
-                - validity
               meta:
                 type: object
                 description: The meta member contains the meta information of the response.

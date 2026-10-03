@@ -286,8 +286,14 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Errors'
-    NotFoundErrorResponse:
-      description: The requested resource could not be found but may be available in the future. Subsequent requests by the client are permissible.
+    NotImplementedErrorResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    NotAcceptableErrorResponse:
+      description: The requested resource is capable of generating only content not acceptable according to the Accept headers sent in the request.
       content:
         application/json:
           schema:
@@ -304,31 +310,71 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Errors'
-    UnauthorizedErrorResponse:
-      description: Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
     ForbiddenErrorResponse:
       description: The request contained valid data and was understood by the server, but the server is refusing action. This may be due to the user not having the necessary permissions for a resource or needing an account of some sort, or attempting a prohibited action.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Errors'
-    NotImplementedErrorResponse:
-      description: ''
+    UnauthorizedErrorResponse:
+      description: Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Errors'
-    NotAcceptableErrorResponse:
-      description: The requested resource is capable of generating only content not acceptable according to the Accept headers sent in the request.
+    NotFoundErrorResponse:
+      description: The requested resource could not be found but may be available in the future. Subsequent requests by the client are permissible.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Errors'
   schemas:
+    Errors:
+      type: object
+      description: Information about one or more errors
+      properties:
+        errors:
+          type: array
+          description: List of errors
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Unique identifier for this error instance.  Used to reference this error in logging.
+                example: 270c2fa8-9110-444b-9101-17e10132fe0a
+              code:
+                type: string
+                description: Error code for this error
+                enum:
+                - BadRequestError
+                - UnauthorizedError
+                - ForbiddenError
+                - NotFoundError
+                - NotAcceptableError
+                - ConflictError
+                - UnsupportedMediaTypeError
+                - InternalServerError
+                - NotImplementedError
+              title:
+                type: string
+                description: HTTP reason phrase associcated with this error
+                enum:
+                - Bad Request
+                - Unauthorized
+                - Forbidden
+                - Not Found
+                - Not Acceptable
+                - Conflict
+                - Unsupported Media Type
+                - Internal Server Error
+                - Not Implemented
+              detail:
+                type: string
+                description: Detailed description of the error that occurred
+          example: []
+      required:
+      - errors
     readTradeDataResponse:
       type:
       - object
@@ -379,76 +425,6 @@ components:
               example: Meaningful description of vendor returns
           description: Read a metadata file by its id.
           example: example_value
-    Errors:
-      type: object
-      description: Information about one or more errors
-      properties:
-        errors:
-          type: array
-          description: List of errors
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-                description: Unique identifier for this error instance.  Used to reference this error in logging.
-                example: 270c2fa8-9110-444b-9101-17e10132fe0a
-              code:
-                type: string
-                description: Error code for this error
-                enum:
-                - BadRequestError
-                - UnauthorizedError
-                - ForbiddenError
-                - NotFoundError
-                - NotAcceptableError
-                - ConflictError
-                - UnsupportedMediaTypeError
-                - InternalServerError
-                - NotImplementedError
-              title:
-                type: string
-                description: HTTP reason phrase associcated with this error
-                enum:
-                - Bad Request
-                - Unauthorized
-                - Forbidden
-                - Not Found
-                - Not Acceptable
-                - Conflict
-                - Unsupported Media Type
-                - Internal Server Error
-                - Not Implemented
-              detail:
-                type: string
-                description: Detailed description of the error that occurred
-          example: []
-      required:
-      - errors
-    signalDefinition:
-      type: object
-      required:
-      - data
-      properties:
-        data:
-          type: object
-          required:
-          - signalId
-          - theme
-          - categories
-          - contract
-          properties:
-            signalId:
-              type: string
-            theme:
-              type: string
-            categories:
-              type: array
-              items:
-                type: string
-            contract:
-              $ref: '#/components/schemas/contract'
-          example: example_value
     errorItem:
       type: object
       required:
@@ -475,37 +451,44 @@ components:
             parameter:
               type: string
           example: example_value
-    signalMetaData:
+    errorResponse:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+          description: A short description of the error.
+          example: There was an error processing your request. Please try again later.
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errorItem'
+          description: Optional list of errors. e.g. Validation errors for multiple parameters
+          example: []
+    signalDefinition:
       type: object
       required:
       - data
       properties:
         data:
-          type: array
-          items:
-            type: object
-            required:
-            - id
-            - name
-            - description
-            properties:
-              id:
+          type: object
+          required:
+          - signalId
+          - theme
+          - categories
+          - contract
+          properties:
+            signalId:
+              type: string
+            theme:
+              type: string
+            categories:
+              type: array
+              items:
                 type: string
-              name:
-                type: string
-              description:
-                type: string
-          example: []
-    contract:
-      type: object
-      required:
-      - fields
-      - version
-      properties:
-        fields:
-          $ref: '#/components/schemas/contractFields'
-        version:
-          type: string
+            contract:
+              $ref: '#/components/schemas/contract'
           example: example_value
     contractFields:
       type: object
@@ -531,6 +514,45 @@ components:
           example: example_value
         additionalProperties:
           $ref: '#/components/schemas/contractProperty'
+    signalMetaData:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            required:
+            - id
+            - name
+            - description
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              description:
+                type: string
+          example: []
+    rateLimitResponse:
+      title: Rate Limit Error Object
+      description: Error returned if any of the user's rate limit have been reached.
+      properties:
+        message:
+          type: string
+          example: API rate limit exceeded
+    contract:
+      type: object
+      required:
+      - fields
+      - version
+      properties:
+        fields:
+          $ref: '#/components/schemas/contractFields'
+        version:
+          type: string
+          example: example_value
     contractProperty:
       type: object
       required:
@@ -554,51 +576,6 @@ components:
             type:
               type: string
           example: example_value
-    rateLimitResponse:
-      title: Rate Limit Error Object
-      description: Error returned if any of the user's rate limit have been reached.
-      properties:
-        message:
-          type: string
-          example: API rate limit exceeded
-    errorResponse:
-      type: object
-      required:
-      - message
-      properties:
-        message:
-          type: string
-          description: A short description of the error.
-          example: There was an error processing your request. Please try again later.
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/errorItem'
-          description: Optional list of errors. e.g. Validation errors for multiple parameters
-          example: []
-    DataSourceList:
-      type: object
-      properties:
-        meta:
-          type: object
-          properties:
-            pagination:
-              type: object
-              properties:
-                total:
-                  type: integer
-                isEstimatedTotal:
-                  type: boolean
-            sort:
-              type: array
-              items:
-                type: string
-          example: example_value
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/DataSourceDTO'
-          example: []
     ErrorList:
       type: object
       properties:
@@ -607,18 +584,6 @@ components:
           items:
             $ref: '#/components/schemas/Error'
           example: []
-    Error:
-      type: object
-      properties:
-        id:
-          type: string
-          example: abc123
-        code:
-          type: string
-          example: example_value
-        title:
-          type: string
-          example: Example Title
     DataSourceDTO:
       type: object
       properties:
@@ -662,6 +627,41 @@ components:
         lastUpdated:
           type: number
           example: 42.5
+    DataSourceList:
+      type: object
+      properties:
+        meta:
+          type: object
+          properties:
+            pagination:
+              type: object
+              properties:
+                total:
+                  type: integer
+                isEstimatedTotal:
+                  type: boolean
+            sort:
+              type: array
+              items:
+                type: string
+          example: example_value
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataSourceDTO'
+          example: []
+    Error:
+      type: object
+      properties:
+        id:
+          type: string
+          example: abc123
+        code:
+          type: string
+          example: example_value
+        title:
+          type: string
+          example: Example Title
     EntityDTO:
       type: object
       properties:
@@ -676,31 +676,31 @@ components:
           type: string
           example: example_value
   headers:
-    Api-Supported-Versions:
-      description: Comma-separated list of supported major versions.
-      schema:
-        type: string
-        example: '1'
-    RateLimit-Reset:
-      description: Time remaining (in seconds) until the quota is reset.
-      schema:
-        type: integer
-        example: 1000
-    RateLimit-Remaining:
-      description: Remaining number of requests in the current time window.
-      schema:
-        type: integer
-        example: 4
     Api-Version:
       description: Full semantic version of the API.
       schema:
         type: string
         example: 1.0.0
+    RateLimit-Remaining:
+      description: Remaining number of requests in the current time window.
+      schema:
+        type: integer
+        example: 4
+    RateLimit-Reset:
+      description: Time remaining (in seconds) until the quota is reset.
+      schema:
+        type: integer
+        example: 1000
     RateLimit-Limit:
       description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
       schema:
         type: integer
         example: 5
+    Api-Supported-Versions:
+      description: Comma-separated list of supported major versions.
+      schema:
+        type: string
+        example: '1'
   parameters:
     signalIdParam:
       name: signalId

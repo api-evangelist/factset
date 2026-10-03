@@ -223,7 +223,212 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
+  schemas:
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
   responses:
+    GetPricesBidAskGet200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  idNotation:
+                    type:
+                    - string
+                    - 'null'
+                    format: id64
+                    x-positive: true
+                    description: MDG identifier of the listing.
+                  sourceIdentifier:
+                    type:
+                    - string
+                    - 'null'
+                    description: Identifier used in the request.
+                  valueUnit:
+                    type: object
+                    x-property-sort:
+                    - id
+                    description: Value unit of the notation such as a main or fractional currency for equities, a percentage for debt instruments, or points for indices. See endpoint `/basic/valueUnit/list` for possible values.
+                    properties:
+                      id:
+                        type:
+                        - number
+                        - 'null'
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the valueUnit.
+                  currency:
+                    type: object
+                    x-property-sort:
+                    - id
+                    description: Main currency of the monetary attributes. See endpoint `/basic/valueUnit/currency/main/list` for possible values.
+                    properties:
+                      id:
+                        type:
+                        - number
+                        - 'null'
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the currency.
+                  market:
+                    type: object
+                    x-property-sort:
+                    - id
+                    description: Market of the notation. See endpoint `/basic/market/list` for possible values.
+                    properties:
+                      id:
+                        type:
+                        - number
+                        - 'null'
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the market.
+                  quality:
+                    type:
+                    - string
+                    - 'null'
+                    description: Quality of the price.
+                    x-enum-description:
+                    - 'Real-time: intraday prices with minimal technical processing delays.'
+                    - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
+                    - 'End-of-day: prices updated once per day after the close of trading, possibly with an exchange-imposed delay of several hours or days.'
+                    enum:
+                    - RLT
+                    - DLY
+                    - EOD
+                  bid:
+                    type: object
+                    x-property-sort:
+                    - time
+                    - price
+                    - quoteCondition
+                    - tradingVolume
+                    - tradingValue
+                    description: Most recent bid price of the trading day.
+                    properties:
+                      time:
+                        x-pushable: true
+                        type:
+                        - string
+                        - 'null'
+                        format: datetime
+                        description: Date and time.
+                        x-cas-attribute: timeLatestBidPrice
+                      price:
+                        x-pushable: true
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Price value. See attribute `valueUnit` for its unit.
+                        x-cas-attribute: valueLatestBidPrice
+                      quoteCondition:
+                        x-pushable: true
+                        type:
+                        - string
+                        - 'null'
+                        description: Quote condition. Possible values depend on the values delivered by the supplier of the price information.
+                        x-cas-attribute: quoteConditionLatestBidPrice
+                      tradingVolume:
+                        x-pushable: true
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Number of units (e.g. shares) solicited.
+                        x-cas-attribute: tradingVolumeLatestBidPrice
+                      tradingValue:
+                        x-pushable: true
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Monetary equivalent (cash value) of the offer. See attribute `currency` for its unit.
+                        x-cas-attribute: tradingValueLatestBidPrice
+                  ask:
+                    type: object
+                    x-property-sort:
+                    - time
+                    - price
+                    - quoteCondition
+                    - tradingVolume
+                    - tradingValue
+                    description: Most recent ask price of the trading day.
+                    properties:
+                      time:
+                        x-pushable: true
+                        type:
+                        - string
+                        - 'null'
+                        format: datetime
+                        description: Date and time.
+                        x-cas-attribute: timeLatestAskPrice
+                      price:
+                        x-pushable: true
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Price value. See attribute `valueUnit` for its unit.
+                        x-cas-attribute: valueLatestAskPrice
+                      quoteCondition:
+                        x-pushable: true
+                        type:
+                        - string
+                        - 'null'
+                        description: Quote condition. Possible values depend on the values delivered by the supplier of the price information.
+                        x-cas-attribute: quoteConditionLatestAskPrice
+                      tradingVolume:
+                        x-pushable: true
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Number of units (e.g. shares) offered.
+                        x-cas-attribute: tradingVolumeLatestAskPrice
+                      tradingValue:
+                        x-pushable: true
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Monetary equivalent (cash value) of the offer. See attribute `currency` for its unit.
+                        x-cas-attribute: tradingValueLatestAskPrice
+                description: Bid and ask prices for the notation.
+                x-property-sort:
+                - idNotation
+                - sourceIdentifier
+                - valueUnit
+                - currency
+                - market
+                - quality
+                - bid
+                - ask
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
     GetPricesBidAskList200Response:
       description: Successful Response
       content:
@@ -449,211 +654,6 @@ components:
             x-property-sort:
             - data
             - meta
-    GetPricesBidAskGet200Response:
-      description: Successful Response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: object
-                properties:
-                  idNotation:
-                    type:
-                    - string
-                    - 'null'
-                    format: id64
-                    x-positive: true
-                    description: MDG identifier of the listing.
-                  sourceIdentifier:
-                    type:
-                    - string
-                    - 'null'
-                    description: Identifier used in the request.
-                  valueUnit:
-                    type: object
-                    x-property-sort:
-                    - id
-                    description: Value unit of the notation such as a main or fractional currency for equities, a percentage for debt instruments, or points for indices. See endpoint `/basic/valueUnit/list` for possible values.
-                    properties:
-                      id:
-                        type:
-                        - number
-                        - 'null'
-                        format: id32
-                        x-positive: true
-                        description: Identifier of the valueUnit.
-                  currency:
-                    type: object
-                    x-property-sort:
-                    - id
-                    description: Main currency of the monetary attributes. See endpoint `/basic/valueUnit/currency/main/list` for possible values.
-                    properties:
-                      id:
-                        type:
-                        - number
-                        - 'null'
-                        format: id32
-                        x-positive: true
-                        description: Identifier of the currency.
-                  market:
-                    type: object
-                    x-property-sort:
-                    - id
-                    description: Market of the notation. See endpoint `/basic/market/list` for possible values.
-                    properties:
-                      id:
-                        type:
-                        - number
-                        - 'null'
-                        format: id32
-                        x-positive: true
-                        description: Identifier of the market.
-                  quality:
-                    type:
-                    - string
-                    - 'null'
-                    description: Quality of the price.
-                    x-enum-description:
-                    - 'Real-time: intraday prices with minimal technical processing delays.'
-                    - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
-                    - 'End-of-day: prices updated once per day after the close of trading, possibly with an exchange-imposed delay of several hours or days.'
-                    enum:
-                    - RLT
-                    - DLY
-                    - EOD
-                  bid:
-                    type: object
-                    x-property-sort:
-                    - time
-                    - price
-                    - quoteCondition
-                    - tradingVolume
-                    - tradingValue
-                    description: Most recent bid price of the trading day.
-                    properties:
-                      time:
-                        x-pushable: true
-                        type:
-                        - string
-                        - 'null'
-                        format: datetime
-                        description: Date and time.
-                        x-cas-attribute: timeLatestBidPrice
-                      price:
-                        x-pushable: true
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Price value. See attribute `valueUnit` for its unit.
-                        x-cas-attribute: valueLatestBidPrice
-                      quoteCondition:
-                        x-pushable: true
-                        type:
-                        - string
-                        - 'null'
-                        description: Quote condition. Possible values depend on the values delivered by the supplier of the price information.
-                        x-cas-attribute: quoteConditionLatestBidPrice
-                      tradingVolume:
-                        x-pushable: true
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Number of units (e.g. shares) solicited.
-                        x-cas-attribute: tradingVolumeLatestBidPrice
-                      tradingValue:
-                        x-pushable: true
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Monetary equivalent (cash value) of the offer. See attribute `currency` for its unit.
-                        x-cas-attribute: tradingValueLatestBidPrice
-                  ask:
-                    type: object
-                    x-property-sort:
-                    - time
-                    - price
-                    - quoteCondition
-                    - tradingVolume
-                    - tradingValue
-                    description: Most recent ask price of the trading day.
-                    properties:
-                      time:
-                        x-pushable: true
-                        type:
-                        - string
-                        - 'null'
-                        format: datetime
-                        description: Date and time.
-                        x-cas-attribute: timeLatestAskPrice
-                      price:
-                        x-pushable: true
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Price value. See attribute `valueUnit` for its unit.
-                        x-cas-attribute: valueLatestAskPrice
-                      quoteCondition:
-                        x-pushable: true
-                        type:
-                        - string
-                        - 'null'
-                        description: Quote condition. Possible values depend on the values delivered by the supplier of the price information.
-                        x-cas-attribute: quoteConditionLatestAskPrice
-                      tradingVolume:
-                        x-pushable: true
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Number of units (e.g. shares) offered.
-                        x-cas-attribute: tradingVolumeLatestAskPrice
-                      tradingValue:
-                        x-pushable: true
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Monetary equivalent (cash value) of the offer. See attribute `currency` for its unit.
-                        x-cas-attribute: tradingValueLatestAskPrice
-                description: Bid and ask prices for the notation.
-                x-property-sort:
-                - idNotation
-                - sourceIdentifier
-                - valueUnit
-                - currency
-                - market
-                - quality
-                - bid
-                - ask
-              meta:
-                type: object
-                description: The meta member contains the meta information of the response.
-                properties:
-                  status:
-                    $ref: '#/components/schemas/StatusObject'
-                x-property-sort:
-                - status
-            x-property-sort:
-            - data
-            - meta
-  schemas:
-    StatusObject:
-      type: object
-      properties:
-        code:
-          type: number
-          format: int32
-          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
-          example: 42.5
-      description: The status member contains the status code of the response.
-      required:
-      - code
   securitySchemes:
     FactSetOAuth2:
       type: oauth2

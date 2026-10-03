@@ -303,6 +303,18 @@ paths:
       description: UAT environment
 components:
   schemas:
+    errorResponse:
+      type: object
+      title: Error Response
+      properties:
+        status:
+          description: status
+          type: integer
+          example: 401
+        error:
+          description: The plain text error message
+          type: string
+          example: Unauthorized
     RTDataModel_Products:
       type: object
       title: Product codes
@@ -316,18 +328,12 @@ components:
           example: New York Stock Exchange Level 1
           type: string
           description: Product description
-    errorResponse:
-      type: object
-      title: Error Response
+    Marking:
       properties:
-        status:
-          description: status
-          type: integer
-          example: 401
-        error:
-          description: The plain text error message
+        state:
+          example: published
           type: string
-          example: Unauthorized
+      type: object
     GetProductDto:
       description: A Json representation of a Product record.
       properties:
@@ -740,38 +746,6 @@ components:
               type: string
           type: object
       type: object
-    Document:
-      properties:
-        name:
-          type: string
-        description:
-          type: string
-        fileName:
-          type: string
-        url:
-          type: string
-        isFile:
-          type: boolean
-        isPublic:
-          type: boolean
-        order:
-          type: integer
-        section:
-          items:
-            properties:
-              id:
-                type: integer
-              name:
-                type: string
-            type: object
-          type: array
-      type: object
-    Marking:
-      properties:
-        state:
-          example: published
-          type: string
-      type: object
     PostProductSearchDto:
       properties:
         limit:
@@ -803,6 +777,32 @@ components:
           description: Filter against specific field values.
           example: type:Data Feed:API
           type: string
+      type: object
+    Document:
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        fileName:
+          type: string
+        url:
+          type: string
+        isFile:
+          type: boolean
+        isPublic:
+          type: boolean
+        order:
+          type: integer
+        section:
+          items:
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+            type: object
+          type: array
       type: object
     ProductResource:
       type: object
@@ -889,16 +889,23 @@ components:
         - xml
         - json
         - csv
-    resourceId:
-      name: id
-      description: ID of resource.
-      in: path
+    startIndex:
+      name: startIndex
+      description: Result start index. The one-based index of the first result to be returned in the list of resources. For example, to exclude the first two resources, use a *startIndex* value of 3. This parameter has a default value of 1. This index applies *after* any resource filtration has been applied as specified by the *filter* argument.
+      in: query
       schema:
-        type: string
-      required: true
-    attributes:
-      name: attributes
-      description: Attribute whitelist filter string. A comma-separated list of resource attribute names to be returned in the response, overriding the set of attributes that would be returned by default. Attribute names must be specified in standard attribute notation (see [RFC 7644 section 3.10](https://datatracker.ietf.org/doc/html/rfc7644#section-3.10).) This parameter cannot be used with the *excludedAttributes* parameter.
+        type: integer
+      required: false
+    count:
+      name: count
+      description: Maximum resource count. The server will not return more resources than this value, although it may return fewer.
+      in: query
+      schema:
+        type: integer
+      required: false
+    filter:
+      name: filter
+      description: Resource filter string. See [RFC 7644 section 3.4.2.2](https://tools.ietf.org/html/rfc7644#section-3.4.2.2) for syntax. Note this API implementation also supports a non-standard "re" operator for regular expression matching against strings.
       in: query
       schema:
         type: string
@@ -910,28 +917,49 @@ components:
       schema:
         type: string
       required: false
-    filter:
-      name: filter
-      description: Resource filter string. See [RFC 7644 section 3.4.2.2](https://tools.ietf.org/html/rfc7644#section-3.4.2.2) for syntax. Note this API implementation also supports a non-standard "re" operator for regular expression matching against strings.
+    attributes:
+      name: attributes
+      description: Attribute whitelist filter string. A comma-separated list of resource attribute names to be returned in the response, overriding the set of attributes that would be returned by default. Attribute names must be specified in standard attribute notation (see [RFC 7644 section 3.10](https://datatracker.ietf.org/doc/html/rfc7644#section-3.10).) This parameter cannot be used with the *excludedAttributes* parameter.
       in: query
       schema:
         type: string
       required: false
-    count:
-      name: count
-      description: Maximum resource count. The server will not return more resources than this value, although it may return fewer.
-      in: query
+    resourceId:
+      name: id
+      description: ID of resource.
+      in: path
       schema:
-        type: integer
-      required: false
-    startIndex:
-      name: startIndex
-      description: Result start index. The one-based index of the first result to be returned in the list of resources. For example, to exclude the first two resources, use a *startIndex* value of 3. This parameter has a default value of 1. This index applies *after* any resource filtration has been applied as specified by the *filter* argument.
-      in: query
-      schema:
-        type: integer
-      required: false
+        type: string
+      required: true
   responses:
+    productsSuccess:
+      description: Success.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/ProductResourceList'
+    unauthorizedError:
+      description: User has not been authenticated.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: FactSet.net credentials are missing or invalid.
+            status: '401'
+    forbiddenError:
+      description: User is not authorized to use this API.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: FIN_WEALTH-999999 is not authorized to use the FactSet SCIM API.
+            status: '403'
     invalidFilterError:
       description: Invalid filter value provided.
       content:
@@ -944,17 +972,12 @@ components:
             scimType: invalidFilter
             detail: Invalid filter value.
             status: '400'
-    unauthorizedError:
-      description: User has not been authenticated.
+    productSuccess:
+      description: Success.
       content:
         application/scim+json:
           schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            schemas:
-            - urn:ietf:params:scim:api:messages:2.0:Error
-            detail: FactSet.net credentials are missing or invalid.
-            status: '401'
+            $ref: '#/components/schemas/ProductResource'
     internalServerError:
       description: Internal server error.
       content:
@@ -972,29 +995,6 @@ components:
             - urn:ietf:params:scim:api:messages:2.0:Error
             detail: Product 6781 was not found.
             status: '404'
-    productsSuccess:
-      description: Success.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/ProductResourceList'
-    productSuccess:
-      description: Success.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/ProductResource'
-    forbiddenError:
-      description: User is not authorized to use this API.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            schemas:
-            - urn:ietf:params:scim:api:messages:2.0:Error
-            detail: FIN_WEALTH-999999 is not authorized to use the FactSet SCIM API.
-            status: '403'
   securitySchemes:
     BasicAuth:
       type: http

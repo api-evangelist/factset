@@ -164,6 +164,21 @@ components:
             parameter:
               type: string
           example: example_value
+    errorResponse:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+          description: A short description of the error.
+          example: There was an error processing your request. Please try again later.
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errorItem'
+          description: Optional list of errors. e.g. Validation errors for multiple parameters
+          example: []
     signalMetaData:
       type: object
       required:
@@ -192,21 +207,56 @@ components:
         message:
           type: string
           example: API rate limit exceeded
-    errorResponse:
-      type: object
-      required:
-      - message
+    ThemeSentiment:
+      description: Schema that defines the extracted theme and the corresponding sentiments
       properties:
-        message:
+        sentiment:
+          description: The sentiment of the theme.
+          enum:
+          - positive
+          - negative
+          - neutral
+          example: positive
           type: string
-          description: A short description of the error.
-          example: There was an error processing your request. Please try again later.
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/errorItem'
-          description: Optional list of errors. e.g. Validation errors for multiple parameters
-          example: []
+        sentimentScore:
+          description: Confidence score of the sentiment
+          example: 0.9900231957
+          type: number
+        themeScore:
+          description: The confidence score associated to the theme
+          example: 0.88
+          type: number
+        themeText:
+          description: The extracted theme as text
+          example: home entertainment results
+          type: string
+      required:
+      - themeScore
+      - themeText
+      type: object
+    HTTPError:
+      description: Schema that defines HTTP error(s).
+      properties:
+        code:
+          description: HTTP Status Code
+          type: string
+        detail:
+          description: Error detail (if any)
+          type: string
+        id:
+          description: The unique identifier detailing the error(s)
+          format: uuid
+          type: string
+        source:
+          $ref: '#/components/schemas/ErrorSource'
+        title:
+          description: Error title
+          type: string
+      required:
+      - code
+      - id
+      - title
+      type: object
     ThemesParameters:
       description: Schema that defines the parameters needed to extract themes.
       properties:
@@ -224,11 +274,11 @@ components:
       - includeSentiments
       - text
       type: object
-    TaskRoot:
-      description: Schema that envelopes `Task` and include additional `meta` (if available).
+    ThemesParametersRoot:
+      description: Schema that envelopes the `ThemesParameters` and include additional `meta` (if available).
       properties:
         data:
-          $ref: '#/components/schemas/Task'
+          $ref: '#/components/schemas/ThemesParameters'
         meta:
           description: Any associated metadata
           type: object
@@ -282,28 +332,16 @@ components:
       - startedAt
       - status
       type: object
-    HTTPError:
-      description: Schema that defines HTTP error(s).
+    TaskRoot:
+      description: Schema that envelopes `Task` and include additional `meta` (if available).
       properties:
-        code:
-          description: HTTP Status Code
-          type: string
-        detail:
-          description: Error detail (if any)
-          type: string
-        id:
-          description: The unique identifier detailing the error(s)
-          format: uuid
-          type: string
-        source:
-          $ref: '#/components/schemas/ErrorSource'
-        title:
-          description: Error title
-          type: string
+        data:
+          $ref: '#/components/schemas/Task'
+        meta:
+          description: Any associated metadata
+          type: object
       required:
-      - code
-      - id
-      - title
+      - data
       type: object
     HTTPErrorRoot:
       description: Schema that defines HTTP error(s).
@@ -316,32 +354,18 @@ components:
       required:
       - errors
       type: object
-    ThemeSentiment:
-      description: Schema that defines the extracted theme and the corresponding sentiments
+    ErrorSource:
+      description: Schema that defines the source of the error.
       properties:
-        sentiment:
-          description: The sentiment of the theme.
-          enum:
-          - positive
-          - negative
-          - neutral
-          example: positive
+        parameter:
+          description: A string indicating which path or URI query parameter caused the error.
           type: string
-        sentimentScore:
-          description: Confidence score of the sentiment
-          example: 0.9900231957
-          type: number
-        themeScore:
-          description: The confidence score associated to the theme
-          example: 0.88
-          type: number
-        themeText:
-          description: The extracted theme as text
-          example: home entertainment results
+        pointer:
+          description: More details pointing to the error.
           type: string
       required:
-      - themeScore
-      - themeText
+      - parameter
+      - pointer
       type: object
     ThemeSentimentsRoot:
       description: Schema that envelopes the `ThemeSentiment` and include additional `meta` (if available).
@@ -357,56 +381,32 @@ components:
       required:
       - data
       type: object
-    ErrorSource:
-      description: Schema that defines the source of the error.
-      properties:
-        parameter:
-          description: A string indicating which path or URI query parameter caused the error.
-          type: string
-        pointer:
-          description: More details pointing to the error.
-          type: string
-      required:
-      - parameter
-      - pointer
-      type: object
-    ThemesParametersRoot:
-      description: Schema that envelopes the `ThemesParameters` and include additional `meta` (if available).
-      properties:
-        data:
-          $ref: '#/components/schemas/ThemesParameters'
-        meta:
-          description: Any associated metadata
-          type: object
-      required:
-      - data
-      type: object
   headers:
-    Api-Supported-Versions:
-      description: Comma-separated list of supported major versions.
-      schema:
-        type: string
-        example: '1'
-    RateLimit-Reset:
-      description: Time remaining (in seconds) until the quota is reset.
-      schema:
-        type: integer
-        example: 1000
-    RateLimit-Remaining:
-      description: Remaining number of requests in the current time window.
-      schema:
-        type: integer
-        example: 4
     Api-Version:
       description: Full semantic version of the API.
       schema:
         type: string
         example: 1.0.0
+    RateLimit-Remaining:
+      description: Remaining number of requests in the current time window.
+      schema:
+        type: integer
+        example: 4
+    RateLimit-Reset:
+      description: Time remaining (in seconds) until the quota is reset.
+      schema:
+        type: integer
+        example: 1000
     RateLimit-Limit:
       description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
       schema:
         type: integer
         example: 5
+    Api-Supported-Versions:
+      description: Comma-separated list of supported major versions.
+      schema:
+        type: string
+        example: '1'
     Location:
       description: The `Location` response header indicates the URL to redirect a page to.
       schema:
