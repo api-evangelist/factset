@@ -55,279 +55,6 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
-  schemas:
-    StatusObject:
-      type: object
-      properties:
-        code:
-          type: number
-          format: int32
-          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
-          example: 42.5
-      description: The status member contains the status code of the response.
-      required:
-      - code
-    LanguageMember:
-      type: string
-      format: isoLanguage
-      description: ISO 639-1 code of the language.
-      maxLength: 2
-      minLength: 2
-    PartialOutputObject:
-      type: object
-      properties:
-        isPartial:
-          type: boolean
-          description: Flag indicating that the response is a possibly incomplete array or an object containing a possibly incomplete array, due to hitting a processing time limit. If `true`, some matching results might be missing from the array, or elements for matching results might be incorrectly included (for example, when priority sorting would have removed the element). Depending on the use case, such a response may be unsuitable.
-          example: true
-      description: Object denoting that the endpoint response is possibly incomplete.
-      required:
-      - isPartial
-      x-property-sort:
-      - isPartial
-    OffsetBasedPaginationOutputObject:
-      type: object
-      description: Pagination attributes for the offset-based pagination strategy.
-      properties:
-        total:
-          type: number
-          format: int32
-          description: Total number of entries in the result set.
-          example: 42.5
-        isEstimatedTotal:
-          type: boolean
-          description: Flag indicating that the value of "total" is estimated.
-          example: true
-      required:
-      - total
-      - isEstimatedTotal
-      x-property-sort:
-      - total
-      - isEstimatedTotal
-    PostNotationSelectionListMembersListRequest:
-      x-property-sort:
-      - data
-      - meta
-      description: Request Body
-      type: object
-      properties:
-        data:
-          type: object
-          x-property-sort:
-          - id
-          - filter
-          description: The data member contains the request's primary data.
-          properties:
-            id:
-              type: number
-              format: id32
-              x-positive: true
-              description: Identifier of a selection list.
-            filter:
-              type: object
-              x-property-sort:
-              - market
-              - valueUnit
-              - assetClass
-              - instrumentCategory
-              description: Criteria that filter the items in the response list; only items that match all of the criteria are returned.
-              properties:
-                market:
-                  type: object
-                  x-property-sort:
-                  - restrict
-                  - exclude
-                  description: Market-related parameters. See endpoint `/basic/market/list` for valid values.
-                  x-atMostOne: true
-                  properties:
-                    restrict:
-                      type: object
-                      x-property-sort:
-                      - ids
-                      description: Specifies the markets from which a notation may originate.
-                      properties:
-                        ids:
-                          description: Set of market identifiers.
-                          type: array
-                          items:
-                            type: number
-                            format: id32
-                            x-positive: true
-                          uniqueItems: true
-                          maxItems: 100
-                    exclude:
-                      type: object
-                      x-property-sort:
-                      - ids
-                      description: Specifies the markets from which a notation may not originate.
-                      properties:
-                        ids:
-                          description: Set of market identifiers.
-                          type: array
-                          items:
-                            type: number
-                            format: id32
-                            x-positive: true
-                          uniqueItems: true
-                          maxItems: 100
-                valueUnit:
-                  type: object
-                  x-property-sort:
-                  - restrict
-                  - exclude
-                  description: Value unit-related parameters. See endpoint `/basic/valueUnit/list` for valid values.
-                  x-atMostOne: true
-                  properties:
-                    restrict:
-                      type: object
-                      x-property-sort:
-                      - ids
-                      description: Specifies the value units a notation may have.
-                      properties:
-                        ids:
-                          description: Set of value unit identifiers.
-                          type: array
-                          items:
-                            type: number
-                            format: id32
-                            x-positive: true
-                          uniqueItems: true
-                          maxItems: 100
-                    exclude:
-                      type: object
-                      x-property-sort:
-                      - ids
-                      description: Specifies the value units a notation may not have.
-                      properties:
-                        ids:
-                          description: Set of value unit identifiers.
-                          type: array
-                          items:
-                            type: number
-                            format: id32
-                            x-positive: true
-                          uniqueItems: true
-                          maxItems: 100
-                assetClass:
-                  type: object
-                  x-property-sort:
-                  - ids
-                  description: Asset class restriction.
-                  properties:
-                    ids:
-                      description: Set of asset class identifiers. See endpoint `/basic/assetClass/list` for valid values.
-                      type: array
-                      items:
-                        type: number
-                        format: id32
-                        x-positive: true
-                      uniqueItems: true
-                      maxItems: 12
-                instrumentCategory:
-                  type: object
-                  x-property-sort:
-                  - restrict
-                  - exclude
-                  description: Category selection. Identifiers from all entitled category systems can be used, see endpoint `/category/system/list` with `idType=1` for the list of category systems.
-                  x-atMostOne: true
-                  properties:
-                    restrict:
-                      type: object
-                      x-property-sort:
-                      - ids
-                      description: Specifies the instrument categories that the instruments of the notations may have.
-                      properties:
-                        ids:
-                          description: Set of category identifiers.
-                          type: array
-                          items:
-                            type: number
-                            format: id32
-                            x-positive: true
-                          uniqueItems: true
-                          maxItems: 20
-                    exclude:
-                      type: object
-                      x-property-sort:
-                      - ids
-                      description: Specifies the instrument categories that the instruments of the notations may not have.
-                      properties:
-                        ids:
-                          description: Set of category identifiers.
-                          type: array
-                          items:
-                            type: number
-                            format: id32
-                            x-positive: true
-                          uniqueItems: true
-                          maxItems: 20
-          required:
-          - id
-          example: example_value
-        meta:
-          type: object
-          description: The meta member contains the meta information of the request.
-          properties:
-            attributes:
-              $ref: '#/components/schemas/AttributesMember'
-            language:
-              $ref: '#/components/schemas/LanguageMember'
-            sort:
-              description: Sortable attributes. The sort order is ascending unless it is prefixed with a minus sign, in which case it is descending. A list of at most 6 (possibly prefixed) attribute name(s) is allowed.
-              type: array
-              items:
-                type: string
-                enum:
-                - market.name
-                - -market.name
-                - valueUnit.name
-                - -valueUnit.name
-                - instrument.name.default.long
-                - -instrument.name.default.long
-                - instrument.name.default.short
-                - -instrument.name.default.short
-                - instrument.name.assetClassSpecific.long
-                - -instrument.name.assetClassSpecific.long
-                - instrument.name.assetClassSpecific.short
-                - -instrument.name.assetClassSpecific.short
-              maxItems: 6
-              uniqueItems: true
-              default:
-              - instrument.name.default.long
-            pagination:
-              type: object
-              description: Pagination attributes for the offset-based pagination strategy.
-              properties:
-                offset:
-                  type: number
-                  format: int32
-                  minimum: 0
-                  default: 0
-                  description: Non-negative number of entries to skip, or 0 (default).
-                limit:
-                  type: number
-                  format: int32
-                  minimum: 0
-                  maximum: 500
-                  default: 20
-                  description: Non-negative maximum number of entries to return.
-              x-property-sort:
-              - offset
-              - limit
-          x-property-sort:
-          - attributes
-          - language
-          - sort
-          - pagination
-          example: example_value
-    AttributesMember:
-      type: array
-      description: Limit the attributes returned in the response to the specified set.
-      items:
-        type: string
-        maxLength: 100
-      maxItems: 50
-      uniqueItems: true
   responses:
     PostNotationSelectionListMembersList200Response:
       description: Successful Response
@@ -643,6 +370,279 @@ components:
             x-property-sort:
             - data
             - meta
+  schemas:
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+      maxItems: 50
+      uniqueItems: true
+    LanguageMember:
+      type: string
+      format: isoLanguage
+      description: ISO 639-1 code of the language.
+      maxLength: 2
+      minLength: 2
+    OffsetBasedPaginationOutputObject:
+      type: object
+      description: Pagination attributes for the offset-based pagination strategy.
+      properties:
+        total:
+          type: number
+          format: int32
+          description: Total number of entries in the result set.
+          example: 42.5
+        isEstimatedTotal:
+          type: boolean
+          description: Flag indicating that the value of "total" is estimated.
+          example: true
+      required:
+      - total
+      - isEstimatedTotal
+      x-property-sort:
+      - total
+      - isEstimatedTotal
+    PartialOutputObject:
+      type: object
+      properties:
+        isPartial:
+          type: boolean
+          description: Flag indicating that the response is a possibly incomplete array or an object containing a possibly incomplete array, due to hitting a processing time limit. If `true`, some matching results might be missing from the array, or elements for matching results might be incorrectly included (for example, when priority sorting would have removed the element). Depending on the use case, such a response may be unsuitable.
+          example: true
+      description: Object denoting that the endpoint response is possibly incomplete.
+      required:
+      - isPartial
+      x-property-sort:
+      - isPartial
+    PostNotationSelectionListMembersListRequest:
+      x-property-sort:
+      - data
+      - meta
+      description: Request Body
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - id
+          - filter
+          description: The data member contains the request's primary data.
+          properties:
+            id:
+              type: number
+              format: id32
+              x-positive: true
+              description: Identifier of a selection list.
+            filter:
+              type: object
+              x-property-sort:
+              - market
+              - valueUnit
+              - assetClass
+              - instrumentCategory
+              description: Criteria that filter the items in the response list; only items that match all of the criteria are returned.
+              properties:
+                market:
+                  type: object
+                  x-property-sort:
+                  - restrict
+                  - exclude
+                  description: Market-related parameters. See endpoint `/basic/market/list` for valid values.
+                  x-atMostOne: true
+                  properties:
+                    restrict:
+                      type: object
+                      x-property-sort:
+                      - ids
+                      description: Specifies the markets from which a notation may originate.
+                      properties:
+                        ids:
+                          description: Set of market identifiers.
+                          type: array
+                          items:
+                            type: number
+                            format: id32
+                            x-positive: true
+                          uniqueItems: true
+                          maxItems: 100
+                    exclude:
+                      type: object
+                      x-property-sort:
+                      - ids
+                      description: Specifies the markets from which a notation may not originate.
+                      properties:
+                        ids:
+                          description: Set of market identifiers.
+                          type: array
+                          items:
+                            type: number
+                            format: id32
+                            x-positive: true
+                          uniqueItems: true
+                          maxItems: 100
+                valueUnit:
+                  type: object
+                  x-property-sort:
+                  - restrict
+                  - exclude
+                  description: Value unit-related parameters. See endpoint `/basic/valueUnit/list` for valid values.
+                  x-atMostOne: true
+                  properties:
+                    restrict:
+                      type: object
+                      x-property-sort:
+                      - ids
+                      description: Specifies the value units a notation may have.
+                      properties:
+                        ids:
+                          description: Set of value unit identifiers.
+                          type: array
+                          items:
+                            type: number
+                            format: id32
+                            x-positive: true
+                          uniqueItems: true
+                          maxItems: 100
+                    exclude:
+                      type: object
+                      x-property-sort:
+                      - ids
+                      description: Specifies the value units a notation may not have.
+                      properties:
+                        ids:
+                          description: Set of value unit identifiers.
+                          type: array
+                          items:
+                            type: number
+                            format: id32
+                            x-positive: true
+                          uniqueItems: true
+                          maxItems: 100
+                assetClass:
+                  type: object
+                  x-property-sort:
+                  - ids
+                  description: Asset class restriction.
+                  properties:
+                    ids:
+                      description: Set of asset class identifiers. See endpoint `/basic/assetClass/list` for valid values.
+                      type: array
+                      items:
+                        type: number
+                        format: id32
+                        x-positive: true
+                      uniqueItems: true
+                      maxItems: 12
+                instrumentCategory:
+                  type: object
+                  x-property-sort:
+                  - restrict
+                  - exclude
+                  description: Category selection. Identifiers from all entitled category systems can be used, see endpoint `/category/system/list` with `idType=1` for the list of category systems.
+                  x-atMostOne: true
+                  properties:
+                    restrict:
+                      type: object
+                      x-property-sort:
+                      - ids
+                      description: Specifies the instrument categories that the instruments of the notations may have.
+                      properties:
+                        ids:
+                          description: Set of category identifiers.
+                          type: array
+                          items:
+                            type: number
+                            format: id32
+                            x-positive: true
+                          uniqueItems: true
+                          maxItems: 20
+                    exclude:
+                      type: object
+                      x-property-sort:
+                      - ids
+                      description: Specifies the instrument categories that the instruments of the notations may not have.
+                      properties:
+                        ids:
+                          description: Set of category identifiers.
+                          type: array
+                          items:
+                            type: number
+                            format: id32
+                            x-positive: true
+                          uniqueItems: true
+                          maxItems: 20
+          required:
+          - id
+          example: example_value
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+            language:
+              $ref: '#/components/schemas/LanguageMember'
+            sort:
+              description: Sortable attributes. The sort order is ascending unless it is prefixed with a minus sign, in which case it is descending. A list of at most 6 (possibly prefixed) attribute name(s) is allowed.
+              type: array
+              items:
+                type: string
+                enum:
+                - market.name
+                - -market.name
+                - valueUnit.name
+                - -valueUnit.name
+                - instrument.name.default.long
+                - -instrument.name.default.long
+                - instrument.name.default.short
+                - -instrument.name.default.short
+                - instrument.name.assetClassSpecific.long
+                - -instrument.name.assetClassSpecific.long
+                - instrument.name.assetClassSpecific.short
+                - -instrument.name.assetClassSpecific.short
+              maxItems: 6
+              uniqueItems: true
+              default:
+              - instrument.name.default.long
+            pagination:
+              type: object
+              description: Pagination attributes for the offset-based pagination strategy.
+              properties:
+                offset:
+                  type: number
+                  format: int32
+                  minimum: 0
+                  default: 0
+                  description: Non-negative number of entries to skip, or 0 (default).
+                limit:
+                  type: number
+                  format: int32
+                  minimum: 0
+                  maximum: 500
+                  default: 20
+                  description: Non-negative maximum number of entries to return.
+              x-property-sort:
+              - offset
+              - limit
+          x-property-sort:
+          - attributes
+          - language
+          - sort
+          - pagination
+          example: example_value
   securitySchemes:
     FactSetOAuth2:
       type: oauth2

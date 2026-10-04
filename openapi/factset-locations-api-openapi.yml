@@ -123,29 +123,6 @@ paths:
       x-operation-id-source: derived
 components:
   responses:
-    locationsSuccess:
-      description: Success.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/LocationResourceList'
-    unauthorizedError:
-      description: User has not been authenticated.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            schemas:
-            - urn:ietf:params:scim:api:messages:2.0:Error
-            detail: FactSet.net credentials are missing or invalid.
-            status: '401'
-    locationSuccess:
-      description: Success.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/LocationResource'
     invalidResourceProvidedError:
       description: Provided resource contains invalid data.
       content:
@@ -182,6 +159,12 @@ components:
             scimType: invalidFilter
             detail: Invalid filter value.
             status: '400'
+    locationsSuccess:
+      description: Success.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/LocationResourceList'
     locationNotFoundError:
       description: Location not found.
       content:
@@ -199,6 +182,23 @@ components:
         application/scim+json:
           schema:
             $ref: '#/components/schemas/Error'
+    unauthorizedError:
+      description: User has not been authenticated.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: FactSet.net credentials are missing or invalid.
+            status: '401'
+    locationSuccess:
+      description: Success.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/LocationResource'
     forbiddenError:
       description: User is not authorized to use this API.
       content:
@@ -210,7 +210,67 @@ components:
             - urn:ietf:params:scim:api:messages:2.0:Error
             detail: FIN_WEALTH-999999 is not authorized to use the FactSet SCIM API.
             status: '403'
+  parameters:
+    count:
+      name: count
+      description: Maximum resource count. The server will not return more resources than this value, although it may return fewer.
+      in: query
+      schema:
+        type: integer
+      required: false
+    excludedAttributes:
+      name: excludedAttributes
+      description: Attribute blacklist filter string. A comma-separated list of resource attribute names to be excluded in the response, overriding the set of attributes that would be returned by default. Attribute names must be specified in standard attribute notation (see [RFC 7644 section 3.10](https://datatracker.ietf.org/doc/html/rfc7644#section-3.10).) This parameter cannot be used with the *attributes* parameter.
+      in: query
+      schema:
+        type: string
+      required: false
+    filter:
+      name: filter
+      description: Resource filter string. See [RFC 7644 section 3.4.2.2](https://tools.ietf.org/html/rfc7644#section-3.4.2.2) for syntax. Note this API implementation also supports a non-standard "re" operator for regular expression matching against strings.
+      in: query
+      schema:
+        type: string
+      required: false
+    resourceId:
+      name: id
+      description: ID of resource.
+      in: path
+      schema:
+        type: string
+      required: true
+    attributes:
+      name: attributes
+      description: Attribute whitelist filter string. A comma-separated list of resource attribute names to be returned in the response, overriding the set of attributes that would be returned by default. Attribute names must be specified in standard attribute notation (see [RFC 7644 section 3.10](https://datatracker.ietf.org/doc/html/rfc7644#section-3.10).) This parameter cannot be used with the *excludedAttributes* parameter.
+      in: query
+      schema:
+        type: string
+      required: false
+    startIndex:
+      name: startIndex
+      description: Result start index. The one-based index of the first result to be returned in the list of resources. For example, to exclude the first two resources, use a *startIndex* value of 3. This parameter has a default value of 1. This index applies *after* any resource filtration has been applied as specified by the *filter* argument.
+      in: query
+      schema:
+        type: integer
+      required: false
   schemas:
+    LocationResourceList:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example:
+          - urn:ietf:params:scim:api:messages:2.0:ListResponse
+        totalResults:
+          type: integer
+          example: 1
+        Resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/LocationResource'
+          example: []
     Patch:
       type: object
       properties:
@@ -319,23 +379,6 @@ components:
               example: https://api.factset.com/scim/v2/Locations/1598276
           readOnly: true
           example: example_value
-    LocationResourceList:
-      type: object
-      properties:
-        schemas:
-          type: array
-          items:
-            type: string
-          example:
-          - urn:ietf:params:scim:api:messages:2.0:ListResponse
-        totalResults:
-          type: integer
-          example: 1
-        Resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/LocationResource'
-          example: []
     LocationResourceReference:
       type: object
       properties:
@@ -353,50 +396,14 @@ components:
           example: FIN Wealth Management
       required:
       - value
-  parameters:
-    startIndex:
-      name: startIndex
-      description: Result start index. The one-based index of the first result to be returned in the list of resources. For example, to exclude the first two resources, use a *startIndex* value of 3. This parameter has a default value of 1. This index applies *after* any resource filtration has been applied as specified by the *filter* argument.
-      in: query
-      schema:
-        type: integer
-      required: false
-    count:
-      name: count
-      description: Maximum resource count. The server will not return more resources than this value, although it may return fewer.
-      in: query
-      schema:
-        type: integer
-      required: false
-    resourceId:
-      name: id
-      description: ID of resource.
-      in: path
-      schema:
-        type: string
-      required: true
-    filter:
-      name: filter
-      description: Resource filter string. See [RFC 7644 section 3.4.2.2](https://tools.ietf.org/html/rfc7644#section-3.4.2.2) for syntax. Note this API implementation also supports a non-standard "re" operator for regular expression matching against strings.
-      in: query
-      schema:
-        type: string
-      required: false
-    excludedAttributes:
-      name: excludedAttributes
-      description: Attribute blacklist filter string. A comma-separated list of resource attribute names to be excluded in the response, overriding the set of attributes that would be returned by default. Attribute names must be specified in standard attribute notation (see [RFC 7644 section 3.10](https://datatracker.ietf.org/doc/html/rfc7644#section-3.10).) This parameter cannot be used with the *attributes* parameter.
-      in: query
-      schema:
-        type: string
-      required: false
-    attributes:
-      name: attributes
-      description: Attribute whitelist filter string. A comma-separated list of resource attribute names to be returned in the response, overriding the set of attributes that would be returned by default. Attribute names must be specified in standard attribute notation (see [RFC 7644 section 3.10](https://datatracker.ietf.org/doc/html/rfc7644#section-3.10).) This parameter cannot be used with the *excludedAttributes* parameter.
-      in: query
-      schema:
-        type: string
-      required: false
   requestBodies:
+    locationResource:
+      description: Location resource.
+      required: true
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/LocationResource'
     patchLocationResource:
       content:
         application/scim+json:
@@ -410,13 +417,6 @@ components:
               path: externalId
               value:
               - value: exampleExternalId
-    locationResource:
-      description: Location resource.
-      required: true
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/LocationResource'
   securitySchemes:
     basicAuth:
       type: http

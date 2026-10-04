@@ -126,6 +126,24 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    CursorBasedPaginationOutputObjectWithoutTotal:
+      type: object
+      description: Pagination attributes for the cursor-based pagination strategy; a total element count is not supported.
+      properties:
+        next:
+          type: string
+          description: The next cursor position to use in the parameter `pagination.cursor` for an endpoint that supports cursor-based pagination, otherwise `null`.
+          example: example_value
+        previous:
+          type: string
+          description: The previous cursor position to use in the parameter `pagination.cursor` for an endpoint that supports cursor-based pagination. If a previous cursor position is not supported or available, `previous` is `null`.
+          example: example_value
+      required:
+      - next
+      - previous
+      x-property-sort:
+      - next
+      - previous
     StatusObject:
       type: object
       properties:
@@ -137,6 +155,144 @@ components:
       description: The status member contains the status code of the response.
       required:
       - code
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+      maxItems: 50
+      uniqueItems: true
+    PostPricesTimeSeriesIntradaySubsampleGetRequest:
+      x-property-sort:
+      - data
+      - meta
+      description: Request Body
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - identifier
+          - type
+          - quality
+          - from
+          - granularity
+          - adjustments
+          description: The data member contains the request's primary data.
+          properties:
+            identifier:
+              type: object
+              x-property-sort:
+              - value
+              - type
+              description: Identifier and type.
+              properties:
+                value:
+                  type: string
+                  pattern: ^[B-DF-HJ-NP-TV-Z0-9]{6}-[LR]$|^[A-Z0-9.#&*+]{1,47}-[A-Z0-9]{2,4}$|^[0-9]{3,20}$
+                  maxLength: 50
+                  minLength: 3
+                  description: Identifier to resolve.
+                type:
+                  type: string
+                  description: Type of the identifier.
+                  x-enum-description:
+                  - MDG identifier of a listing.
+                  - FactSet market symbol of a listing.
+                  - Regional FactSet ticker symbol, identifying the primary listing in the region.
+                  - FactSet Permanent Identifier on listing level.
+                  - Regional FactSet Permanent Identifier, identifying the primary listing in the region.
+                  enum:
+                  - idNotation
+                  - tickerExchange
+                  - tickerRegion
+                  - fdsPermanentIdentifierListing
+                  - fdsPermanentIdentifierRegional
+              required:
+              - value
+              - type
+            type:
+              type: string
+              description: Type of the price as configured for the customer.
+              default: trade
+              x-enum-description:
+              - Trade price (ordinary, auction, pre or post-trading).
+              - Bid price.
+              - Ask price.
+              - Yield price.
+              enum:
+              - trade
+              - bid
+              - ask
+              - yield
+            quality:
+              type: string
+              description: Quality of the price.
+              default: DLY
+              x-enum-description:
+              - 'Real-time: intraday prices with minimal technical processing delays.'
+              - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
+              - 'Best: choose the price quality with the least delay, as entitled for the client.'
+              enum:
+              - RLT
+              - DLY
+              - BST
+            from:
+              type: string
+              format: datetime
+              description: Date and time of the start point of the subsample (inclusive). `from` must be aligned to `granularity`. That is, the numerical value is an integral multiple of the time span value represented by `granularity`. The data accessible in the past is limited to a few weeks at most. Values in the future are not allowed.
+            granularity:
+              type: string
+              description: Subsample granularities suitable for intraday data.
+              default: 1h
+              x-enum-description:
+              - Each subsample interval encompasses 1 second.
+              - Each subsample interval encompasses 5 seconds.
+              - Each subsample interval encompasses 10 seconds.
+              - Each subsample interval encompasses 30 seconds.
+              - Each subsample interval encompasses 1 minute.
+              - Each subsample interval encompasses 5 minutes.
+              - Each subsample interval encompasses 10 minutes.
+              - Each subsample interval encompasses 15 minutes.
+              - Each subsample interval encompasses 30 minutes.
+              - Each subsample interval encompasses 1 hour.
+              enum:
+              - 1s
+              - 5s
+              - 10s
+              - 30s
+              - 1m
+              - 5m
+              - 10m
+              - 15m
+              - 30m
+              - 1h
+            adjustments:
+              type: object
+              x-property-sort:
+              - split
+              description: Adjustments values returned.
+              properties:
+                split:
+                  type: boolean
+                  default: true
+                  description: Adjustments are applied for corporate action effects due to the notation having a split, a reverse split, or a similar factor-based corporate action.
+          required:
+          - identifier
+          - from
+          example: example_value
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+          - attributes
+          example: example_value
     PostPricesTimeSeriesIntradaySubsampleListRequest:
       x-property-sort:
       - data
@@ -306,24 +462,6 @@ components:
           - attributes
           - pagination
           example: example_value
-    CursorBasedPaginationOutputObjectWithoutTotal:
-      type: object
-      description: Pagination attributes for the cursor-based pagination strategy; a total element count is not supported.
-      properties:
-        next:
-          type: string
-          description: The next cursor position to use in the parameter `pagination.cursor` for an endpoint that supports cursor-based pagination, otherwise `null`.
-          example: example_value
-        previous:
-          type: string
-          description: The previous cursor position to use in the parameter `pagination.cursor` for an endpoint that supports cursor-based pagination. If a previous cursor position is not supported or available, `previous` is `null`.
-          example: example_value
-      required:
-      - next
-      - previous
-      x-property-sort:
-      - next
-      - previous
     PostPricesTimeSeriesIntradayListRequest:
       x-property-sort:
       - data
@@ -482,145 +620,231 @@ components:
           - attributes
           - pagination
           example: example_value
-    PostPricesTimeSeriesIntradaySubsampleGetRequest:
-      x-property-sort:
-      - data
-      - meta
-      description: Request Body
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
-          x-property-sort:
-          - identifier
-          - type
-          - quality
-          - from
-          - granularity
-          - adjustments
-          description: The data member contains the request's primary data.
-          properties:
-            identifier:
-              type: object
-              x-property-sort:
-              - value
-              - type
-              description: Identifier and type.
-              properties:
-                value:
-                  type: string
-                  pattern: ^[B-DF-HJ-NP-TV-Z0-9]{6}-[LR]$|^[A-Z0-9.#&*+]{1,47}-[A-Z0-9]{2,4}$|^[0-9]{3,20}$
-                  maxLength: 50
-                  minLength: 3
-                  description: Identifier to resolve.
-                type:
-                  type: string
-                  description: Type of the identifier.
-                  x-enum-description:
-                  - MDG identifier of a listing.
-                  - FactSet market symbol of a listing.
-                  - Regional FactSet ticker symbol, identifying the primary listing in the region.
-                  - FactSet Permanent Identifier on listing level.
-                  - Regional FactSet Permanent Identifier, identifying the primary listing in the region.
-                  enum:
-                  - idNotation
-                  - tickerExchange
-                  - tickerRegion
-                  - fdsPermanentIdentifierListing
-                  - fdsPermanentIdentifierRegional
-              required:
-              - value
-              - type
-            type:
-              type: string
-              description: Type of the price as configured for the customer.
-              default: trade
-              x-enum-description:
-              - Trade price (ordinary, auction, pre or post-trading).
-              - Bid price.
-              - Ask price.
-              - Yield price.
-              enum:
-              - trade
-              - bid
-              - ask
-              - yield
-            quality:
-              type: string
-              description: Quality of the price.
-              default: DLY
-              x-enum-description:
-              - 'Real-time: intraday prices with minimal technical processing delays.'
-              - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
-              - 'Best: choose the price quality with the least delay, as entitled for the client.'
-              enum:
-              - RLT
-              - DLY
-              - BST
-            from:
-              type: string
-              format: datetime
-              description: Date and time of the start point of the subsample (inclusive). `from` must be aligned to `granularity`. That is, the numerical value is an integral multiple of the time span value represented by `granularity`. The data accessible in the past is limited to a few weeks at most. Values in the future are not allowed.
-            granularity:
-              type: string
-              description: Subsample granularities suitable for intraday data.
-              default: 1h
-              x-enum-description:
-              - Each subsample interval encompasses 1 second.
-              - Each subsample interval encompasses 5 seconds.
-              - Each subsample interval encompasses 10 seconds.
-              - Each subsample interval encompasses 30 seconds.
-              - Each subsample interval encompasses 1 minute.
-              - Each subsample interval encompasses 5 minutes.
-              - Each subsample interval encompasses 10 minutes.
-              - Each subsample interval encompasses 15 minutes.
-              - Each subsample interval encompasses 30 minutes.
-              - Each subsample interval encompasses 1 hour.
-              enum:
-              - 1s
-              - 5s
-              - 10s
-              - 30s
-              - 1m
-              - 5m
-              - 10m
-              - 15m
-              - 30m
-              - 1h
-            adjustments:
-              type: object
-              x-property-sort:
-              - split
-              description: Adjustments values returned.
-              properties:
-                split:
-                  type: boolean
-                  default: true
-                  description: Adjustments are applied for corporate action effects due to the notation having a split, a reverse split, or a similar factor-based corporate action.
-          required:
-          - identifier
-          - from
-          example: example_value
-        meta:
-          type: object
-          description: The meta member contains the meta information of the request.
-          properties:
-            attributes:
-              $ref: '#/components/schemas/AttributesMember'
-          x-property-sort:
-          - attributes
-          example: example_value
-    AttributesMember:
-      type: array
-      description: Limit the attributes returned in the response to the specified set.
-      items:
-        type: string
-        maxLength: 100
-      maxItems: 50
-      uniqueItems: true
   responses:
+    PostPricesTimeSeriesIntradayList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  idNotation:
+                    type:
+                    - string
+                    - 'null'
+                    format: id64
+                    x-positive: true
+                    description: MDG identifier of the listing.
+                  sourceIdentifier:
+                    type:
+                    - string
+                    - 'null'
+                    description: Identifier used in the request.
+                  range:
+                    type:
+                    - object
+                    - 'null'
+                    format: timeRange
+                    properties:
+                      start:
+                        type:
+                        - string
+                        - 'null'
+                        format: datetime
+                        description: The starting point of the time range (inclusive).
+                      end:
+                        type:
+                        - string
+                        - 'null'
+                        format: datetime
+                        description: The ending point of the time range (exclusive).
+                    x-property-sort:
+                    - start
+                    - end
+                    required:
+                    - start
+                    - end
+                    description: Time range for the returned time series.
+                  quality:
+                    type:
+                    - string
+                    - 'null'
+                    description: Quality of the price.
+                    x-enum-description:
+                    - 'Real-time: intraday prices with minimal technical processing delays.'
+                    - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
+                    enum:
+                    - RLT
+                    - DLY
+                  prices:
+                    type: array
+                    items:
+                      type: object
+                      x-property-sort:
+                      - time
+                      - price
+                      - quoteCondition
+                      - tradingVolume
+                      - tradingValue
+                      properties:
+                        time:
+                          type:
+                          - string
+                          - 'null'
+                          format: datetime
+                          description: Date and time.
+                        price:
+                          type:
+                          - number
+                          - 'null'
+                          format: real
+                          description: Price value. See attribute `valueUnit` in endpoint `/prices/get` for its unit, except for price type yield, where the `valueUnit` is always `percent` (id=258).
+                        quoteCondition:
+                          type:
+                          - string
+                          - 'null'
+                          description: Quote condition. Possible values depend on the values delivered by the supplier of the price information.
+                        tradingVolume:
+                          type:
+                          - number
+                          - 'null'
+                          format: real
+                          description: Number of units (e.g. shares) traded, offered (price type ask), solicited (price type bid), or empty (price type yield).
+                        tradingValue:
+                          type:
+                          - number
+                          - 'null'
+                          format: real
+                          description: Monetary equivalent (cash value) of the trade. See attribute `currency` in endpoint `/prices/get` for its unit. Empty for price type yield.
+                    description: Time series of prices.
+                description: Time series data for the notation.
+                x-property-sort:
+                - idNotation
+                - sourceIdentifier
+                - range
+                - quality
+                - prices
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                  pagination:
+                    $ref: '#/components/schemas/CursorBasedPaginationOutputObjectWithoutTotal'
+                x-property-sort:
+                - status
+                - pagination
+            x-property-sort:
+            - data
+            - meta
+    PostPricesTimeSeriesIntradaySubsampleGet200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  idNotation:
+                    type:
+                    - string
+                    - 'null'
+                    format: id64
+                    x-positive: true
+                    description: MDG identifier of the listing.
+                  sourceIdentifier:
+                    type:
+                    - string
+                    - 'null'
+                    description: Identifier used in the request.
+                  quality:
+                    type:
+                    - string
+                    - 'null'
+                    description: Quality of the price.
+                    x-enum-description:
+                    - 'Real-time: intraday prices with minimal technical processing delays.'
+                    - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
+                    enum:
+                    - RLT
+                    - DLY
+                  subsample:
+                    type: object
+                    x-property-sort:
+                    - time
+                    - first
+                    - last
+                    - low
+                    - high
+                    - tradingVolume
+                    - tradingValue
+                    description: Single summary record. For the attributes first, last, low, high, see attribute `valueUnit` in endpoint `/prices/get` for their unit, except for price type yield, where the `valueUnit` is always `percent` (id=258).
+                    properties:
+                      time:
+                        type:
+                        - string
+                        - 'null'
+                        format: datetime
+                        description: Date and time of the start of the subsample.
+                      first:
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: First price of the subsample.
+                      last:
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Last price of the subsample.
+                      low:
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Lowest price of the subsample.
+                      high:
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Highest price of the subsample.
+                      tradingVolume:
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Accumulated number of units (e.g. shares) traded of the subsample. If the requested type of the price is ask, bid, or yield, the value is empty.
+                      tradingValue:
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Accumulated monetary equivalent (cash value) of the subsample. If the requested type of the price is ask, bid, or yield, the value is empty. See attribute `currency` in endpoint `/prices/get` for its unit.
+                description: Subsample data for the notation.
+                x-property-sort:
+                - idNotation
+                - sourceIdentifier
+                - quality
+                - subsample
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
     PostPricesTimeSeriesIntradaySubsampleList200Response:
       description: Successful Response
       content:
@@ -742,230 +966,6 @@ components:
                 - range
                 - quality
                 - subsamples
-              meta:
-                type: object
-                description: The meta member contains the meta information of the response.
-                properties:
-                  status:
-                    $ref: '#/components/schemas/StatusObject'
-                  pagination:
-                    $ref: '#/components/schemas/CursorBasedPaginationOutputObjectWithoutTotal'
-                x-property-sort:
-                - status
-                - pagination
-            x-property-sort:
-            - data
-            - meta
-    PostPricesTimeSeriesIntradaySubsampleGet200Response:
-      description: Successful Response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: object
-                properties:
-                  idNotation:
-                    type:
-                    - string
-                    - 'null'
-                    format: id64
-                    x-positive: true
-                    description: MDG identifier of the listing.
-                  sourceIdentifier:
-                    type:
-                    - string
-                    - 'null'
-                    description: Identifier used in the request.
-                  quality:
-                    type:
-                    - string
-                    - 'null'
-                    description: Quality of the price.
-                    x-enum-description:
-                    - 'Real-time: intraday prices with minimal technical processing delays.'
-                    - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
-                    enum:
-                    - RLT
-                    - DLY
-                  subsample:
-                    type: object
-                    x-property-sort:
-                    - time
-                    - first
-                    - last
-                    - low
-                    - high
-                    - tradingVolume
-                    - tradingValue
-                    description: Single summary record. For the attributes first, last, low, high, see attribute `valueUnit` in endpoint `/prices/get` for their unit, except for price type yield, where the `valueUnit` is always `percent` (id=258).
-                    properties:
-                      time:
-                        type:
-                        - string
-                        - 'null'
-                        format: datetime
-                        description: Date and time of the start of the subsample.
-                      first:
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: First price of the subsample.
-                      last:
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Last price of the subsample.
-                      low:
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Lowest price of the subsample.
-                      high:
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Highest price of the subsample.
-                      tradingVolume:
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Accumulated number of units (e.g. shares) traded of the subsample. If the requested type of the price is ask, bid, or yield, the value is empty.
-                      tradingValue:
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Accumulated monetary equivalent (cash value) of the subsample. If the requested type of the price is ask, bid, or yield, the value is empty. See attribute `currency` in endpoint `/prices/get` for its unit.
-                description: Subsample data for the notation.
-                x-property-sort:
-                - idNotation
-                - sourceIdentifier
-                - quality
-                - subsample
-              meta:
-                type: object
-                description: The meta member contains the meta information of the response.
-                properties:
-                  status:
-                    $ref: '#/components/schemas/StatusObject'
-                x-property-sort:
-                - status
-            x-property-sort:
-            - data
-            - meta
-    PostPricesTimeSeriesIntradayList200Response:
-      description: Successful Response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: object
-                properties:
-                  idNotation:
-                    type:
-                    - string
-                    - 'null'
-                    format: id64
-                    x-positive: true
-                    description: MDG identifier of the listing.
-                  sourceIdentifier:
-                    type:
-                    - string
-                    - 'null'
-                    description: Identifier used in the request.
-                  range:
-                    type:
-                    - object
-                    - 'null'
-                    format: timeRange
-                    properties:
-                      start:
-                        type:
-                        - string
-                        - 'null'
-                        format: datetime
-                        description: The starting point of the time range (inclusive).
-                      end:
-                        type:
-                        - string
-                        - 'null'
-                        format: datetime
-                        description: The ending point of the time range (exclusive).
-                    x-property-sort:
-                    - start
-                    - end
-                    required:
-                    - start
-                    - end
-                    description: Time range for the returned time series.
-                  quality:
-                    type:
-                    - string
-                    - 'null'
-                    description: Quality of the price.
-                    x-enum-description:
-                    - 'Real-time: intraday prices with minimal technical processing delays.'
-                    - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
-                    enum:
-                    - RLT
-                    - DLY
-                  prices:
-                    type: array
-                    items:
-                      type: object
-                      x-property-sort:
-                      - time
-                      - price
-                      - quoteCondition
-                      - tradingVolume
-                      - tradingValue
-                      properties:
-                        time:
-                          type:
-                          - string
-                          - 'null'
-                          format: datetime
-                          description: Date and time.
-                        price:
-                          type:
-                          - number
-                          - 'null'
-                          format: real
-                          description: Price value. See attribute `valueUnit` in endpoint `/prices/get` for its unit, except for price type yield, where the `valueUnit` is always `percent` (id=258).
-                        quoteCondition:
-                          type:
-                          - string
-                          - 'null'
-                          description: Quote condition. Possible values depend on the values delivered by the supplier of the price information.
-                        tradingVolume:
-                          type:
-                          - number
-                          - 'null'
-                          format: real
-                          description: Number of units (e.g. shares) traded, offered (price type ask), solicited (price type bid), or empty (price type yield).
-                        tradingValue:
-                          type:
-                          - number
-                          - 'null'
-                          format: real
-                          description: Monetary equivalent (cash value) of the trade. See attribute `currency` in endpoint `/prices/get` for its unit. Empty for price type yield.
-                    description: Time series of prices.
-                description: Time series data for the notation.
-                x-property-sort:
-                - idNotation
-                - sourceIdentifier
-                - range
-                - quality
-                - prices
               meta:
                 type: object
                 description: The meta member contains the meta information of the response.

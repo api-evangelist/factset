@@ -203,6 +203,60 @@ paths:
     - url: https://api.factset.com/analytics/dsotm/v1
 components:
   schemas:
+    ClientErrorResponse:
+      type: object
+      properties:
+        errors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Error'
+    Transactions:
+      type: object
+      properties:
+        executions:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/ExecutionParameters'
+          description: List of executions
+        placements:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/PlacementParameters'
+          description: List of placements
+        orders:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/OrderParameters'
+          description: List of orders
+    Error:
+      type: object
+      properties:
+        id:
+          type:
+          - string
+          - 'null'
+        code:
+          type:
+          - string
+          - 'null'
+        title:
+          type:
+          - string
+          - 'null'
+        detail:
+          type:
+          - string
+          - 'null'
+        source:
+          $ref: '#/components/schemas/ErrorSource'
     PlacementParameters:
       required:
       - amount
@@ -288,27 +342,6 @@ components:
           type: number
           description: FX rate that can be picked up by PA, multiplied with the cash valued fields, Net, Gross, to allow PA to show transactions in reporting currency.
           format: float
-    Error:
-      type: object
-      properties:
-        id:
-          type:
-          - string
-          - 'null'
-        code:
-          type:
-          - string
-          - 'null'
-        title:
-          type:
-          - string
-          - 'null'
-        detail:
-          type:
-          - string
-          - 'null'
-        source:
-          $ref: '#/components/schemas/ErrorSource'
     ExecutionParameters:
       required:
       - amount
@@ -413,30 +446,17 @@ components:
           type: number
           description: FX rate that can be picked up by PA, multiplied with the cash valued fields, Net, Gross, to allow PA to show transactions in reporting currency.
           format: float
-    Transactions:
+    ErrorSource:
       type: object
       properties:
-        executions:
+        pointer:
           type:
-          - array
+          - string
           - 'null'
-          items:
-            $ref: '#/components/schemas/ExecutionParameters'
-          description: List of executions
-        placements:
+        parameter:
           type:
-          - array
+          - string
           - 'null'
-          items:
-            $ref: '#/components/schemas/PlacementParameters'
-          description: List of placements
-        orders:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/OrderParameters'
-          description: List of orders
     OrderParameters:
       required:
       - amount
@@ -509,26 +529,27 @@ components:
           type: number
           description: FX rate that can be picked up by PA, multiplied with the cash valued fields, Net, Gross, to allow PA to show transactions in reporting currency.
           format: float
-    ClientErrorResponse:
+    StachTableResponse:
+      type: object
+      properties:
+        data:
+          title: STACH
+          description: Returns a STACH 2.0 row organized package
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ErrorResponse:
       type: object
       properties:
         errors:
-          type:
-          - array
-          - 'null'
+          type: array
           items:
-            $ref: '#/components/schemas/Error'
-    ErrorSource:
+            $ref: '#/components/schemas/ErrorObject'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Meta:
       type: object
-      properties:
-        pointer:
-          type:
-          - string
-          - 'null'
-        parameter:
-          type:
-          - string
-          - 'null'
+      additionalProperties:
+        type: string
     ErrorObject:
       type: object
       properties:
@@ -550,28 +571,291 @@ components:
           properties:
             parameter:
               type: string
-    ErrorResponse:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorObject'
-        meta:
-          $ref: '#/components/schemas/Meta'
-    StachTableResponse:
-      type: object
-      properties:
-        data:
-          title: STACH
-          description: Returns a STACH 2.0 row organized package
-        meta:
-          $ref: '#/components/schemas/Meta'
-    Meta:
-      type: object
-      additionalProperties:
-        type: string
   examples:
+    parameterErrorTopn:
+      summary: topn parameter error
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Invalid parameter: ''topn'''
+    transactionType200Response:
+      summary: transactionType=NOTES_BONDS response
+      value:
+        data:
+          version: '2.0'
+          tables:
+            main:
+              headersDefinition:
+                columns: []
+              definition:
+                columns:
+                - id: c_transaction_date
+                  type: string
+                - id: c_transaction_type
+                  type: string
+                - id: c_transaction_description
+                  type: string
+                - id: c_transaction_amount
+                  type: string
+                - id: c_transaction_status
+                  type: string
+              data:
+                rows:
+                - rowType: Header
+                  cells:
+                  - Date
+                  - Type
+                  - Description
+                  - Amount
+                  - Status
+                  headerCellDetails:
+                    '0':
+                      source: PRIMARY
+                      columnIndex: 0
+                    '1':
+                      source: PRIMARY
+                      columnIndex: 1
+                    '2':
+                      source: PRIMARY
+                      columnIndex: 2
+                    '3':
+                      source: PRIMARY
+                      columnIndex: 3
+                    '4':
+                      source: PRIMARY
+                      columnIndex: 4
+                - cells:
+                  - '20220301'
+                  - Notes/Bonds
+                  - FactSet Research Systems Inc. 3.450% 01-MAR-2032
+                  - null
+                  - New Issue
+                  rowMetadata:
+                    transactionType:
+                      value: Notes/Bonds
+                    transactionId:
+                      value: 303075AB
+                - cells:
+                  - '20220301'
+                  - Notes/Bonds
+                  - FactSet Research Systems Inc. 2.900% 01-MAR-2027
+                  - null
+                  - New Issue
+                  rowMetadata:
+                    transactionType:
+                      value: Notes/Bonds
+                    transactionId:
+                      value: 303075AA
+                tableMetadata:
+                  currencyCode:
+                    value: USD
+                  currencySymbol:
+                    value: $
+                  sources:
+                    value:
+                    - FactSet Fundamentals
+                    - FactSet Mergers
+                    - FactSet DCS
+                    - FactSet Fixed Income
+                columnMetadata:
+                  c_transaction_amount:
+                    items:
+                      scale:
+                        value: 6
+            details:
+              headersDefinition:
+                columns: []
+              definition:
+                columns:
+                - id: c_id
+                  type: string
+                - id: c_gross_proceeds
+                  type: real
+                - id: c_overallotment
+                  type: real
+                - id: c_total
+                  type: real
+              data:
+                rows:
+                - rowType: Header
+                  cells:
+                  - Transaction ID
+                  - Gross Proceeds Excl. Overallotment
+                  - Overallotment Amount Exercised
+                  - Gross Proceeds Inc. Overallotment
+                  headerCellDetails:
+                    '0':
+                      source: PRIMARY
+                      columnIndex: 0
+                    '1':
+                      source: PRIMARY
+                      columnIndex: 1
+                    '2':
+                      source: PRIMARY
+                      columnIndex: 2
+                    '3':
+                      source: PRIMARY
+                      columnIndex: 3
+                tableMetadata:
+                  currencyCode:
+                    value: USD
+                  currencySymbol:
+                    value: $
+                  sources:
+                    value:
+                    - FactSet Fundamentals
+                    - FactSet Mergers
+                    - FactSet DCS
+                    - FactSet Fixed Income
+                columnMetadata:
+                  c_gross_proceeds:
+                    items:
+                      scale:
+                        value: 6
+                  c_overallotment:
+                    items:
+                      scale:
+                        value: 6
+                  c_total:
+                    items:
+                      scale:
+                        value: 6
+    unsupportedEntityParameterError:
+      summary: unsupported entity type
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: Unsupported entity type
+    noData200TransactionsResponse:
+      summary: no data response
+      value:
+        data:
+          version: '2.0'
+          tables:
+            main:
+              definition:
+                columns:
+                - id: c_transaction_date
+                  type: string
+                  isDimension: true
+                - id: c_transaction_type
+                  type: string
+                  isDimension: true
+                - id: c_transaction_description
+                  type: real
+                  isDimension: true
+                - id: c_transaction_amount
+                  type: string
+                  isDimension: true
+                - id: c_transaction_status
+                  type: string
+                  isDimension: true
+              headersDefinition:
+                columns: []
+              data:
+                rows:
+                - cells:
+                  - Date
+                  - Type
+                  - Description
+                  - Amount
+                  - Status
+                  rowType: Header
+                  headerCellDetails:
+                    '0':
+                      source: PRIMARY
+                      columnIndex: 0
+                    '1':
+                      source: PRIMARY
+                      columnIndex: 1
+                    '2':
+                      source: PRIMARY
+                      columnIndex: 2
+                    '3':
+                      source: PRIMARY
+                      columnIndex: 3
+                    '4':
+                      source: PRIMARY
+                      columnIndex: 4
+                tableMetadata:
+                  currencyCode:
+                    value: null
+                  currencySymbol:
+                    value: null
+                columnMetadata:
+                  c_transaction_amount:
+                    items:
+                      scale:
+                        value: 6
+            details:
+              definition:
+                columns:
+                - id: c_id
+                  type: string
+                  isDimension: true
+                - id: c_gross_proceeds
+                  type: real
+                  isDimension: true
+                - id: c_overallotment
+                  type: real
+                  isDimension: true
+                - id: c_total
+                  type: real
+                  isDimension: true
+              headersDefinition:
+                columns: []
+              data:
+                rows:
+                - cells:
+                  - Transaction ID
+                  - Gross Proceeds Excl. Overallotment
+                  - Overallotment Amount Exercised
+                  - Gross Proceeds Inc. Overallotment
+                  rowType: Header
+                  headerCellDetails:
+                    '0':
+                      source: PRIMARY
+                      columnIndex: 0
+                    '1':
+                      source: PRIMARY
+                      columnIndex: 1
+                    '2':
+                      source: PRIMARY
+                      columnIndex: 2
+                    '3':
+                      source: PRIMARY
+                      columnIndex: 3
+                tableMetadata:
+                  currencyCode:
+                    value: null
+                  currencySymbol:
+                    value: null
+                columnMetaData:
+                  c_gross_proceeds:
+                    items:
+                      scale:
+                        value: 6
+        meta:
+          requestId: 07ZXHF-E
+          fsymId: null
+          noData: true
+          message: There is no data for this request.
+    parameterErrorEstimate:
+      summary: estimate periods parameter error
+      value:
+        errors:
+        - id: 372a28d1-53ac-49cd-9be5-beb714cd62a8
+          code: parameterError
+          title: 'Invalid parameter: ''estimate''. Accepted values include nonzero integers'
+    idRequiredParameterError:
+      summary: generic parameter error (missing parameter)
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: parameterError
+          title: 'Missing required parameter(s): ''id'''
     idInvalidParameterError:
       summary: generic parameter error (invalid parameter)
       value:
@@ -586,6 +870,13 @@ components:
         - id: 3838f112-ed5a-4d9d-b0c7-3594d8eab0ed
           code: parameterError
           title: 'Invalid parameter: ''view''. Accepted values include: ''FINANCIAL'', ''VALUATION'', ''CAPITALIZATION'', ''MARGINS'' or ''PERFORMANCE'''
+    endpointNotFound:
+      summary: endpoint not found
+      value:
+        errors:
+        - id: 39314614-e607-465a-ba95-5bb79c362e23
+          code: endpointNotFound
+          title: The requested endpoint does not exist.
     default200TransactionsResponse:
       summary: sample response
       value:
@@ -727,20 +1018,6 @@ components:
         meta:
           requestId: FDS-US
           fsymId: SQFMK3-R
-    endpointNotFound:
-      summary: endpoint not found
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: endpointNotFound
-          title: The requested endpoint does not exist.
-    parameterErrorActual:
-      summary: actual periods parameter error
-      value:
-        errors:
-        - id: 35a62bd5-c4aa-4e6b-9357-0f1b5688e2db
-          code: parameterError
-          title: 'Invalid parameter: ''actual''. Accepted values include nonzero integers'
     financingType200Response:
       summary: financingType=DEBT response
       value:
@@ -930,291 +1207,55 @@ components:
         meta:
           requestId: FDS-US
           fsymId: SQFMK3-R
-    unsupportedEntityParameterError:
-      summary: unsupported entity type
+    parameterErrorActual:
+      summary: actual periods parameter error
       value:
         errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
+        - id: 35a62bd5-c4aa-4e6b-9357-0f1b5688e2db
           code: parameterError
-          title: Unsupported entity type
-    transactionType200Response:
-      summary: transactionType=NOTES_BONDS response
-      value:
-        data:
-          version: '2.0'
-          tables:
-            main:
-              headersDefinition:
-                columns: []
-              definition:
-                columns:
-                - id: c_transaction_date
-                  type: string
-                - id: c_transaction_type
-                  type: string
-                - id: c_transaction_description
-                  type: string
-                - id: c_transaction_amount
-                  type: string
-                - id: c_transaction_status
-                  type: string
-              data:
-                rows:
-                - rowType: Header
-                  cells:
-                  - Date
-                  - Type
-                  - Description
-                  - Amount
-                  - Status
-                  headerCellDetails:
-                    '0':
-                      source: PRIMARY
-                      columnIndex: 0
-                    '1':
-                      source: PRIMARY
-                      columnIndex: 1
-                    '2':
-                      source: PRIMARY
-                      columnIndex: 2
-                    '3':
-                      source: PRIMARY
-                      columnIndex: 3
-                    '4':
-                      source: PRIMARY
-                      columnIndex: 4
-                - cells:
-                  - '20220301'
-                  - Notes/Bonds
-                  - FactSet Research Systems Inc. 3.450% 01-MAR-2032
-                  - null
-                  - New Issue
-                  rowMetadata:
-                    transactionType:
-                      value: Notes/Bonds
-                    transactionId:
-                      value: 303075AB
-                - cells:
-                  - '20220301'
-                  - Notes/Bonds
-                  - FactSet Research Systems Inc. 2.900% 01-MAR-2027
-                  - null
-                  - New Issue
-                  rowMetadata:
-                    transactionType:
-                      value: Notes/Bonds
-                    transactionId:
-                      value: 303075AA
-                tableMetadata:
-                  currencyCode:
-                    value: USD
-                  currencySymbol:
-                    value: $
-                  sources:
-                    value:
-                    - FactSet Fundamentals
-                    - FactSet Mergers
-                    - FactSet DCS
-                    - FactSet Fixed Income
-                columnMetadata:
-                  c_transaction_amount:
-                    items:
-                      scale:
-                        value: 6
-            details:
-              headersDefinition:
-                columns: []
-              definition:
-                columns:
-                - id: c_id
-                  type: string
-                - id: c_gross_proceeds
-                  type: real
-                - id: c_overallotment
-                  type: real
-                - id: c_total
-                  type: real
-              data:
-                rows:
-                - rowType: Header
-                  cells:
-                  - Transaction ID
-                  - Gross Proceeds Excl. Overallotment
-                  - Overallotment Amount Exercised
-                  - Gross Proceeds Inc. Overallotment
-                  headerCellDetails:
-                    '0':
-                      source: PRIMARY
-                      columnIndex: 0
-                    '1':
-                      source: PRIMARY
-                      columnIndex: 1
-                    '2':
-                      source: PRIMARY
-                      columnIndex: 2
-                    '3':
-                      source: PRIMARY
-                      columnIndex: 3
-                tableMetadata:
-                  currencyCode:
-                    value: USD
-                  currencySymbol:
-                    value: $
-                  sources:
-                    value:
-                    - FactSet Fundamentals
-                    - FactSet Mergers
-                    - FactSet DCS
-                    - FactSet Fixed Income
-                columnMetadata:
-                  c_gross_proceeds:
-                    items:
-                      scale:
-                        value: 6
-                  c_overallotment:
-                    items:
-                      scale:
-                        value: 6
-                  c_total:
-                    items:
-                      scale:
-                        value: 6
-    parameterErrorTopn:
-      summary: topn parameter error
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: parameterError
-          title: 'Invalid parameter: ''topn'''
-    noData200TransactionsResponse:
-      summary: no data response
-      value:
-        data:
-          version: '2.0'
-          tables:
-            main:
-              definition:
-                columns:
-                - id: c_transaction_date
-                  type: string
-                  isDimension: true
-                - id: c_transaction_type
-                  type: string
-                  isDimension: true
-                - id: c_transaction_description
-                  type: real
-                  isDimension: true
-                - id: c_transaction_amount
-                  type: string
-                  isDimension: true
-                - id: c_transaction_status
-                  type: string
-                  isDimension: true
-              headersDefinition:
-                columns: []
-              data:
-                rows:
-                - cells:
-                  - Date
-                  - Type
-                  - Description
-                  - Amount
-                  - Status
-                  rowType: Header
-                  headerCellDetails:
-                    '0':
-                      source: PRIMARY
-                      columnIndex: 0
-                    '1':
-                      source: PRIMARY
-                      columnIndex: 1
-                    '2':
-                      source: PRIMARY
-                      columnIndex: 2
-                    '3':
-                      source: PRIMARY
-                      columnIndex: 3
-                    '4':
-                      source: PRIMARY
-                      columnIndex: 4
-                tableMetadata:
-                  currencyCode:
-                    value: null
-                  currencySymbol:
-                    value: null
-                columnMetadata:
-                  c_transaction_amount:
-                    items:
-                      scale:
-                        value: 6
-            details:
-              definition:
-                columns:
-                - id: c_id
-                  type: string
-                  isDimension: true
-                - id: c_gross_proceeds
-                  type: real
-                  isDimension: true
-                - id: c_overallotment
-                  type: real
-                  isDimension: true
-                - id: c_total
-                  type: real
-                  isDimension: true
-              headersDefinition:
-                columns: []
-              data:
-                rows:
-                - cells:
-                  - Transaction ID
-                  - Gross Proceeds Excl. Overallotment
-                  - Overallotment Amount Exercised
-                  - Gross Proceeds Inc. Overallotment
-                  rowType: Header
-                  headerCellDetails:
-                    '0':
-                      source: PRIMARY
-                      columnIndex: 0
-                    '1':
-                      source: PRIMARY
-                      columnIndex: 1
-                    '2':
-                      source: PRIMARY
-                      columnIndex: 2
-                    '3':
-                      source: PRIMARY
-                      columnIndex: 3
-                tableMetadata:
-                  currencyCode:
-                    value: null
-                  currencySymbol:
-                    value: null
-                columnMetaData:
-                  c_gross_proceeds:
-                    items:
-                      scale:
-                        value: 6
-        meta:
-          requestId: 07ZXHF-E
-          fsymId: null
-          noData: true
-          message: There is no data for this request.
-    idRequiredParameterError:
-      summary: generic parameter error (missing parameter)
-      value:
-        errors:
-        - id: 39314614-e607-465a-ba95-5bb79c362e23
-          code: parameterError
-          title: 'Missing required parameter(s): ''id'''
-    parameterErrorEstimate:
-      summary: estimate periods parameter error
-      value:
-        errors:
-        - id: 372a28d1-53ac-49cd-9be5-beb714cd62a8
-          code: parameterError
-          title: 'Invalid parameter: ''estimate''. Accepted values include nonzero integers'
+          title: 'Invalid parameter: ''actual''. Accepted values include nonzero integers'
+  headers:
+    xDataDirectRequestKey:
+      description: FactSet request ID
+      schema:
+        type: string
+    apiSupportedVersions:
+      description: Supported API versions (semantic versioning)
+      schema:
+        type: string
+    apiVersion:
+      description: API version (semantic versioning)
+      schema:
+        type: string
   responses:
+    500InternalServerError:
+      description: Server error. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    503ServiceUnavailable:
+      description: Service unavailable. Typically a timeout, or result of a rejected request to prevent service overload. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+    404NotFound:
+      description: Not found. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
+      headers:
+        X-DataDirect-Request-Key:
+          schema:
+            type: string
+          description: FactSet request ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            endpointNotFound:
+              $ref: '#/components/examples/endpointNotFound'
     400BadRequest:
       description: Bad Request. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
       headers:
@@ -1243,34 +1284,6 @@ components:
               $ref: '#/components/examples/parameterErrorTopn'
             parameterErrorView:
               $ref: '#/components/examples/parameterErrorView'
-    404NotFound:
-      description: Not found. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            endpointNotFound:
-              $ref: '#/components/examples/endpointNotFound'
-    500InternalServerError:
-      description: Server error. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
-    503ServiceUnavailable:
-      description: Service unavailable. Typically a timeout, or result of a rejected request to prevent service overload. For further assistance, file an issue under "Performance - 404 and 500 Responses" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
-      headers:
-        X-DataDirect-Request-Key:
-          schema:
-            type: string
-          description: FactSet request ID
     429TooManyRequests:
       description: Too many requests - this API is rate-limited to 20 requests per second. For further assistance, file an issue under "Workflow & Throttling - 400 or 429 Response" using `Report Issue` at the top of this page, including the X-DataDirect-Request-Key from the header to assist in troubleshooting.
       headers:
@@ -1307,19 +1320,6 @@ components:
           schema:
             type: string
           description: FactSet request ID
-  headers:
-    apiVersion:
-      description: API version (semantic versioning)
-      schema:
-        type: string
-    xDataDirectRequestKey:
-      description: FactSet request ID
-      schema:
-        type: string
-    apiSupportedVersions:
-      description: Supported API versions (semantic versioning)
-      schema:
-        type: string
   securitySchemes:
     FactSetApiKey:
       type: http

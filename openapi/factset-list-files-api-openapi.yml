@@ -190,34 +190,23 @@ components:
           Param Error: Missing or Wrong product parameter
           startDate: Missing or Wrong date parameter
           endDate: Missing or Wrong date parameter
-    partial:
-      title: isPartialobject
-      description: If the value is true, it indicates additional results are available. False represents that this is the last set of results for this request.
+    pagination:
+      title: paginationobjects
+      description: List of pagination objects
       type: object
       properties:
-        isPartial:
+        total:
+          description: Total number of files the API returns for a particular query
+          type: integer
+        is EstimatedTotal:
+          description: Boolean value that represents whether the total count of files returned is exact or an estimate. This is defaulted to  False as the API should always return the exact count
           type: boolean
-    list-files_200Response:
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/dataresponseitems'
-        meta:
-          type: object
-          properties:
-            pagination:
-              $ref: '#/components/schemas/pagination'
-            partial:
-              $ref: '#/components/schemas/partial'
-    list-files_400Response:
-      properties:
-        id:
-          description: request id
-          type: string
-        error_message:
-          description: message describing the error
-          type: string
+        limit:
+          description: Number of results returned per page
+          type: integer
+        offset:
+          description: The flag indicating the position in the results array if additional results are available beyond the default value or the value in paginationLimit parameter (if used). This value is passed in the _paginationOffset parameter to retreieve subsequent results
+          type: integer
     dataresponseitems:
       description: Array of data objects
       type: object
@@ -259,24 +248,75 @@ components:
         fileSize:
           description: file size of the particular bundle
           type: string
-    pagination:
-      title: paginationobjects
-      description: List of pagination objects
+    partial:
+      title: isPartialobject
+      description: If the value is true, it indicates additional results are available. False represents that this is the last set of results for this request.
       type: object
       properties:
-        total:
-          description: Total number of files the API returns for a particular query
-          type: integer
-        is EstimatedTotal:
-          description: Boolean value that represents whether the total count of files returned is exact or an estimate. This is defaulted to  False as the API should always return the exact count
+        isPartial:
           type: boolean
-        limit:
-          description: Number of results returned per page
-          type: integer
-        offset:
-          description: The flag indicating the position in the results array if additional results are available beyond the default value or the value in paginationLimit parameter (if used). This value is passed in the _paginationOffset parameter to retreieve subsequent results
-          type: integer
+    list-files_200Response:
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/dataresponseitems'
+        meta:
+          type: object
+          properties:
+            pagination:
+              $ref: '#/components/schemas/pagination'
+            partial:
+              $ref: '#/components/schemas/partial'
+    list-files_400Response:
+      properties:
+        id:
+          description: request id
+          type: string
+        error_message:
+          description: message describing the error
+          type: string
   parameters:
+    schema:
+      name: schema
+      in: query
+      description: 'schema name</p> </p> **Example: acta_v1, fgp_v1, yn_v1**
+
+
+        QFL:- To query QFL data, please use value:   **qfl_v1** '
+      required: false
+      schema:
+        type: string
+    _paginationOffset:
+      name: _paginationOffset
+      in: query
+      description: Specifies the starting point for pagination. This parameter is used to identify the beginning of next set of results
+      required: false
+      schema:
+        type: integer
+        default: 0
+    endDate:
+      name: endDate
+      in: query
+      description: 'The latest date of the feed file the API should fetch for based on the fileTimestamp
+
+
+        If startDate and endDate parameters are not specified in the request, this endpoint returns past 10 days data by default.
+
+
+        endDate can be in absolute- YYYY-MM-DD or relative date:- 0 for today'
+      required: false
+      schema:
+        type: string
+    _sort:
+      name: _sort
+      in: query
+      description: Enables to get the data in ascending or descending order based on startTime. Results are in reverse chronological order if this parameter is not used
+      required: false
+      schema:
+        type: string
+        enum:
+        - startDate
     startDate:
       name: startDate
       in: query
@@ -299,25 +339,23 @@ components:
       required: false
       schema:
         type: string
-    _sort:
-      name: _sort
+    type:
+      name: type
       in: query
-      description: Enables to get the data in ascending or descending order based on startTime. Results are in reverse chronological order if this parameter is not used
+      description: 'file type = Full or Delta</p> Full files are weekly files generated every weekend (Saturday). **The date range should include weekend dates if requesting for "Full" files**
+
+
+        QFL:- In case of QFL we have
+
+        - Historical files (1995 to previous year)- Always "Full" . A "Full" file is generated for each year
+
+        - For YTD (Current year)- "Full" files are weekly files generated every weekend (Saturday). The date range should include weekend dates if requesting for "Full" files'
       required: false
       schema:
         type: string
         enum:
-        - startDate
-    schema:
-      name: schema
-      in: query
-      description: 'schema name</p> </p> **Example: acta_v1, fgp_v1, yn_v1**
-
-
-        QFL:- To query QFL data, please use value:   **qfl_v1** '
-      required: false
-      schema:
-        type: string
+        - full
+        - delta
     bundle:
       name: bundle
       in: query
@@ -341,44 +379,6 @@ components:
         type: integer
         default: 20
         maximum: 500
-    _paginationOffset:
-      name: _paginationOffset
-      in: query
-      description: Specifies the starting point for pagination. This parameter is used to identify the beginning of next set of results
-      required: false
-      schema:
-        type: integer
-        default: 0
-    type:
-      name: type
-      in: query
-      description: 'file type = Full or Delta</p> Full files are weekly files generated every weekend (Saturday). **The date range should include weekend dates if requesting for "Full" files**
-
-
-        QFL:- In case of QFL we have
-
-        - Historical files (1995 to previous year)- Always "Full" . A "Full" file is generated for each year
-
-        - For YTD (Current year)- "Full" files are weekly files generated every weekend (Saturday). The date range should include weekend dates if requesting for "Full" files'
-      required: false
-      schema:
-        type: string
-        enum:
-        - full
-        - delta
-    endDate:
-      name: endDate
-      in: query
-      description: 'The latest date of the feed file the API should fetch for based on the fileTimestamp
-
-
-        If startDate and endDate parameters are not specified in the request, this endpoint returns past 10 days data by default.
-
-
-        endDate can be in absolute- YYYY-MM-DD or relative date:- 0 for today'
-      required: false
-      schema:
-        type: string
   examples:
     list-files_200ResponseExample:
       summary: Sample Response

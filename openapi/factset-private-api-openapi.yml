@@ -74,7 +74,124 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
+  examples:
+    EntityMatches:
+      description: Entity Matches
+      value:
+        data:
+        - entityId: 00161G-E
+          entityName: Cargill, Inc.
+          countryCode: US
+          entityTypeCode: PVT
+    badRequestInvalidParameters:
+      summary: Bad Request - Passing Invalid Parameter
+      description: This error message occurs when user is passing an Invalid Parameter
+      value:
+        status: Bad Request
+        timestamp: '2020-07-23 11:03:40.765'
+        path: /factset-private-markets/v1/{endpoint}
+        message: 'Invalid Parameter (s): fakeParameter. Please modify your request to use parameters outlined in the specification for this endpoint.'
+        subErrors: null
+    generalException:
+      summary: Internal Server Error - General Exception
+      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
+      value:
+        status: Internal Server Error
+        timestamp: '2020-07-02 10:36:01.944'
+        path: /factset-private-markets/v1/{endpoint}
+        message: Unexpected error
+        subErrors: null
+    unauthenticated:
+      summary: User Authentication Failed
+      description: This occurs when a user is not properly authenticated or recognized by the service. Please double check the USERNAME-SERIAL and API-Key used to request and ensure you are within the IP range specified for the Key. Report Issue under 401 error for help with troubleshooting.
+      value:
+        status: User Authentication Failed
+        timestamp: '2020-07-02 16:08:07.945'
+        path: /factset-private-markets/v1/{endpoint}
+        message: User Authentication Failed.
+        subErrors: null
+    badRequestReadTimeout:
+      summary: Bad Request - Read Timeout
+      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
+      value:
+        status: Bad Request
+        timestamp: '2020-07-02 16:18:38.949'
+        path: /factset-private-markets/v1/{endpoint}
+        message: The request took too long. Try again with a smaller request.
+        subErrors: null
+    badRequestDateFormat:
+      summary: Bad Request - Date Format
+      description: This bad request occurs when a request doesn't use the YYYY-MM-DD in the date parameters. To resolve, convert your date to YYYY-MM-DD.
+      value:
+        status: Bad Request
+        timestamp: '2020-07-02 11:52:36.464'
+        path: /factset-private-markets/v1/{endpoint}
+        message: 'The date parameter must be in the following date format: YYYY-MM-DD'
+        subErrors: null
+    unsupportedMediaType:
+      summary: Unsupported Media Type
+      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
+      value:
+        status: Unsupported Media Type
+        timestamp: '2020-07-02 09:42:27.237'
+        path: /factset-private-markets/v1/{endpoint}
+        message: text/html media type is not supported. Supported media types are application/json.
+        subErrors: null
+    badRequestRequiredParameter:
+      summary: Bad Request - Required Parameter Missing
+      description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisks symbol in the specification file.
+      value:
+        status: Bad Request
+        timestamp: '2020-06-30 13:22:09.053'
+        path: /factset-private-markets/v1/{endpoint}
+        message: The parameter 'ids' is required and may not be empty.
+        subErrors: null
+    badRequestMalformedJSON:
+      summary: Bad Request - Malformed JSON Request
+      description: This error may be returned when the request body is specified as JSON, but is not in proper JSON format.
+      value:
+        status: Bad Request
+        timestamp: '2020-07-02 11:59:09.649'
+        path: /factset-private-markets/v1/{endpoint}
+        message: Malformed JSON Request
+        subErrors: null
+    forbidden:
+      summary: Forbidden
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      value:
+        status: Forbidden
+        timestamp: '2020-07-02 17:21:52.197'
+        path: /factset-private-markets/v1/{endpoint}
+        message: USERNAME-SERIAL does not have permission to use /factset-private-markets/v1/{endpoint}
+        subErrors: null
+    notWritable:
+      summary: Internal Server Error - Not Writable
+      description: This error may be returned when the server encounters an error writing the JSON response.
+      value:
+        status: Internal Server Error
+        timestamp: '2020-07-02 09:48:29.18'
+        path: /factset-private-markets/v1/{endpoint}
+        message: Error writing JSON output
+        subErrors: null
   responses:
+    '401':
+      description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the **Report Issue** in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/unauthenticated'
+    '415':
+      description: Unsupported Media Type. This error may be returned when the caller sends a resource in a format that is not accepted by the server. This can be fixed by ensuring that Content-Type header is set to the correct value. In this instance, "application/json" would be the appropriate value.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Unsupported Media Type:
+              $ref: '#/components/examples/unsupportedMediaType'
     '500':
       description: Internal Server Error.
       content:
@@ -86,6 +203,15 @@ components:
               $ref: '#/components/examples/notWritable'
             Internal Server Error - General Exception:
               $ref: '#/components/examples/generalException'
+    '403':
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Forbidden:
+              $ref: '#/components/examples/forbidden'
     '400':
       description: Bad Request. This can occur for several reasons. Please review the "message" for more details.
       content:
@@ -103,24 +229,6 @@ components:
               $ref: '#/components/examples/badRequestMalformedJSON'
             Bad Request - Read Timeout:
               $ref: '#/components/examples/badRequestReadTimeout'
-    '415':
-      description: Unsupported Media Type. This error may be returned when the caller sends a resource in a format that is not accepted by the server. This can be fixed by ensuring that Content-Type header is set to the correct value. In this instance, "application/json" would be the appropriate value.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/errorResponse'
-          examples:
-            Bad Request - Unsupported Media Type:
-              $ref: '#/components/examples/unsupportedMediaType'
-    '403':
-      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/errorResponse'
-          examples:
-            Bad Request - Forbidden:
-              $ref: '#/components/examples/forbidden'
     EntityMatchResponse:
       description: Response containing Entity Match results.
       content:
@@ -130,16 +238,49 @@ components:
           examples:
             Entity Matches:
               $ref: '#/components/examples/EntityMatches'
-    '401':
-      description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the **Report Issue** in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/errorResponse'
-          examples:
-            Bad Request - Date Format:
-              $ref: '#/components/examples/unauthenticated'
   schemas:
+    EntityMatchRequest:
+      title: Entity Match Request
+      description: Request object for a requesting multiple Entity Matches.
+      type: object
+      properties:
+        input:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                description: The Name of the entity to match.
+                type: string
+                minLength: 1
+                maxLength: 200
+                example: Cargill
+              country:
+                description: 'ISO2 country code corresponding to the entity name that is used when evaluating candidates for a match. For a list of ISO Country codes, visit [OA 8754](https://my.apps.factset.com/oa/pages/8754).
+
+                  '
+                type: string
+                maxLength: 2
+                minLength: 2
+                example: US
+            required:
+            - name
+          minItems: 1
+          maxItems: 25
+          example: []
+      required:
+      - input
+    EntityMatchesResponse:
+      title: Entity Matches Response
+      description: Response object for Entity Matches.
+      type: object
+      properties:
+        data:
+          description: Candidate list of `Entity Match` objects.
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityMatch'
+          example: []
     EntityMatch:
       title: Entity Match
       description: 'Entity Match object showing the decision reached for each Entity.
@@ -173,37 +314,6 @@ components:
           - string
           - 'null'
           example: PUB
-    EntityMatchRequest:
-      title: Entity Match Request
-      description: Request object for a requesting multiple Entity Matches.
-      type: object
-      properties:
-        input:
-          type: array
-          items:
-            type: object
-            properties:
-              name:
-                description: The Name of the entity to match.
-                type: string
-                minLength: 1
-                maxLength: 200
-                example: Cargill
-              country:
-                description: 'ISO2 country code corresponding to the entity name that is used when evaluating candidates for a match. For a list of ISO Country codes, visit [OA 8754](https://my.apps.factset.com/oa/pages/8754).
-
-                  '
-                type: string
-                maxLength: 2
-                minLength: 2
-                example: US
-            required:
-            - name
-          minItems: 1
-          maxItems: 25
-          example: []
-      required:
-      - input
     errorResponse:
       type: object
       description: error description
@@ -245,116 +355,6 @@ components:
               items:
                 type: string
           example: example_value
-    EntityMatchesResponse:
-      title: Entity Matches Response
-      description: Response object for Entity Matches.
-      type: object
-      properties:
-        data:
-          description: Candidate list of `Entity Match` objects.
-          type: array
-          items:
-            $ref: '#/components/schemas/EntityMatch'
-          example: []
-  examples:
-    unauthenticated:
-      summary: User Authentication Failed
-      description: This occurs when a user is not properly authenticated or recognized by the service. Please double check the USERNAME-SERIAL and API-Key used to request and ensure you are within the IP range specified for the Key. Report Issue under 401 error for help with troubleshooting.
-      value:
-        status: User Authentication Failed
-        timestamp: '2020-07-02 16:08:07.945'
-        path: /factset-private-markets/v1/{endpoint}
-        message: User Authentication Failed.
-        subErrors: null
-    badRequestInvalidParameters:
-      summary: Bad Request - Passing Invalid Parameter
-      description: This error message occurs when user is passing an Invalid Parameter
-      value:
-        status: Bad Request
-        timestamp: '2020-07-23 11:03:40.765'
-        path: /factset-private-markets/v1/{endpoint}
-        message: 'Invalid Parameter (s): fakeParameter. Please modify your request to use parameters outlined in the specification for this endpoint.'
-        subErrors: null
-    forbidden:
-      summary: Forbidden
-      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
-      value:
-        status: Forbidden
-        timestamp: '2020-07-02 17:21:52.197'
-        path: /factset-private-markets/v1/{endpoint}
-        message: USERNAME-SERIAL does not have permission to use /factset-private-markets/v1/{endpoint}
-        subErrors: null
-    badRequestRequiredParameter:
-      summary: Bad Request - Required Parameter Missing
-      description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisks symbol in the specification file.
-      value:
-        status: Bad Request
-        timestamp: '2020-06-30 13:22:09.053'
-        path: /factset-private-markets/v1/{endpoint}
-        message: The parameter 'ids' is required and may not be empty.
-        subErrors: null
-    badRequestDateFormat:
-      summary: Bad Request - Date Format
-      description: This bad request occurs when a request doesn't use the YYYY-MM-DD in the date parameters. To resolve, convert your date to YYYY-MM-DD.
-      value:
-        status: Bad Request
-        timestamp: '2020-07-02 11:52:36.464'
-        path: /factset-private-markets/v1/{endpoint}
-        message: 'The date parameter must be in the following date format: YYYY-MM-DD'
-        subErrors: null
-    notWritable:
-      summary: Internal Server Error - Not Writable
-      description: This error may be returned when the server encounters an error writing the JSON response.
-      value:
-        status: Internal Server Error
-        timestamp: '2020-07-02 09:48:29.18'
-        path: /factset-private-markets/v1/{endpoint}
-        message: Error writing JSON output
-        subErrors: null
-    badRequestReadTimeout:
-      summary: Bad Request - Read Timeout
-      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
-      value:
-        status: Bad Request
-        timestamp: '2020-07-02 16:18:38.949'
-        path: /factset-private-markets/v1/{endpoint}
-        message: The request took too long. Try again with a smaller request.
-        subErrors: null
-    badRequestMalformedJSON:
-      summary: Bad Request - Malformed JSON Request
-      description: This error may be returned when the request body is specified as JSON, but is not in proper JSON format.
-      value:
-        status: Bad Request
-        timestamp: '2020-07-02 11:59:09.649'
-        path: /factset-private-markets/v1/{endpoint}
-        message: Malformed JSON Request
-        subErrors: null
-    EntityMatches:
-      description: Entity Matches
-      value:
-        data:
-        - entityId: 00161G-E
-          entityName: Cargill, Inc.
-          countryCode: US
-          entityTypeCode: PVT
-    generalException:
-      summary: Internal Server Error - General Exception
-      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
-      value:
-        status: Internal Server Error
-        timestamp: '2020-07-02 10:36:01.944'
-        path: /factset-private-markets/v1/{endpoint}
-        message: Unexpected error
-        subErrors: null
-    unsupportedMediaType:
-      summary: Unsupported Media Type
-      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
-      value:
-        status: Unsupported Media Type
-        timestamp: '2020-07-02 09:42:27.237'
-        path: /factset-private-markets/v1/{endpoint}
-        message: text/html media type is not supported. Supported media types are application/json.
-        subErrors: null
   parameters:
     country:
       name: country

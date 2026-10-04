@@ -602,901 +602,34 @@ paths:
     servers:
     - url: https://api.factset.com/wealth/v3
 components:
-  schemas:
-    prices:
-      title: Prices Object
-      type: object
-      properties:
-        fsymId:
-          description: FactSet Security Identifier. Six alpha-numeric characters, excluding vowels, with a -S suffix (XXXXXX-S), resolved from the requestId of the Fund requested.
-          type:
-          - string
-          - 'null'
-          example: FNK7XP-S
-          x-fds-fql-formula: FSYM_SECURITY_PERM_ID('SECURITY')
-        price:
-          description: The NAV for the requested share class. NOTE - FactSet Mutual Funds does not use seven-day yields to price money market funds.
-          type:
-          - number
-          - 'null'
-          format: double
-          example: 19.94
-          x-fds-fql-formula: FFD_PRICE
-        date:
-          description: The date of the NAV in YYYY-MM-DD format.
-          type:
-          - string
-          - 'null'
-          format: date
-          example: '2021-02-26'
-        requestId:
-          description: The requested Id sent as input.
-          type: string
-          example: MABAX
-        currency:
-          description: ISO3 Currency
-          type:
-          - string
-          - 'null'
-          example: USD
-    dataType:
-      type: string
-      enum:
-      - ROLL
-      - RAW
-      default: RAW
-      description: 'Controls the data type of the Fund NAV between Raw or Rolled values.
-
-        '
-      example: ROLL
-    splitAdjust:
-      type: string
-      enum:
-      - SPLIT
-      - UNSPLIT
-      default: SPLIT
-      description: "Controls the split adjustment of the Fund's NAV - \n  * **SPLIT** = Split ONLY Adjusted. This is used by default.\n  * **UNSPLIT** = No Adjustments, Controls the split and dividend adjustments for the prices.\n"
-      example: SPLIT
-    ids:
-      type: array
-      items:
-        type: string
-      minItems: 1
-      maxItems: 1000
-      description: 'The requested Fund Identifier. FactSet Identifiers, tickers, CUSIP and SEDOL are accepted input. <p>***ids limit** =  1000 per request*</p> *<p>Make note, GET Method URL request lines are also limited to a total length of 8192 bytes (8KB). In cases where the service allows for thousands of ids, which may lead to exceeding this request line limit of 8KB, its advised for any requests with large request lines to be requested through the respective "POST" method.</p>*
-
-        '
-      example:
-      - MABAX
-      - FCNTX
-    endDate:
-      type: string
-      description: 'The end date requested for a given date range in **YYYY-MM-DD** format. If left blank, the API will default to previous close. Future dates (T+1) are not accepted in this endpoint.
-
-        '
-      example: '2019-12-31'
-    currency:
-      type: string
-      description: The ISO3 currency control for the requested fund.
-      default: LOCAL
-      example: USD
-    fundsPricesResponse:
-      type: object
-      title: Prices Response
-      properties:
-        data:
-          description: Array of Prices Objects
-          type: array
-          items:
-            $ref: '#/components/schemas/prices'
-          example: []
-    fundsPricesRequest:
-      title: Prices Request Body
-      description: Prices Request Body
-      type: object
-      properties:
-        ids:
-          $ref: '#/components/schemas/ids'
-        startDate:
-          $ref: '#/components/schemas/startDate'
-        endDate:
-          $ref: '#/components/schemas/endDate'
-        frequency:
-          $ref: '#/components/schemas/frequency'
-        currency:
-          $ref: '#/components/schemas/currency'
-        dataType:
-          $ref: '#/components/schemas/dataType'
-        splitAdjust:
-          $ref: '#/components/schemas/splitAdjust'
-      required:
-      - ids
-    startDate:
-      type: string
-      description: 'The start date requested for a given date range in **YYYY-MM-DD** format. If left blank, the API will default to previous close. Future dates (T+1) are not accepted in this #endpoint.
-
-        '
-      example: '2019-01-01'
-    frequency:
-      type: string
-      enum:
-      - D
-      - W
-      - M
-      - AM
-      - CQ
-      - FQ
-      - AY
-      - CY
-      - FY
-      default: D
-      description: "Controls the display frequency of the data returned.\n  * **D** = Daily\n  * **W** = Weekly, based on the last day of the week of the start date.\n  * **M** = Monthly, based on the last trading day of the month.\n  * **AM** = Monthly, based on the start date (e.g., if the start date is June 16, data is displayed for June 16, May 16, April 16 etc.).\n  * **CQ** = Quarterly based on the last trading day of the calendar quarter (March, June, September, or December).\n  * **FQ** = Fiscal Quarter of the company.\n  * **AY** = Actual Annual, based on the start date.\n  * **CY** = Calendar Annual, based on the last trading day of the calendar year.\n  * **FY** = Fiscal Annual, based on the last trading day of the company's fiscal year.\n"
-      example: M
-    errorResponse:
-      type: object
-      title: Error Response
-      properties:
-        status:
-          description: status
-          type: string
-          example: Bad Request
-        timestamp:
-          description: timestamp in YYYY-MM-DD HH:MM:SS.SSS
-          type: string
-          example: '2019-11-01 11:09:41.918'
-          format: date-time
-        path:
-          description: The Endpoint path {package}/version/{endpoint}
-          type: string
-          example: /factset-funds/v1/superRegion
-        message:
-          description: The plain text error message
-          type: string
-          example: Validation Error
-        subErrors:
-          description: subErrors related to the error message. Null if not applicable.
-          type: object
-          properties:
-            object:
-              description: the operation ID
-              type: string
-            field:
-              description: Parameter Field Name
-              type: string
-            message:
-              description: Error message
-              type: string
-            rejectedValue:
-              description: Rejected Values in an Array
-              type: array
-              items:
-                type: string
-          example: example_value
-    StatusObject:
-      type: object
-      properties:
-        code:
-          type: number
-          format: int32
-          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
-          example: 42.5
-      description: The status member contains the status code of the response.
-      required:
-      - code
-    CursorBasedPaginationOutputObjectWithoutTotal:
-      type: object
-      description: Pagination attributes for the cursor-based pagination strategy; a total element count is not supported.
-      properties:
-        next:
-          type: string
-          description: The next cursor position to use in the parameter `pagination.cursor` for an endpoint that supports cursor-based pagination, otherwise `null`.
-          example: example_value
-        previous:
-          type: string
-          description: The previous cursor position to use in the parameter `pagination.cursor` for an endpoint that supports cursor-based pagination. If a previous cursor position is not supported or available, `previous` is `null`.
-          example: example_value
-      required:
-      - next
-      - previous
-      x-property-sort:
-      - next
-      - previous
-    PostPricesTradingScheduleEventListRequest:
-      x-property-sort:
-      - data
-      - meta
-      description: Request Body
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
-          x-property-sort:
-          - identifier
-          - filter
-          description: The data member contains the request's primary data.
-          properties:
-            identifier:
-              type: object
-              x-property-sort:
-              - value
-              - type
-              description: Identifier and type.
-              properties:
-                value:
-                  type: string
-                  pattern: ^[B-DF-HJ-NP-TV-Z0-9]{6}-[LR]$|^[A-Z0-9.#&*+]{1,47}-[A-Z0-9]{2,4}$|^[0-9]{3,20}$
-                  maxLength: 50
-                  minLength: 3
-                  description: Identifier to resolve.
-                type:
-                  type: string
-                  description: Type of the identifier.
-                  x-enum-description:
-                  - MDG identifier of a listing.
-                  - FactSet market symbol of a listing.
-                  - Regional FactSet ticker symbol, identifying the primary listing in the region.
-                  - FactSet Permanent Identifier on listing level.
-                  - Regional FactSet Permanent Identifier, identifying the primary listing in the region.
-                  enum:
-                  - idNotation
-                  - tickerExchange
-                  - tickerRegion
-                  - fdsPermanentIdentifierListing
-                  - fdsPermanentIdentifierRegional
-              required:
-              - value
-              - type
-            filter:
-              type: object
-              x-property-sort:
-              - types
-              - range
-              description: Criteria that filter the items in the response list; only items that match all of the criteria are returned.
-              properties:
-                types:
-                  type: array
-                  items:
-                    type: number
-                    format: id32
-                    x-positive: true
-                  minItems: 1
-                  description: List of trading schedule event types to return. See endpoint `/prices/tradingSchedule/event/type/list` for valid values.
-                range:
-                  type: object
-                  format: timeRange
-                  properties:
-                    start:
-                      type: string
-                      format: datetime
-                      description: The starting point of the time range (inclusive).
-                    end:
-                      type: string
-                      format: datetime
-                      description: The ending point of the time range (exclusive).
-                  x-property-sort:
-                  - start
-                  - end
-                  required:
-                  - start
-                  - end
-                  description: Date and time range for the time series. A valid time range is between 1900-01-01 and 24 hours and 5 minutes into the future.
-              required:
-              - types
-              - range
-          required:
-          - identifier
-          example: example_value
-        meta:
-          type: object
-          description: The meta member contains the meta information of the request.
-          properties:
-            attributes:
-              $ref: '#/components/schemas/AttributesMember'
-            pagination:
-              type: object
-              description: Pagination attributes for the cursor-based pagination strategy.
-              properties:
-                cursor:
-                  type: string
-                  maxLength: 50
-                  description: Starting point as returned in the attributes `pagination.next` or `pagination.previous` by a prior invocation of this endpoint, or undefined (default).
-                limit:
-                  type: number
-                  format: int32
-                  minimum: 0
-                  maximum: 500
-                  default: 20
-                  description: Non-negative maximum number of entries to return.
-              x-property-sort:
-              - cursor
-              - limit
-          x-property-sort:
-          - attributes
-          - pagination
-          example: example_value
-    AttributesMember:
-      type: array
-      description: Limit the attributes returned in the response to the specified set.
-      items:
-        type: string
-        maxLength: 100
-      maxItems: 50
-      uniqueItems: true
-    PostPricesTimeSeriesEodSubsampleListRequest:
-      x-property-sort:
-      - data
-      - meta
-      description: Request Body
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
-          x-property-sort:
-          - identifier
-          - type
-          - quality
-          - intervalSelection
-          - newestFirst
-          - adjustments
-          description: The data member contains the request's primary data.
-          properties:
-            identifier:
-              type: object
-              x-property-sort:
-              - value
-              - type
-              description: Identifier and type.
-              properties:
-                value:
-                  type: string
-                  pattern: ^[B-DF-HJ-NP-TV-Z0-9]{6}-[LR]$|^[A-Z0-9.#&*+]{1,47}-[A-Z0-9]{2,4}$|^[0-9]{3,20}$
-                  maxLength: 50
-                  minLength: 3
-                  description: Identifier to resolve.
-                type:
-                  type: string
-                  description: Type of the identifier.
-                  x-enum-description:
-                  - MDG identifier of a listing.
-                  - FactSet market symbol of a listing.
-                  - Regional FactSet ticker symbol, identifying the primary listing in the region.
-                  - FactSet Permanent Identifier on listing level.
-                  - Regional FactSet Permanent Identifier, identifying the primary listing in the region.
-                  enum:
-                  - idNotation
-                  - tickerExchange
-                  - tickerRegion
-                  - fdsPermanentIdentifierListing
-                  - fdsPermanentIdentifierRegional
-              required:
-              - value
-              - type
-            type:
-              type: string
-              description: Type of the price as configured for the customer.
-              default: trade
-              x-enum-description:
-              - Trade price (ordinary, auction, pre or post-trading).
-              - Bid price.
-              - Ask price.
-              - Yield price.
-              - Estimated price.
-              enum:
-              - trade
-              - bid
-              - ask
-              - yield
-              - estimate
-            quality:
-              type: string
-              description: Quality of the price.
-              default: DLY
-              x-enum-description:
-              - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
-              - 'End-of-day: prices updated once per day after the close of trading, possibly with an exchange-imposed delay of several hours or days.'
-              - 'Best: choose the price quality with the least delay, as entitled for the client.'
-              enum:
-              - DLY
-              - EOD
-              - BST
-            intervalSelection:
-              type: object
-              x-property-sort:
-              - intervals
-              - samples
-              description: Select the intervals from which the subsamples are to be created.
-              x-atMostOne: true
-              properties:
-                intervals:
-                  type: array
-                  items:
-                    type: string
-                    format: date
-                  minItems: 2
-                  maxItems: 600
-                  description: Non-empty intervals of days to consider for the request. The array contains a list of at least two days in increasing order. Each pair of adjacent entries day_n and day_(n+1) specifies a half-open interval, that is a range of days d where day_n <= d < day_(n+1). A subsample is computed for each interval. The valid range of intervals is between 1900-01-01 and the day after the current day.
-                samples:
-                  type: object
-                  x-property-sort:
-                  - end
-                  - number
-                  - granularity
-                  description: Subsample granularity and number of samples suitable for end-of-day data.
-                  properties:
-                    end:
-                      type: string
-                      format: date
-                      description: Date of the end point of the subsamples (exclusive). `end` is limited to the day after the current day.
-                    number:
-                      type: number
-                      format: int32
-                      minimum: 1
-                      maximum: 10000
-                      description: Number of subsamples returned. The product of `number` and `granularity` must not extend further into the past than 1900-01-01.
-                    granularity:
-                      type: string
-                      description: Subsample granularities suitable for end-of-day data.
-                      default: 1w
-                      x-enum-description:
-                      - Each subsample interval encompasses 1 day.
-                      - Each subsample interval encompasses 1 week.
-                      - Each subsample interval encompasses 1 month.
-                      - Each subsample interval encompasses 3 month.
-                      - Each subsample interval encompasses 6 month.
-                      - Each subsample interval encompasses 1 year.
-                      enum:
-                      - 1d
-                      - 1w
-                      - 1m
-                      - 3m
-                      - 6m
-                      - 1y
-                  required:
-                  - end
-                  - number
-            newestFirst:
-              type: boolean
-              default: false
-              description: Deliver the chronological last part of the requested data first.
-            adjustments:
-              type: object
-              x-property-sort:
-              - payout
-              - split
-              description: Adjustments values returned.
-              properties:
-                payout:
-                  type: boolean
-                  default: false
-                  description: Adjustments are applied for corporate action effects due to dividends, payouts, or other cash disbursements.
-                split:
-                  type: boolean
-                  default: true
-                  description: Adjustments are applied for corporate action effects due to the notation having a split, a reverse split, or a similar factor-based corporate action.
-          required:
-          - identifier
-          - intervalSelection
-          example: example_value
-        meta:
-          type: object
-          description: The meta member contains the meta information of the request.
-          properties:
-            attributes:
-              $ref: '#/components/schemas/AttributesMember'
-            pagination:
-              type: object
-              description: Pagination attributes for the cursor-based pagination strategy.
-              properties:
-                cursor:
-                  type: string
-                  maxLength: 50
-                  description: Starting point as returned in the attributes `pagination.next` or `pagination.previous` by a prior invocation of this endpoint, or undefined (default).
-                limit:
-                  type: number
-                  format: int32
-                  minimum: 0
-                  maximum: 5000
-                  default: 20
-                  description: Non-negative maximum number of entries to return.
-              x-property-sort:
-              - cursor
-              - limit
-          x-property-sort:
-          - attributes
-          - pagination
-          example: example_value
-    PostPricesTimeSeriesEodListRequest:
-      x-property-sort:
-      - data
-      - meta
-      description: Request Body
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
-          x-property-sort:
-          - identifier
-          - type
-          - quality
-          - range
-          - newestFirst
-          - adjustments
-          description: The data member contains the request's primary data.
-          properties:
-            identifier:
-              type: object
-              x-property-sort:
-              - value
-              - type
-              description: Identifier and type.
-              properties:
-                value:
-                  type: string
-                  pattern: ^[B-DF-HJ-NP-TV-Z0-9]{6}-[LR]$|^[A-Z0-9.#&*+]{1,47}-[A-Z0-9]{2,4}$|^[0-9]{3,20}$
-                  maxLength: 50
-                  minLength: 3
-                  description: Identifier to resolve.
-                type:
-                  type: string
-                  description: Type of the identifier.
-                  x-enum-description:
-                  - MDG identifier of a listing.
-                  - FactSet market symbol of a listing.
-                  - Regional FactSet ticker symbol, identifying the primary listing in the region.
-                  - FactSet Permanent Identifier on listing level.
-                  - Regional FactSet Permanent Identifier, identifying the primary listing in the region.
-                  enum:
-                  - idNotation
-                  - tickerExchange
-                  - tickerRegion
-                  - fdsPermanentIdentifierListing
-                  - fdsPermanentIdentifierRegional
-              required:
-              - value
-              - type
-            type:
-              type: string
-              description: Type of the price as configured for the customer.
-              default: trade
-              x-enum-description:
-              - Trade price (ordinary, auction, pre or post-trading).
-              - Bid price.
-              - Ask price.
-              - Yield price.
-              - Estimated price.
-              enum:
-              - trade
-              - bid
-              - ask
-              - yield
-              - estimate
-            quality:
-              type: string
-              description: Quality of the price.
-              default: DLY
-              x-enum-description:
-              - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
-              - 'End-of-day: prices updated once per day after the close of trading, possibly with an exchange-imposed delay of several hours or days.'
-              - 'Best: choose the price quality with the least delay, as entitled for the client.'
-              enum:
-              - DLY
-              - EOD
-              - BST
-            range:
-              type: object
-              format: dateRange
-              x-isClosedInterval: false
-              properties:
-                start:
-                  type: string
-                  format: date
-                  description: The starting point of the date range (inclusive).
-                end:
-                  type: string
-                  format: date
-                  description: The ending point of the date range (exclusive).
-              x-property-sort:
-              - start
-              - end
-              required:
-              - start
-              - end
-              description: Date range for the time series. A valid date range is between 1900-01-01 and the day after the current day.
-            newestFirst:
-              type: boolean
-              default: false
-              description: Deliver the chronological last part of the requested data first.
-            adjustments:
-              type: object
-              x-property-sort:
-              - payout
-              - split
-              description: Adjustments values returned.
-              properties:
-                payout:
-                  type: boolean
-                  default: false
-                  description: Adjustments are applied for corporate action effects due to dividends, payouts, or other cash disbursements.
-                split:
-                  type: boolean
-                  default: true
-                  description: Adjustments are applied for corporate action effects due to the notation having a split, a reverse split, or a similar factor-based corporate action.
-          required:
-          - identifier
-          - range
-          example: example_value
-        meta:
-          type: object
-          description: The meta member contains the meta information of the request.
-          properties:
-            attributes:
-              $ref: '#/components/schemas/AttributesMember'
-            pagination:
-              type: object
-              description: Pagination attributes for the cursor-based pagination strategy.
-              properties:
-                cursor:
-                  type: string
-                  maxLength: 50
-                  description: Starting point as returned in the attributes `pagination.next` or `pagination.previous` by a prior invocation of this endpoint, or undefined (default).
-                limit:
-                  type: number
-                  format: int32
-                  minimum: 0
-                  maximum: 5000
-                  default: 20
-                  description: Non-negative maximum number of entries to return.
-              x-property-sort:
-              - cursor
-              - limit
-          x-property-sort:
-          - attributes
-          - pagination
-          example: example_value
-    PostPricesTimeSeriesEodSubsampleGetRequest:
-      x-property-sort:
-      - data
-      - meta
-      description: Request Body
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
-          x-property-sort:
-          - identifier
-          - type
-          - quality
-          - interval
-          - adjustments
-          description: The data member contains the request's primary data.
-          properties:
-            identifier:
-              type: object
-              x-property-sort:
-              - value
-              - type
-              description: Identifier and type.
-              properties:
-                value:
-                  type: string
-                  pattern: ^[B-DF-HJ-NP-TV-Z0-9]{6}-[LR]$|^[A-Z0-9.#&*+]{1,47}-[A-Z0-9]{2,4}$|^[0-9]{3,20}$
-                  maxLength: 50
-                  minLength: 3
-                  description: Identifier to resolve.
-                type:
-                  type: string
-                  description: Type of the identifier.
-                  x-enum-description:
-                  - MDG identifier of a listing.
-                  - FactSet market symbol of a listing.
-                  - Regional FactSet ticker symbol, identifying the primary listing in the region.
-                  - FactSet Permanent Identifier on listing level.
-                  - Regional FactSet Permanent Identifier, identifying the primary listing in the region.
-                  enum:
-                  - idNotation
-                  - tickerExchange
-                  - tickerRegion
-                  - fdsPermanentIdentifierListing
-                  - fdsPermanentIdentifierRegional
-              required:
-              - value
-              - type
-            type:
-              type: string
-              description: Type of the price as configured for the customer.
-              default: trade
-              x-enum-description:
-              - Trade price (ordinary, auction, pre or post-trading).
-              - Bid price.
-              - Ask price.
-              - Yield price.
-              - Estimated price.
-              enum:
-              - trade
-              - bid
-              - ask
-              - yield
-              - estimate
-            quality:
-              type: string
-              description: Quality of the price.
-              default: DLY
-              x-enum-description:
-              - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
-              - 'End-of-day: prices updated once per day after the close of trading, possibly with an exchange-imposed delay of several hours or days.'
-              - 'Best: choose the price quality with the least delay, as entitled for the client.'
-              enum:
-              - DLY
-              - EOD
-              - BST
-            interval:
-              type: object
-              format: dateRange
-              x-isClosedInterval: false
-              properties:
-                start:
-                  type: string
-                  format: date
-                  description: 'The starting point of the interval (inclusive). '
-                end:
-                  type: string
-                  format: date
-                  description: The ending point of the interval (exclusive).
-              x-property-sort:
-              - start
-              - end
-              required:
-              - start
-              - end
-              description: Non-empty interval of days specifying a single subsample period. The starting point `start` of the single subsample is usually the attribute `range.end` of a previously received `/prices/timeSeries/eod/subsample/list` request. A valid range is between 1900-01-01 and a day that is less than or equal to the maximum allowed day determined from the delay period (if any). The ending point `end` may exceed the maximally entitled date range.
-            adjustments:
-              type: object
-              x-property-sort:
-              - payout
-              - split
-              description: Adjustments values returned.
-              properties:
-                payout:
-                  type: boolean
-                  default: false
-                  description: Adjustments are applied for corporate action effects due to dividends, payouts, or other cash disbursements.
-                split:
-                  type: boolean
-                  default: true
-                  description: Adjustments are applied for corporate action effects due to the notation having a split, a reverse split, or a similar factor-based corporate action.
-          required:
-          - identifier
-          - interval
-          example: example_value
-        meta:
-          type: object
-          description: The meta member contains the meta information of the request.
-          properties:
-            attributes:
-              $ref: '#/components/schemas/AttributesMember'
-          x-property-sort:
-          - attributes
-          example: example_value
-  examples:
-    badRequestFutureDate:
-      summary: Bad Request - Future Date
-      description: This error message occurs when a future date is requested in the startDate and endDate parameters. Please revise your request to include dates as of today's current date or any prior historical date.
-      value:
-        status: Bad Request
-        timestamp: '2020-06-12 15:52:48.091'
-        path: /factset-funds/v1/{endpoint}
-        message: The use of future dates is not applicable in this endpoint. Please revise your request to include dates up to today's current date.
-        subErrors: null
-    unauthenticated:
-      summary: User Authentication Failed
-      description: This occurs when a user is not properly authenticated or recognized by the service. Please double check the USERNAME-SERIAL and API-Key used to request and ensure you are within the IP range specified for the Key. Report Issue under 401 error for help with troubleshooting.
-      value:
-        status: User Authentication Failed
-        timestamp: '2019-10-31 16:08:07.945'
-        path: /factset-funds/v1/{endpoint}
-        message: User Authentication Failed.
-        subErrors: null
-    badRequestInvalidParameters:
-      summary: Bad Request - Invalid Parameters
-      description: This error message occurs when a request parameter is used in which is not recognized by the service. Please revise your request to include only the parameters listed in the specification. Typical causes are spelling mistakes and use of improper casing.
-      value:
-        status: Bad Request
-        timestamp: '2020-06-12 15:58:54.068'
-        path: /factset-funds/v1/{endpoint}
-        message: 'Invalid Parameter (s): fakeParameterName1 fakeParameterName2. Please modify your request to use parameters outlined in the specification for this endpoint.'
-        subErrors: null
-    forbidden:
-      summary: Forbidden
-      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
-      value:
-        status: Forbidden
-        timestamp: '2020-06-12 16:08:51.731'
-        path: /factset-funds/v1/{endpoint}
-        message: USERNAME-SERIAL does not have permission to use /factset-funds /v1/{endpoint}
-        subErrors: null
-    badRequestRequiredParameter:
-      summary: Bad Request - Required Parameter Missing
-      description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisks symbol in the specification file.
-      value:
-        status: Bad Request
-        timestamp: '2020-06-12 15:48:42.016'
-        path: /factset-funds/v1/{endpoint}
-        message: The parameter 'ids' is required and may not be empty.
-        subErrors: null
-    badRequestDateFormat:
-      summary: Bad Request - Date Format
-      description: This bad request occurs when a request doesn't use the YYYY-MM-DD in the date parameters. To resolve, convert your date to YYYY-MM-DD.
-      value:
-        status: Bad Request
-        timestamp: '2019-10-31 16:08:07.945'
-        path: /factset-funds/v1/{endpoint}
-        message: 'The date parameter ''startDate'' must be in the following date format: YYYY-MM-DD'
-        subErrors: null
-    notWritable:
-      summary: Internal Server Error - Not Writable
-      description: This error may be returned when the server encounters an error writing the JSON response.
-      value:
-        status: Internal Server Error
-        timestamp: '2019-11-05 09:48:29.18'
-        path: /factset-funds/v1/{endpoint}
-        message: Error writing JSON output
-        subErrors: null
-    badRequestReadTimeout:
-      summary: Bad Request - Read Timeout
-      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
-      value:
-        status: Bad Request
-        timestamp: '2019-11-04 16:18:38.949'
-        path: /factset-funds/v1/{endpoint}
-        message: The request took too long. Try again with a smaller request.
-        subErrors: null
-    badRequestMalformedJSON:
-      summary: Bad Request - Malformed JSON Request
-      description: This error may be returned when the request body is specified as JSON, but is not in proper JSON format.
-      value:
-        status: Bad Request
-        timestamp: '2019-11-05 09:48:29.18'
-        path: /factset-funds/v1/{endpoint}
-        message: Malformed JSON Request
-        subErrors: null
-    generalException:
-      summary: Internal Server Error - General Exception
-      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
-      value:
-        status: Internal Server Error
-        timestamp: '2019-11-01 10:36:01.944'
-        path: /factset-funds/v1/{endpoint}
-        message: Unexpected error
-        subErrors: null
-    unsupportedMediaType:
-      summary: Unsupported Media Type
-      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
-      value:
-        status: Unsupported Media Type
-        timestamp: '2019-11-05 09:42:27.237'
-        path: /factset-funds/v1/{endpoint}
-        message: text/html media type is not supported. Supported media types are application/json
-        subErrors: null
   responses:
-    '500':
-      description: Internal Server Error.
+    '401':
+      description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the **Report Issue** in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/errorResponse'
           examples:
-            Internal Server Error - Not Writable:
-              $ref: '#/components/examples/notWritable'
-            Internal Server Error - General Exception:
-              $ref: '#/components/examples/generalException'
+            Bad Request - Date Format:
+              $ref: '#/components/examples/unauthenticated'
+    '415':
+      description: Unsupported Media Type. This error may be returned when the caller sends a resource in a format that is not accepted by the server. This can be fixed by ensuring that Content-Type header is set to the correct value. In this instance, "application/json" would be the appropriate value.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/unsupportedMediaType'
+    '403':
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Bad Request - Date Format:
+              $ref: '#/components/examples/forbidden'
     '400':
       description: Bad Request. This can occur for several reasons. Please review the "message" for more details.
       content:
@@ -1516,33 +649,17 @@ components:
               $ref: '#/components/examples/badRequestMalformedJSON'
             Bad Request - Read Timeout:
               $ref: '#/components/examples/badRequestReadTimeout'
-    '415':
-      description: Unsupported Media Type. This error may be returned when the caller sends a resource in a format that is not accepted by the server. This can be fixed by ensuring that Content-Type header is set to the correct value. In this instance, "application/json" would be the appropriate value.
+    '500':
+      description: Internal Server Error.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/errorResponse'
           examples:
-            Bad Request - Date Format:
-              $ref: '#/components/examples/unsupportedMediaType'
-    '403':
-      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/errorResponse'
-          examples:
-            Bad Request - Date Format:
-              $ref: '#/components/examples/forbidden'
-    '401':
-      description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the **Report Issue** in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/errorResponse'
-          examples:
-            Bad Request - Date Format:
-              $ref: '#/components/examples/unauthenticated'
+            Internal Server Error - Not Writable:
+              $ref: '#/components/examples/notWritable'
+            Internal Server Error - General Exception:
+              $ref: '#/components/examples/generalException'
     PostPricesTradingScheduleEventList200Response:
       description: Successful Response
       content:
@@ -1644,7 +761,7 @@ components:
             x-property-sort:
             - data
             - meta
-    GetPricesTradingScheduleEventTypeList200Response:
+    GetPricesGet200Response:
       description: Successful Response
       content:
         application/json:
@@ -1652,32 +769,339 @@ components:
             type: object
             properties:
               data:
-                type: array
-                description: List of trading schedule event types.
-                items:
-                  type: object
-                  x-property-sort:
-                  - id
-                  - code
-                  - description
-                  properties:
-                    id:
-                      type:
-                      - number
-                      - 'null'
-                      format: id32
-                      x-positive: true
-                      description: Identifier of the type.
-                    code:
-                      type:
-                      - string
-                      - 'null'
-                      description: Code of the type.
-                    description:
-                      type:
-                      - string
-                      - 'null'
-                      description: Description of the type in english language.
+                type: object
+                properties:
+                  idNotation:
+                    type:
+                    - string
+                    - 'null'
+                    format: id64
+                    x-positive: true
+                    description: MDG identifier of the listing.
+                  sourceIdentifier:
+                    type:
+                    - string
+                    - 'null'
+                    description: Identifier used in the request.
+                  valueUnit:
+                    type: object
+                    x-property-sort:
+                    - id
+                    description: Value unit of the notation such as a main or fractional currency for equities, a percentage for debt instruments, or points for indices. See endpoint `/basic/valueUnit/list` for possible values.
+                    properties:
+                      id:
+                        type:
+                        - number
+                        - 'null'
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the valueUnit.
+                  currency:
+                    type: object
+                    x-property-sort:
+                    - id
+                    description: Main currency of the monetary attributes. See endpoint `/basic/valueUnit/currency/main/list` for possible values.
+                    properties:
+                      id:
+                        type:
+                        - number
+                        - 'null'
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the currency.
+                  market:
+                    type: object
+                    x-property-sort:
+                    - id
+                    - isOpen
+                    - phase
+                    description: Market of the notation.
+                    properties:
+                      id:
+                        type:
+                        - number
+                        - 'null'
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the market. See endpoint `/basic/market/list` for possible values.
+                      isOpen:
+                        x-pushable: true
+                        type:
+                        - boolean
+                        - 'null'
+                        description: Indicates whether the market of the notation is currently open, that is, the current time is between the open and adjusted close of the notation's market, see endpoint `/prices/tradingSchedule/event/list` for the trading schedule of the notation's market. The adjusted close is later than the official closing time specified by the market and includes the time after closing when trades might still be reported. Breaks such as a lunch break are not considered. The value is `null` if the result quality is EOD.
+                      phase:
+                        x-pushable: true
+                        type:
+                        - string
+                        - 'null'
+                        description: Market-specific code of the current market phase. The value is `null` if the result quality is EOD.
+                  quality:
+                    type:
+                    - string
+                    - 'null'
+                    description: Quality of the price.
+                    x-enum-description:
+                    - 'Real-time: intraday prices with minimal technical processing delays.'
+                    - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
+                    - 'End-of-day: prices updated once per day after the close of trading, possibly with an exchange-imposed delay of several hours or days.'
+                    enum:
+                    - RLT
+                    - DLY
+                    - EOD
+                  latest:
+                    type: object
+                    x-property-sort:
+                    - time
+                    - price
+                    - quoteCondition
+                    - tradingVolume
+                    - tradingValue
+                    - performance
+                    description: Most recent trade or price of the trading day.
+                    properties:
+                      time:
+                        x-pushable: true
+                        type:
+                        - string
+                        - 'null'
+                        format: datetime
+                        description: Date and time.
+                        x-cas-attribute: timeLatestTradePrice
+                      price:
+                        x-pushable: true
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Price value. See attribute `valueUnit` for its unit.
+                        x-cas-attribute: valueLatestTradePrice
+                      quoteCondition:
+                        x-pushable: true
+                        type:
+                        - string
+                        - 'null'
+                        description: Quote condition. Possible values depend on the values delivered by the supplier of the price information.
+                        x-cas-attribute: quoteConditionLatestTradePrice
+                      tradingVolume:
+                        x-pushable: true
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Number of units (e.g. shares) traded.
+                        x-cas-attribute: tradingVolumeLatestTradePrice
+                      tradingValue:
+                        x-pushable: true
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Monetary equivalent (cash value) of the trade. See attribute `currency` for its unit.
+                        x-cas-attribute: tradingValueLatestTradePrice
+                      performance:
+                        type: object
+                        x-property-sort:
+                        - intraday
+                        description: Performance values.
+                        properties:
+                          intraday:
+                            type: object
+                            x-property-sort:
+                            - absolute
+                            - relative
+                            description: Performance of the most recent price calculated against the latest price which has occurred before the start of the most recent trading day.
+                            properties:
+                              absolute:
+                                x-pushable: true
+                                type:
+                                - number
+                                - 'null'
+                                format: real
+                                description: Absolute value. See attribute `valueUnit` for its unit.
+                                x-cas-attribute: absolutePerformanceLatestTradePrice
+                              relative:
+                                x-pushable: true
+                                type:
+                                - number
+                                - 'null'
+                                format: relativeValue
+                                description: Relative value.
+                                x-cas-attribute: relativePerformanceLatestTradePrice
+                  first:
+                    type: object
+                    x-property-sort:
+                    - time
+                    - price
+                    - tradingVolume
+                    description: First trade or price of the trading day.
+                    properties:
+                      time:
+                        x-pushable: true
+                        type:
+                        - string
+                        - 'null'
+                        format: datetime
+                        description: Date and time.
+                        x-cas-attribute: timeFirstTradePrice
+                      price:
+                        x-pushable: true
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Price value. See attribute `valueUnit` for its unit.
+                        x-cas-attribute: valueFirstTradePrice
+                      tradingVolume:
+                        x-pushable: true
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Number of units (e.g. shares) traded.
+                        x-cas-attribute: tradingVolumeFirstTradePrice
+                  low:
+                    type: object
+                    x-property-sort:
+                    - time
+                    - price
+                    - tradingVolume
+                    description: Trade with the lowest price of the trading day.
+                    properties:
+                      time:
+                        x-pushable: true
+                        type:
+                        - string
+                        - 'null'
+                        format: datetime
+                        description: Date and time.
+                        x-cas-attribute: timeLowestTradePrice
+                      price:
+                        x-pushable: true
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Price value. See attribute `valueUnit` for its unit.
+                        x-cas-attribute: valueLowestTradePrice
+                      tradingVolume:
+                        x-pushable: true
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Number of units (e.g. shares) traded.
+                        x-cas-attribute: tradingVolumeLowestTradePrice
+                  high:
+                    type: object
+                    x-property-sort:
+                    - time
+                    - price
+                    - tradingVolume
+                    description: Trade with the highest price of the trading day.
+                    properties:
+                      time:
+                        x-pushable: true
+                        type:
+                        - string
+                        - 'null'
+                        format: datetime
+                        description: Date and time.
+                        x-cas-attribute: timeHighestTradePrice
+                      price:
+                        x-pushable: true
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Price value. See attribute `valueUnit` for its unit.
+                        x-cas-attribute: valueHighestTradePrice
+                      tradingVolume:
+                        x-pushable: true
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Number of units (e.g. shares) traded.
+                        x-cas-attribute: tradingVolumeHighestTradePrice
+                  previousClose:
+                    type: object
+                    x-property-sort:
+                    - time
+                    - price
+                    description: Close price of the previous day.
+                    properties:
+                      time:
+                        x-pushable: true
+                        type:
+                        - string
+                        - 'null'
+                        format: datetime
+                        description: Date and time.
+                        x-cas-attribute: timePreviousClosePrice
+                      price:
+                        x-pushable: true
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Price value. See attribute `valueUnit` for its unit.
+                        x-cas-attribute: valuePreviousClosePrice
+                  accumulated:
+                    type: object
+                    x-property-sort:
+                    - numberTrades
+                    - tradingVolume
+                    - tradingValue
+                    - volumeWeightedAveragePrice
+                    description: Summary data accumulated over all trades of the most recent trading day.
+                    properties:
+                      numberTrades:
+                        x-pushable: true
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Number of trades.
+                        x-cas-attribute: accumulatedNumberTrades
+                      tradingVolume:
+                        x-pushable: true
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Number of units (e.g. shares) traded.
+                        x-cas-attribute: accumulatedTradingVolume
+                      tradingValue:
+                        x-pushable: true
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Monetary equivalent (cash value) of the trades. See attribute `currency` for its unit.
+                        x-cas-attribute: accumulatedTradingValue
+                      volumeWeightedAveragePrice:
+                        x-pushable: true
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: The volume-weighted average price (VWAP). See attribute `valueUnit` for its unit.
+                        x-cas-attribute: volumeWeightedAveragePrice
+                description: Set of price related data for the notation.
+                x-property-sort:
+                - idNotation
+                - sourceIdentifier
+                - valueUnit
+                - currency
+                - market
+                - quality
+                - latest
+                - first
+                - low
+                - high
+                - previousClose
+                - accumulated
               meta:
                 type: object
                 description: The meta member contains the meta information of the response.
@@ -2047,6 +1471,51 @@ components:
             x-property-sort:
             - data
             - meta
+    GetPricesTradingScheduleEventTypeList200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                description: List of trading schedule event types.
+                items:
+                  type: object
+                  x-property-sort:
+                  - id
+                  - code
+                  - description
+                  properties:
+                    id:
+                      type:
+                      - number
+                      - 'null'
+                      format: id32
+                      x-positive: true
+                      description: Identifier of the type.
+                    code:
+                      type:
+                      - string
+                      - 'null'
+                      description: Code of the type.
+                    description:
+                      type:
+                      - string
+                      - 'null'
+                      description: Description of the type in english language.
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
     GetPricesOrderbookFullGet200Response:
       description: Successful Response
       content:
@@ -2238,7 +1707,7 @@ components:
             x-property-sort:
             - data
             - meta
-    GetPricesGet200Response:
+    PostPricesTimeSeriesEodSubsampleList200Response:
       description: Successful Response
       content:
         application/json:
@@ -2260,437 +1729,116 @@ components:
                     - string
                     - 'null'
                     description: Identifier used in the request.
-                  valueUnit:
-                    type: object
-                    x-property-sort:
-                    - id
-                    description: Value unit of the notation such as a main or fractional currency for equities, a percentage for debt instruments, or points for indices. See endpoint `/basic/valueUnit/list` for possible values.
-                    properties:
-                      id:
-                        type:
-                        - number
-                        - 'null'
-                        format: id32
-                        x-positive: true
-                        description: Identifier of the valueUnit.
-                  currency:
-                    type: object
-                    x-property-sort:
-                    - id
-                    description: Main currency of the monetary attributes. See endpoint `/basic/valueUnit/currency/main/list` for possible values.
-                    properties:
-                      id:
-                        type:
-                        - number
-                        - 'null'
-                        format: id32
-                        x-positive: true
-                        description: Identifier of the currency.
-                  market:
-                    type: object
-                    x-property-sort:
-                    - id
-                    - isOpen
-                    - phase
-                    description: Market of the notation.
-                    properties:
-                      id:
-                        type:
-                        - number
-                        - 'null'
-                        format: id32
-                        x-positive: true
-                        description: Identifier of the market. See endpoint `/basic/market/list` for possible values.
-                      isOpen:
-                        x-pushable: true
-                        type:
-                        - boolean
-                        - 'null'
-                        description: Indicates whether the market of the notation is currently open, that is, the current time is between the open and adjusted close of the notation's market, see endpoint `/prices/tradingSchedule/event/list` for the trading schedule of the notation's market. The adjusted close is later than the official closing time specified by the market and includes the time after closing when trades might still be reported. Breaks such as a lunch break are not considered. The value is `null` if the result quality is EOD.
-                      phase:
-                        x-pushable: true
-                        type:
-                        - string
-                        - 'null'
-                        description: Market-specific code of the current market phase. The value is `null` if the result quality is EOD.
-                  quality:
+                  range:
                     type:
-                    - string
+                    - object
                     - 'null'
-                    description: Quality of the price.
-                    x-enum-description:
-                    - 'Real-time: intraday prices with minimal technical processing delays.'
-                    - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
-                    - 'End-of-day: prices updated once per day after the close of trading, possibly with an exchange-imposed delay of several hours or days.'
-                    enum:
-                    - RLT
-                    - DLY
-                    - EOD
-                  latest:
-                    type: object
-                    x-property-sort:
-                    - time
-                    - price
-                    - quoteCondition
-                    - tradingVolume
-                    - tradingValue
-                    - performance
-                    description: Most recent trade or price of the trading day.
+                    format: dateRange
                     properties:
-                      time:
-                        x-pushable: true
-                        type:
-                        - string
-                        - 'null'
-                        format: datetime
-                        description: Date and time.
-                        x-cas-attribute: timeLatestTradePrice
-                      price:
-                        x-pushable: true
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Price value. See attribute `valueUnit` for its unit.
-                        x-cas-attribute: valueLatestTradePrice
-                      quoteCondition:
-                        x-pushable: true
-                        type:
-                        - string
-                        - 'null'
-                        description: Quote condition. Possible values depend on the values delivered by the supplier of the price information.
-                        x-cas-attribute: quoteConditionLatestTradePrice
-                      tradingVolume:
-                        x-pushable: true
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Number of units (e.g. shares) traded.
-                        x-cas-attribute: tradingVolumeLatestTradePrice
-                      tradingValue:
-                        x-pushable: true
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Monetary equivalent (cash value) of the trade. See attribute `currency` for its unit.
-                        x-cas-attribute: tradingValueLatestTradePrice
-                      performance:
-                        type: object
-                        x-property-sort:
-                        - intraday
-                        description: Performance values.
-                        properties:
-                          intraday:
-                            type: object
-                            x-property-sort:
-                            - absolute
-                            - relative
-                            description: Performance of the most recent price calculated against the latest price which has occurred before the start of the most recent trading day.
-                            properties:
-                              absolute:
-                                x-pushable: true
-                                type:
-                                - number
-                                - 'null'
-                                format: real
-                                description: Absolute value. See attribute `valueUnit` for its unit.
-                                x-cas-attribute: absolutePerformanceLatestTradePrice
-                              relative:
-                                x-pushable: true
-                                type:
-                                - number
-                                - 'null'
-                                format: relativeValue
-                                description: Relative value.
-                                x-cas-attribute: relativePerformanceLatestTradePrice
-                  first:
-                    type: object
-                    x-property-sort:
-                    - time
-                    - price
-                    - tradingVolume
-                    description: First trade or price of the trading day.
-                    properties:
-                      time:
-                        x-pushable: true
-                        type:
-                        - string
-                        - 'null'
-                        format: datetime
-                        description: Date and time.
-                        x-cas-attribute: timeFirstTradePrice
-                      price:
-                        x-pushable: true
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Price value. See attribute `valueUnit` for its unit.
-                        x-cas-attribute: valueFirstTradePrice
-                      tradingVolume:
-                        x-pushable: true
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Number of units (e.g. shares) traded.
-                        x-cas-attribute: tradingVolumeFirstTradePrice
-                  low:
-                    type: object
-                    x-property-sort:
-                    - time
-                    - price
-                    - tradingVolume
-                    description: Trade with the lowest price of the trading day.
-                    properties:
-                      time:
-                        x-pushable: true
-                        type:
-                        - string
-                        - 'null'
-                        format: datetime
-                        description: Date and time.
-                        x-cas-attribute: timeLowestTradePrice
-                      price:
-                        x-pushable: true
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Price value. See attribute `valueUnit` for its unit.
-                        x-cas-attribute: valueLowestTradePrice
-                      tradingVolume:
-                        x-pushable: true
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Number of units (e.g. shares) traded.
-                        x-cas-attribute: tradingVolumeLowestTradePrice
-                  high:
-                    type: object
-                    x-property-sort:
-                    - time
-                    - price
-                    - tradingVolume
-                    description: Trade with the highest price of the trading day.
-                    properties:
-                      time:
-                        x-pushable: true
-                        type:
-                        - string
-                        - 'null'
-                        format: datetime
-                        description: Date and time.
-                        x-cas-attribute: timeHighestTradePrice
-                      price:
-                        x-pushable: true
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Price value. See attribute `valueUnit` for its unit.
-                        x-cas-attribute: valueHighestTradePrice
-                      tradingVolume:
-                        x-pushable: true
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Number of units (e.g. shares) traded.
-                        x-cas-attribute: tradingVolumeHighestTradePrice
-                  previousClose:
-                    type: object
-                    x-property-sort:
-                    - time
-                    - price
-                    description: Close price of the previous day.
-                    properties:
-                      time:
-                        x-pushable: true
-                        type:
-                        - string
-                        - 'null'
-                        format: datetime
-                        description: Date and time.
-                        x-cas-attribute: timePreviousClosePrice
-                      price:
-                        x-pushable: true
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Price value. See attribute `valueUnit` for its unit.
-                        x-cas-attribute: valuePreviousClosePrice
-                  accumulated:
-                    type: object
-                    x-property-sort:
-                    - numberTrades
-                    - tradingVolume
-                    - tradingValue
-                    - volumeWeightedAveragePrice
-                    description: Summary data accumulated over all trades of the most recent trading day.
-                    properties:
-                      numberTrades:
-                        x-pushable: true
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Number of trades.
-                        x-cas-attribute: accumulatedNumberTrades
-                      tradingVolume:
-                        x-pushable: true
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Number of units (e.g. shares) traded.
-                        x-cas-attribute: accumulatedTradingVolume
-                      tradingValue:
-                        x-pushable: true
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Monetary equivalent (cash value) of the trades. See attribute `currency` for its unit.
-                        x-cas-attribute: accumulatedTradingValue
-                      volumeWeightedAveragePrice:
-                        x-pushable: true
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: The volume-weighted average price (VWAP). See attribute `valueUnit` for its unit.
-                        x-cas-attribute: volumeWeightedAveragePrice
-                description: Set of price related data for the notation.
-                x-property-sort:
-                - idNotation
-                - sourceIdentifier
-                - valueUnit
-                - currency
-                - market
-                - quality
-                - latest
-                - first
-                - low
-                - high
-                - previousClose
-                - accumulated
-              meta:
-                type: object
-                description: The meta member contains the meta information of the response.
-                properties:
-                  status:
-                    $ref: '#/components/schemas/StatusObject'
-                x-property-sort:
-                - status
-            x-property-sort:
-            - data
-            - meta
-    PostPricesTimeSeriesEodSubsampleGet200Response:
-      description: Successful Response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: object
-                properties:
-                  idNotation:
-                    type:
-                    - string
-                    - 'null'
-                    format: id64
-                    x-positive: true
-                    description: MDG identifier of the listing.
-                  sourceIdentifier:
-                    type:
-                    - string
-                    - 'null'
-                    description: Identifier used in the request.
-                  quality:
-                    type:
-                    - string
-                    - 'null'
-                    description: Quality of the price.
-                    x-enum-description:
-                    - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
-                    - 'End-of-day: prices updated once per day after the close of trading, possibly with an exchange-imposed delay of several hours or days.'
-                    enum:
-                    - DLY
-                    - EOD
-                  subsample:
-                    type: object
-                    x-property-sort:
-                    - date
-                    - first
-                    - last
-                    - low
-                    - high
-                    - tradingVolume
-                    - tradingValue
-                    description: Single summary record. For the attributes first, last, low, high, see attribute `valueUnit` in endpoint `/prices/get` for their unit, except for price type yield, where the `valueUnit` is always `percent` (id=258).
-                    properties:
-                      date:
+                      start:
                         type:
                         - string
                         - 'null'
                         format: date
-                        description: Date of the start of the subsample.
-                      first:
+                        description: The starting point of the date range (inclusive).
+                      end:
                         type:
-                        - number
+                        - string
                         - 'null'
-                        format: real
-                        description: First price of the subsample.
-                      last:
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Last price of the subsample.
-                      low:
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Lowest price of the subsample.
-                      high:
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Highest price of the subsample.
-                      tradingVolume:
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Accumulated number of units (e.g. shares) traded of the subsample. If the requested type of the price is ask, bid, or yield, the value is empty.
-                      tradingValue:
-                        type:
-                        - number
-                        - 'null'
-                        format: real
-                        description: Accumulated monetary equivalent (cash value) of the subsample. If the requested type of the price is ask, bid, or yield, the value is empty. See attribute `currency` in endpoint `/prices/get` for its unit.
-                description: Subsample data for the notation.
+                        format: date
+                        description: The ending point of the date range (exclusive).
+                    x-property-sort:
+                    - start
+                    - end
+                    required:
+                    - start
+                    - end
+                    description: Date range for the returned time series.
+                  quality:
+                    type:
+                    - string
+                    - 'null'
+                    description: Quality of the price.
+                    x-enum-description:
+                    - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
+                    - 'End-of-day: prices updated once per day after the close of trading, possibly with an exchange-imposed delay of several hours or days.'
+                    enum:
+                    - DLY
+                    - EOD
+                  subsamples:
+                    type: array
+                    items:
+                      type: object
+                      x-property-sort:
+                      - date
+                      - first
+                      - last
+                      - low
+                      - high
+                      - tradingVolume
+                      - tradingValue
+                      properties:
+                        date:
+                          type:
+                          - string
+                          - 'null'
+                          format: date
+                          description: Date of the start of the subsample.
+                        first:
+                          type:
+                          - number
+                          - 'null'
+                          format: real
+                          description: First price of the subsample.
+                        last:
+                          type:
+                          - number
+                          - 'null'
+                          format: real
+                          description: Last price of the subsample.
+                        low:
+                          type:
+                          - number
+                          - 'null'
+                          format: real
+                          description: Lowest price of the subsample.
+                        high:
+                          type:
+                          - number
+                          - 'null'
+                          format: real
+                          description: Highest price of the subsample.
+                        tradingVolume:
+                          type:
+                          - number
+                          - 'null'
+                          format: real
+                          description: Accumulated number of units (e.g. shares) traded of the subsample. If the requested type of the price is ask, bid, or yield, the value is empty.
+                        tradingValue:
+                          type:
+                          - number
+                          - 'null'
+                          format: real
+                          description: Accumulated monetary equivalent (cash value) of the subsample. If the requested type of the price is ask, bid, or yield, the value is empty. See attribute `currency` in endpoint `/prices/get` for its unit.
+                    description: List of summary records. For the attributes first, last, low, high, see attribute `valueUnit` in endpoint `/prices/get` for their unit, except for price type yield, where the `valueUnit` is always `percent` (id=258).
+                description: Subsampled time series data for the notation.
                 x-property-sort:
                 - idNotation
                 - sourceIdentifier
+                - range
                 - quality
-                - subsample
+                - subsamples
               meta:
                 type: object
                 description: The meta member contains the meta information of the response.
                 properties:
                   status:
                     $ref: '#/components/schemas/StatusObject'
+                  pagination:
+                    $ref: '#/components/schemas/CursorBasedPaginationOutputObjectWithoutTotal'
                 x-property-sort:
                 - status
+                - pagination
             x-property-sort:
             - data
             - meta
@@ -2829,7 +1977,7 @@ components:
             x-property-sort:
             - data
             - meta
-    PostPricesTimeSeriesEodSubsampleList200Response:
+    PostPricesTimeSeriesEodSubsampleGet200Response:
       description: Successful Response
       content:
         application/json:
@@ -2851,31 +1999,6 @@ components:
                     - string
                     - 'null'
                     description: Identifier used in the request.
-                  range:
-                    type:
-                    - object
-                    - 'null'
-                    format: dateRange
-                    properties:
-                      start:
-                        type:
-                        - string
-                        - 'null'
-                        format: date
-                        description: The starting point of the date range (inclusive).
-                      end:
-                        type:
-                        - string
-                        - 'null'
-                        format: date
-                        description: The ending point of the date range (exclusive).
-                    x-property-sort:
-                    - start
-                    - end
-                    required:
-                    - start
-                    - end
-                    description: Date range for the returned time series.
                   quality:
                     type:
                     - string
@@ -2887,103 +2010,78 @@ components:
                     enum:
                     - DLY
                     - EOD
-                  subsamples:
-                    type: array
-                    items:
-                      type: object
-                      x-property-sort:
-                      - date
-                      - first
-                      - last
-                      - low
-                      - high
-                      - tradingVolume
-                      - tradingValue
-                      properties:
-                        date:
-                          type:
-                          - string
-                          - 'null'
-                          format: date
-                          description: Date of the start of the subsample.
-                        first:
-                          type:
-                          - number
-                          - 'null'
-                          format: real
-                          description: First price of the subsample.
-                        last:
-                          type:
-                          - number
-                          - 'null'
-                          format: real
-                          description: Last price of the subsample.
-                        low:
-                          type:
-                          - number
-                          - 'null'
-                          format: real
-                          description: Lowest price of the subsample.
-                        high:
-                          type:
-                          - number
-                          - 'null'
-                          format: real
-                          description: Highest price of the subsample.
-                        tradingVolume:
-                          type:
-                          - number
-                          - 'null'
-                          format: real
-                          description: Accumulated number of units (e.g. shares) traded of the subsample. If the requested type of the price is ask, bid, or yield, the value is empty.
-                        tradingValue:
-                          type:
-                          - number
-                          - 'null'
-                          format: real
-                          description: Accumulated monetary equivalent (cash value) of the subsample. If the requested type of the price is ask, bid, or yield, the value is empty. See attribute `currency` in endpoint `/prices/get` for its unit.
-                    description: List of summary records. For the attributes first, last, low, high, see attribute `valueUnit` in endpoint `/prices/get` for their unit, except for price type yield, where the `valueUnit` is always `percent` (id=258).
-                description: Subsampled time series data for the notation.
+                  subsample:
+                    type: object
+                    x-property-sort:
+                    - date
+                    - first
+                    - last
+                    - low
+                    - high
+                    - tradingVolume
+                    - tradingValue
+                    description: Single summary record. For the attributes first, last, low, high, see attribute `valueUnit` in endpoint `/prices/get` for their unit, except for price type yield, where the `valueUnit` is always `percent` (id=258).
+                    properties:
+                      date:
+                        type:
+                        - string
+                        - 'null'
+                        format: date
+                        description: Date of the start of the subsample.
+                      first:
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: First price of the subsample.
+                      last:
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Last price of the subsample.
+                      low:
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Lowest price of the subsample.
+                      high:
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Highest price of the subsample.
+                      tradingVolume:
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Accumulated number of units (e.g. shares) traded of the subsample. If the requested type of the price is ask, bid, or yield, the value is empty.
+                      tradingValue:
+                        type:
+                        - number
+                        - 'null'
+                        format: real
+                        description: Accumulated monetary equivalent (cash value) of the subsample. If the requested type of the price is ask, bid, or yield, the value is empty. See attribute `currency` in endpoint `/prices/get` for its unit.
+                description: Subsample data for the notation.
                 x-property-sort:
                 - idNotation
                 - sourceIdentifier
-                - range
                 - quality
-                - subsamples
+                - subsample
               meta:
                 type: object
                 description: The meta member contains the meta information of the response.
                 properties:
                   status:
                     $ref: '#/components/schemas/StatusObject'
-                  pagination:
-                    $ref: '#/components/schemas/CursorBasedPaginationOutputObjectWithoutTotal'
                 x-property-sort:
                 - status
-                - pagination
             x-property-sort:
             - data
             - meta
   parameters:
-    currency:
-      name: currency
-      in: query
-      required: false
-      schema:
-        type: string
-        default: LOCAL
-      description: Controls the Currency conversion of the Fund. By default, the currency will use the funds local currency.
-      example: USD
-    splitAdjust:
-      name: splitAdjust
-      in: query
-      schema:
-        type: string
-        enum:
-        - SPLIT
-        - UNSPLIT
-        default: SPLIT
-      description: The price adjustment split or unsplit.
     frequency:
       name: frequency
       in: query
@@ -3001,6 +2099,16 @@ components:
         - FY
         default: M
       description: "Controls the display frequency of the data returned.\n  * **D** = Daily\n  * **W** = Weekly, based on the last day of the week of the start date.\n  * **M** = Monthly, based on the last trading day of the month.\n  * **AM** = Monthly, based on the start date (e.g., if the start date is June 16, data is displayed for June 16, May 16, April 16 etc.).\n  * **CQ** = Quarterly based on the last trading day of the calendar quarter (March, June, September, or December).\n  * **FQ** = Fiscal Quarter of the company.\n  * **AY** = Actual Annual, based on the start date.\n  * **CY** = Calendar Annual, based on the last trading day of the calendar year.\n  * **FY** = Fiscal Annual, based on the last trading day of the company's fiscal year.\n"
+    splitAdjust:
+      name: splitAdjust
+      in: query
+      schema:
+        type: string
+        enum:
+        - SPLIT
+        - UNSPLIT
+        default: SPLIT
+      description: The price adjustment split or unsplit.
     ids:
       name: ids
       in: query
@@ -3025,6 +2133,25 @@ components:
           value:
           - MABAX-US
           - FCNTX-US
+    dataType:
+      name: dataType
+      in: query
+      schema:
+        type: string
+        enum:
+        - ROLL
+        - RAW
+        default: ROLL
+      description: The Data Type of the NAV expressed as Raw or Rolled values.
+    currency:
+      name: currency
+      in: query
+      required: false
+      schema:
+        type: string
+        default: LOCAL
+      description: Controls the Currency conversion of the Fund. By default, the currency will use the funds local currency.
+      example: USD
     endDate:
       name: endDate
       in: query
@@ -3045,16 +2172,889 @@ components:
 
         '
       example: '2018-12-31'
+  schemas:
+    frequency:
+      type: string
+      enum:
+      - D
+      - W
+      - M
+      - AM
+      - CQ
+      - FQ
+      - AY
+      - CY
+      - FY
+      default: D
+      description: "Controls the display frequency of the data returned.\n  * **D** = Daily\n  * **W** = Weekly, based on the last day of the week of the start date.\n  * **M** = Monthly, based on the last trading day of the month.\n  * **AM** = Monthly, based on the start date (e.g., if the start date is June 16, data is displayed for June 16, May 16, April 16 etc.).\n  * **CQ** = Quarterly based on the last trading day of the calendar quarter (March, June, September, or December).\n  * **FQ** = Fiscal Quarter of the company.\n  * **AY** = Actual Annual, based on the start date.\n  * **CY** = Calendar Annual, based on the last trading day of the calendar year.\n  * **FY** = Fiscal Annual, based on the last trading day of the company's fiscal year.\n"
+      example: M
+    fundsPricesRequest:
+      title: Prices Request Body
+      description: Prices Request Body
+      type: object
+      properties:
+        ids:
+          $ref: '#/components/schemas/ids'
+        startDate:
+          $ref: '#/components/schemas/startDate'
+        endDate:
+          $ref: '#/components/schemas/endDate'
+        frequency:
+          $ref: '#/components/schemas/frequency'
+        currency:
+          $ref: '#/components/schemas/currency'
+        dataType:
+          $ref: '#/components/schemas/dataType'
+        splitAdjust:
+          $ref: '#/components/schemas/splitAdjust'
+      required:
+      - ids
+    splitAdjust:
+      type: string
+      enum:
+      - SPLIT
+      - UNSPLIT
+      default: SPLIT
+      description: "Controls the split adjustment of the Fund's NAV - \n  * **SPLIT** = Split ONLY Adjusted. This is used by default.\n  * **UNSPLIT** = No Adjustments, Controls the split and dividend adjustments for the prices.\n"
+      example: SPLIT
     dataType:
-      name: dataType
-      in: query
-      schema:
+      type: string
+      enum:
+      - ROLL
+      - RAW
+      default: RAW
+      description: 'Controls the data type of the Fund NAV between Raw or Rolled values.
+
+        '
+      example: ROLL
+    errorResponse:
+      type: object
+      title: Error Response
+      properties:
+        status:
+          description: status
+          type: string
+          example: Bad Request
+        timestamp:
+          description: timestamp in YYYY-MM-DD HH:MM:SS.SSS
+          type: string
+          example: '2019-11-01 11:09:41.918'
+          format: date-time
+        path:
+          description: The Endpoint path {package}/version/{endpoint}
+          type: string
+          example: /factset-funds/v1/superRegion
+        message:
+          description: The plain text error message
+          type: string
+          example: Validation Error
+        subErrors:
+          description: subErrors related to the error message. Null if not applicable.
+          type: object
+          properties:
+            object:
+              description: the operation ID
+              type: string
+            field:
+              description: Parameter Field Name
+              type: string
+            message:
+              description: Error message
+              type: string
+            rejectedValue:
+              description: Rejected Values in an Array
+              type: array
+              items:
+                type: string
+          example: example_value
+    currency:
+      type: string
+      description: The ISO3 currency control for the requested fund.
+      default: LOCAL
+      example: USD
+    prices:
+      title: Prices Object
+      type: object
+      properties:
+        fsymId:
+          description: FactSet Security Identifier. Six alpha-numeric characters, excluding vowels, with a -S suffix (XXXXXX-S), resolved from the requestId of the Fund requested.
+          type:
+          - string
+          - 'null'
+          example: FNK7XP-S
+          x-fds-fql-formula: FSYM_SECURITY_PERM_ID('SECURITY')
+        price:
+          description: The NAV for the requested share class. NOTE - FactSet Mutual Funds does not use seven-day yields to price money market funds.
+          type:
+          - number
+          - 'null'
+          format: double
+          example: 19.94
+          x-fds-fql-formula: FFD_PRICE
+        date:
+          description: The date of the NAV in YYYY-MM-DD format.
+          type:
+          - string
+          - 'null'
+          format: date
+          example: '2021-02-26'
+        requestId:
+          description: The requested Id sent as input.
+          type: string
+          example: MABAX
+        currency:
+          description: ISO3 Currency
+          type:
+          - string
+          - 'null'
+          example: USD
+    ids:
+      type: array
+      items:
         type: string
-        enum:
-        - ROLL
-        - RAW
-        default: ROLL
-      description: The Data Type of the NAV expressed as Raw or Rolled values.
+      minItems: 1
+      maxItems: 1000
+      description: 'The requested Fund Identifier. FactSet Identifiers, tickers, CUSIP and SEDOL are accepted input. <p>***ids limit** =  1000 per request*</p> *<p>Make note, GET Method URL request lines are also limited to a total length of 8192 bytes (8KB). In cases where the service allows for thousands of ids, which may lead to exceeding this request line limit of 8KB, its advised for any requests with large request lines to be requested through the respective "POST" method.</p>*
+
+        '
+      example:
+      - MABAX
+      - FCNTX
+    startDate:
+      type: string
+      description: 'The start date requested for a given date range in **YYYY-MM-DD** format. If left blank, the API will default to previous close. Future dates (T+1) are not accepted in this #endpoint.
+
+        '
+      example: '2019-01-01'
+    endDate:
+      type: string
+      description: 'The end date requested for a given date range in **YYYY-MM-DD** format. If left blank, the API will default to previous close. Future dates (T+1) are not accepted in this endpoint.
+
+        '
+      example: '2019-12-31'
+    fundsPricesResponse:
+      type: object
+      title: Prices Response
+      properties:
+        data:
+          description: Array of Prices Objects
+          type: array
+          items:
+            $ref: '#/components/schemas/prices'
+          example: []
+    CursorBasedPaginationOutputObjectWithoutTotal:
+      type: object
+      description: Pagination attributes for the cursor-based pagination strategy; a total element count is not supported.
+      properties:
+        next:
+          type: string
+          description: The next cursor position to use in the parameter `pagination.cursor` for an endpoint that supports cursor-based pagination, otherwise `null`.
+          example: example_value
+        previous:
+          type: string
+          description: The previous cursor position to use in the parameter `pagination.cursor` for an endpoint that supports cursor-based pagination. If a previous cursor position is not supported or available, `previous` is `null`.
+          example: example_value
+      required:
+      - next
+      - previous
+      x-property-sort:
+      - next
+      - previous
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+      maxItems: 50
+      uniqueItems: true
+    PostPricesTradingScheduleEventListRequest:
+      x-property-sort:
+      - data
+      - meta
+      description: Request Body
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - identifier
+          - filter
+          description: The data member contains the request's primary data.
+          properties:
+            identifier:
+              type: object
+              x-property-sort:
+              - value
+              - type
+              description: Identifier and type.
+              properties:
+                value:
+                  type: string
+                  pattern: ^[B-DF-HJ-NP-TV-Z0-9]{6}-[LR]$|^[A-Z0-9.#&*+]{1,47}-[A-Z0-9]{2,4}$|^[0-9]{3,20}$
+                  maxLength: 50
+                  minLength: 3
+                  description: Identifier to resolve.
+                type:
+                  type: string
+                  description: Type of the identifier.
+                  x-enum-description:
+                  - MDG identifier of a listing.
+                  - FactSet market symbol of a listing.
+                  - Regional FactSet ticker symbol, identifying the primary listing in the region.
+                  - FactSet Permanent Identifier on listing level.
+                  - Regional FactSet Permanent Identifier, identifying the primary listing in the region.
+                  enum:
+                  - idNotation
+                  - tickerExchange
+                  - tickerRegion
+                  - fdsPermanentIdentifierListing
+                  - fdsPermanentIdentifierRegional
+              required:
+              - value
+              - type
+            filter:
+              type: object
+              x-property-sort:
+              - types
+              - range
+              description: Criteria that filter the items in the response list; only items that match all of the criteria are returned.
+              properties:
+                types:
+                  type: array
+                  items:
+                    type: number
+                    format: id32
+                    x-positive: true
+                  minItems: 1
+                  description: List of trading schedule event types to return. See endpoint `/prices/tradingSchedule/event/type/list` for valid values.
+                range:
+                  type: object
+                  format: timeRange
+                  properties:
+                    start:
+                      type: string
+                      format: datetime
+                      description: The starting point of the time range (inclusive).
+                    end:
+                      type: string
+                      format: datetime
+                      description: The ending point of the time range (exclusive).
+                  x-property-sort:
+                  - start
+                  - end
+                  required:
+                  - start
+                  - end
+                  description: Date and time range for the time series. A valid time range is between 1900-01-01 and 24 hours and 5 minutes into the future.
+              required:
+              - types
+              - range
+          required:
+          - identifier
+          example: example_value
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+            pagination:
+              type: object
+              description: Pagination attributes for the cursor-based pagination strategy.
+              properties:
+                cursor:
+                  type: string
+                  maxLength: 50
+                  description: Starting point as returned in the attributes `pagination.next` or `pagination.previous` by a prior invocation of this endpoint, or undefined (default).
+                limit:
+                  type: number
+                  format: int32
+                  minimum: 0
+                  maximum: 500
+                  default: 20
+                  description: Non-negative maximum number of entries to return.
+              x-property-sort:
+              - cursor
+              - limit
+          x-property-sort:
+          - attributes
+          - pagination
+          example: example_value
+    PostPricesTimeSeriesEodSubsampleListRequest:
+      x-property-sort:
+      - data
+      - meta
+      description: Request Body
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - identifier
+          - type
+          - quality
+          - intervalSelection
+          - newestFirst
+          - adjustments
+          description: The data member contains the request's primary data.
+          properties:
+            identifier:
+              type: object
+              x-property-sort:
+              - value
+              - type
+              description: Identifier and type.
+              properties:
+                value:
+                  type: string
+                  pattern: ^[B-DF-HJ-NP-TV-Z0-9]{6}-[LR]$|^[A-Z0-9.#&*+]{1,47}-[A-Z0-9]{2,4}$|^[0-9]{3,20}$
+                  maxLength: 50
+                  minLength: 3
+                  description: Identifier to resolve.
+                type:
+                  type: string
+                  description: Type of the identifier.
+                  x-enum-description:
+                  - MDG identifier of a listing.
+                  - FactSet market symbol of a listing.
+                  - Regional FactSet ticker symbol, identifying the primary listing in the region.
+                  - FactSet Permanent Identifier on listing level.
+                  - Regional FactSet Permanent Identifier, identifying the primary listing in the region.
+                  enum:
+                  - idNotation
+                  - tickerExchange
+                  - tickerRegion
+                  - fdsPermanentIdentifierListing
+                  - fdsPermanentIdentifierRegional
+              required:
+              - value
+              - type
+            type:
+              type: string
+              description: Type of the price as configured for the customer.
+              default: trade
+              x-enum-description:
+              - Trade price (ordinary, auction, pre or post-trading).
+              - Bid price.
+              - Ask price.
+              - Yield price.
+              - Estimated price.
+              enum:
+              - trade
+              - bid
+              - ask
+              - yield
+              - estimate
+            quality:
+              type: string
+              description: Quality of the price.
+              default: DLY
+              x-enum-description:
+              - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
+              - 'End-of-day: prices updated once per day after the close of trading, possibly with an exchange-imposed delay of several hours or days.'
+              - 'Best: choose the price quality with the least delay, as entitled for the client.'
+              enum:
+              - DLY
+              - EOD
+              - BST
+            intervalSelection:
+              type: object
+              x-property-sort:
+              - intervals
+              - samples
+              description: Select the intervals from which the subsamples are to be created.
+              x-atMostOne: true
+              properties:
+                intervals:
+                  type: array
+                  items:
+                    type: string
+                    format: date
+                  minItems: 2
+                  maxItems: 600
+                  description: Non-empty intervals of days to consider for the request. The array contains a list of at least two days in increasing order. Each pair of adjacent entries day_n and day_(n+1) specifies a half-open interval, that is a range of days d where day_n <= d < day_(n+1). A subsample is computed for each interval. The valid range of intervals is between 1900-01-01 and the day after the current day.
+                samples:
+                  type: object
+                  x-property-sort:
+                  - end
+                  - number
+                  - granularity
+                  description: Subsample granularity and number of samples suitable for end-of-day data.
+                  properties:
+                    end:
+                      type: string
+                      format: date
+                      description: Date of the end point of the subsamples (exclusive). `end` is limited to the day after the current day.
+                    number:
+                      type: number
+                      format: int32
+                      minimum: 1
+                      maximum: 10000
+                      description: Number of subsamples returned. The product of `number` and `granularity` must not extend further into the past than 1900-01-01.
+                    granularity:
+                      type: string
+                      description: Subsample granularities suitable for end-of-day data.
+                      default: 1w
+                      x-enum-description:
+                      - Each subsample interval encompasses 1 day.
+                      - Each subsample interval encompasses 1 week.
+                      - Each subsample interval encompasses 1 month.
+                      - Each subsample interval encompasses 3 month.
+                      - Each subsample interval encompasses 6 month.
+                      - Each subsample interval encompasses 1 year.
+                      enum:
+                      - 1d
+                      - 1w
+                      - 1m
+                      - 3m
+                      - 6m
+                      - 1y
+                  required:
+                  - end
+                  - number
+            newestFirst:
+              type: boolean
+              default: false
+              description: Deliver the chronological last part of the requested data first.
+            adjustments:
+              type: object
+              x-property-sort:
+              - payout
+              - split
+              description: Adjustments values returned.
+              properties:
+                payout:
+                  type: boolean
+                  default: false
+                  description: Adjustments are applied for corporate action effects due to dividends, payouts, or other cash disbursements.
+                split:
+                  type: boolean
+                  default: true
+                  description: Adjustments are applied for corporate action effects due to the notation having a split, a reverse split, or a similar factor-based corporate action.
+          required:
+          - identifier
+          - intervalSelection
+          example: example_value
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+            pagination:
+              type: object
+              description: Pagination attributes for the cursor-based pagination strategy.
+              properties:
+                cursor:
+                  type: string
+                  maxLength: 50
+                  description: Starting point as returned in the attributes `pagination.next` or `pagination.previous` by a prior invocation of this endpoint, or undefined (default).
+                limit:
+                  type: number
+                  format: int32
+                  minimum: 0
+                  maximum: 5000
+                  default: 20
+                  description: Non-negative maximum number of entries to return.
+              x-property-sort:
+              - cursor
+              - limit
+          x-property-sort:
+          - attributes
+          - pagination
+          example: example_value
+    PostPricesTimeSeriesEodSubsampleGetRequest:
+      x-property-sort:
+      - data
+      - meta
+      description: Request Body
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - identifier
+          - type
+          - quality
+          - interval
+          - adjustments
+          description: The data member contains the request's primary data.
+          properties:
+            identifier:
+              type: object
+              x-property-sort:
+              - value
+              - type
+              description: Identifier and type.
+              properties:
+                value:
+                  type: string
+                  pattern: ^[B-DF-HJ-NP-TV-Z0-9]{6}-[LR]$|^[A-Z0-9.#&*+]{1,47}-[A-Z0-9]{2,4}$|^[0-9]{3,20}$
+                  maxLength: 50
+                  minLength: 3
+                  description: Identifier to resolve.
+                type:
+                  type: string
+                  description: Type of the identifier.
+                  x-enum-description:
+                  - MDG identifier of a listing.
+                  - FactSet market symbol of a listing.
+                  - Regional FactSet ticker symbol, identifying the primary listing in the region.
+                  - FactSet Permanent Identifier on listing level.
+                  - Regional FactSet Permanent Identifier, identifying the primary listing in the region.
+                  enum:
+                  - idNotation
+                  - tickerExchange
+                  - tickerRegion
+                  - fdsPermanentIdentifierListing
+                  - fdsPermanentIdentifierRegional
+              required:
+              - value
+              - type
+            type:
+              type: string
+              description: Type of the price as configured for the customer.
+              default: trade
+              x-enum-description:
+              - Trade price (ordinary, auction, pre or post-trading).
+              - Bid price.
+              - Ask price.
+              - Yield price.
+              - Estimated price.
+              enum:
+              - trade
+              - bid
+              - ask
+              - yield
+              - estimate
+            quality:
+              type: string
+              description: Quality of the price.
+              default: DLY
+              x-enum-description:
+              - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
+              - 'End-of-day: prices updated once per day after the close of trading, possibly with an exchange-imposed delay of several hours or days.'
+              - 'Best: choose the price quality with the least delay, as entitled for the client.'
+              enum:
+              - DLY
+              - EOD
+              - BST
+            interval:
+              type: object
+              format: dateRange
+              x-isClosedInterval: false
+              properties:
+                start:
+                  type: string
+                  format: date
+                  description: 'The starting point of the interval (inclusive). '
+                end:
+                  type: string
+                  format: date
+                  description: The ending point of the interval (exclusive).
+              x-property-sort:
+              - start
+              - end
+              required:
+              - start
+              - end
+              description: Non-empty interval of days specifying a single subsample period. The starting point `start` of the single subsample is usually the attribute `range.end` of a previously received `/prices/timeSeries/eod/subsample/list` request. A valid range is between 1900-01-01 and a day that is less than or equal to the maximum allowed day determined from the delay period (if any). The ending point `end` may exceed the maximally entitled date range.
+            adjustments:
+              type: object
+              x-property-sort:
+              - payout
+              - split
+              description: Adjustments values returned.
+              properties:
+                payout:
+                  type: boolean
+                  default: false
+                  description: Adjustments are applied for corporate action effects due to dividends, payouts, or other cash disbursements.
+                split:
+                  type: boolean
+                  default: true
+                  description: Adjustments are applied for corporate action effects due to the notation having a split, a reverse split, or a similar factor-based corporate action.
+          required:
+          - identifier
+          - interval
+          example: example_value
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+          - attributes
+          example: example_value
+    PostPricesTimeSeriesEodListRequest:
+      x-property-sort:
+      - data
+      - meta
+      description: Request Body
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - identifier
+          - type
+          - quality
+          - range
+          - newestFirst
+          - adjustments
+          description: The data member contains the request's primary data.
+          properties:
+            identifier:
+              type: object
+              x-property-sort:
+              - value
+              - type
+              description: Identifier and type.
+              properties:
+                value:
+                  type: string
+                  pattern: ^[B-DF-HJ-NP-TV-Z0-9]{6}-[LR]$|^[A-Z0-9.#&*+]{1,47}-[A-Z0-9]{2,4}$|^[0-9]{3,20}$
+                  maxLength: 50
+                  minLength: 3
+                  description: Identifier to resolve.
+                type:
+                  type: string
+                  description: Type of the identifier.
+                  x-enum-description:
+                  - MDG identifier of a listing.
+                  - FactSet market symbol of a listing.
+                  - Regional FactSet ticker symbol, identifying the primary listing in the region.
+                  - FactSet Permanent Identifier on listing level.
+                  - Regional FactSet Permanent Identifier, identifying the primary listing in the region.
+                  enum:
+                  - idNotation
+                  - tickerExchange
+                  - tickerRegion
+                  - fdsPermanentIdentifierListing
+                  - fdsPermanentIdentifierRegional
+              required:
+              - value
+              - type
+            type:
+              type: string
+              description: Type of the price as configured for the customer.
+              default: trade
+              x-enum-description:
+              - Trade price (ordinary, auction, pre or post-trading).
+              - Bid price.
+              - Ask price.
+              - Yield price.
+              - Estimated price.
+              enum:
+              - trade
+              - bid
+              - ask
+              - yield
+              - estimate
+            quality:
+              type: string
+              description: Quality of the price.
+              default: DLY
+              x-enum-description:
+              - 'Delayed: intraday prices with an exchange-imposed delay of usually 15 to 30 minutes.'
+              - 'End-of-day: prices updated once per day after the close of trading, possibly with an exchange-imposed delay of several hours or days.'
+              - 'Best: choose the price quality with the least delay, as entitled for the client.'
+              enum:
+              - DLY
+              - EOD
+              - BST
+            range:
+              type: object
+              format: dateRange
+              x-isClosedInterval: false
+              properties:
+                start:
+                  type: string
+                  format: date
+                  description: The starting point of the date range (inclusive).
+                end:
+                  type: string
+                  format: date
+                  description: The ending point of the date range (exclusive).
+              x-property-sort:
+              - start
+              - end
+              required:
+              - start
+              - end
+              description: Date range for the time series. A valid date range is between 1900-01-01 and the day after the current day.
+            newestFirst:
+              type: boolean
+              default: false
+              description: Deliver the chronological last part of the requested data first.
+            adjustments:
+              type: object
+              x-property-sort:
+              - payout
+              - split
+              description: Adjustments values returned.
+              properties:
+                payout:
+                  type: boolean
+                  default: false
+                  description: Adjustments are applied for corporate action effects due to dividends, payouts, or other cash disbursements.
+                split:
+                  type: boolean
+                  default: true
+                  description: Adjustments are applied for corporate action effects due to the notation having a split, a reverse split, or a similar factor-based corporate action.
+          required:
+          - identifier
+          - range
+          example: example_value
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+            pagination:
+              type: object
+              description: Pagination attributes for the cursor-based pagination strategy.
+              properties:
+                cursor:
+                  type: string
+                  maxLength: 50
+                  description: Starting point as returned in the attributes `pagination.next` or `pagination.previous` by a prior invocation of this endpoint, or undefined (default).
+                limit:
+                  type: number
+                  format: int32
+                  minimum: 0
+                  maximum: 5000
+                  default: 20
+                  description: Non-negative maximum number of entries to return.
+              x-property-sort:
+              - cursor
+              - limit
+          x-property-sort:
+          - attributes
+          - pagination
+          example: example_value
+  examples:
+    badRequestInvalidParameters:
+      summary: Bad Request - Invalid Parameters
+      description: This error message occurs when a request parameter is used in which is not recognized by the service. Please revise your request to include only the parameters listed in the specification. Typical causes are spelling mistakes and use of improper casing.
+      value:
+        status: Bad Request
+        timestamp: '2020-06-12 15:58:54.068'
+        path: /factset-funds/v1/{endpoint}
+        message: 'Invalid Parameter (s): fakeParameterName1 fakeParameterName2. Please modify your request to use parameters outlined in the specification for this endpoint.'
+        subErrors: null
+    generalException:
+      summary: Internal Server Error - General Exception
+      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
+      value:
+        status: Internal Server Error
+        timestamp: '2019-11-01 10:36:01.944'
+        path: /factset-funds/v1/{endpoint}
+        message: Unexpected error
+        subErrors: null
+    unauthenticated:
+      summary: User Authentication Failed
+      description: This occurs when a user is not properly authenticated or recognized by the service. Please double check the USERNAME-SERIAL and API-Key used to request and ensure you are within the IP range specified for the Key. Report Issue under 401 error for help with troubleshooting.
+      value:
+        status: User Authentication Failed
+        timestamp: '2019-10-31 16:08:07.945'
+        path: /factset-funds/v1/{endpoint}
+        message: User Authentication Failed.
+        subErrors: null
+    badRequestReadTimeout:
+      summary: Bad Request - Read Timeout
+      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
+      value:
+        status: Bad Request
+        timestamp: '2019-11-04 16:18:38.949'
+        path: /factset-funds/v1/{endpoint}
+        message: The request took too long. Try again with a smaller request.
+        subErrors: null
+    badRequestDateFormat:
+      summary: Bad Request - Date Format
+      description: This bad request occurs when a request doesn't use the YYYY-MM-DD in the date parameters. To resolve, convert your date to YYYY-MM-DD.
+      value:
+        status: Bad Request
+        timestamp: '2019-10-31 16:08:07.945'
+        path: /factset-funds/v1/{endpoint}
+        message: 'The date parameter ''startDate'' must be in the following date format: YYYY-MM-DD'
+        subErrors: null
+    unsupportedMediaType:
+      summary: Unsupported Media Type
+      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
+      value:
+        status: Unsupported Media Type
+        timestamp: '2019-11-05 09:42:27.237'
+        path: /factset-funds/v1/{endpoint}
+        message: text/html media type is not supported. Supported media types are application/json
+        subErrors: null
+    badRequestRequiredParameter:
+      summary: Bad Request - Required Parameter Missing
+      description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisks symbol in the specification file.
+      value:
+        status: Bad Request
+        timestamp: '2020-06-12 15:48:42.016'
+        path: /factset-funds/v1/{endpoint}
+        message: The parameter 'ids' is required and may not be empty.
+        subErrors: null
+    badRequestMalformedJSON:
+      summary: Bad Request - Malformed JSON Request
+      description: This error may be returned when the request body is specified as JSON, but is not in proper JSON format.
+      value:
+        status: Bad Request
+        timestamp: '2019-11-05 09:48:29.18'
+        path: /factset-funds/v1/{endpoint}
+        message: Malformed JSON Request
+        subErrors: null
+    forbidden:
+      summary: Forbidden
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      value:
+        status: Forbidden
+        timestamp: '2020-06-12 16:08:51.731'
+        path: /factset-funds/v1/{endpoint}
+        message: USERNAME-SERIAL does not have permission to use /factset-funds /v1/{endpoint}
+        subErrors: null
+    notWritable:
+      summary: Internal Server Error - Not Writable
+      description: This error may be returned when the server encounters an error writing the JSON response.
+      value:
+        status: Internal Server Error
+        timestamp: '2019-11-05 09:48:29.18'
+        path: /factset-funds/v1/{endpoint}
+        message: Error writing JSON output
+        subErrors: null
+    badRequestFutureDate:
+      summary: Bad Request - Future Date
+      description: This error message occurs when a future date is requested in the startDate and endDate parameters. Please revise your request to include dates as of today's current date or any prior historical date.
+      value:
+        status: Bad Request
+        timestamp: '2020-06-12 15:52:48.091'
+        path: /factset-funds/v1/{endpoint}
+        message: The use of future dates is not applicable in this endpoint. Please revise your request to include dates up to today's current date.
+        subErrors: null
   securitySchemes:
     BasicAuth:
       type: http

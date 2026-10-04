@@ -1210,42 +1210,9 @@ paths:
       summary: Get resource database
       x-summary-source: derived
 components:
-  headers:
-    X-RateLimit-Remaining:
-      description: Number of requests left for the time window.
-      schema:
-        type: string
-    X-FactSet-Api-Request-Key:
-      description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
-      schema:
-        type: string
-    X-DataDirect-Request-Key:
-      description: FactSet's request key header.
-      schema:
-        type: string
-    Retry-After:
-      description: Time to wait in seconds before making a new request as the rate limit has reached.
-      schema:
-        type: string
-    Long-Running-Location:
-      description: location to poll for the status of the job.
-      schema:
-        type: string
-    ResponseLocationHeader:
-      description: url of the newly created resource
-      schema:
-        type: string
-    X-RateLimit-Limit:
-      description: Number of allowed requests for the time window.
-      schema:
-        type: string
-    X-RateLimit-Reset:
-      description: Number of seconds remaining till rate limit resets.
-      schema:
-        type: string
   responses:
-    200GetDates:
-      description: Successful output
+    503Response:
+      description: Request timed out. Retry the request in some time
       headers:
         X-DataDirect-Request-Key:
           $ref: '#/components/headers/X-DataDirect-Request-Key'
@@ -1257,94 +1224,6 @@ components:
           $ref: '#/components/headers/X-RateLimit-Remaining'
         X-RateLimit-Reset:
           $ref: '#/components/headers/X-RateLimit-Reset'
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                $ref: '#/components/schemas/Dates'
-    200GetStats:
-      description: Returns an object with key OFDB stats
-      headers:
-        X-DataDirect-Request-Key:
-          $ref: '#/components/headers/X-DataDirect-Request-Key'
-        X-FactSet-Api-Request-Key:
-          $ref: '#/components/headers/X-FactSet-Api-Request-Key'
-        X-RateLimit-Limit:
-          $ref: '#/components/headers/X-RateLimit-Limit'
-        X-RateLimit-Remaining:
-          $ref: '#/components/headers/X-RateLimit-Remaining'
-        X-RateLimit-Reset:
-          $ref: '#/components/headers/X-RateLimit-Reset'
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: object
-                properties:
-                  symbols:
-                    type: integer
-                    example: 1
-                  iteratedFields:
-                    type: integer
-                    example: 2
-                  nonIteratedFields:
-                    type: integer
-                    example: 1
-                  totalFields:
-                    type: integer
-                    example: 3
-                  dates:
-                    type: integer
-                    example: 1
-    500Response:
-      description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting
-      headers:
-        X-DataDirect-Request-Key:
-          $ref: '#/components/headers/X-DataDirect-Request-Key'
-        X-FactSet-Api-Request-Key:
-          $ref: '#/components/headers/X-FactSet-Api-Request-Key'
-        X-RateLimit-Limit:
-          $ref: '#/components/headers/X-RateLimit-Limit'
-        X-RateLimit-Remaining:
-          $ref: '#/components/headers/X-RateLimit-Remaining'
-        X-RateLimit-Reset:
-          $ref: '#/components/headers/X-RateLimit-Reset'
-    403Response:
-      description: User is forbidden with current credentials
-      headers:
-        X-DataDirect-Request-Key:
-          $ref: '#/components/headers/X-DataDirect-Request-Key'
-        X-FactSet-Api-Request-Key:
-          $ref: '#/components/headers/X-FactSet-Api-Request-Key'
-        X-RateLimit-Limit:
-          $ref: '#/components/headers/X-RateLimit-Limit'
-        X-RateLimit-Remaining:
-          $ref: '#/components/headers/X-RateLimit-Remaining'
-        X-RateLimit-Reset:
-          $ref: '#/components/headers/X-RateLimit-Reset'
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              errors:
-                type: array
-                description: An array containing errors
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                    title:
-                      type: string
-                    code:
-                      type: string
-                      example: notAuthorized
-                      default: notAuthorized
     204Response:
       description: Resource is deleted successfully
     201LongRunningResponse:
@@ -1378,8 +1257,8 @@ components:
                     enum:
                     - executing
                     - created
-    200GetFields:
-      description: List of fields within the database
+    200GetSymbols:
+      description: Successful symbols array within OFDB
       headers:
         X-DataDirect-Request-Key:
           $ref: '#/components/headers/X-DataDirect-Request-Key'
@@ -1397,22 +1276,9 @@ components:
             type: object
             properties:
               data:
-                $ref: '#/components/schemas/Fields'
-    503Response:
-      description: Request timed out. Retry the request in some time
-      headers:
-        X-DataDirect-Request-Key:
-          $ref: '#/components/headers/X-DataDirect-Request-Key'
-        X-FactSet-Api-Request-Key:
-          $ref: '#/components/headers/X-FactSet-Api-Request-Key'
-        X-RateLimit-Limit:
-          $ref: '#/components/headers/X-RateLimit-Limit'
-        X-RateLimit-Remaining:
-          $ref: '#/components/headers/X-RateLimit-Remaining'
-        X-RateLimit-Reset:
-          $ref: '#/components/headers/X-RateLimit-Reset'
-    404Response:
-      description: Path not found
+                $ref: '#/components/schemas/Symbols'
+    406Response:
+      description: Unsupported Accept header. Header needs to be set to application/json
       headers:
         X-DataDirect-Request-Key:
           $ref: '#/components/headers/X-DataDirect-Request-Key'
@@ -1441,8 +1307,86 @@ components:
                       type: string
                     code:
                       type: string
-                      example: endPointNotFound
-                      default: endPointNotFound
+                      example: notAcceptable
+                      default: notAcceptable
+    PostRequestsSuccessCompleteResponse:
+      description: Status message of creation
+      headers:
+        Location:
+          $ref: '#/components/headers/ResponseLocationHeader'
+        X-DataDirect-Request-Key:
+          $ref: '#/components/headers/X-DataDirect-Request-Key'
+        X-FactSet-Api-Request-Key:
+          $ref: '#/components/headers/X-FactSet-Api-Request-Key'
+        X-RateLimit-Limit:
+          $ref: '#/components/headers/X-RateLimit-Limit'
+        X-RateLimit-Remaining:
+          $ref: '#/components/headers/X-RateLimit-Remaining'
+        X-RateLimit-Reset:
+          $ref: '#/components/headers/X-RateLimit-Reset'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SuccessPostResponse'
+    500Response:
+      description: Server error. Log the X-DataDirect-Request-Key header to assist in troubleshooting
+      headers:
+        X-DataDirect-Request-Key:
+          $ref: '#/components/headers/X-DataDirect-Request-Key'
+        X-FactSet-Api-Request-Key:
+          $ref: '#/components/headers/X-FactSet-Api-Request-Key'
+        X-RateLimit-Limit:
+          $ref: '#/components/headers/X-RateLimit-Limit'
+        X-RateLimit-Remaining:
+          $ref: '#/components/headers/X-RateLimit-Remaining'
+        X-RateLimit-Reset:
+          $ref: '#/components/headers/X-RateLimit-Reset'
+    200GetAudit:
+      description: Returns a list of the most recent "modificationTimes" in long datetime format
+      headers:
+        X-DataDirect-Request-Key:
+          $ref: '#/components/headers/X-DataDirect-Request-Key'
+        X-FactSet-Api-Request-Key:
+          $ref: '#/components/headers/X-FactSet-Api-Request-Key'
+        X-RateLimit-Limit:
+          $ref: '#/components/headers/X-RateLimit-Limit'
+        X-RateLimit-Remaining:
+          $ref: '#/components/headers/X-RateLimit-Remaining'
+        X-RateLimit-Reset:
+          $ref: '#/components/headers/X-RateLimit-Reset'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  modificationTimes:
+                    type: array
+                    items:
+                      type: string
+                      example: 20-Oct-2022  14:25:33 (EDT)
+    200GetFields:
+      description: List of fields within the database
+      headers:
+        X-DataDirect-Request-Key:
+          $ref: '#/components/headers/X-DataDirect-Request-Key'
+        X-FactSet-Api-Request-Key:
+          $ref: '#/components/headers/X-FactSet-Api-Request-Key'
+        X-RateLimit-Limit:
+          $ref: '#/components/headers/X-RateLimit-Limit'
+        X-RateLimit-Remaining:
+          $ref: '#/components/headers/X-RateLimit-Remaining'
+        X-RateLimit-Reset:
+          $ref: '#/components/headers/X-RateLimit-Reset'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                $ref: '#/components/schemas/Fields'
     202LongRunningResponse:
       description: Returns when the request is moved to long running mode. The next pickup URL is provided by the Location header.
       headers:
@@ -1510,6 +1454,76 @@ components:
                           type: string
                         param:
                           type: string
+    200GetStats:
+      description: Returns an object with key OFDB stats
+      headers:
+        X-DataDirect-Request-Key:
+          $ref: '#/components/headers/X-DataDirect-Request-Key'
+        X-FactSet-Api-Request-Key:
+          $ref: '#/components/headers/X-FactSet-Api-Request-Key'
+        X-RateLimit-Limit:
+          $ref: '#/components/headers/X-RateLimit-Limit'
+        X-RateLimit-Remaining:
+          $ref: '#/components/headers/X-RateLimit-Remaining'
+        X-RateLimit-Reset:
+          $ref: '#/components/headers/X-RateLimit-Reset'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  symbols:
+                    type: integer
+                    example: 1
+                  iteratedFields:
+                    type: integer
+                    example: 2
+                  nonIteratedFields:
+                    type: integer
+                    example: 1
+                  totalFields:
+                    type: integer
+                    example: 3
+                  dates:
+                    type: integer
+                    example: 1
+    429Response:
+      description: Rate limit reached. Wait till the time specified in Retry-After header value to make further requests.
+      headers:
+        X-DataDirect-Request-Key:
+          $ref: '#/components/headers/X-DataDirect-Request-Key'
+        X-FactSet-Api-Request-Key:
+          $ref: '#/components/headers/X-FactSet-Api-Request-Key'
+        X-RateLimit-Limit:
+          $ref: '#/components/headers/X-RateLimit-Limit'
+        X-RateLimit-Remaining:
+          $ref: '#/components/headers/X-RateLimit-Remaining'
+        X-RateLimit-Reset:
+          $ref: '#/components/headers/X-RateLimit-Reset'
+        Retry-After:
+          $ref: '#/components/headers/Retry-After'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              errors:
+                type: array
+                description: An array containing errors
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    title:
+                      type: string
+                    code:
+                      type: string
+                      example: rateLimitExceeded
+                      default: rateLimitExceeded
     413Response:
       description: Post body too large
       headers:
@@ -1542,32 +1556,6 @@ components:
                       type: string
                       example: payloadTooLarge
                       default: payloadTooLarge
-    200GetAudit:
-      description: Returns a list of the most recent "modificationTimes" in long datetime format
-      headers:
-        X-DataDirect-Request-Key:
-          $ref: '#/components/headers/X-DataDirect-Request-Key'
-        X-FactSet-Api-Request-Key:
-          $ref: '#/components/headers/X-FactSet-Api-Request-Key'
-        X-RateLimit-Limit:
-          $ref: '#/components/headers/X-RateLimit-Limit'
-        X-RateLimit-Remaining:
-          $ref: '#/components/headers/X-RateLimit-Remaining'
-        X-RateLimit-Reset:
-          $ref: '#/components/headers/X-RateLimit-Reset'
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: object
-                properties:
-                  modificationTimes:
-                    type: array
-                    items:
-                      type: string
-                      example: 20-Oct-2022  14:25:33 (EDT)
     200GetData:
       description: successful output
       headers:
@@ -1597,8 +1585,40 @@ components:
                     field:
                       type: integer
                       example: 1
-    200GetSymbols:
-      description: Successful symbols array within OFDB
+    404Response:
+      description: Path not found
+      headers:
+        X-DataDirect-Request-Key:
+          $ref: '#/components/headers/X-DataDirect-Request-Key'
+        X-FactSet-Api-Request-Key:
+          $ref: '#/components/headers/X-FactSet-Api-Request-Key'
+        X-RateLimit-Limit:
+          $ref: '#/components/headers/X-RateLimit-Limit'
+        X-RateLimit-Remaining:
+          $ref: '#/components/headers/X-RateLimit-Remaining'
+        X-RateLimit-Reset:
+          $ref: '#/components/headers/X-RateLimit-Reset'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              errors:
+                type: array
+                description: An array containing errors
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    title:
+                      type: string
+                    code:
+                      type: string
+                      example: endPointNotFound
+                      default: endPointNotFound
+    200GetDates:
+      description: Successful output
       headers:
         X-DataDirect-Request-Key:
           $ref: '#/components/headers/X-DataDirect-Request-Key'
@@ -1616,12 +1636,10 @@ components:
             type: object
             properties:
               data:
-                $ref: '#/components/schemas/Symbols'
-    PostRequestsSuccessCompleteResponse:
-      description: Status message of creation
+                $ref: '#/components/schemas/Dates'
+    403Response:
+      description: User is forbidden with current credentials
       headers:
-        Location:
-          $ref: '#/components/headers/ResponseLocationHeader'
         X-DataDirect-Request-Key:
           $ref: '#/components/headers/X-DataDirect-Request-Key'
         X-FactSet-Api-Request-Key:
@@ -1635,7 +1653,22 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/SuccessPostResponse'
+            type: object
+            properties:
+              errors:
+                type: array
+                description: An array containing errors
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    title:
+                      type: string
+                    code:
+                      type: string
+                      example: notAuthorized
+                      default: notAuthorized
     200BulkDelete:
       description: successful output
       headers:
@@ -1676,73 +1709,38 @@ components:
                     - 20200202
                 - - SHARES
                 - - FDS
-    429Response:
-      description: Rate limit reached. Wait till the time specified in Retry-After header value to make further requests.
-      headers:
-        X-DataDirect-Request-Key:
-          $ref: '#/components/headers/X-DataDirect-Request-Key'
-        X-FactSet-Api-Request-Key:
-          $ref: '#/components/headers/X-FactSet-Api-Request-Key'
-        X-RateLimit-Limit:
-          $ref: '#/components/headers/X-RateLimit-Limit'
-        X-RateLimit-Remaining:
-          $ref: '#/components/headers/X-RateLimit-Remaining'
-        X-RateLimit-Reset:
-          $ref: '#/components/headers/X-RateLimit-Reset'
-        Retry-After:
-          $ref: '#/components/headers/Retry-After'
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              errors:
-                type: array
-                description: An array containing errors
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                    title:
-                      type: string
-                    code:
-                      type: string
-                      example: rateLimitExceeded
-                      default: rateLimitExceeded
-    406Response:
-      description: Unsupported Accept header. Header needs to be set to application/json
-      headers:
-        X-DataDirect-Request-Key:
-          $ref: '#/components/headers/X-DataDirect-Request-Key'
-        X-FactSet-Api-Request-Key:
-          $ref: '#/components/headers/X-FactSet-Api-Request-Key'
-        X-RateLimit-Limit:
-          $ref: '#/components/headers/X-RateLimit-Limit'
-        X-RateLimit-Remaining:
-          $ref: '#/components/headers/X-RateLimit-Remaining'
-        X-RateLimit-Reset:
-          $ref: '#/components/headers/X-RateLimit-Reset'
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              errors:
-                type: array
-                description: An array containing errors
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                    title:
-                      type: string
-                    code:
-                      type: string
-                      example: notAcceptable
-                      default: notAcceptable
   schemas:
+    BulkDeleteArrayItem:
+      anyOf:
+      - type: object
+        additionalProperties:
+          $ref: '#/components/schemas/BulkDeleteArrayItemNested'
+      - type: array
+        items:
+          type: string
+    UpdateSymbols:
+      type: object
+      description: Any arbitrary set of fields that are provided while creating the ofdb and their values.
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              symbol:
+                type: string
+              content:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    date:
+                      type: integer
+                    field1:
+                      type: integer
+                    field2:
+                      type: string
+                description: date must be provided in the case of a 3d ofdb with at least one iterative field
     UpdateDates:
       type: object
       description: Set of fields along with symbol is mandatory to update the date.
@@ -1769,6 +1767,27 @@ components:
             content:
             - symbol: FDS
               price: 100
+    AddSymbols:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              symbol:
+                type: string
+                description: Names of the symbol and unique to this database
+              content:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    date:
+                      type: integer
+                    field:
+                      type: string
+                description: date must be provided in the case of a 3d ofdb with atleast one iterative field
     Fields:
       type: array
       items:
@@ -1805,19 +1824,102 @@ components:
             type: string
             enum:
             - ASCII
+    SuccessPostResponse:
+      type: object
+      description: Response format of any kind of post response
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              description: id of the newly created resource
+    BulkDeleteArray:
+      type: array
+      description: 'A list of the various backend responses needed for the bulk delete. These typically contain data points that failed to be deleted, and are in the order of: <br>Delete values by symbol, date, and field + delete values by symbol and field <br>Delete dates by field + delete dates <br>Delete dates by symbol <br>Delete fields <br>Delete symbols'
+      items:
+        $ref: '#/components/schemas/BulkDeleteArrayItem'
     AddFields:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Fields'
-    BulkDeleteArrayItem:
-      anyOf:
+    AddDates:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: integer
+                description: Date unique to the database.
+                example: 20220202
+              content:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    symbol:
+                      type: string
+                    field:
+                      type: integer
+    Dates:
+      type: array
+      items:
+        type: integer
+        example: 20220202
+    BulkDeleteArrayItemNested:
+      oneOf:
       - type: object
         additionalProperties:
-          $ref: '#/components/schemas/BulkDeleteArrayItemNested'
+          type: array
+          items:
+            type: integer
       - type: array
         items:
-          type: string
+          type: integer
+    DatabaseSchema:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            path:
+              type: string
+              example: CLIENT:this_is_a_test_.OFDB
+            description:
+              type: string
+              example: A user would fill this with relevant information
+            fields:
+              $ref: '#/components/schemas/Fields'
+    Symbols:
+      type: array
+      items:
+        type: string
+        example: FDS
+    UpdateSymbol:
+      type: object
+      description: Any arbitary set of fields that are provided while creating the ofdb and their values.
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              content:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    date:
+                      type: integer
+                    field1:
+                      type: integer
+                    field2:
+                      type: string
+                description: date must be provided in the case of a 3d ofdb with at least one iterative field
     UpdateDate:
       type: object
       description: Set of fields along with symbol is mandatory to update the date.
@@ -1841,79 +1943,7 @@ components:
           - content:
             - symbol: FDS
               price: 100
-    SuccessPostResponse:
-      type: object
-      description: Response format of any kind of post response
-      properties:
-        data:
-          type: object
-          properties:
-            id:
-              type: string
-              description: id of the newly created resource
-    BulkDeleteArrayItemNested:
-      oneOf:
-      - type: object
-        additionalProperties:
-          type: array
-          items:
-            type: integer
-      - type: array
-        items:
-          type: integer
-    Dates:
-      type: array
-      items:
-        type: integer
-        example: 20220202
-    AddDates:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            type: object
-            properties:
-              date:
-                type: integer
-                description: Date unique to the database.
-                example: 20220202
-              content:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    symbol:
-                      type: string
-                    field:
-                      type: integer
-    BulkDeleteArray:
-      type: array
-      description: 'A list of the various backend responses needed for the bulk delete. These typically contain data points that failed to be deleted, and are in the order of: <br>Delete values by symbol, date, and field + delete values by symbol and field <br>Delete dates by field + delete dates <br>Delete dates by symbol <br>Delete fields <br>Delete symbols'
-      items:
-        $ref: '#/components/schemas/BulkDeleteArrayItem'
-    AddSymbols:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            type: object
-            properties:
-              symbol:
-                type: string
-                description: Names of the symbol and unique to this database
-              content:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    date:
-                      type: integer
-                    field:
-                      type: string
-                description: date must be provided in the case of a 3d ofdb with atleast one iterative field
-    DatabaseSchema:
+    CreateDatabase:
       type: object
       properties:
         data:
@@ -1921,56 +1951,7 @@ components:
           properties:
             path:
               type: string
-              example: CLIENT:this_is_a_test_.OFDB
-            description:
-              type: string
-              example: A user would fill this with relevant information
-            fields:
-              $ref: '#/components/schemas/Fields'
-    UpdateSymbol:
-      type: object
-      description: Any arbitary set of fields that are provided while creating the ofdb and their values.
-      properties:
-        data:
-          type: array
-          items:
-            type: object
-            properties:
-              content:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    date:
-                      type: integer
-                    field1:
-                      type: integer
-                    field2:
-                      type: string
-                description: date must be provided in the case of a 3d ofdb with at least one iterative field
-    UpdateSymbols:
-      type: object
-      description: Any arbitrary set of fields that are provided while creating the ofdb and their values.
-      properties:
-        data:
-          type: array
-          items:
-            type: object
-            properties:
-              symbol:
-                type: string
-              content:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    date:
-                      type: integer
-                    field1:
-                      type: integer
-                    field2:
-                      type: string
-                description: date must be provided in the case of a 3d ofdb with at least one iterative field
+              description: path of the newly created database.
     BulkDelete:
       type: object
       properties:
@@ -1995,21 +1976,47 @@ components:
           - symbol: TSLA
             date: 20240404
             field: SHARES
-    Symbols:
-      type: array
-      items:
+  headers:
+    X-FactSet-Api-Request-Key:
+      description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
+      schema:
         type: string
-        example: FDS
-    CreateDatabase:
-      type: object
-      properties:
-        data:
-          type: object
-          properties:
-            path:
-              type: string
-              description: path of the newly created database.
+    X-RateLimit-Reset:
+      description: Number of seconds remaining till rate limit resets.
+      schema:
+        type: string
+    X-RateLimit-Remaining:
+      description: Number of requests left for the time window.
+      schema:
+        type: string
+    X-RateLimit-Limit:
+      description: Number of allowed requests for the time window.
+      schema:
+        type: string
+    Long-Running-Location:
+      description: location to poll for the status of the job.
+      schema:
+        type: string
+    ResponseLocationHeader:
+      description: url of the newly created resource
+      schema:
+        type: string
+    X-DataDirect-Request-Key:
+      description: FactSet's request key header.
+      schema:
+        type: string
+    Retry-After:
+      description: Time to wait in seconds before making a new request as the rate limit has reached.
+      schema:
+        type: string
   parameters:
+    symbolPathParam:
+      name: symbol
+      in: path
+      description: Symbol with in the ofdb
+      required: true
+      schema:
+        type: string
     databaseLocationPathParam:
       name: path
       in: path
@@ -2021,13 +2028,6 @@ components:
       name: id
       in: path
       description: A unique pickup ID returned by the original request
-      required: true
-      schema:
-        type: string
-    symbolPathParam:
-      name: symbol
-      in: path
-      description: Symbol with in the ofdb
       required: true
       schema:
         type: string

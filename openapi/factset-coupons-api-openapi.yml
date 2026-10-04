@@ -243,19 +243,213 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
-  schemas:
-    StatusObject:
-      type: object
-      properties:
-        code:
-          type: number
-          format: int32
-          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
-          example: 42.5
-      description: The status member contains the status code of the response.
-      required:
-      - code
   responses:
+    GetInstrumentCouponKeyDataGet200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  idInstrument:
+                    type:
+                    - string
+                    - 'null'
+                    format: id64
+                    x-positive: true
+                    description: MDG identifier of the instrument.
+                  sourceIdentifier:
+                    type:
+                    - string
+                    - 'null'
+                    description: Identifier used in the request.
+                  occurrence:
+                    type: object
+                    x-property-sort:
+                    - type
+                    - frequency
+                    description: Occurrence and frequency of the coupon payments.
+                    properties:
+                      type:
+                        type:
+                        - string
+                        - 'null'
+                        description: Occurrence type of the coupon payments.
+                        x-enum-description:
+                        - The instrument does not pay out a coupon.
+                        - The instrument pays out a coupon only once.
+                        - The instrument pays out a coupon on a repeated basis.
+                        enum:
+                        - never
+                        - once
+                        - repeated
+                      frequency:
+                        type: object
+                        x-property-sort:
+                        - id
+                        - name
+                        description: Frequency of the coupon payments. Information about the frequency is available only if the attribute occurrence.type is set to "repeated". See endpoint `/basic/frequency/type/list` for possible values of the frequency.
+                        properties:
+                          id:
+                            type:
+                            - number
+                            - 'null'
+                            format: id32
+                            x-positive: true
+                            description: Identifier of the frequency.
+                          name:
+                            type:
+                            - string
+                            - 'null'
+                            format: localizedString
+                            description: Name of the frequency.
+                  interestRate:
+                    type: object
+                    x-property-sort:
+                    - initial
+                    - current
+                    - final
+                    description: Interest rate details for selected coupon periods.
+                    properties:
+                      initial:
+                        type: object
+                        x-property-sort:
+                        - value
+                        - startAccrual
+                        - periodEnd
+                        description: Details of the first coupon period.
+                        properties:
+                          value:
+                            type:
+                            - number
+                            - 'null'
+                            format: relativeValue
+                            description: Value of the interest rate.
+                          startAccrual:
+                            type:
+                            - string
+                            - 'null'
+                            format: date
+                            description: Date as of which interest starts accruing.
+                          periodEnd:
+                            type:
+                            - string
+                            - 'null'
+                            format: date
+                            description: Ending date (inclusive).
+                      current:
+                        type: object
+                        x-property-sort:
+                        - value
+                        - type
+                        - accruedInterest
+                        - periodEnd
+                        description: Details of the current coupon period.
+                        properties:
+                          value:
+                            type:
+                            - number
+                            - 'null'
+                            format: relativeValue
+                            description: Value of the interest rate.
+                          type:
+                            type: object
+                            x-property-sort:
+                            - id
+                            - name
+                            description: Type of the interest rate, see endpoint `/instrument/coupon/interestRate/type/list` for possible values.
+                            properties:
+                              id:
+                                type:
+                                - number
+                                - 'null'
+                                format: id32
+                                x-positive: true
+                                description: Identifier of the interest rate type.
+                              name:
+                                type:
+                                - string
+                                - 'null'
+                                format: localizedString
+                                description: Name of the interest rate type.
+                          accruedInterest:
+                            type: object
+                            x-property-sort:
+                            - absolute
+                            - relative
+                            description: Accrued interest, i.e. interest earned but not yet received (realized). The interest starts accruing at the beginning of a coupon period and reaches the declared value (see attribute `interestRate.current.value`) for that period at its end. For the start and end date of a coupon period see endpoint `/instrument/coupon/list`, attribute `coupons.period`.
+                            properties:
+                              absolute:
+                                type:
+                                - number
+                                - 'null'
+                                format: real
+                                description: Monetary value of the accrued interest. The attribute is available only for instruments with a declared nominal value, e.g. securitized derivatives.
+                              relative:
+                                type:
+                                - number
+                                - 'null'
+                                format: relativeValue
+                                description: Accrued interest.
+                          periodEnd:
+                            type:
+                            - string
+                            - 'null'
+                            format: date
+                            description: Ending date (inclusive).
+                      final:
+                        type: object
+                        x-property-sort:
+                        - periodEnd
+                        description: Details of the final coupon period.
+                        properties:
+                          periodEnd:
+                            type:
+                            - string
+                            - 'null'
+                            format: date
+                            description: Ending date (inclusive).
+                  dayCountConvention:
+                    type: object
+                    x-property-sort:
+                    - id
+                    - name
+                    description: Day count convention type. See endpoint `/instrument/coupon/dayCountConvention/type/list` for possible values.
+                    properties:
+                      id:
+                        type:
+                        - number
+                        - 'null'
+                        format: id32
+                        x-positive: true
+                        description: Identifier of the day count convention type.
+                      name:
+                        type:
+                        - string
+                        - 'null'
+                        format: localizedString
+                        description: Name of the day count convention type.
+                description: Key dates and details.
+                x-property-sort:
+                - idInstrument
+                - sourceIdentifier
+                - occurrence
+                - interestRate
+                - dayCountConvention
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
     GetInstrumentCouponInterestRateTypeList200Response:
       description: Successful Response
       content:
@@ -481,212 +675,18 @@ components:
             x-property-sort:
             - data
             - meta
-    GetInstrumentCouponKeyDataGet200Response:
-      description: Successful Response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: object
-                properties:
-                  idInstrument:
-                    type:
-                    - string
-                    - 'null'
-                    format: id64
-                    x-positive: true
-                    description: MDG identifier of the instrument.
-                  sourceIdentifier:
-                    type:
-                    - string
-                    - 'null'
-                    description: Identifier used in the request.
-                  occurrence:
-                    type: object
-                    x-property-sort:
-                    - type
-                    - frequency
-                    description: Occurrence and frequency of the coupon payments.
-                    properties:
-                      type:
-                        type:
-                        - string
-                        - 'null'
-                        description: Occurrence type of the coupon payments.
-                        x-enum-description:
-                        - The instrument does not pay out a coupon.
-                        - The instrument pays out a coupon only once.
-                        - The instrument pays out a coupon on a repeated basis.
-                        enum:
-                        - never
-                        - once
-                        - repeated
-                      frequency:
-                        type: object
-                        x-property-sort:
-                        - id
-                        - name
-                        description: Frequency of the coupon payments. Information about the frequency is available only if the attribute occurrence.type is set to "repeated". See endpoint `/basic/frequency/type/list` for possible values of the frequency.
-                        properties:
-                          id:
-                            type:
-                            - number
-                            - 'null'
-                            format: id32
-                            x-positive: true
-                            description: Identifier of the frequency.
-                          name:
-                            type:
-                            - string
-                            - 'null'
-                            format: localizedString
-                            description: Name of the frequency.
-                  interestRate:
-                    type: object
-                    x-property-sort:
-                    - initial
-                    - current
-                    - final
-                    description: Interest rate details for selected coupon periods.
-                    properties:
-                      initial:
-                        type: object
-                        x-property-sort:
-                        - value
-                        - startAccrual
-                        - periodEnd
-                        description: Details of the first coupon period.
-                        properties:
-                          value:
-                            type:
-                            - number
-                            - 'null'
-                            format: relativeValue
-                            description: Value of the interest rate.
-                          startAccrual:
-                            type:
-                            - string
-                            - 'null'
-                            format: date
-                            description: Date as of which interest starts accruing.
-                          periodEnd:
-                            type:
-                            - string
-                            - 'null'
-                            format: date
-                            description: Ending date (inclusive).
-                      current:
-                        type: object
-                        x-property-sort:
-                        - value
-                        - type
-                        - accruedInterest
-                        - periodEnd
-                        description: Details of the current coupon period.
-                        properties:
-                          value:
-                            type:
-                            - number
-                            - 'null'
-                            format: relativeValue
-                            description: Value of the interest rate.
-                          type:
-                            type: object
-                            x-property-sort:
-                            - id
-                            - name
-                            description: Type of the interest rate, see endpoint `/instrument/coupon/interestRate/type/list` for possible values.
-                            properties:
-                              id:
-                                type:
-                                - number
-                                - 'null'
-                                format: id32
-                                x-positive: true
-                                description: Identifier of the interest rate type.
-                              name:
-                                type:
-                                - string
-                                - 'null'
-                                format: localizedString
-                                description: Name of the interest rate type.
-                          accruedInterest:
-                            type: object
-                            x-property-sort:
-                            - absolute
-                            - relative
-                            description: Accrued interest, i.e. interest earned but not yet received (realized). The interest starts accruing at the beginning of a coupon period and reaches the declared value (see attribute `interestRate.current.value`) for that period at its end. For the start and end date of a coupon period see endpoint `/instrument/coupon/list`, attribute `coupons.period`.
-                            properties:
-                              absolute:
-                                type:
-                                - number
-                                - 'null'
-                                format: real
-                                description: Monetary value of the accrued interest. The attribute is available only for instruments with a declared nominal value, e.g. securitized derivatives.
-                              relative:
-                                type:
-                                - number
-                                - 'null'
-                                format: relativeValue
-                                description: Accrued interest.
-                          periodEnd:
-                            type:
-                            - string
-                            - 'null'
-                            format: date
-                            description: Ending date (inclusive).
-                      final:
-                        type: object
-                        x-property-sort:
-                        - periodEnd
-                        description: Details of the final coupon period.
-                        properties:
-                          periodEnd:
-                            type:
-                            - string
-                            - 'null'
-                            format: date
-                            description: Ending date (inclusive).
-                  dayCountConvention:
-                    type: object
-                    x-property-sort:
-                    - id
-                    - name
-                    description: Day count convention type. See endpoint `/instrument/coupon/dayCountConvention/type/list` for possible values.
-                    properties:
-                      id:
-                        type:
-                        - number
-                        - 'null'
-                        format: id32
-                        x-positive: true
-                        description: Identifier of the day count convention type.
-                      name:
-                        type:
-                        - string
-                        - 'null'
-                        format: localizedString
-                        description: Name of the day count convention type.
-                description: Key dates and details.
-                x-property-sort:
-                - idInstrument
-                - sourceIdentifier
-                - occurrence
-                - interestRate
-                - dayCountConvention
-              meta:
-                type: object
-                description: The meta member contains the meta information of the response.
-                properties:
-                  status:
-                    $ref: '#/components/schemas/StatusObject'
-                x-property-sort:
-                - status
-            x-property-sort:
-            - data
-            - meta
+  schemas:
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
   securitySchemes:
     FactSetOAuth2:
       type: oauth2

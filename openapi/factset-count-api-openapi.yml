@@ -78,7 +78,62 @@ paths:
                 default500ResponseExample:
                   $ref: '#/components/examples/ServerErrorDetails'
 components:
+  schemas:
+    ErrorExample:
+      type: object
+      description: Error Example Object
+      properties:
+        code:
+          description: Specifies the error code.
+          type: string
+        title:
+          description: ' Specifies the error message.'
+          type: string
+        id:
+          description: Specifies the id.
+          type: string
+    responseCountObject:
+      type: object
+      properties:
+        id:
+          type: string
+          description: id
+          example: IBM-US
+        source:
+          type: string
+          description: source
+          example: FFR
+        count:
+          type: string
+          description: source value
+          example: '8000'
+    ErrorResponse:
+      type: object
+      description: Error Response Object
+      properties:
+        errors:
+          type: array
+          description: Errors Array Object
+          items:
+            $ref: '#/components/schemas/ErrorExample'
+    responseCount:
+      description: Filings Response Object
+      type: object
+      properties:
+        data:
+          type: array
+          description: Data Array Object
+          items:
+            $ref: '#/components/schemas/responseCountObject'
   parameters:
+    endDate:
+      schema:
+        type: string
+        default: '0'
+      in: query
+      name: endDate
+      example: '20231223'
+      description: End Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
     startDate:
       schema:
         type: string
@@ -87,15 +142,6 @@ components:
       name: startDate
       example: '20231222'
       description: Start Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
-    report2:
-      schema:
-        type: string
-        enum:
-        - count
-      in: query
-      name: report
-      required: true
-      description: retrives count of source.
     ids:
       schema:
         type: array
@@ -135,68 +181,43 @@ components:
           - EDG
           - FFR
       description: "Code for document source to include.This is a comma-separated list. Use the ```/helper``` endpoint to get the list of available sources.\n "
-    endDate:
+    report2:
       schema:
         type: string
-        default: '0'
+        enum:
+        - count
       in: query
-      name: endDate
-      example: '20231223'
-      description: End Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
-  schemas:
-    ErrorResponse:
-      type: object
-      description: Error Response Object
-      properties:
-        errors:
-          type: array
-          description: Errors Array Object
-          items:
-            $ref: '#/components/schemas/ErrorExample'
-    responseCount:
-      description: Filings Response Object
-      type: object
-      properties:
-        data:
-          type: array
-          description: Data Array Object
-          items:
-            $ref: '#/components/schemas/responseCountObject'
-    ErrorExample:
-      type: object
-      description: Error Example Object
-      properties:
-        code:
-          description: Specifies the error code.
-          type: string
-        title:
-          description: ' Specifies the error message.'
-          type: string
-        id:
-          description: Specifies the id.
-          type: string
-    responseCountObject:
-      type: object
-      properties:
-        id:
-          type: string
-          description: id
-          example: IBM-US
-        source:
-          type: string
-          description: source
-          example: FFR
-        count:
-          type: string
-          description: source value
-          example: '8000'
+      name: report
+      required: true
+      description: retrives count of source.
   examples:
+    AuthorizationErrorDetails:
+      summary: Sample Error Response
+      value:
+        errors:
+        - code: Forbidden
+          title: USERNAME-SERIAL does not have permission.
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    AuthErrorDetails:
+      summary: Sample Error Response
+      value:
+        errors:
+        - code: Not Authenticated
+          title: Unauthenticated USERNAME-SERIAL.
+          id: fd5a51ff-02cf-48ec-b9b1-913d64863b0
     ServerErrorDetails:
       summary: Sample Error Response
       value:
         errors:
         - code: Internal Server Error
           title: An unexpected error happened.
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    ErrorDetails:
+      summary: Sample Error Response
+      value:
+        errors:
+        - code: Bad Request
+          title: parameterError:['_paginationLimit'] is not a valid parameter(s).
           id: 7af3d86ca5954503b9244f2620fcf5eb
     sampleResponseCount:
       summary: Sample Response
@@ -208,27 +229,6 @@ components:
         - id: IBM-US
           source: EDG
           count: '10000'
-    AuthErrorDetails:
-      summary: Sample Error Response
-      value:
-        errors:
-        - code: Not Authenticated
-          title: Unauthenticated USERNAME-SERIAL.
-          id: fd5a51ff-02cf-48ec-b9b1-913d64863b0
-    AuthorizationErrorDetails:
-      summary: Sample Error Response
-      value:
-        errors:
-        - code: Forbidden
-          title: USERNAME-SERIAL does not have permission.
-          id: 7af3d86ca5954503b9244f2620fcf5eb
-    ErrorDetails:
-      summary: Sample Error Response
-      value:
-        errors:
-        - code: Bad Request
-          title: parameterError:['_paginationLimit'] is not a valid parameter(s).
-          id: 7af3d86ca5954503b9244f2620fcf5eb
   securitySchemes:
     FactSetOAuth2:
       type: oauth2

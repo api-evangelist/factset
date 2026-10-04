@@ -1029,7 +1029,260 @@ paths:
       - $ref: '#/components/parameters/audioSourceId'
       - $ref: '#/components/parameters/reportId'
 components:
+  parameters:
+    reportId:
+      schema:
+        type: integer
+        format: int32
+      in: query
+      name: reportId
+      example: 2683372
+      description: Unique identifier for an event.
+    paginationLimit:
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 500
+        default: 200
+      in: query
+      name: _paginationLimit
+      example: 5
+      description: Specifies the  number of results to return per page. [ Min=0; Max=500]
+    audioSourceId1:
+      schema:
+        type: integer
+        format: int32
+      in: query
+      name: audioSourceId
+      example: 471849
+      required: false
+      description: Unique ID for an Internal recording specific to reportID. For example, ReportID X would have multiple recordings from different source (dial-in or webcast). One ReportID can have multiple AudioSourceIDs.
+    audioSourceId:
+      schema:
+        type: integer
+        format: int32
+      in: query
+      name: audioSourceId
+      example: 471849
+      required: true
+      description: Unique ID for an Internal recording specific to reportID. For example, ReportID X would have multiple recordings from different source (dial-in or webcast). One ReportID can have multiple AudioSourceIDs.
+    paginationOffset:
+      schema:
+        type: integer
+        format: int32
+        default: 0
+      in: query
+      name: _paginationOffset
+      description: Specifies the starting point for pagination. This parameter is used to identify the beginning of next set of results.
+    indexedpaginationLimit:
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 50
+        default: 25
+      in: query
+      name: _paginationLimit
+      example: 5
+      description: Specifies the  number of results to return per page. [ Min=0; Max=50 ]
+    callSort:
+      schema:
+        type: string
+        enum:
+        - startDate
+        - -startDate
+        default: -startDate
+      in: query
+      name: _sort
+      description: Enables to get the data in chronological or reverse chronological order based on startDate. Results are in reverse chronological order if this parameter is not used.
+    entityId:
+      schema:
+        type: string
+      in: query
+      name: entityId
+      example: 000CGP-E
+      description: Factset entity level identifier for the company hosting the event.
+    ticker:
+      schema:
+        type: string
+      in: query
+      name: ticker
+      example: AZZ-US
+      description: Ticker-region identifier for the company hosting the event.
+    callStatus:
+      schema:
+        type: string
+        enum:
+        - inProgress
+        - ended
+        - ewn
+        - issueAtSource
+      in: query
+      name: callStatus
+      description: Status of the call i.e. ended or inProgress or ewn or issueAtSource.
+    speakerSort:
+      schema:
+        type: string
+        default: startDate
+        enum:
+        - startDate
+        - -startDate
+      in: query
+      name: _sort
+      description: Enables to get the data in chronological or reverse chronological order. Results are in chronological order if this parameter is not used.
   schemas:
+    NRT-Snippets:
+      description: Transcript snippet metadata of active calls happening at that moment are returned.
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              reportId:
+                type: integer
+                description: The unique ID for an event.
+              snippetEndTimestamp:
+                type: string
+                description: The snippet end time is calculated based off the endTime in the snippetData section and the recordingStartTime from the calls endpoint.
+              transcriptData:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    snippetData:
+                      type: object
+                      properties:
+                        transcript:
+                          type: string
+                          description: The actual transcript snippet.
+                        endTime:
+                          type: number
+                          description: The number of seconds into the call, when the transcript snippet ended.
+                        startTime:
+                          type: number
+                          description: The number of seconds into the call,when the transcript snippet started.
+              snippetSequence:
+                type: integer
+                description: 'The sequence number of the snippet from the start of the current call. '
+              audioSourceId:
+                type: integer
+                description: The Unique ID for an Internal recording specific to reportID. For example, ReportID X would have multiple recordings from a different source (dial-in or webcast). One ReportID can have multiple AudioSourceIDs.
+        meta:
+          type: object
+          properties:
+            pagination:
+              type: object
+              properties:
+                total:
+                  description: Total number for results returned for a specific query.
+                  type: integer
+                isEstimatedTotal:
+                  type: boolean
+                  description: This field acts as a flag for the exact count of results and is defaulted to false as the API should always return the exact count of results.
+                limit:
+                  type: integer
+                  description: Number of results returned per page.
+                offset:
+                  type: integer
+                  description: The flag indicating the position in the results array if additional results are available beyond the default value or the value in _paginationLimit parameter (if used). This value is passed in the _paginationOffset parameter to retrieve subsequent results.
+            partial:
+              type: object
+              properties:
+                isPartial:
+                  type: boolean
+                  description: If the value is True, it indicates additional results are available. False represents that this is the last set of results for this request.
+    NRT-Calls-400-Response:
+      description: ''
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        title:
+          type: string
+        details:
+          type: object
+          properties:
+            validParameters:
+              type: object
+              properties:
+                _sort:
+                  type: array
+                  items:
+                    type: string
+                _paginationLimit:
+                  type: array
+                  items:
+                    type: string
+                _paginationOffset:
+                  type: array
+                  items:
+                    type: string
+                audioSourceId:
+                  type: array
+                  items:
+                    type: string
+                reportId:
+                  type: array
+                  items:
+                    type: string
+                callStatus:
+                  type: array
+                  items:
+                    type: string
+                ticker:
+                  type: array
+                  items:
+                    type: string
+                entityId:
+                  type: array
+                  items:
+                    type: string
+    NRT-Speakerids-400-Response:
+      description: ''
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        title:
+          type: string
+        details:
+          type: object
+          properties:
+            validParameters:
+              type: object
+              properties:
+                _sort:
+                  type: array
+                  items:
+                    type: string
+                _paginationLimit:
+                  type: array
+                  items:
+                    type: string
+                _paginationOffset:
+                  type: array
+                  items:
+                    type: string
+                audioSourceId:
+                  type: array
+                  items:
+                    type: string
+    Error:
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        title:
+          type: string
     Indexed-NRT:
       description: Indexed transcript metadata of active calls happening at that moment are returned.
       type: object
@@ -1122,178 +1375,6 @@ components:
                 isPartial:
                   type: boolean
                   description: If the value is True, it indicates additional results are available. False represents that this is the last set of results for this request.
-    Error:
-      type: object
-      properties:
-        id:
-          type: string
-        code:
-          type: string
-        title:
-          type: string
-    NRT-Speakerids:
-      description: Speaker metadata and the cosine scores(confidence scores ) generated for an active  call are returned.
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            type: object
-            properties:
-              audioSourceId:
-                type:
-                - integer
-                - 'null'
-                description: The Unique ID for an Internal recording specific to reportID. For example, ReportID X would have multiple recordings from a different source (dial-in or webcast). One ReportID can have multiple audioSourceIDs.
-              speakerStartOffset:
-                type:
-                - number
-                - 'null'
-                description: The number of seconds into the call when a speaker starts / is speaking.
-              speakerId:
-                type:
-                - string
-                - 'null'
-                description: A unique identifier for a speaker.
-              cosineScore:
-                type:
-                - number
-                - 'null'
-                description: 'The cosine similarity score (Confidence score)  for a particular speaker.
-
-
-                  A score >= 0.49 while a speaker is speaking can be considered as a high confidence in the predicted speaker.
-
-
-                  Only the SpeakerIDs with the highest cosineScore are rendered in the result set.'
-              affiliationId:
-                type:
-                - string
-                - 'null'
-                description: Affiliation ID denotes the company a speaker is associated with.
-        meta:
-          type: object
-          properties:
-            sort:
-              type: array
-              description: The value in _sort parameter if used in the request.
-              items:
-                type: string
-            pagination:
-              type: object
-              properties:
-                total:
-                  type: integer
-                  description: Total number of results the API returns for a particular query.
-                isEstimatedTotal:
-                  type: boolean
-                  description: Boolean value that represents whether the total count of results returned is exact or an estimate. This is defaulted to False as the API should always return the exact count.
-                limit:
-                  type: integer
-                  description: Number of results returned per page.
-                offset:
-                  type: integer
-                  description: The flag indicating the position in the results array if additional results are available beyond the default value or the value in paginationLimit parameter (if used). This value is passed in the _paginationOffset parameter to retrieve subsequent results.
-            partial:
-              type: object
-              properties:
-                isPartial:
-                  type: boolean
-                  description: If the value is True, it indicates additional results are available. False represents that this is the last set of results for this request.
-    NRT-Speakerids-400-Response:
-      description: ''
-      type: object
-      properties:
-        id:
-          type: string
-        code:
-          type: string
-        title:
-          type: string
-        details:
-          type: object
-          properties:
-            validParameters:
-              type: object
-              properties:
-                _sort:
-                  type: array
-                  items:
-                    type: string
-                _paginationLimit:
-                  type: array
-                  items:
-                    type: string
-                _paginationOffset:
-                  type: array
-                  items:
-                    type: string
-                audioSourceId:
-                  type: array
-                  items:
-                    type: string
-    NRT-Snippets:
-      description: Transcript snippet metadata of active calls happening at that moment are returned.
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            type: object
-            properties:
-              reportId:
-                type: integer
-                description: The unique ID for an event.
-              snippetEndTimestamp:
-                type: string
-                description: The snippet end time is calculated based off the endTime in the snippetData section and the recordingStartTime from the calls endpoint.
-              transcriptData:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    snippetData:
-                      type: object
-                      properties:
-                        transcript:
-                          type: string
-                          description: The actual transcript snippet.
-                        endTime:
-                          type: number
-                          description: The number of seconds into the call, when the transcript snippet ended.
-                        startTime:
-                          type: number
-                          description: The number of seconds into the call,when the transcript snippet started.
-              snippetSequence:
-                type: integer
-                description: 'The sequence number of the snippet from the start of the current call. '
-              audioSourceId:
-                type: integer
-                description: The Unique ID for an Internal recording specific to reportID. For example, ReportID X would have multiple recordings from a different source (dial-in or webcast). One ReportID can have multiple AudioSourceIDs.
-        meta:
-          type: object
-          properties:
-            pagination:
-              type: object
-              properties:
-                total:
-                  description: Total number for results returned for a specific query.
-                  type: integer
-                isEstimatedTotal:
-                  type: boolean
-                  description: This field acts as a flag for the exact count of results and is defaulted to false as the API should always return the exact count of results.
-                limit:
-                  type: integer
-                  description: Number of results returned per page.
-                offset:
-                  type: integer
-                  description: The flag indicating the position in the results array if additional results are available beyond the default value or the value in _paginationLimit parameter (if used). This value is passed in the _paginationOffset parameter to retrieve subsequent results.
-            partial:
-              type: object
-              properties:
-                isPartial:
-                  type: boolean
-                  description: If the value is True, it indicates additional results are available. False represents that this is the last set of results for this request.
     NRT-Snippets-400-Response:
       description: ''
       type: object
@@ -1323,54 +1404,6 @@ components:
                   items:
                     type: string
                 reportId:
-                  type: array
-                  items:
-                    type: string
-    NRT-Calls-400-Response:
-      description: ''
-      type: object
-      properties:
-        id:
-          type: string
-        code:
-          type: string
-        title:
-          type: string
-        details:
-          type: object
-          properties:
-            validParameters:
-              type: object
-              properties:
-                _sort:
-                  type: array
-                  items:
-                    type: string
-                _paginationLimit:
-                  type: array
-                  items:
-                    type: string
-                _paginationOffset:
-                  type: array
-                  items:
-                    type: string
-                audioSourceId:
-                  type: array
-                  items:
-                    type: string
-                reportId:
-                  type: array
-                  items:
-                    type: string
-                callStatus:
-                  type: array
-                  items:
-                    type: string
-                ticker:
-                  type: array
-                  items:
-                    type: string
-                entityId:
                   type: array
                   items:
                     type: string
@@ -1489,108 +1522,75 @@ components:
                 isPartial:
                   type: boolean
                   description: If the value is True, it indicates additional results are available. False represents that this is the last set of results for this request.
-  parameters:
-    callSort:
-      schema:
-        type: string
-        enum:
-        - startDate
-        - -startDate
-        default: -startDate
-      in: query
-      name: _sort
-      description: Enables to get the data in chronological or reverse chronological order based on startDate. Results are in reverse chronological order if this parameter is not used.
-    callStatus:
-      schema:
-        type: string
-        enum:
-        - inProgress
-        - ended
-        - ewn
-        - issueAtSource
-      in: query
-      name: callStatus
-      description: Status of the call i.e. ended or inProgress or ewn or issueAtSource.
-    paginationOffset:
-      schema:
-        type: integer
-        format: int32
-        default: 0
-      in: query
-      name: _paginationOffset
-      description: Specifies the starting point for pagination. This parameter is used to identify the beginning of next set of results.
-    paginationLimit:
-      schema:
-        type: integer
-        format: int32
-        minimum: 1
-        maximum: 500
-        default: 200
-      in: query
-      name: _paginationLimit
-      example: 5
-      description: Specifies the  number of results to return per page. [ Min=0; Max=500]
-    audioSourceId1:
-      schema:
-        type: integer
-        format: int32
-      in: query
-      name: audioSourceId
-      example: 471849
-      required: false
-      description: Unique ID for an Internal recording specific to reportID. For example, ReportID X would have multiple recordings from different source (dial-in or webcast). One ReportID can have multiple AudioSourceIDs.
-    entityId:
-      schema:
-        type: string
-      in: query
-      name: entityId
-      example: 000CGP-E
-      description: Factset entity level identifier for the company hosting the event.
-    ticker:
-      schema:
-        type: string
-      in: query
-      name: ticker
-      example: AZZ-US
-      description: Ticker-region identifier for the company hosting the event.
-    speakerSort:
-      schema:
-        type: string
-        default: startDate
-        enum:
-        - startDate
-        - -startDate
-      in: query
-      name: _sort
-      description: Enables to get the data in chronological or reverse chronological order. Results are in chronological order if this parameter is not used.
-    indexedpaginationLimit:
-      schema:
-        type: integer
-        format: int32
-        minimum: 0
-        maximum: 50
-        default: 25
-      in: query
-      name: _paginationLimit
-      example: 5
-      description: Specifies the  number of results to return per page. [ Min=0; Max=50 ]
-    reportId:
-      schema:
-        type: integer
-        format: int32
-      in: query
-      name: reportId
-      example: 2683372
-      description: Unique identifier for an event.
-    audioSourceId:
-      schema:
-        type: integer
-        format: int32
-      in: query
-      name: audioSourceId
-      example: 471849
-      required: true
-      description: Unique ID for an Internal recording specific to reportID. For example, ReportID X would have multiple recordings from different source (dial-in or webcast). One ReportID can have multiple AudioSourceIDs.
+    NRT-Speakerids:
+      description: Speaker metadata and the cosine scores(confidence scores ) generated for an active  call are returned.
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              audioSourceId:
+                type:
+                - integer
+                - 'null'
+                description: The Unique ID for an Internal recording specific to reportID. For example, ReportID X would have multiple recordings from a different source (dial-in or webcast). One ReportID can have multiple audioSourceIDs.
+              speakerStartOffset:
+                type:
+                - number
+                - 'null'
+                description: The number of seconds into the call when a speaker starts / is speaking.
+              speakerId:
+                type:
+                - string
+                - 'null'
+                description: A unique identifier for a speaker.
+              cosineScore:
+                type:
+                - number
+                - 'null'
+                description: 'The cosine similarity score (Confidence score)  for a particular speaker.
+
+
+                  A score >= 0.49 while a speaker is speaking can be considered as a high confidence in the predicted speaker.
+
+
+                  Only the SpeakerIDs with the highest cosineScore are rendered in the result set.'
+              affiliationId:
+                type:
+                - string
+                - 'null'
+                description: Affiliation ID denotes the company a speaker is associated with.
+        meta:
+          type: object
+          properties:
+            sort:
+              type: array
+              description: The value in _sort parameter if used in the request.
+              items:
+                type: string
+            pagination:
+              type: object
+              properties:
+                total:
+                  type: integer
+                  description: Total number of results the API returns for a particular query.
+                isEstimatedTotal:
+                  type: boolean
+                  description: Boolean value that represents whether the total count of results returned is exact or an estimate. This is defaulted to False as the API should always return the exact count.
+                limit:
+                  type: integer
+                  description: Number of results returned per page.
+                offset:
+                  type: integer
+                  description: The flag indicating the position in the results array if additional results are available beyond the default value or the value in paginationLimit parameter (if used). This value is passed in the _paginationOffset parameter to retrieve subsequent results.
+            partial:
+              type: object
+              properties:
+                isPartial:
+                  type: boolean
+                  description: If the value is True, it indicates additional results are available. False represents that this is the last set of results for this request.
   securitySchemes:
     FactSetOAuth2:
       type: oauth2

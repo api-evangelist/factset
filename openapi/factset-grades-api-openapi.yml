@@ -55,6 +55,123 @@ paths:
         delay: 0
         dispatcher: FALLBACK
 components:
+  schemas:
+    StatusObject:
+      type: object
+      properties:
+        code:
+          type: number
+          format: int32
+          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
+          example: 42.5
+      description: The status member contains the status code of the response.
+      required:
+      - code
+    PostInstrumentRatingGradeListRequest:
+      x-property-sort:
+      - data
+      - meta
+      description: Request Body
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - identifier
+          - filter
+          description: The data member contains the request's primary data.
+          properties:
+            identifier:
+              type: object
+              x-property-sort:
+              - values
+              - type
+              description: Set of identifiers and their type.
+              properties:
+                values:
+                  description: Set of identifiers to resolve.
+                  type: array
+                  items:
+                    type: string
+                    minLength: 3
+                    maxLength: 50
+                    pattern: ^[B-DF-HJ-NP-TV-Z0-9]{6}-[SLR]$|^[A-Z0-9.#&*+]{1,47}-[A-Z0-9]{2,4}$|^[0-9]{3,20}$|^[B-DF-HJ-NP-TV-Z0-9]{6}[0-9]$|^[A-Z]{2}[A-Z0-9]{9}[0-9]$|^[A-Z1-9][A-Z0-9]{5}$|^[0-9]{1,9}$|^[A-Z0-9]{8}[0-9]$
+                  uniqueItems: true
+                  minItems: 1
+                  maxItems: 100
+                type:
+                  type: string
+                  description: Type of the identifier.
+                  x-enum-description:
+                  - MDG identifier of an instrument.
+                  - MDG identifier of a listing.
+                  - FactSet Permanent Identifier on security level.
+                  - FactSet Permanent Identifier on listing level.
+                  - Regional FactSet Permanent Identifier.
+                  - FactSet market symbol of a listing.
+                  - Regional FactSet ticker symbol.
+                  - SEDOL or IDII of a listing.
+                  - ISIN of an instrument.
+                  - WKN of an instrument.
+                  - Valor number of an instrument.
+                  - CUSIP or CINS identifier of an instrument
+                  enum:
+                  - idInstrument
+                  - idNotation
+                  - fdsPermanentIdentifierSecurity
+                  - fdsPermanentIdentifierListing
+                  - fdsPermanentIdentifierRegional
+                  - tickerExchange
+                  - tickerRegion
+                  - sedol
+                  - isin
+                  - wkn
+                  - valor
+                  - cusip
+              required:
+              - values
+              - type
+            filter:
+              type: object
+              x-property-sort:
+              - ratingSystem
+              description: Criteria that filter the items in the response list; only items that match all of the criteria are returned.
+              properties:
+                ratingSystem:
+                  type: object
+                  x-property-sort:
+                  - ids
+                  description: Rating system.
+                  properties:
+                    ids:
+                      type: array
+                      items:
+                        type: number
+                        format: id32
+                        x-positive: true
+                      description: List of rating system identifiers. See endpoint `/rating/system/list` for valid values.
+                      uniqueItems: true
+                      maxItems: 10
+          required:
+          - identifier
+          example: example_value
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+          - attributes
+          example: example_value
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+      maxItems: 50
+      uniqueItems: true
   responses:
     PostInstrumentRatingGradeList200Response:
       description: Successful Response
@@ -254,123 +371,6 @@ components:
             x-property-sort:
             - data
             - meta
-  schemas:
-    StatusObject:
-      type: object
-      properties:
-        code:
-          type: number
-          format: int32
-          description: The HTTP status code of the response, mirroring the code from the Status-Line of the HTTP response message (see [RFC2616] section 6.1).
-          example: 42.5
-      description: The status member contains the status code of the response.
-      required:
-      - code
-    AttributesMember:
-      type: array
-      description: Limit the attributes returned in the response to the specified set.
-      items:
-        type: string
-        maxLength: 100
-      maxItems: 50
-      uniqueItems: true
-    PostInstrumentRatingGradeListRequest:
-      x-property-sort:
-      - data
-      - meta
-      description: Request Body
-      type: object
-      properties:
-        data:
-          type: object
-          x-property-sort:
-          - identifier
-          - filter
-          description: The data member contains the request's primary data.
-          properties:
-            identifier:
-              type: object
-              x-property-sort:
-              - values
-              - type
-              description: Set of identifiers and their type.
-              properties:
-                values:
-                  description: Set of identifiers to resolve.
-                  type: array
-                  items:
-                    type: string
-                    minLength: 3
-                    maxLength: 50
-                    pattern: ^[B-DF-HJ-NP-TV-Z0-9]{6}-[SLR]$|^[A-Z0-9.#&*+]{1,47}-[A-Z0-9]{2,4}$|^[0-9]{3,20}$|^[B-DF-HJ-NP-TV-Z0-9]{6}[0-9]$|^[A-Z]{2}[A-Z0-9]{9}[0-9]$|^[A-Z1-9][A-Z0-9]{5}$|^[0-9]{1,9}$|^[A-Z0-9]{8}[0-9]$
-                  uniqueItems: true
-                  minItems: 1
-                  maxItems: 100
-                type:
-                  type: string
-                  description: Type of the identifier.
-                  x-enum-description:
-                  - MDG identifier of an instrument.
-                  - MDG identifier of a listing.
-                  - FactSet Permanent Identifier on security level.
-                  - FactSet Permanent Identifier on listing level.
-                  - Regional FactSet Permanent Identifier.
-                  - FactSet market symbol of a listing.
-                  - Regional FactSet ticker symbol.
-                  - SEDOL or IDII of a listing.
-                  - ISIN of an instrument.
-                  - WKN of an instrument.
-                  - Valor number of an instrument.
-                  - CUSIP or CINS identifier of an instrument
-                  enum:
-                  - idInstrument
-                  - idNotation
-                  - fdsPermanentIdentifierSecurity
-                  - fdsPermanentIdentifierListing
-                  - fdsPermanentIdentifierRegional
-                  - tickerExchange
-                  - tickerRegion
-                  - sedol
-                  - isin
-                  - wkn
-                  - valor
-                  - cusip
-              required:
-              - values
-              - type
-            filter:
-              type: object
-              x-property-sort:
-              - ratingSystem
-              description: Criteria that filter the items in the response list; only items that match all of the criteria are returned.
-              properties:
-                ratingSystem:
-                  type: object
-                  x-property-sort:
-                  - ids
-                  description: Rating system.
-                  properties:
-                    ids:
-                      type: array
-                      items:
-                        type: number
-                        format: id32
-                        x-positive: true
-                      description: List of rating system identifiers. See endpoint `/rating/system/list` for valid values.
-                      uniqueItems: true
-                      maxItems: 10
-          required:
-          - identifier
-          example: example_value
-        meta:
-          type: object
-          description: The meta member contains the meta information of the request.
-          properties:
-            attributes:
-              $ref: '#/components/schemas/AttributesMember'
-          x-property-sort:
-          - attributes
-          example: example_value
   securitySchemes:
     FactSetOAuth2:
       type: oauth2

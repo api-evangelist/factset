@@ -313,110 +313,59 @@ components:
           format: date-time
           example: '2026-01-15T10:30:00Z'
       additionalProperties: false
-    DateTime:
-      type: string
-      format: date-time
-      description: A date/time string in ISO 8601 format.
-      example: '2021-01-01T00:00:00Z'
-    errorItem:
+    eventDetails:
       type: object
       required:
-      - id
-      - code
-      - title
+      - data
+      - meta
       properties:
-        id:
-          type: string
-          format: uuid
-          example: abc123
-        code:
-          type: string
-          example: parameterError
-        title:
-          type: string
-          example: Invalid type/value
-        detail:
-          type: string
-          example: Value must be a valid UTC date/time that conforms to ISO 8601 format
-        source:
-          type: object
-          properties:
-            parameter:
-              type: string
-          example: example_value
-    eventsMeta:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/eventDetailDataItem'
+          example: []
+        meta:
+          $ref: '#/components/schemas/eventMeta'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errorItem'
+          example: []
+    eventDetailDataItem:
+      allOf:
+      - $ref: '#/components/schemas/eventHeadlineDataItem'
+      - type: object
+        required:
+        - created
+        - updated
+        - details
+        properties:
+          created:
+            type: string
+            format: date-time
+            description: Date/Time in UTC the event was first recorded in our data store.
+            example: '2021-04-26T06:39:40.094Z'
+          updated:
+            type: string
+            format: date-time
+            description: Date/Time in UTC the event was last updated.
+            example: '2021-04-26T06:39:40.094Z'
+          details:
+            type: object
+            description: Signal specific event properties.
+            additionalProperties: true
+    eventMeta:
       type: object
       required:
       - signalRequestId
       - idResolutions
-      - dateRange
       properties:
         signalRequestId:
           type: string
           format: uuid
           example: '500123'
-        sort:
-          type: array
-          items:
-            type: string
-          example: []
-        pagination:
-          type: object
-          properties:
-            total:
-              type: integer
-            isEstimatedTotal:
-              type: boolean
-          example: example_value
         idResolutions:
           $ref: '#/components/schemas/idResolutionsMeta'
-        dateRange:
-          type: object
-          properties:
-            created:
-              $ref: '#/components/schemas/DateTimeInterval'
-            updated:
-              $ref: '#/components/schemas/DateTimeInterval'
-          example: example_value
-    DateTimeInterval:
-      type: object
-      description: 'Represents a valid date/time (UTC) interval. The upper bound of the interval is represented by the attribute **gt** or **gte**. The lower bound of the interval is presented by **lt** or **lte** The interval can contain either of the bounds or both. e.g. { "gt": "2021-05-01T00:00:00.000Z", "lt": "2021-05-08T00:00:00.000Z" }
-
-        '
-      minProperties: 1
-      properties:
-        gt:
-          $ref: '#/components/schemas/DateTime'
-        gte:
-          $ref: '#/components/schemas/DateTime'
-        lt:
-          $ref: '#/components/schemas/DateTime'
-        lte:
-          $ref: '#/components/schemas/DateTime'
-    idResolutionsMeta:
-      type: object
-      properties:
-        tickerRegion:
-          type: object
-          additionalProperties:
-            type:
-            - string
-            - 'null'
-          example: example_value
-        regionalPermId:
-          type: object
-          additionalProperties:
-            type:
-            - string
-            - 'null'
-          example: '500123'
-    rateLimitResponse:
-      title: Rate Limit Error Object
-      description: Error returned if any of the user's rate limit have been reached.
-      properties:
-        message:
-          type: string
-          example: API rate limit exceeded
     eventHeadlineDataItem:
       type: object
       required:
@@ -501,6 +450,110 @@ components:
           type: number
           format: float
           example: 42.5
+    errorItem:
+      type: object
+      required:
+      - id
+      - code
+      - title
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: abc123
+        code:
+          type: string
+          example: parameterError
+        title:
+          type: string
+          example: Invalid type/value
+        detail:
+          type: string
+          example: Value must be a valid UTC date/time that conforms to ISO 8601 format
+        source:
+          type: object
+          properties:
+            parameter:
+              type: string
+          example: example_value
+    DateTime:
+      type: string
+      format: date-time
+      description: A date/time string in ISO 8601 format.
+      example: '2021-01-01T00:00:00Z'
+    idResolutionsMeta:
+      type: object
+      properties:
+        tickerRegion:
+          type: object
+          additionalProperties:
+            type:
+            - string
+            - 'null'
+          example: example_value
+        regionalPermId:
+          type: object
+          additionalProperties:
+            type:
+            - string
+            - 'null'
+          example: '500123'
+    errorResponse:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+          description: A short description of the error.
+          example: There was an error processing your request. Please try again later.
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errorItem'
+          description: Optional list of errors. e.g. Validation errors for multiple parameters
+          example: []
+    eventsMeta:
+      type: object
+      required:
+      - signalRequestId
+      - idResolutions
+      - dateRange
+      properties:
+        signalRequestId:
+          type: string
+          format: uuid
+          example: '500123'
+        sort:
+          type: array
+          items:
+            type: string
+          example: []
+        pagination:
+          type: object
+          properties:
+            total:
+              type: integer
+            isEstimatedTotal:
+              type: boolean
+          example: example_value
+        idResolutions:
+          $ref: '#/components/schemas/idResolutionsMeta'
+        dateRange:
+          type: object
+          properties:
+            created:
+              $ref: '#/components/schemas/DateTimeInterval'
+            updated:
+              $ref: '#/components/schemas/DateTimeInterval'
+          example: example_value
+    rateLimitResponse:
+      title: Rate Limit Error Object
+      description: Error returned if any of the user's rate limit have been reached.
+      properties:
+        message:
+          type: string
+          example: API rate limit exceeded
     eventRequestBody:
       type: object
       properties:
@@ -547,74 +600,6 @@ components:
           type: boolean
           description: The api will return resolved identifiers in the meta section of the response by default (true). If the parameter is false, the api will not attempt to resolve the identifiers.
           example: true
-    eventDetails:
-      type: object
-      required:
-      - data
-      - meta
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/eventDetailDataItem'
-          example: []
-        meta:
-          $ref: '#/components/schemas/eventMeta'
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/errorItem'
-          example: []
-    eventMeta:
-      type: object
-      required:
-      - signalRequestId
-      - idResolutions
-      properties:
-        signalRequestId:
-          type: string
-          format: uuid
-          example: '500123'
-        idResolutions:
-          $ref: '#/components/schemas/idResolutionsMeta'
-    errorResponse:
-      type: object
-      required:
-      - message
-      properties:
-        message:
-          type: string
-          description: A short description of the error.
-          example: There was an error processing your request. Please try again later.
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/errorItem'
-          description: Optional list of errors. e.g. Validation errors for multiple parameters
-          example: []
-    eventDetailDataItem:
-      allOf:
-      - $ref: '#/components/schemas/eventHeadlineDataItem'
-      - type: object
-        required:
-        - created
-        - updated
-        - details
-        properties:
-          created:
-            type: string
-            format: date-time
-            description: Date/Time in UTC the event was first recorded in our data store.
-            example: '2021-04-26T06:39:40.094Z'
-          updated:
-            type: string
-            format: date-time
-            description: Date/Time in UTC the event was last updated.
-            example: '2021-04-26T06:39:40.094Z'
-          details:
-            type: object
-            description: Signal specific event properties.
-            additionalProperties: true
     eventHeadlines:
       type: object
       required:
@@ -633,83 +618,59 @@ components:
           items:
             $ref: '#/components/schemas/errorItem'
           example: []
+    DateTimeInterval:
+      type: object
+      description: 'Represents a valid date/time (UTC) interval. The upper bound of the interval is represented by the attribute **gt** or **gte**. The lower bound of the interval is presented by **lt** or **lte** The interval can contain either of the bounds or both. e.g. { "gt": "2021-05-01T00:00:00.000Z", "lt": "2021-05-08T00:00:00.000Z" }
+
+        '
+      minProperties: 1
+      properties:
+        gt:
+          $ref: '#/components/schemas/DateTime'
+        gte:
+          $ref: '#/components/schemas/DateTime'
+        lt:
+          $ref: '#/components/schemas/DateTime'
+        lte:
+          $ref: '#/components/schemas/DateTime'
+  examples:
+    upperBound:
+      value:
+        lt: '2022-01-02T00:00:00.000Z'
+    lowerBound:
+      value:
+        gt: '2022-01-01T00:00:00.000Z'
+    bothBounds:
+      value:
+        gt: '2022-01-01T00:00:00.000Z'
+        lt: '2022-01-02T00:00:00.000Z'
   headers:
-    RateLimit-Reset:
-      description: Time remaining (in seconds) until the quota is reset.
-      schema:
-        type: integer
-        example: 1000
-    RateLimit-Remaining:
-      description: Remaining number of requests in the current time window.
-      schema:
-        type: integer
-        example: 4
     RateLimit-Limit:
       description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
       schema:
         type: integer
         example: 5
-    Api-Supported-Versions:
-      description: Comma-separated list of supported major versions.
+    RateLimit-Remaining:
+      description: Remaining number of requests in the current time window.
       schema:
-        type: string
-        example: '1'
+        type: integer
+        example: 4
+    RateLimit-Reset:
+      description: Time remaining (in seconds) until the quota is reset.
+      schema:
+        type: integer
+        example: 1000
     Api-Version:
       description: Full semantic version of the API.
       schema:
         type: string
         example: 1.0.0
+    Api-Supported-Versions:
+      description: Comma-separated list of supported major versions.
+      schema:
+        type: string
+        example: '1'
   parameters:
-    categoriesParam:
-      name: categories
-      in: query
-      schema:
-        type: string
-      description: Comma delimited string of category ids. Full list of signal categories can be viewed at /categories.
-    createdParam:
-      name: created
-      in: query
-      schema:
-        $ref: '#/components/schemas/DateTimeInterval'
-      style: deepObject
-      explode: true
-      description: A date/time (UTC) interval for filtering signal events based on their creation date. Defaults to NOW - 7 days if omitted. Users with limited access can only provide the default or a smaller date window.
-      examples:
-        default:
-          value: {}
-        lowerBound:
-          $ref: '#/components/examples/lowerBound'
-        upperBound:
-          $ref: '#/components/examples/upperBound'
-        bothBounds:
-          $ref: '#/components/examples/bothBounds'
-    idsParam:
-      name: ids
-      in: query
-      schema:
-        type: string
-      description: Comma delimited string of identifiers. An identifier can be a ticker, FactSet entity id, CUSIP or ISIN. You must provide a list of identifiers either via a ids or a portfolios parameter. If both are provided, only ids filter is used. Users with limited access can use only the ids filter and provide at most 10 ids.
-      example: FDS-US,AMZN-US
-    resolveIdentifiersParam:
-      name: resolveIdentifiers
-      in: query
-      schema:
-        type: boolean
-      description: The api will return resolved identifiers in the meta section of the response by default (true). If the parameter is false, the api will not attempt to resolve the identifiers.
-      example: true
-    portfoliosParam:
-      name: portfolios
-      in: query
-      schema:
-        type: string
-      description: Name of a portfolio file stored by FactSet. If the portfolio contains more than 1,000 ids, only the first 1,000 ids are processed (e.g. client:techstocks.ofdb). Please note that using this parameter requires full subscription to Signals API.
-    sortParam:
-      name: sort
-      in: query
-      schema:
-        type: string
-      description: Comma delimited string of sortable attributes. The sort order for each sort attribute is ascending unless it is prefixed with a minus sign, in which case it is descending. If sort is not provided, the default sort applied is -userRelevanceScore (userRelevanceScore in descending order).
-      example: -userRelevanceScore,-eventDate
     updatedParam:
       name: updated
       in: query
@@ -727,12 +688,48 @@ components:
           $ref: '#/components/examples/upperBound'
         bothBounds:
           $ref: '#/components/examples/bothBounds'
+    sortParam:
+      name: sort
+      in: query
+      schema:
+        type: string
+      description: Comma delimited string of sortable attributes. The sort order for each sort attribute is ascending unless it is prefixed with a minus sign, in which case it is descending. If sort is not provided, the default sort applied is -userRelevanceScore (userRelevanceScore in descending order).
+      example: -userRelevanceScore,-eventDate
+    portfoliosParam:
+      name: portfolios
+      in: query
+      schema:
+        type: string
+      description: Name of a portfolio file stored by FactSet. If the portfolio contains more than 1,000 ids, only the first 1,000 ids are processed (e.g. client:techstocks.ofdb). Please note that using this parameter requires full subscription to Signals API.
+    createdParam:
+      name: created
+      in: query
+      schema:
+        $ref: '#/components/schemas/DateTimeInterval'
+      style: deepObject
+      explode: true
+      description: A date/time (UTC) interval for filtering signal events based on their creation date. Defaults to NOW - 7 days if omitted. Users with limited access can only provide the default or a smaller date window.
+      examples:
+        default:
+          value: {}
+        lowerBound:
+          $ref: '#/components/examples/lowerBound'
+        upperBound:
+          $ref: '#/components/examples/upperBound'
+        bothBounds:
+          $ref: '#/components/examples/bothBounds'
     themesParam:
       name: themes
       in: query
       schema:
         type: string
       description: Comma delimited string of theme ids. Full list of signal themes can be viewed at /themes.
+    categoriesParam:
+      name: categories
+      in: query
+      schema:
+        type: string
+      description: Comma delimited string of category ids. Full list of signal categories can be viewed at /categories.
     signalIdsParam:
       name: signalIds
       in: query
@@ -740,6 +737,13 @@ components:
         type: string
         description: Comma delimited string of signalIds
       example: dilutionTrigger,freeCashFlow
+    resolveIdentifiersParam:
+      name: resolveIdentifiers
+      in: query
+      schema:
+        type: boolean
+      description: The api will return resolved identifiers in the meta section of the response by default (true). If the parameter is false, the api will not attempt to resolve the identifiers.
+      example: true
     relevanceScoreParam:
       name: userRelevanceScore
       in: query
@@ -759,17 +763,13 @@ components:
           value:
             gt: 0
             lt: 1
-  examples:
-    upperBound:
-      value:
-        lt: '2022-01-02T00:00:00.000Z'
-    lowerBound:
-      value:
-        gt: '2022-01-01T00:00:00.000Z'
-    bothBounds:
-      value:
-        gt: '2022-01-01T00:00:00.000Z'
-        lt: '2022-01-02T00:00:00.000Z'
+    idsParam:
+      name: ids
+      in: query
+      schema:
+        type: string
+      description: Comma delimited string of identifiers. An identifier can be a ticker, FactSet entity id, CUSIP or ISIN. You must provide a list of identifiers either via a ids or a portfolios parameter. If both are provided, only ids filter is used. Users with limited access can use only the ids filter and provide at most 10 ids.
+      example: FDS-US,AMZN-US
   securitySchemes:
     FactSetApiKey:
       type: http

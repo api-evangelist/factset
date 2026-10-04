@@ -140,194 +140,12 @@ paths:
       summary: Get calculate results
       x-summary-source: derived
 components:
-  responses:
-    PaginatedCalculateResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/PaginatedCalculationResponse'
-      description: Paginated Screen Results and Metadata
-    SubmitCalculateResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ResourceStatusResponse'
-      description: Successful calculation submission response, returns the job ID unique to this calculation and the URL in the Location header to check the status of the calculation.
-      headers:
-        Location:
-          description: Relative location to poll for calculation status
-          schema:
-            type: string
-        X-FactSet-Api-Units-Limit:
-          description: Maximum number of jobs.
-          schema:
-            type: string
-        X-FactSet-Api-Units-Remaining:
-          description: Number of available jobs.
-          schema:
-            type: string
-        RateLimit-Limit:
-          description: Number of weekly jobs available.
-          schema:
-            type: string
-        RateLimit-Remaining:
-          description: Number of remaining weekly jobs.
-          schema:
-            type: string
-        RateLimit-Reset:
-          description: Time, in seconds, until weekly limit resets.
-          schema:
-            type: string
-    Error401Response:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorArray'
-      description: Invalid or missing authentication.
-    SubmitArchiveOFDBResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ResourceStatusResponse'
-      description: Successful archive OFDB submission response, returns the job ID unique to this archive and the URL in the Location header to check the status of the archive.
-      headers:
-        Location:
-          description: Relative location to poll for archive status
-          schema:
-            type: string
-        X-FactSet-Api-Units-Limit:
-          description: Maximum number of jobs.
-          schema:
-            type: string
-        X-FactSet-Api-Units-Remaining:
-          description: Number of available jobs.
-          schema:
-            type: string
-        RateLimit-Limit:
-          description: Number of weekly jobs available.
-          schema:
-            type: string
-        RateLimit-Remaining:
-          description: Number of remaining weekly jobs.
-          schema:
-            type: string
-        RateLimit-Reset:
-          description: Time, in seconds, until weekly limit resets.
-          schema:
-            type: string
-    CalculateSuccessResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ResourceStatusResponse'
-      description: Job completed
-      headers:
-        Location:
-          description: Relative location to pick up screen results, calculate route only
-          schema:
-            type: string
-        X-FactSet-Api-PickUp-Progress:
-          description: Screen progress
-          schema:
-            type: string
-    Error400ScreenOpen:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorArray'
-      description: The requested screen could not be opened.
-    Error400InvalidRequest:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorArray'
-      description: Invalid request body.
-    Error429Response:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorArray'
-      description: Too many requests.
-      headers:
-        X-FactSet-Api-Units-Limit:
-          description: Maximum number of jobs.
-          schema:
-            type: string
-        X-FactSet-Api-Units-Remaining:
-          description: Number of available jobs.
-          schema:
-            type: string
-    Error404Response:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorArray'
-      description: Job ID not found.
-    CalculateInProgressResponse:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ResourceStatusResponse'
-      description: Calculation job still in progress
-      headers:
-        Location:
-          description: Relative location to poll for status
-          schema:
-            type: string
-        X-FactSet-Api-PickUp-Progress:
-          description: Screen progress
-          schema:
-            type: string
-    Generic500ErrorResponse:
-      description: Internal Server Error
-      headers:
-        Request-Key:
-          description: Provide this key when reporting this issue
-          schema:
-            type: string
-    Error410Response:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorArray'
-      description: The results have been fetched for this ID.
   schemas:
-    ErrorCode:
-      description: Factset API specific error codes
-      enum:
-      - notAuthenticated
-      - notAuthorized
-      - notFound
-      - endpointNotFound
-      - parameterError
-      - genericServerError
-      - resourceGone
-      - quantityLimitsExceeded
-      - universal_screening_parameterError
-      - universal_screening_parameterWarning
-      type: string
-    ErrorObject:
+    ResultsMetadata:
+      description: Metadata containing results pagination information
       properties:
-        code:
-          $ref: '#/components/schemas/ErrorCode'
-        id:
-          description: A unique ID for the occurrence of the error. It is advised to log this code and include it if you contact FactSet support desk.
-          type: string
-          example: abc123
-        source:
-          $ref: '#/components/schemas/ErrorObjectSource'
-        title:
-          description: a description of the error
-          type: string
-          example: Example Title
-      type: object
-      description: Associated Error Objects
-    ErrorObjectSource:
-      properties:
-        parameter:
-          type: string
-          example: example_value
-      description: For errors and warnings found in screens, contains the paramID the error/warning belongs to
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
       type: object
     PaginationResponse:
       properties:
@@ -352,9 +170,6 @@ components:
           type: integer
           example: 10
       type: object
-    StachPackage:
-      description: Stach v2 column oriented paginated screen results
-      type: object
     PaginatedCalculationResponse:
       description: Paged results from screen calculation
       properties:
@@ -362,6 +177,55 @@ components:
           $ref: '#/components/schemas/ResultsMetadata'
         data:
           $ref: '#/components/schemas/StachPackage'
+      type: object
+    ResourceStatusResponse:
+      description: ResourceStatusResponse contains information regarding the status of a calculation job
+      properties:
+        data:
+          properties:
+            error:
+              $ref: '#/components/schemas/ErrorObject'
+            id:
+              description: ID of the submitted calculation job
+              type: string
+            status:
+              description: Current status of the calculation job
+              type: string
+          type: object
+          example: example_value
+      type: object
+    ErrorObject:
+      properties:
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+        id:
+          description: A unique ID for the occurrence of the error. It is advised to log this code and include it if you contact FactSet support desk.
+          type: string
+          example: abc123
+        source:
+          $ref: '#/components/schemas/ErrorObjectSource'
+        title:
+          description: a description of the error
+          type: string
+          example: Example Title
+      type: object
+      description: Associated Error Objects
+    ErrorArray:
+      description: An array of errors
+      properties:
+        errors:
+          items:
+            $ref: '#/components/schemas/ErrorObject'
+          type: array
+          description: Array of Error Objects
+          example: []
+      type: object
+    ErrorObjectSource:
+      properties:
+        parameter:
+          type: string
+          example: example_value
+      description: For errors and warnings found in screens, contains the paramID the error/warning belongs to
       type: object
     ScreenCalcParameters:
       properties:
@@ -391,6 +255,20 @@ components:
       required:
       - data
       type: object
+    ErrorCode:
+      description: Factset API specific error codes
+      enum:
+      - notAuthenticated
+      - notAuthorized
+      - notFound
+      - endpointNotFound
+      - parameterError
+      - genericServerError
+      - resourceGone
+      - quantityLimitsExceeded
+      - universal_screening_parameterError
+      - universal_screening_parameterWarning
+      type: string
     ScreenArchiveOFDBParameters:
       properties:
         data:
@@ -458,56 +336,184 @@ components:
       required:
       - data
       type: object
-    ErrorArray:
-      description: An array of errors
-      properties:
-        errors:
-          items:
-            $ref: '#/components/schemas/ErrorObject'
-          type: array
-          description: Array of Error Objects
-          example: []
+    StachPackage:
+      description: Stach v2 column oriented paginated screen results
       type: object
-    ResourceStatusResponse:
-      description: ResourceStatusResponse contains information regarding the status of a calculation job
-      properties:
-        data:
-          properties:
-            error:
-              $ref: '#/components/schemas/ErrorObject'
-            id:
-              description: ID of the submitted calculation job
-              type: string
-            status:
-              description: Current status of the calculation job
-              type: string
-          type: object
-          example: example_value
-      type: object
-    ResultsMetadata:
-      description: Metadata containing results pagination information
-      properties:
-        pagination:
-          $ref: '#/components/schemas/PaginationResponse'
-      type: object
-  requestBodies:
-    submitCalcRequest:
+  responses:
+    CalculateInProgressResponse:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ScreenCalcParameters'
-      description: Data required for a calculation request
+            $ref: '#/components/schemas/ResourceStatusResponse'
+      description: Calculation job still in progress
+      headers:
+        Location:
+          description: Relative location to poll for status
+          schema:
+            type: string
+        X-FactSet-Api-PickUp-Progress:
+          description: Screen progress
+          schema:
+            type: string
+    Error410Response:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorArray'
+      description: The results have been fetched for this ID.
+    Generic500ErrorResponse:
+      description: Internal Server Error
+      headers:
+        Request-Key:
+          description: Provide this key when reporting this issue
+          schema:
+            type: string
+    Error429Response:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorArray'
+      description: Too many requests.
+      headers:
+        X-FactSet-Api-Units-Limit:
+          description: Maximum number of jobs.
+          schema:
+            type: string
+        X-FactSet-Api-Units-Remaining:
+          description: Number of available jobs.
+          schema:
+            type: string
+    Error400InvalidRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorArray'
+      description: Invalid request body.
+    Error400ScreenOpen:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorArray'
+      description: The requested screen could not be opened.
+    Error404Response:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorArray'
+      description: Job ID not found.
+    CalculateSuccessResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResourceStatusResponse'
+      description: Job completed
+      headers:
+        Location:
+          description: Relative location to pick up screen results, calculate route only
+          schema:
+            type: string
+        X-FactSet-Api-PickUp-Progress:
+          description: Screen progress
+          schema:
+            type: string
+    SubmitArchiveOFDBResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResourceStatusResponse'
+      description: Successful archive OFDB submission response, returns the job ID unique to this archive and the URL in the Location header to check the status of the archive.
+      headers:
+        Location:
+          description: Relative location to poll for archive status
+          schema:
+            type: string
+        X-FactSet-Api-Units-Limit:
+          description: Maximum number of jobs.
+          schema:
+            type: string
+        X-FactSet-Api-Units-Remaining:
+          description: Number of available jobs.
+          schema:
+            type: string
+        RateLimit-Limit:
+          description: Number of weekly jobs available.
+          schema:
+            type: string
+        RateLimit-Remaining:
+          description: Number of remaining weekly jobs.
+          schema:
+            type: string
+        RateLimit-Reset:
+          description: Time, in seconds, until weekly limit resets.
+          schema:
+            type: string
+    SubmitCalculateResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResourceStatusResponse'
+      description: Successful calculation submission response, returns the job ID unique to this calculation and the URL in the Location header to check the status of the calculation.
+      headers:
+        Location:
+          description: Relative location to poll for calculation status
+          schema:
+            type: string
+        X-FactSet-Api-Units-Limit:
+          description: Maximum number of jobs.
+          schema:
+            type: string
+        X-FactSet-Api-Units-Remaining:
+          description: Number of available jobs.
+          schema:
+            type: string
+        RateLimit-Limit:
+          description: Number of weekly jobs available.
+          schema:
+            type: string
+        RateLimit-Remaining:
+          description: Number of remaining weekly jobs.
+          schema:
+            type: string
+        RateLimit-Reset:
+          description: Time, in seconds, until weekly limit resets.
+          schema:
+            type: string
+    Error401Response:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorArray'
+      description: Invalid or missing authentication.
+    PaginatedCalculateResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PaginatedCalculationResponse'
+      description: Paginated Screen Results and Metadata
+  requestBodies:
     submitArchiveOFDBRequest:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ScreenArchiveOFDBParameters'
       description: Data required for an archive to OFDB request
+    submitCalcRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ScreenCalcParameters'
+      description: Data required for a calculation request
   parameters:
     PaginationLimit:
       description: Page size limit (minumum 1000, default 10,000, maximum 100,000)
       in: query
       name: _paginationLimit
+      schema:
+        type: integer
+    PaginationCursor:
+      description: Paging index (Initial request may omit)
+      in: query
+      name: _paginationCursor
       schema:
         type: integer
     ScreenCalcID:
@@ -517,12 +523,6 @@ components:
       required: true
       schema:
         type: string
-    PaginationCursor:
-      description: Paging index (Initial request may omit)
-      in: query
-      name: _paginationCursor
-      schema:
-        type: integer
   securitySchemes:
     FactSetApiKey:
       type: http

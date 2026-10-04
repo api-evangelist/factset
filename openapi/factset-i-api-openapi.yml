@@ -143,6 +143,50 @@ components:
       description: The status member contains the status code of the response.
       required:
       - code
+    AttributesMember:
+      type: array
+      description: Limit the attributes returned in the response to the specified set.
+      items:
+        type: string
+        maxLength: 100
+      maxItems: 50
+      uniqueItems: true
+    PostInstrumentCrossReferenceListByISINRequest:
+      x-property-sort:
+      - data
+      - meta
+      description: Request Body
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          type: object
+          x-property-sort:
+          - isins
+          description: The data member contains the request's primary data.
+          properties:
+            isins:
+              description: List of source ISINs to be translated.
+              type: array
+              items:
+                type: string
+                format: isin
+              uniqueItems: true
+              minItems: 1
+              maxItems: 10
+          required:
+          - isins
+          example: example_value
+        meta:
+          type: object
+          description: The meta member contains the meta information of the request.
+          properties:
+            attributes:
+              $ref: '#/components/schemas/AttributesMember'
+          x-property-sort:
+          - attributes
+          example: example_value
     LanguageMember:
       type: string
       format: isoLanguage
@@ -224,50 +268,6 @@ components:
           - attributes
           - language
           example: example_value
-    PostInstrumentCrossReferenceListByISINRequest:
-      x-property-sort:
-      - data
-      - meta
-      description: Request Body
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          type: object
-          x-property-sort:
-          - isins
-          description: The data member contains the request's primary data.
-          properties:
-            isins:
-              description: List of source ISINs to be translated.
-              type: array
-              items:
-                type: string
-                format: isin
-              uniqueItems: true
-              minItems: 1
-              maxItems: 10
-          required:
-          - isins
-          example: example_value
-        meta:
-          type: object
-          description: The meta member contains the meta information of the request.
-          properties:
-            attributes:
-              $ref: '#/components/schemas/AttributesMember'
-          x-property-sort:
-          - attributes
-          example: example_value
-    AttributesMember:
-      type: array
-      description: Limit the attributes returned in the response to the specified set.
-      items:
-        type: string
-        maxLength: 100
-      maxItems: 50
-      uniqueItems: true
   responses:
     GetInstrumentCrossReferenceGetByISIN200Response:
       description: Successful Response
@@ -333,117 +333,6 @@ components:
                 - id
                 - fsym
                 - validity
-              meta:
-                type: object
-                description: The meta member contains the meta information of the response.
-                properties:
-                  status:
-                    $ref: '#/components/schemas/StatusObject'
-                x-property-sort:
-                - status
-            x-property-sort:
-            - data
-            - meta
-    PostInstrumentCrossReferenceListByISIN200Response:
-      description: Successful Response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: array
-                description: List of instruments.
-                items:
-                  type: object
-                  x-property-sort:
-                  - id
-                  - fsym
-                  - validity
-                  - sourceIsin
-                  - status
-                  properties:
-                    id:
-                      type:
-                      - string
-                      - 'null'
-                      format: id64
-                      x-positive: true
-                      description: Identifier of the instrument.
-                    fsym:
-                      type: object
-                      x-property-sort:
-                      - security
-                      description: Instrument-level FactSet identifier of the financial instrument used primarily in FactSet products other than the MDG.
-                      properties:
-                        security:
-                          type: object
-                          x-property-sort:
-                          - permanentIdentifier
-                          description: Security-level identifier.
-                          properties:
-                            permanentIdentifier:
-                              type:
-                              - string
-                              - 'null'
-                              description: FactSet Permanent Identifier for an instrument. The format is six alpha numeric characters, excluding vowels, with an S suffix (XXXXXX-S).
-                    validity:
-                      type:
-                      - object
-                      - 'null'
-                      format: timeRange
-                      properties:
-                        start:
-                          type:
-                          - string
-                          - 'null'
-                          format: datetime
-                          description: The starting point of the time range (inclusive).
-                        end:
-                          type:
-                          - string
-                          - 'null'
-                          format: datetime
-                          description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
-                      x-property-sort:
-                      - start
-                      - end
-                      required:
-                      - start
-                      - end
-                      description: Time range that this translation is valid for.
-                    sourceIsin:
-                      type:
-                      - string
-                      - 'null'
-                      format: isin
-                      description: The source ISIN that the instrument is translated for.
-                    status:
-                      type: object
-                      x-property-sort:
-                      - code
-                      - identifier
-                      description: Error status for the requested identifier
-                      properties:
-                        code:
-                          type:
-                          - string
-                          - 'null'
-                          description: Code of the error condition.
-                          x-enum-description:
-                          - No error.
-                          - The provided identifier does not refer to a valid ISIN.
-                          - Not entitled to see data for the instrument.
-                          enum:
-                          - none
-                          - parameter
-                          - entitlement
-                        identifier:
-                          type:
-                          - string
-                          - 'null'
-                          format: isin
-                          description: Provided identifier.
               meta:
                 type: object
                 description: The meta member contains the meta information of the response.
@@ -597,6 +486,117 @@ components:
                               - boolean
                               - 'null'
                               description: Indicates whether the notation is in the primary region of the security (`true`) or not (`false`).
+              meta:
+                type: object
+                description: The meta member contains the meta information of the response.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/StatusObject'
+                x-property-sort:
+                - status
+            x-property-sort:
+            - data
+            - meta
+    PostInstrumentCrossReferenceListByISIN200Response:
+      description: Successful Response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                description: List of instruments.
+                items:
+                  type: object
+                  x-property-sort:
+                  - id
+                  - fsym
+                  - validity
+                  - sourceIsin
+                  - status
+                  properties:
+                    id:
+                      type:
+                      - string
+                      - 'null'
+                      format: id64
+                      x-positive: true
+                      description: Identifier of the instrument.
+                    fsym:
+                      type: object
+                      x-property-sort:
+                      - security
+                      description: Instrument-level FactSet identifier of the financial instrument used primarily in FactSet products other than the MDG.
+                      properties:
+                        security:
+                          type: object
+                          x-property-sort:
+                          - permanentIdentifier
+                          description: Security-level identifier.
+                          properties:
+                            permanentIdentifier:
+                              type:
+                              - string
+                              - 'null'
+                              description: FactSet Permanent Identifier for an instrument. The format is six alpha numeric characters, excluding vowels, with an S suffix (XXXXXX-S).
+                    validity:
+                      type:
+                      - object
+                      - 'null'
+                      format: timeRange
+                      properties:
+                        start:
+                          type:
+                          - string
+                          - 'null'
+                          format: datetime
+                          description: The starting point of the time range (inclusive).
+                        end:
+                          type:
+                          - string
+                          - 'null'
+                          format: datetime
+                          description: The ending point of the time range (exclusive), or `null` to indicate that the time range extends indefinitely into the future.
+                      x-property-sort:
+                      - start
+                      - end
+                      required:
+                      - start
+                      - end
+                      description: Time range that this translation is valid for.
+                    sourceIsin:
+                      type:
+                      - string
+                      - 'null'
+                      format: isin
+                      description: The source ISIN that the instrument is translated for.
+                    status:
+                      type: object
+                      x-property-sort:
+                      - code
+                      - identifier
+                      description: Error status for the requested identifier
+                      properties:
+                        code:
+                          type:
+                          - string
+                          - 'null'
+                          description: Code of the error condition.
+                          x-enum-description:
+                          - No error.
+                          - The provided identifier does not refer to a valid ISIN.
+                          - Not entitled to see data for the instrument.
+                          enum:
+                          - none
+                          - parameter
+                          - entitlement
+                        identifier:
+                          type:
+                          - string
+                          - 'null'
+                          format: isin
+                          description: Provided identifier.
               meta:
                 type: object
                 description: The meta member contains the meta information of the response.

@@ -381,6 +381,129 @@ paths:
         dispatcher: FALLBACK
 components:
   schemas:
+    status:
+      description: The status of the job as per FactSets API standards
+      enum:
+      - cancelled
+      - created
+      - executing
+      - failed
+      - queued
+      example: queued
+      title: status
+      type: string
+    frequency:
+      default: daily
+      description: Used for ADF job types only. Will determine the frequency between the start and end dates.
+      enum:
+      - daily
+      - monthly
+      - weekly
+      type: string
+    calendar:
+      default: fiveDay
+      description: Used for ADF jobs only
+      enum:
+      - fiveDay
+      - sevenDay
+      example: fiveDay
+      title: calendar
+      type: string
+    jobTypes:
+      description: PA - Portfolio Analysis, PUB - Publisher, ADF - Analytics DataFeed, PI - Portfolio Insight, PD - Portfolio Dashboard, Portfolio Vault - vault
+      enum:
+      - ADF
+      - PA
+      - PD
+      - PI
+      - PUB
+      - vault
+      example: vault
+      title: jobTypes
+      type: string
+    startJobRoot:
+      description: Details required to start the job wrapped in a data object
+      properties:
+        data:
+          $ref: '#/components/schemas/startJob'
+      type: object
+    idStatus:
+      description: Details about the instance of the job run specified via id wrapped in a data object
+      properties:
+        data:
+          description: Details about the instance of the job run specified via id
+          properties:
+            id:
+              description: The run ID
+              type: string
+            inputs:
+              $ref: '#/components/schemas/startJob'
+            prbStatus:
+              $ref: '#/components/schemas/prbStatus'
+            status:
+              $ref: '#/components/schemas/status'
+            statusDescription:
+              $ref: '#/components/schemas/statusDescription'
+          type: object
+          example: example_value
+      type: object
+    jobOverridesCombinationsRoot:
+      description: Used for Vault job type only. This creates a matrix of given accounts and dates. When the job is run, it will only run for the accounts and dates within this object. (Settings will only be used temporarily and no changes will be made to the default PRB job.)
+      properties:
+        accounts:
+          description: An array of accounts
+          items:
+            type: string
+          type: array
+          example: []
+        dates:
+          description: An array of dates
+          items:
+            format: date
+            type: string
+          type: array
+          example: []
+      type: object
+    prbStatus:
+      description: The status of the job as per the application
+      enum:
+      - failed
+      - pending
+      - running
+      - soft
+      - stopped
+      - success
+      - warning
+      example: running
+      title: prbStatus
+      type: string
+    startJobRunResponse:
+      description: Gives details about the run which was requested wrapped in a data object
+      properties:
+        data:
+          description: The main object within the startJobRunResponse schema
+          properties:
+            id:
+              description: The run ID for the job that has been triggered which is used in the /runs/{id}/status endpoint
+              type: string
+            jobName:
+              description: Name of the job
+              type: string
+              maxLength: 29
+            status:
+              $ref: '#/components/schemas/status'
+            jobType:
+              $ref: '#/components/schemas/jobTypes'
+          required:
+          - id
+          - jobName
+          - status
+          - jobType
+          type: object
+          example: example_value
+      required:
+      - data
+      type: object
     jobOverrides:
       description: If this object is provided, the settings given here will override the default settings of the job for the job run (settings will only be used temporarily and no changes will be made to the default PRB job). Only certain objects can be used for certain job types.
       properties:
@@ -445,38 +568,23 @@ components:
           type: string
           example: Example Title
       type: object
-    startJobRoot:
-      description: Details required to start the job wrapped in a data object
+    statusDescription:
+      description: Further details on the job's status
+      example: job has completed with success
+      title: statusDescription
+      type: string
+      maxLength: 500
+    errorSource:
+      description: The pointer and parameter of the error
       properties:
-        data:
-          $ref: '#/components/schemas/startJob'
-      type: object
-    startJobRunResponse:
-      description: Gives details about the run which was requested wrapped in a data object
-      properties:
-        data:
-          description: The main object within the startJobRunResponse schema
-          properties:
-            id:
-              description: The run ID for the job that has been triggered which is used in the /runs/{id}/status endpoint
-              type: string
-            jobName:
-              description: Name of the job
-              type: string
-              maxLength: 29
-            status:
-              $ref: '#/components/schemas/status'
-            jobType:
-              $ref: '#/components/schemas/jobTypes'
-          required:
-          - id
-          - jobName
-          - status
-          - jobType
-          type: object
+        parameter:
+          description: Indicates which path or URI query parameter caused the error
+          type: string
           example: example_value
-      required:
-      - data
+        pointer:
+          description: Pointer to the associated entity in the request body
+          type: string
+          example: example_value
       type: object
     startJob:
       description: Details required to start a job
@@ -501,15 +609,6 @@ components:
       - jobType
       title: startJob
       type: object
-    calendar:
-      default: fiveDay
-      description: Used for ADF jobs only
-      enum:
-      - fiveDay
-      - sevenDay
-      example: fiveDay
-      title: calendar
-      type: string
     clientErrorResponse:
       description: The response schema for reporting errors
       properties:
@@ -520,113 +619,18 @@ components:
           type: array
           example: []
       type: object
-    jobOverridesCombinationsRoot:
-      description: Used for Vault job type only. This creates a matrix of given accounts and dates. When the job is run, it will only run for the accounts and dates within this object. (Settings will only be used temporarily and no changes will be made to the default PRB job.)
-      properties:
-        accounts:
-          description: An array of accounts
-          items:
-            type: string
-          type: array
-          example: []
-        dates:
-          description: An array of dates
-          items:
-            format: date
-            type: string
-          type: array
-          example: []
-      type: object
-    frequency:
-      default: daily
-      description: Used for ADF job types only. Will determine the frequency between the start and end dates.
-      enum:
-      - daily
-      - monthly
-      - weekly
-      type: string
-    errorSource:
-      description: The pointer and parameter of the error
-      properties:
-        parameter:
-          description: Indicates which path or URI query parameter caused the error
-          type: string
-          example: example_value
-        pointer:
-          description: Pointer to the associated entity in the request body
-          type: string
-          example: example_value
-      type: object
-    idStatus:
-      description: Details about the instance of the job run specified via id wrapped in a data object
-      properties:
-        data:
-          description: Details about the instance of the job run specified via id
-          properties:
-            id:
-              description: The run ID
-              type: string
-            inputs:
-              $ref: '#/components/schemas/startJob'
-            prbStatus:
-              $ref: '#/components/schemas/prbStatus'
-            status:
-              $ref: '#/components/schemas/status'
-            statusDescription:
-              $ref: '#/components/schemas/statusDescription'
-          type: object
-          example: example_value
-      type: object
-    status:
-      description: The status of the job as per FactSets API standards
-      enum:
-      - cancelled
-      - created
-      - executing
-      - failed
-      - queued
-      example: queued
-      title: status
-      type: string
-    statusDescription:
-      description: Further details on the job's status
-      example: job has completed with success
-      title: statusDescription
-      type: string
-      maxLength: 500
-    prbStatus:
-      description: The status of the job as per the application
-      enum:
-      - failed
-      - pending
-      - running
-      - soft
-      - stopped
-      - success
-      - warning
-      example: running
-      title: prbStatus
-      type: string
-    jobTypes:
-      description: PA - Portfolio Analysis, PUB - Publisher, ADF - Analytics DataFeed, PI - Portfolio Insight, PD - Portfolio Dashboard, Portfolio Vault - vault
-      enum:
-      - ADF
-      - PA
-      - PD
-      - PI
-      - PUB
-      - vault
-      example: vault
-      title: jobTypes
-      type: string
   headers:
     X-FactSet-Api-Request-Key:
       description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
       schema:
         type: string
         description: Key to uniquely identify an Analytics API request. Only available after successful authentication.
-    X-FactSet-Api-RateLimit-Reset:
-      description: Number of seconds remaining till rate limit resets.
+    X-FactSet-Api-RateLimit-Limit:
+      description: Number of allowed requests for the time window.
+      schema:
+        type: string
+    X-FactSet-Api-RateLimit-Remaining:
+      description: Number of requests left for the time window.
       schema:
         type: string
     X-DataDirect-Request-Key:
@@ -634,12 +638,8 @@ components:
       schema:
         type: string
         description: FactSet's request key header.
-    X-FactSet-Api-RateLimit-Remaining:
-      description: Number of requests left for the time window.
-      schema:
-        type: string
-    X-FactSet-Api-RateLimit-Limit:
-      description: Number of allowed requests for the time window.
+    X-FactSet-Api-RateLimit-Reset:
+      description: Number of seconds remaining till rate limit resets.
       schema:
         type: string
   securitySchemes:

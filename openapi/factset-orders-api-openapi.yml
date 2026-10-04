@@ -298,34 +298,30 @@ components:
           - 'null'
           description: To facilitate integration with translators that transform orders into a format compatible with the internal order routing and execution infrastructure.
       description: EMS Cancel Order
-    TimeInForce:
+    EMSReplaceOrdersRoot:
       type: object
       properties:
-        tif:
-          enum:
-          - day
-          - goodTillCancel
-          - atTheOpening
-          - immediateOrCancel
-          - fillOrKill
-          - goodTillCrossing
-          - goodTillDate
-          - atc
-          type: string
-          description: 'Time in force: if goodTillDate, then Expire Time or Expire Date is a required field'
-        expireDate:
+        data:
+          $ref: '#/components/schemas/EMSReplaceOrders'
+    ClientErrorResponse:
+      type: object
+      properties:
+        errors:
           type:
-          - string
+          - array
           - 'null'
-          description: Expire date in YYYYMMDD format expressed in UTC
-          example: '20230823'
-        expireTime:
-          type:
-          - string
-          - 'null'
-          description: Expire time in YYYYMMDD-HH:MM:SS format expressed in UTC
-          example: 20230823-12:20:25
-      description: Time in Force
+          items:
+            $ref: '#/components/schemas/Error'
+          description: List of errors
+      description: Client Error Response
+    EMSOrdersResponseRoot:
+      required:
+      - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/EMSOrdersResponse'
+      description: EMS Response
     EMSReplaceOrders:
       type: object
       properties:
@@ -343,24 +339,6 @@ components:
             $ref: '#/components/schemas/EMSReplaceOrder'
           description: List of orders to replace
       description: EMS Replace Orders
-    EMSOrdersResponse:
-      type: object
-      properties:
-        accepted:
-          type:
-          - object
-          - 'null'
-          additionalProperties:
-            $ref: '#/components/schemas/EMSOrderMetadata'
-          description: Accepted Orders
-        rejected:
-          type:
-          - object
-          - 'null'
-          additionalProperties:
-            $ref: '#/components/schemas/EMSOrderMetadata'
-          description: Rejected Orders
-      description: EMS Orders Response
     Error:
       type: object
       properties:
@@ -387,11 +365,6 @@ components:
         source:
           $ref: '#/components/schemas/ErrorSource'
       description: Error
-    EMSCancelOrdersRoot:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/EMSCancelOrders'
     EMSCancelOrders:
       type: object
       properties:
@@ -409,65 +382,6 @@ components:
             $ref: '#/components/schemas/EMSCancelOrder'
           description: List of orders to cancel
       description: EMS Cancel Orders
-    Instrument:
-      required:
-      - symbol
-      type: object
-      properties:
-        symbol:
-          maxLength: 250
-          type: string
-          description: Ticker symbol
-          example: TATAMOTORS
-        securityType:
-          type:
-          - string
-          - 'null'
-          description: Indicates type of security.
-        cfiCode:
-          type:
-          - string
-          - 'null'
-          description: Classification of Financial Instruments. Indicates the type of security using ISO 0962 standard.
-        securityExchange:
-          type:
-          - string
-          - 'null'
-          description: Market used to help identify a security.
-        issuer:
-          type:
-          - string
-          - 'null'
-          description: Company name of security issuer.
-        securityDescription:
-          type:
-          - string
-          - 'null'
-          description: Security Description
-        maturityMonthYear:
-          type:
-          - string
-          - 'null'
-          description: Month and Year of the maturity.
-        maturityDay:
-          type:
-          - string
-          - 'null'
-          description: Day of month used in conjunction with maturityMonthYear to specify the maturity date
-        putOrCall:
-          enum:
-          - put
-          - call
-          type:
-          - string
-          - 'null'
-          description: Indicates whether an Option is for a put or call.
-        underlyingSecurityType:
-          type:
-          - string
-          - 'null'
-          description: Underlying security’s SecurityType.
-      description: Instrument
     EMSOrder:
       required:
       - instrument
@@ -683,6 +597,104 @@ components:
             type: string
           description: User defined fields
       description: EMS Order
+    Instrument:
+      required:
+      - symbol
+      type: object
+      properties:
+        symbol:
+          maxLength: 250
+          type: string
+          description: Ticker symbol
+          example: TATAMOTORS
+        securityType:
+          type:
+          - string
+          - 'null'
+          description: Indicates type of security.
+        cfiCode:
+          type:
+          - string
+          - 'null'
+          description: Classification of Financial Instruments. Indicates the type of security using ISO 0962 standard.
+        securityExchange:
+          type:
+          - string
+          - 'null'
+          description: Market used to help identify a security.
+        issuer:
+          type:
+          - string
+          - 'null'
+          description: Company name of security issuer.
+        securityDescription:
+          type:
+          - string
+          - 'null'
+          description: Security Description
+        maturityMonthYear:
+          type:
+          - string
+          - 'null'
+          description: Month and Year of the maturity.
+        maturityDay:
+          type:
+          - string
+          - 'null'
+          description: Day of month used in conjunction with maturityMonthYear to specify the maturity date
+        putOrCall:
+          enum:
+          - put
+          - call
+          type:
+          - string
+          - 'null'
+          description: Indicates whether an Option is for a put or call.
+        underlyingSecurityType:
+          type:
+          - string
+          - 'null'
+          description: Underlying security’s SecurityType.
+      description: Instrument
+    EMSOrdersRoot:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/EMSOrders'
+    EMSReplaceOrder:
+      required:
+      - order
+      - originalClientOrderId
+      type: object
+      properties:
+        originalClientOrderId:
+          type: string
+          description: Unique identifier of the original order, generated in Create.
+        order:
+          $ref: '#/components/schemas/EMSOrder'
+      description: EMS Replace Order
+    EMSCancelOrdersRoot:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/EMSCancelOrders'
+    EMSOrders:
+      required:
+      - orders
+      type: object
+      properties:
+        investorId:
+          type:
+          - string
+          - 'null'
+          description: Investor Id
+          example: DEMO-12345
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/EMSOrder'
+          description: List of orders
+      description: EMS Orders
     EMSOrderMetadata:
       type: object
       properties:
@@ -740,25 +752,24 @@ components:
           - 'null'
           description: Warning
       description: EMS Order Metadata
-    EMSOrdersResponseRoot:
-      required:
-      - data
+    EMSOrdersResponse:
       type: object
       properties:
-        data:
-          $ref: '#/components/schemas/EMSOrdersResponse'
-      description: EMS Response
-    ClientErrorResponse:
-      type: object
-      properties:
-        errors:
+        accepted:
           type:
-          - array
+          - object
           - 'null'
-          items:
-            $ref: '#/components/schemas/Error'
-          description: List of errors
-      description: Client Error Response
+          additionalProperties:
+            $ref: '#/components/schemas/EMSOrderMetadata'
+          description: Accepted Orders
+        rejected:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            $ref: '#/components/schemas/EMSOrderMetadata'
+          description: Rejected Orders
+      description: EMS Orders Response
     ErrorSource:
       type: object
       properties:
@@ -773,45 +784,34 @@ components:
           - 'null'
           description: Indicates which path or URI query parameter caused the error
       description: Error Source
-    EMSReplaceOrdersRoot:
+    TimeInForce:
       type: object
       properties:
-        data:
-          $ref: '#/components/schemas/EMSReplaceOrders'
-    EMSOrders:
-      required:
-      - orders
-      type: object
-      properties:
-        investorId:
+        tif:
+          enum:
+          - day
+          - goodTillCancel
+          - atTheOpening
+          - immediateOrCancel
+          - fillOrKill
+          - goodTillCrossing
+          - goodTillDate
+          - atc
+          type: string
+          description: 'Time in force: if goodTillDate, then Expire Time or Expire Date is a required field'
+        expireDate:
           type:
           - string
           - 'null'
-          description: Investor Id
-          example: DEMO-12345
-        orders:
-          type: array
-          items:
-            $ref: '#/components/schemas/EMSOrder'
-          description: List of orders
-      description: EMS Orders
-    EMSReplaceOrder:
-      required:
-      - order
-      - originalClientOrderId
-      type: object
-      properties:
-        originalClientOrderId:
-          type: string
-          description: Unique identifier of the original order, generated in Create.
-        order:
-          $ref: '#/components/schemas/EMSOrder'
-      description: EMS Replace Order
-    EMSOrdersRoot:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/EMSOrders'
+          description: Expire date in YYYYMMDD format expressed in UTC
+          example: '20230823'
+        expireTime:
+          type:
+          - string
+          - 'null'
+          description: Expire time in YYYYMMDD-HH:MM:SS format expressed in UTC
+          example: 20230823-12:20:25
+      description: Time in Force
   securitySchemes:
     FactSetApiKey:
       type: http

@@ -740,6 +740,14 @@ components:
           description: Textual error message
           type: string
           example: example_value
+    isPartialOne:
+      title: IsPartialItems
+      description: If the value is true, it indicates additional results are available. False represents that this is the last set of results for this request.
+      type: object
+      properties:
+        isPartial:
+          type: boolean
+          example: true
     requestfilesResponse:
       type: object
       properties:
@@ -760,14 +768,6 @@ components:
           $ref: '#/components/schemas/paginationOne'
         partial:
           $ref: '#/components/schemas/isPartialOne'
-    isPartialOne:
-      title: IsPartialItems
-      description: If the value is true, it indicates additional results are available. False represents that this is the last set of results for this request.
-      type: object
-      properties:
-        isPartial:
-          type: boolean
-          example: true
     paginationOne:
       title: PaginationItems
       description: List of pagination objects
@@ -832,33 +832,127 @@ components:
           example: []
         meta:
           $ref: '#/components/schemas/metaOne'
-    meta:
-      title: Meta
-      description: Array of metadata objects
+    TickData:
+      type: object
+      title: Tick History Object
+      description: ' Returns Tick History Response.'
+      properties:
+        requestTimestamp:
+          description: Timestamp of when request was made
+          type: string
+          format: date-time
+          example: '2026-01-15T10:30:00Z'
+        updateTimestamp:
+          description: Timestamp when the file was last updated
+          type: string
+          format: date-time
+          example: '2026-01-15T10:30:00Z'
+        notAuthorizedTickers:
+          description: Returns not Authorized Tickers
+          type: array
+          items:
+            type: string
+          example: []
+        invalidTickers:
+          description: Returns invalid Tickers
+          type: array
+          items:
+            type: string
+          example: []
+        listOfFiles:
+          type: array
+          description: Contains list of Files
+          items:
+            $ref: '#/components/schemas/files'
+          example: []
+    status:
+      type: object
+      description: specifies the error message fields in the response
+      properties:
+        errors:
+          type: array
+          description: An array containing errors
+          items:
+            $ref: '#/components/schemas/errorExample'
+          example: []
+    Get-FilesResponse:
+      type: object
+      description: Returns Tick History Files
+      properties:
+        data:
+          $ref: '#/components/schemas/TickData'
+        meta:
+          $ref: '#/components/schemas/meta'
+    levelTwoRequest:
+      title: Level2 Request Body
+      description: Level2 request body elements
       type: object
       properties:
-        pagination:
-          $ref: '#/components/schemas/pagination'
-    tickers:
-      type: array
-      items:
-        type: string
-        minItems: 1
-        maxItems: 500
-      description: "The requested list of one or more tickers. <p> NOTE: Maximum 500 tickers per request.</p>.\n \n"
-      example:
-      - FDS
-    factsetExchangeCode:
-      title: factsetExchangeCode
-      description: 'FactSet specific regional or composite exchange code and last exchange code.
-
-        <p> NOTE:Does not support multiple factsetExchangeCodes</p>.
+        data:
+          $ref: '#/components/schemas/level2RequestBody'
+      required:
+      - data
+    mic:
+      description: 'A four-character code used to identify exchanges in which securities are traded. <p>**NOTE**:Does not support multiple mic codes</p>
 
         '
       type: string
       minItems: 1
       maxItems: 1
-      example: USA
+      example: XNYS
+    single:
+      type: boolean
+      description: '<p> This parameter only works for smaller date/time requests where the file size is upto 128MB.</P>
+
+        single=true  Returns data in a single file. single=false Returns data in multiple files.
+
+        <p> Note: If parameter is not used it take default value as false and returns data in multiple files.</p>
+
+        '
+      default: false
+    responseFileType:
+      type: string
+      description: Specifies the fileType
+      enum:
+      - csv
+      - parquet
+      default: parquet
+    errorExample:
+      type: object
+      description: Specifies the fields in the error message
+      properties:
+        code:
+          description: It specifies the unique code
+          type: string
+          example: example_value
+        title:
+          description: ' Specifies the error message'
+          type: string
+          example: Example Title
+        id:
+          description: Specifies the id
+          type: string
+          example: abc123
+    dateTimePeriod:
+      type: object
+      description: 'Date-Time <p> NOTE: Using start and end parameters within dateTimeRange will fetch the data on particular days in between the timestamps given.</p>.
+
+        '
+      properties:
+        start:
+          description: 'The date for (or from which) the data is required. Supports in YYYY-MM-DDTHH:MM:SSZ format.
+
+            '
+          type: string
+          format: date-time
+          example: '2012-01-01T11:00:00Z'
+        end:
+          type: string
+          format: date-time
+          description: 'The date to which data is required. Supports in YYYY-MM-DDTHH:MM:SSZ format.
+
+            '
+          example: '2012-01-30T11:20:30Z'
     ErrorObject:
       type:
       - object
@@ -877,59 +971,30 @@ components:
           description: The plain text error message
           type: string
           example: Validation Error
-    dateRange:
-      $ref: '#/components/schemas/dateRangeOne'
-    dateTimeRange:
-      $ref: '#/components/schemas/dateTimePeriod'
-    pagination:
-      title: Pagination
-      description: List of pagination objects
+    tickers:
+      type: array
+      items:
+        type: string
+        minItems: 1
+        maxItems: 500
+      description: "The requested list of one or more tickers. <p> NOTE: Maximum 500 tickers per request.</p>.\n \n"
+      example:
+      - FDS
+    leveltwoGet-FilesResponse:
       type: object
-      properties:
-        total:
-          description: Total number of files the API returns for a particular query
-          type: integer
-          example: 10
-        isEstimatedTotal:
-          description: Boolean value that represents whether the total count of files returned is exact or an estimate. This is defaulted to False as the API should always return the exact count
-          type: boolean
-          example: true
-    leveloneRequest:
-      title: Level1 Request Body
-      description: Level1 request body elements
-      type: object
+      description: Returns Tick History Files
       properties:
         data:
-          $ref: '#/components/schemas/level1RequestBody'
-      required:
-      - data
-    StatusOne:
+          $ref: '#/components/schemas/TickDataLevel2'
+        meta:
+          $ref: '#/components/schemas/meta'
+    submittedResponse:
       type: object
-      description: request-files
+      title: Status Response
+      description: Returns Status of the id.
       properties:
-        id:
-          description: a unique identification for the query requested
-          type: string
-          example: abc123
-        status:
-          description: The status of the query
-          type: string
-          enum:
-          - queued
-          - executing
-          - created
-          - failed
-          - cancelled
-          example: queued
-        error:
-          $ref: '#/components/schemas/ErrorObject'
-    responseFileType:
-      type: string
-      description: Specifies the fileType
-      enum:
-      - csv
-      - parquet
-      default: parquet
+        data:
+          $ref: '#/components/schemas/StatusOne'
     checkFiles:
       type: object
       description: check-files
@@ -950,6 +1015,141 @@ components:
           example: queued
         error:
           $ref: '#/components/schemas/ErrorObject'
+    pagination:
+      title: Pagination
+      description: List of pagination objects
+      type: object
+      properties:
+        total:
+          description: Total number of files the API returns for a particular query
+          type: integer
+          example: 10
+        isEstimatedTotal:
+          description: Boolean value that represents whether the total count of files returned is exact or an estimate. This is defaulted to False as the API should always return the exact count
+          type: boolean
+          example: true
+    completedResponse:
+      type: object
+      title: status
+      description: Returns status.
+      properties:
+        data:
+          $ref: '#/components/schemas/checkFiles'
+    level2RequestBody:
+      title: Level2 Request Body
+      description: Level2 request body elements
+      type: object
+      properties:
+        tickers:
+          $ref: '#/components/schemas/tickers'
+        mic:
+          $ref: '#/components/schemas/mic'
+        dateRange:
+          $ref: '#/components/schemas/dateRange'
+        responseFileType:
+          $ref: '#/components/schemas/responseFileType'
+      required:
+      - tickers
+      - mic
+      - dateRange
+    files:
+      title: Files
+      description: Array of data objects
+      type: object
+      properties:
+        fileName:
+          description: Name of the file(s) generated for the query requested
+          type: string
+          example: example_value
+        url:
+          description: '
+
+            Download link for the TickHistory file with requested parameters
+
+            <p>This download link will expire after 24 hours</p>
+
+            '
+          type: string
+          example: https://www.example.com
+    dateRange:
+      $ref: '#/components/schemas/dateRangeOne'
+    level1RequestBody:
+      title: Level1 Request Body
+      description: Level1 request body elements
+      type: object
+      properties:
+        tickers:
+          $ref: '#/components/schemas/tickers'
+        factsetExchangeCode:
+          $ref: '#/components/schemas/factsetExchangeCode'
+        dateTimeRange:
+          $ref: '#/components/schemas/dateTimeRange'
+        fields:
+          $ref: '#/components/schemas/fields'
+        single:
+          $ref: '#/components/schemas/single'
+      required:
+      - tickers
+      - factsetExchangeCode
+      - dateTimeRange
+    meta:
+      title: Meta
+      description: Array of metadata objects
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/pagination'
+    dateRangeOne:
+      type: object
+      description: Date Range
+      properties:
+        start:
+          description: 'The date for (or from which) the data is required. Supports in YYYY-MM-DD format.
+
+            '
+          type: string
+          format: date
+          example: '2012-01-01'
+        end:
+          type: string
+          format: date
+          description: 'The date to which data is required. Supports in YYYY-MM-DD format.
+
+            '
+          example: '2012-01-30'
+    TickDataLevel2:
+      type: object
+      description: Returns Tick History Files
+      properties:
+        status:
+          description: The status of the request
+          type: string
+          example: example_value
+        requestTimestamp:
+          description: Timestamp of when request was made
+          type: string
+          format: date-time
+          example: '2026-01-15T10:30:00Z'
+        updateTimestamp:
+          description: :"Timestamp when the file was last updated"
+          type: string
+          format: date-time
+          example: '2026-01-15T10:30:00Z'
+        listOfFiles:
+          type: array
+          description: Data Object
+          items:
+            $ref: '#/components/schemas/files'
+          example: []
+    leveloneRequest:
+      title: Level1 Request Body
+      description: Level1 request body elements
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/level1RequestBody'
+      required:
+      - data
     fields:
       type: array
       items:
@@ -1008,245 +1208,40 @@ components:
         '
       example:
       - ASK
-    leveltwoGet-FilesResponse:
-      type: object
-      description: Returns Tick History Files
-      properties:
-        data:
-          $ref: '#/components/schemas/TickDataLevel2'
-        meta:
-          $ref: '#/components/schemas/meta'
-    single:
-      type: boolean
-      description: '<p> This parameter only works for smaller date/time requests where the file size is upto 128MB.</P>
+    dateTimeRange:
+      $ref: '#/components/schemas/dateTimePeriod'
+    factsetExchangeCode:
+      title: factsetExchangeCode
+      description: 'FactSet specific regional or composite exchange code and last exchange code.
 
-        single=true  Returns data in a single file. single=false Returns data in multiple files.
-
-        <p> Note: If parameter is not used it take default value as false and returns data in multiple files.</p>
-
-        '
-      default: false
-    dateTimePeriod:
-      type: object
-      description: 'Date-Time <p> NOTE: Using start and end parameters within dateTimeRange will fetch the data on particular days in between the timestamps given.</p>.
-
-        '
-      properties:
-        start:
-          description: 'The date for (or from which) the data is required. Supports in YYYY-MM-DDTHH:MM:SSZ format.
-
-            '
-          type: string
-          format: date-time
-          example: '2012-01-01T11:00:00Z'
-        end:
-          type: string
-          format: date-time
-          description: 'The date to which data is required. Supports in YYYY-MM-DDTHH:MM:SSZ format.
-
-            '
-          example: '2012-01-30T11:20:30Z'
-    TickDataLevel2:
-      type: object
-      description: Returns Tick History Files
-      properties:
-        status:
-          description: The status of the request
-          type: string
-          example: example_value
-        requestTimestamp:
-          description: Timestamp of when request was made
-          type: string
-          format: date-time
-          example: '2026-01-15T10:30:00Z'
-        updateTimestamp:
-          description: :"Timestamp when the file was last updated"
-          type: string
-          format: date-time
-          example: '2026-01-15T10:30:00Z'
-        listOfFiles:
-          type: array
-          description: Data Object
-          items:
-            $ref: '#/components/schemas/files'
-          example: []
-    dateRangeOne:
-      type: object
-      description: Date Range
-      properties:
-        start:
-          description: 'The date for (or from which) the data is required. Supports in YYYY-MM-DD format.
-
-            '
-          type: string
-          format: date
-          example: '2012-01-01'
-        end:
-          type: string
-          format: date
-          description: 'The date to which data is required. Supports in YYYY-MM-DD format.
-
-            '
-          example: '2012-01-30'
-    errorExample:
-      type: object
-      description: Specifies the fields in the error message
-      properties:
-        code:
-          description: It specifies the unique code
-          type: string
-          example: example_value
-        title:
-          description: ' Specifies the error message'
-          type: string
-          example: Example Title
-        id:
-          description: Specifies the id
-          type: string
-          example: abc123
-    mic:
-      description: 'A four-character code used to identify exchanges in which securities are traded. <p>**NOTE**:Does not support multiple mic codes</p>
+        <p> NOTE:Does not support multiple factsetExchangeCodes</p>.
 
         '
       type: string
       minItems: 1
       maxItems: 1
-      example: XNYS
-    submittedResponse:
+      example: USA
+    StatusOne:
       type: object
-      title: Status Response
-      description: Returns Status of the id.
+      description: request-files
       properties:
-        data:
-          $ref: '#/components/schemas/StatusOne'
-    Get-FilesResponse:
-      type: object
-      description: Returns Tick History Files
-      properties:
-        data:
-          $ref: '#/components/schemas/TickData'
-        meta:
-          $ref: '#/components/schemas/meta'
-    TickData:
-      type: object
-      title: Tick History Object
-      description: ' Returns Tick History Response.'
-      properties:
-        requestTimestamp:
-          description: Timestamp of when request was made
+        id:
+          description: a unique identification for the query requested
           type: string
-          format: date-time
-          example: '2026-01-15T10:30:00Z'
-        updateTimestamp:
-          description: Timestamp when the file was last updated
+          example: abc123
+        status:
+          description: The status of the query
           type: string
-          format: date-time
-          example: '2026-01-15T10:30:00Z'
-        notAuthorizedTickers:
-          description: Returns not Authorized Tickers
-          type: array
-          items:
-            type: string
-          example: []
-        invalidTickers:
-          description: Returns invalid Tickers
-          type: array
-          items:
-            type: string
-          example: []
-        listOfFiles:
-          type: array
-          description: Contains list of Files
-          items:
-            $ref: '#/components/schemas/files'
-          example: []
-    status:
-      type: object
-      description: specifies the error message fields in the response
-      properties:
-        errors:
-          type: array
-          description: An array containing errors
-          items:
-            $ref: '#/components/schemas/errorExample'
-          example: []
-    level1RequestBody:
-      title: Level1 Request Body
-      description: Level1 request body elements
-      type: object
-      properties:
-        tickers:
-          $ref: '#/components/schemas/tickers'
-        factsetExchangeCode:
-          $ref: '#/components/schemas/factsetExchangeCode'
-        dateTimeRange:
-          $ref: '#/components/schemas/dateTimeRange'
-        fields:
-          $ref: '#/components/schemas/fields'
-        single:
-          $ref: '#/components/schemas/single'
-      required:
-      - tickers
-      - factsetExchangeCode
-      - dateTimeRange
-    files:
-      title: Files
-      description: Array of data objects
-      type: object
-      properties:
-        fileName:
-          description: Name of the file(s) generated for the query requested
-          type: string
-          example: example_value
-        url:
-          description: '
-
-            Download link for the TickHistory file with requested parameters
-
-            <p>This download link will expire after 24 hours</p>
-
-            '
-          type: string
-          example: https://www.example.com
-    levelTwoRequest:
-      title: Level2 Request Body
-      description: Level2 request body elements
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/level2RequestBody'
-      required:
-      - data
-    completedResponse:
-      type: object
-      title: status
-      description: Returns status.
-      properties:
-        data:
-          $ref: '#/components/schemas/checkFiles'
-    level2RequestBody:
-      title: Level2 Request Body
-      description: Level2 request body elements
-      type: object
-      properties:
-        tickers:
-          $ref: '#/components/schemas/tickers'
-        mic:
-          $ref: '#/components/schemas/mic'
-        dateRange:
-          $ref: '#/components/schemas/dateRange'
-        responseFileType:
-          $ref: '#/components/schemas/responseFileType'
-      required:
-      - tickers
-      - mic
-      - dateRange
+          enum:
+          - queued
+          - executing
+          - created
+          - failed
+          - cancelled
+          example: queued
+        error:
+          $ref: '#/components/schemas/ErrorObject'
   examples:
-    StreetAccount401Example:
-      summary: Sample error Response
-      value:
-        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
-        error_message: USERNAME-SERIAL does not have permission
     StreetAccount500Example:
       summary: Sample error Response
       value:
@@ -1271,6 +1266,16 @@ components:
             offset: 105
           partial:
             isPartial: false
+    StreetAccount403Example:
+      summary: Sample error Response
+      value:
+        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
+        error_message: USERNAME-SERIAL does not have permission
+    StreetAccount401Example:
+      summary: Sample error Response
+      value:
+        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
+        error_message: USERNAME-SERIAL does not have permission
     200RequestFilesExample:
       summary: Sample Response
       value:
@@ -1281,37 +1286,36 @@ components:
       value:
         id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
         error_message: parameterError:Missing required parameter jobID
-    StreetAccount403Example:
-      summary: Sample error Response
-      value:
-        id: 0ad3e09c-d8a2-4223-a1a3-0244d1247351
-        error_message: USERNAME-SERIAL does not have permission
-    sampleFilesResponseQueued:
-      summary: Status Queued
+    sampleFilesResponse:
+      summary: Status Accepted
       value:
         data:
           id: 27b4923f-86dd-4b8b-89ac-dfc3a26fa786
           status: queued
           error: null
-    postBodyAll:
-      summary: Multiple tickers with default all fields for the given period
-      description: Post body request example to fetch details of the IBM and GOOGL tick data for the period 2023-01-01T00:00:00Z to 2023-01-05T23:59:59Z.
+    sampleFilesResponseCancelled:
+      summary: Status Cancelled
       value:
         data:
-          tickers:
-          - IBM
-          - GOOGL
-          factsetExchangeCode: USA
-          dateTimeRange:
-            start: '2023-01-01T00:00:00Z'
-            end: '2023-01-05T23:59:59Z'
-          single: false
-    404Example:
+          id: 27b4923f-86dd-4b8b-89ac-dfc3a26fa786
+          status: cancelled
+          error:
+            id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+            code: Error
+            title: Request taking long time
+    500Example:
       summary: sample error response
       value:
         errors:
-        - code: Not Found
-          title: id not found
+        - code: Internal server error
+          title: An unexpected error happened
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    401Example:
+      summary: sample error response
+      value:
+        errors:
+        - code: Not Authenticated
+          title: USERNAME-SERIAL does not have permission
           id: 7af3d86ca5954503b9244f2620fcf5eb
     sampleGet-FilesResponseLevel2:
       summary: sample Response data for Level2
@@ -1326,6 +1330,18 @@ components:
           pagination:
             total: 256
             isEstimatedTotal: false
+    postBodyOfSingleTickerLevel2:
+      summary: Single ticker for the given period
+      description: Post body request example to fetch details of the IBM tick data for the period 2020-01-01 to 2020-01-05.
+      value:
+        data:
+          tickers:
+          - IBM
+          mic: XNYS
+          dateRange:
+            start: '2020-01-01'
+            end: '2020-01-05'
+          responseFileType: csv
     sampleFilesResponseExecuting:
       summary: Status Executing
       value:
@@ -1340,25 +1356,23 @@ components:
         - code: Forbidden
           title: USERNAME-SERIAL does not have permission
           id: 7af3d86ca5954503b9244f2620fcf5eb
-    postBodyOfSingleTickerLevel2:
-      summary: Single ticker for the given period
-      description: Post body request example to fetch details of the IBM tick data for the period 2020-01-01 to 2020-01-05.
+    404Example:
+      summary: sample error response
       value:
-        data:
-          tickers:
-          - IBM
-          mic: XNYS
-          dateRange:
-            start: '2020-01-01'
-            end: '2020-01-05'
-          responseFileType: csv
-    sampleFilesResponse:
-      summary: Status Accepted
+        errors:
+        - code: Not Found
+          title: id not found
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    sampleFilesResponseFailed:
+      summary: Status Failed
       value:
         data:
           id: 27b4923f-86dd-4b8b-89ac-dfc3a26fa786
-          status: queued
-          error: null
+          status: failed
+          error:
+            id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+            code: Geeneric Error
+            title: 'Not a valid request '
     postBodyMultipleTickerLevel2:
       summary: Multiple tickers for the given period
       description: Post body request example to fetch details of the IBM and GOOGL tick data for the period 2020-01-01 to 2020-01-05.
@@ -1372,6 +1386,40 @@ components:
             start: '2020-01-01'
             end: '2020-01-05'
           responseFileType: csv
+    sampleCompletedResponse:
+      summary: Status Done
+      value:
+        data:
+          id: 27b4923f-86dd-4b8b-89ac-dfc3a26fa786
+          status: created
+          error: null
+    sampleGet-FilesResponse:
+      summary: sample Response data for Level1
+      value:
+        data:
+          requestTimestamp: '2020-10-23T03:38:02Z'
+          updateTimestamp: '2020-10-23T03:41:39Z'
+          notAuthorizedTickers: []
+          invalidTickers: []
+          listOfFiles:
+          - fileName: data_0_0_0.csv.gz
+            url: https://fdss3-structured-data-delivery-tickhistory-prod.s3.amazonaws.com/1908ba22c3d50cf0eb29d4941a15d754/1064084624/data_0_0_0.csv.gz?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=REDACTED_AWS_ACCESS_KEY_ID%2F20210407%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20210407T173818Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPL%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJHMEUCIQDvzcjGyFCVYyQANp8yuwa3Wn3pD0qWWxLx4ay4oHW61QIgXf3ULeWuRB2jidoA%2BiY83uRbUT8PvB8enoeKgisQUIYq2AEISxAAGgw5NjYyODIxMTY0MjUiDLuCDb9G45Fsn6HtLCq1AYQPGk8GpzGiRXMiASd%2FayNLEOTkXRvTkjg00DAMPt4GM9%2BmVJyXStFairI5Ru1ZO6%2B4DAHT8H1u2Z2g%2FZfIR8Wozv8NYq992v8PapfgUXfuVeJI%2BLnGFyUstgbIB1BgO18I0JscQWbGIy6FTiGfBgPuxvpN57TAcmHgc1XNbKDGFqgeVwcLIkY62a8zYjbOPP09gzFW2%2FNPCIyKl074r0dAHwmGw21XEoxKyJgNaybEXli4lGAwh9y3gwY64AFxwpKMsSGOx4teikNbdzo8dCDU0rjtxUgCupkqrqOtetRTLrjaxp4%2BfDa5IweJcdTREupEfkEZR8aaHgcWSzd5%2BKk1nUEUe1RoG%2FqzrQ0%2BANY3nX2a%2BKhgI6PLX%2FVEGJtaxtx0fMHO9PU1Szg9Rr%2FRY%2BphK19fHFGGAJc1r%2Fby00MrJFahqIRkwVud8h63dSoOJ%2Fbc0vd3oPzl%2F6GGyRTaAyCsjPTr6lPBXLdrmBkP8TuDyW%2BnTGhX8wJtSp2BxCOxLy7%2BVwGGAPl%2FtBtQdNK7q4tkb2COlYL%2BD9m6w2uNFg%3D%3D&X-Amz-Signature=3d54bc7804a710dbea470007eb9a7b231a9f60544fe44582bab3ae60ab67ca65
+        meta:
+          pagination:
+            total: 256
+            isEstimatedTotal: false
+    postBodyOfSingleTicker:
+      summary: Single ticker with defaualt all fields for the given period
+      description: Post body request example to fetch details of the IBM tick data for the period 2023-01-01T00:00:00Z to 2023-01-05T23:59:59Z.
+      value:
+        data:
+          tickers:
+          - IBM
+          factsetExchangeCode: USA
+          dateTimeRange:
+            start: '2023-01-01T00:00:00Z'
+            end: '2023-01-05T23:59:59Z'
+          single: false
     429Example:
       summary: sample error response
       value:
@@ -1379,6 +1427,20 @@ components:
         - code: Too Many Requests
           title: quantityLimitsExceeded
           id: 7af3d86ca5954503b9244f2620fcf5eb
+    400Example:
+      summary: Sample error Response
+      value:
+        errors:
+        - code: Bad Request
+          title: parameterError:['_id'] is not a valid parameter(s)
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    sampleFilesResponseQueued:
+      summary: Status Queued
+      value:
+        data:
+          id: 27b4923f-86dd-4b8b-89ac-dfc3a26fa786
+          status: queued
+          error: null
     postBodyOfMultipleTicker:
       summary: Multiple tickers with requested fields for the given period
       description: Post body request example to fetch details of the IBM and GOOGL tick data for the period 2023-01-01T00:00:00Z to 2023-01-05T23:59:59Z to get requested ASK and BID values.
@@ -1395,82 +1457,34 @@ components:
           - ASK
           - BID
           single: false
-    postBodyOfSingleTicker:
-      summary: Single ticker with defaualt all fields for the given period
-      description: Post body request example to fetch details of the IBM tick data for the period 2023-01-01T00:00:00Z to 2023-01-05T23:59:59Z.
+    postBodyAll:
+      summary: Multiple tickers with default all fields for the given period
+      description: Post body request example to fetch details of the IBM and GOOGL tick data for the period 2023-01-01T00:00:00Z to 2023-01-05T23:59:59Z.
       value:
         data:
           tickers:
           - IBM
+          - GOOGL
           factsetExchangeCode: USA
           dateTimeRange:
             start: '2023-01-01T00:00:00Z'
             end: '2023-01-05T23:59:59Z'
           single: false
-    sampleFilesResponseCancelled:
-      summary: Status Cancelled
-      value:
-        data:
-          id: 27b4923f-86dd-4b8b-89ac-dfc3a26fa786
-          status: cancelled
-          error:
-            id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-            code: Error
-            title: Request taking long time
-    400Example:
-      summary: Sample error Response
-      value:
-        errors:
-        - code: Bad Request
-          title: parameterError:['_id'] is not a valid parameter(s)
-          id: 7af3d86ca5954503b9244f2620fcf5eb
-    sampleFilesResponseFailed:
-      summary: Status Failed
-      value:
-        data:
-          id: 27b4923f-86dd-4b8b-89ac-dfc3a26fa786
-          status: failed
-          error:
-            id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-            code: Geeneric Error
-            title: 'Not a valid request '
-    500Example:
-      summary: sample error response
-      value:
-        errors:
-        - code: Internal server error
-          title: An unexpected error happened
-          id: 7af3d86ca5954503b9244f2620fcf5eb
-    401Example:
-      summary: sample error response
-      value:
-        errors:
-        - code: Not Authenticated
-          title: USERNAME-SERIAL does not have permission
-          id: 7af3d86ca5954503b9244f2620fcf5eb
-    sampleGet-FilesResponse:
-      summary: sample Response data for Level1
-      value:
-        data:
-          requestTimestamp: '2020-10-23T03:38:02Z'
-          updateTimestamp: '2020-10-23T03:41:39Z'
-          notAuthorizedTickers: []
-          invalidTickers: []
-          listOfFiles:
-          - fileName: data_0_0_0.csv.gz
-            url: https://fdss3-structured-data-delivery-tickhistory-prod.s3.amazonaws.com/1908ba22c3d50cf0eb29d4941a15d754/1064084624/data_0_0_0.csv.gz?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=REDACTED_AWS_ACCESS_KEY_ID%2F20210407%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20210407T173818Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPL%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJHMEUCIQDvzcjGyFCVYyQANp8yuwa3Wn3pD0qWWxLx4ay4oHW61QIgXf3ULeWuRB2jidoA%2BiY83uRbUT8PvB8enoeKgisQUIYq2AEISxAAGgw5NjYyODIxMTY0MjUiDLuCDb9G45Fsn6HtLCq1AYQPGk8GpzGiRXMiASd%2FayNLEOTkXRvTkjg00DAMPt4GM9%2BmVJyXStFairI5Ru1ZO6%2B4DAHT8H1u2Z2g%2FZfIR8Wozv8NYq992v8PapfgUXfuVeJI%2BLnGFyUstgbIB1BgO18I0JscQWbGIy6FTiGfBgPuxvpN57TAcmHgc1XNbKDGFqgeVwcLIkY62a8zYjbOPP09gzFW2%2FNPCIyKl074r0dAHwmGw21XEoxKyJgNaybEXli4lGAwh9y3gwY64AFxwpKMsSGOx4teikNbdzo8dCDU0rjtxUgCupkqrqOtetRTLrjaxp4%2BfDa5IweJcdTREupEfkEZR8aaHgcWSzd5%2BKk1nUEUe1RoG%2FqzrQ0%2BANY3nX2a%2BKhgI6PLX%2FVEGJtaxtx0fMHO9PU1Szg9Rr%2FRY%2BphK19fHFGGAJc1r%2Fby00MrJFahqIRkwVud8h63dSoOJ%2Fbc0vd3oPzl%2F6GGyRTaAyCsjPTr6lPBXLdrmBkP8TuDyW%2BnTGhX8wJtSp2BxCOxLy7%2BVwGGAPl%2FtBtQdNK7q4tkb2COlYL%2BD9m6w2uNFg%3D%3D&X-Amz-Signature=3d54bc7804a710dbea470007eb9a7b231a9f60544fe44582bab3ae60ab67ca65
-        meta:
-          pagination:
-            total: 256
-            isEstimatedTotal: false
-    sampleCompletedResponse:
-      summary: Status Done
-      value:
-        data:
-          id: 27b4923f-86dd-4b8b-89ac-dfc3a26fa786
-          status: created
-          error: null
   parameters:
+    requestId:
+      name: id
+      in: query
+      description: id returned by files create endpoint to poll and collect results of the query
+      required: true
+      schema:
+        type: string
+    requestIdStatus:
+      name: id
+      in: query
+      description: id returned by files create endpoint to poll and collect status of the query
+      required: true
+      schema:
+        type: string
     _paginationLimit:
       name: _paginationLimit
       in: query
@@ -1487,20 +1501,6 @@ components:
       schema:
         type: integer
         default: 0
-    requestIdStatus:
-      name: id
-      in: query
-      description: id returned by files create endpoint to poll and collect status of the query
-      required: true
-      schema:
-        type: string
-    requestId:
-      name: id
-      in: query
-      description: id returned by files create endpoint to poll and collect results of the query
-      required: true
-      schema:
-        type: string
   securitySchemes:
     FactSetOAuth2:
       type: oauth2
