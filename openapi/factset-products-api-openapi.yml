@@ -328,32 +328,6 @@ components:
           description: The plain text error message
           type: string
           example: Unauthorized
-    Document:
-      properties:
-        name:
-          type: string
-        description:
-          type: string
-        fileName:
-          type: string
-        url:
-          type: string
-        isFile:
-          type: boolean
-        isPublic:
-          type: boolean
-        order:
-          type: integer
-        section:
-          items:
-            properties:
-              id:
-                type: integer
-              name:
-                type: string
-            type: object
-          type: array
-      type: object
     GetProductDto:
       description: A Json representation of a Product record.
       properties:
@@ -804,6 +778,32 @@ components:
           example: published
           type: string
       type: object
+    Document:
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        fileName:
+          type: string
+        url:
+          type: string
+        isFile:
+          type: boolean
+        isPublic:
+          type: boolean
+        order:
+          type: integer
+        section:
+          items:
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+            type: object
+          type: array
+      type: object
     ProductResourceList:
       type: object
       properties:
@@ -889,16 +889,9 @@ components:
         - xml
         - json
         - csv
-    excludedAttributes:
-      name: excludedAttributes
-      description: Attribute blacklist filter string. A comma-separated list of resource attribute names to be excluded in the response, overriding the set of attributes that would be returned by default. Attribute names must be specified in standard attribute notation (see [RFC 7644 section 3.10](https://datatracker.ietf.org/doc/html/rfc7644#section-3.10).) This parameter cannot be used with the *attributes* parameter.
-      in: query
-      schema:
-        type: string
-      required: false
-    filter:
-      name: filter
-      description: Resource filter string. See [RFC 7644 section 3.4.2.2](https://tools.ietf.org/html/rfc7644#section-3.4.2.2) for syntax. Note this API implementation also supports a non-standard "re" operator for regular expression matching against strings.
+    attributes:
+      name: attributes
+      description: Attribute whitelist filter string. A comma-separated list of resource attribute names to be returned in the response, overriding the set of attributes that would be returned by default. Attribute names must be specified in standard attribute notation (see [RFC 7644 section 3.10](https://datatracker.ietf.org/doc/html/rfc7644#section-3.10).) This parameter cannot be used with the *excludedAttributes* parameter.
       in: query
       schema:
         type: string
@@ -910,13 +903,6 @@ components:
       schema:
         type: string
       required: true
-    attributes:
-      name: attributes
-      description: Attribute whitelist filter string. A comma-separated list of resource attribute names to be returned in the response, overriding the set of attributes that would be returned by default. Attribute names must be specified in standard attribute notation (see [RFC 7644 section 3.10](https://datatracker.ietf.org/doc/html/rfc7644#section-3.10).) This parameter cannot be used with the *excludedAttributes* parameter.
-      in: query
-      schema:
-        type: string
-      required: false
     startIndex:
       name: startIndex
       description: Result start index. The one-based index of the first result to be returned in the list of resources. For example, to exclude the first two resources, use a *startIndex* value of 3. This parameter has a default value of 1. This index applies *after* any resource filtration has been applied as specified by the *filter* argument.
@@ -931,13 +917,21 @@ components:
       schema:
         type: integer
       required: false
+    filter:
+      name: filter
+      description: Resource filter string. See [RFC 7644 section 3.4.2.2](https://tools.ietf.org/html/rfc7644#section-3.4.2.2) for syntax. Note this API implementation also supports a non-standard "re" operator for regular expression matching against strings.
+      in: query
+      schema:
+        type: string
+      required: false
+    excludedAttributes:
+      name: excludedAttributes
+      description: Attribute blacklist filter string. A comma-separated list of resource attribute names to be excluded in the response, overriding the set of attributes that would be returned by default. Attribute names must be specified in standard attribute notation (see [RFC 7644 section 3.10](https://datatracker.ietf.org/doc/html/rfc7644#section-3.10).) This parameter cannot be used with the *attributes* parameter.
+      in: query
+      schema:
+        type: string
+      required: false
   responses:
-    internalServerError:
-      description: Internal server error.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/Error'
     invalidFilterError:
       description: Invalid filter value provided.
       content:
@@ -950,40 +944,12 @@ components:
             scimType: invalidFilter
             detail: Invalid filter value.
             status: '400'
-    unauthorizedError:
-      description: User has not been authenticated.
+    internalServerError:
+      description: Internal server error.
       content:
         application/scim+json:
           schema:
             $ref: '#/components/schemas/Error'
-          example:
-            schemas:
-            - urn:ietf:params:scim:api:messages:2.0:Error
-            detail: FactSet.net credentials are missing or invalid.
-            status: '401'
-    productSuccess:
-      description: Success.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/ProductResource'
-    forbiddenError:
-      description: User is not authorized to use this API.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            schemas:
-            - urn:ietf:params:scim:api:messages:2.0:Error
-            detail: FIN_WEALTH-999999 is not authorized to use the FactSet SCIM API.
-            status: '403'
-    productsSuccess:
-      description: Success.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/ProductResourceList'
     productNotFoundError:
       description: Product not found.
       content:
@@ -995,6 +961,40 @@ components:
             - urn:ietf:params:scim:api:messages:2.0:Error
             detail: Product 6781 was not found.
             status: '404'
+    productsSuccess:
+      description: Success.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/ProductResourceList'
+    forbiddenError:
+      description: User is not authorized to use this API.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: FIN_WEALTH-999999 is not authorized to use the FactSet SCIM API.
+            status: '403'
+    productSuccess:
+      description: Success.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/ProductResource'
+    unauthorizedError:
+      description: User has not been authenticated.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            schemas:
+            - urn:ietf:params:scim:api:messages:2.0:Error
+            detail: FactSet.net credentials are missing or invalid.
+            status: '401'
   securitySchemes:
     BasicAuth:
       type: http

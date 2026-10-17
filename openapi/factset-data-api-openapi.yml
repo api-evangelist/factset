@@ -292,6 +292,24 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Errors'
+    NotFoundErrorResponse:
+      description: The requested resource could not be found but may be available in the future. Subsequent requests by the client are permissible.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    UnauthorizedErrorResponse:
+      description: Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    ForbiddenErrorResponse:
+      description: The request contained valid data and was understood by the server, but the server is refusing action. This may be due to the user not having the necessary permissions for a resource or needing an account of some sort, or attempting a prohibited action.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
     BadRequestErrorResponse:
       description: The server cannot or will not process the request due to an apparent client error (e.g., malformed request syntax, size too large, invalid request message framing, or deceptive request routing).
       content:
@@ -306,24 +324,6 @@ components:
             $ref: '#/components/schemas/Errors'
     InternalServerErrorResponse:
       description: ''
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    UnauthorizedErrorResponse:
-      description: Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    NotFoundErrorResponse:
-      description: The requested resource could not be found but may be available in the future. Subsequent requests by the client are permissible.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Errors'
-    ForbiddenErrorResponse:
-      description: The request contained valid data and was understood by the server, but the server is refusing action. This may be due to the user not having the necessary permissions for a resource or needing an account of some sort, or attempting a prohibited action.
       content:
         application/json:
           schema:
@@ -425,6 +425,13 @@ components:
               example: Meaningful description of vendor returns
           description: Read a metadata file by its id.
           example: example_value
+    rateLimitResponse:
+      title: Rate Limit Error Object
+      description: Error returned if any of the user's rate limit have been reached.
+      properties:
+        message:
+          type: string
+          example: API rate limit exceeded
     contract:
       type: object
       required:
@@ -435,6 +442,29 @@ components:
           $ref: '#/components/schemas/contractFields'
         version:
           type: string
+          example: example_value
+    contractProperty:
+      type: object
+      required:
+      - description
+      - type
+      properties:
+        description:
+          type: string
+          example: A sample description.
+        type:
+          type: string
+          example: example_value
+        optional:
+          type: boolean
+          example: true
+        items:
+          type: object
+          required:
+          - type
+          properties:
+            type:
+              type: string
           example: example_value
     contractFields:
       type: object
@@ -460,27 +490,54 @@ components:
           example: example_value
         additionalProperties:
           $ref: '#/components/schemas/contractProperty'
-    contractProperty:
+    signalDefinition:
       type: object
       required:
-      - description
-      - type
+      - data
       properties:
-        description:
-          type: string
-          example: A sample description.
-        type:
-          type: string
-          example: example_value
-        optional:
-          type: boolean
-          example: true
-        items:
+        data:
           type: object
           required:
-          - type
+          - signalId
+          - theme
+          - categories
+          - contract
           properties:
-            type:
+            signalId:
+              type: string
+            theme:
+              type: string
+            categories:
+              type: array
+              items:
+                type: string
+            contract:
+              $ref: '#/components/schemas/contract'
+          example: example_value
+    errorItem:
+      type: object
+      required:
+      - id
+      - code
+      - title
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: abc123
+        code:
+          type: string
+          example: parameterError
+        title:
+          type: string
+          example: Invalid type/value
+        detail:
+          type: string
+          example: Value must be a valid UTC date/time that conforms to ISO 8601 format
+        source:
+          type: object
+          properties:
+            parameter:
               type: string
           example: example_value
     signalMetaData:
@@ -519,63 +576,6 @@ components:
             $ref: '#/components/schemas/errorItem'
           description: Optional list of errors. e.g. Validation errors for multiple parameters
           example: []
-    errorItem:
-      type: object
-      required:
-      - id
-      - code
-      - title
-      properties:
-        id:
-          type: string
-          format: uuid
-          example: abc123
-        code:
-          type: string
-          example: parameterError
-        title:
-          type: string
-          example: Invalid type/value
-        detail:
-          type: string
-          example: Value must be a valid UTC date/time that conforms to ISO 8601 format
-        source:
-          type: object
-          properties:
-            parameter:
-              type: string
-          example: example_value
-    signalDefinition:
-      type: object
-      required:
-      - data
-      properties:
-        data:
-          type: object
-          required:
-          - signalId
-          - theme
-          - categories
-          - contract
-          properties:
-            signalId:
-              type: string
-            theme:
-              type: string
-            categories:
-              type: array
-              items:
-                type: string
-            contract:
-              $ref: '#/components/schemas/contract'
-          example: example_value
-    rateLimitResponse:
-      title: Rate Limit Error Object
-      description: Error returned if any of the user's rate limit have been reached.
-      properties:
-        message:
-          type: string
-          example: API rate limit exceeded
     EntityDTO:
       type: object
       properties:
@@ -589,18 +589,6 @@ components:
         code:
           type: string
           example: example_value
-    Error:
-      type: object
-      properties:
-        id:
-          type: string
-          example: abc123
-        code:
-          type: string
-          example: example_value
-        title:
-          type: string
-          example: Example Title
     DataSourceDTO:
       type: object
       properties:
@@ -644,6 +632,14 @@ components:
         lastUpdated:
           type: number
           example: 42.5
+    ErrorList:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+          example: []
     DataSourceList:
       type: object
       properties:
@@ -667,40 +663,44 @@ components:
           items:
             $ref: '#/components/schemas/DataSourceDTO'
           example: []
-    ErrorList:
+    Error:
       type: object
       properties:
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/Error'
-          example: []
+        id:
+          type: string
+          example: abc123
+        code:
+          type: string
+          example: example_value
+        title:
+          type: string
+          example: Example Title
   headers:
-    RateLimit-Limit:
-      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
-      schema:
-        type: integer
-        example: 5
-    Api-Supported-Versions:
-      description: Comma-separated list of supported major versions.
-      schema:
-        type: string
-        example: '1'
-    RateLimit-Remaining:
-      description: Remaining number of requests in the current time window.
-      schema:
-        type: integer
-        example: 4
     RateLimit-Reset:
       description: Time remaining (in seconds) until the quota is reset.
       schema:
         type: integer
         example: 1000
+    RateLimit-Limit:
+      description: Total number of requests allowed in a specific time window. The time window is two seconds for regular API users and one week for limited access users.
+      schema:
+        type: integer
+        example: 5
+    RateLimit-Remaining:
+      description: Remaining number of requests in the current time window.
+      schema:
+        type: integer
+        example: 4
     Api-Version:
       description: Full semantic version of the API.
       schema:
         type: string
         example: 1.0.0
+    Api-Supported-Versions:
+      description: Comma-separated list of supported major versions.
+      schema:
+        type: string
+        example: '1'
   parameters:
     signalIdParam:
       name: signalId

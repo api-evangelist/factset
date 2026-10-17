@@ -284,104 +284,6 @@ paths:
           description: Request timed out. Retry the request in sometime.
 components:
   schemas:
-    EMSCancelOrder:
-      required:
-      - originalClientOrderId
-      type: object
-      properties:
-        originalClientOrderId:
-          type: string
-          description: Unique identifier of the original order, generated in Create.
-        inboundDestination:
-          type:
-          - string
-          - 'null'
-          description: To facilitate integration with translators that transform orders into a format compatible with the internal order routing and execution infrastructure.
-      description: EMS Cancel Order
-    EMSReplaceOrdersRoot:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/EMSReplaceOrders'
-    ClientErrorResponse:
-      type: object
-      properties:
-        errors:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Error'
-          description: List of errors
-      description: Client Error Response
-    EMSOrdersResponseRoot:
-      required:
-      - data
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/EMSOrdersResponse'
-      description: EMS Response
-    EMSReplaceOrders:
-      type: object
-      properties:
-        investorId:
-          type:
-          - string
-          - 'null'
-          description: Investor Id
-          example: DEMO-12345
-        orders:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/EMSReplaceOrder'
-          description: List of orders to replace
-      description: EMS Replace Orders
-    Error:
-      type: object
-      properties:
-        id:
-          type:
-          - string
-          - 'null'
-          description: Identifier for the error
-        code:
-          type:
-          - string
-          - 'null'
-          description: Code
-        title:
-          type:
-          - string
-          - 'null'
-          description: Title
-        detail:
-          type:
-          - string
-          - 'null'
-          description: Explanation specific to the occurrence of the error
-        source:
-          $ref: '#/components/schemas/ErrorSource'
-      description: Error
-    EMSCancelOrders:
-      type: object
-      properties:
-        investorId:
-          type:
-          - string
-          - 'null'
-          description: Investor Id
-          example: DEMO-12345
-        orders:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/EMSCancelOrder'
-          description: List of orders to cancel
-      description: EMS Cancel Orders
     EMSOrder:
       required:
       - instrument
@@ -597,6 +499,50 @@ components:
             type: string
           description: User defined fields
       description: EMS Order
+    TimeInForce:
+      type: object
+      properties:
+        tif:
+          enum:
+          - day
+          - goodTillCancel
+          - atTheOpening
+          - immediateOrCancel
+          - fillOrKill
+          - goodTillCrossing
+          - goodTillDate
+          - atc
+          type: string
+          description: 'Time in force: if goodTillDate, then Expire Time or Expire Date is a required field'
+        expireDate:
+          type:
+          - string
+          - 'null'
+          description: Expire date in YYYYMMDD format expressed in UTC
+          example: '20230823'
+        expireTime:
+          type:
+          - string
+          - 'null'
+          description: Expire time in YYYYMMDD-HH:MM:SS format expressed in UTC
+          example: 20230823-12:20:25
+      description: Time in Force
+    ClientErrorResponse:
+      type: object
+      properties:
+        errors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Error'
+          description: List of errors
+      description: Client Error Response
+    EMSCancelOrdersRoot:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/EMSCancelOrders'
     Instrument:
       required:
       - symbol
@@ -656,11 +602,32 @@ components:
           - 'null'
           description: Underlying security’s SecurityType.
       description: Instrument
-    EMSOrdersRoot:
+    EMSOrdersResponseRoot:
+      required:
+      - data
       type: object
       properties:
         data:
-          $ref: '#/components/schemas/EMSOrders'
+          $ref: '#/components/schemas/EMSOrdersResponse'
+      description: EMS Response
+    EMSOrdersResponse:
+      type: object
+      properties:
+        accepted:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            $ref: '#/components/schemas/EMSOrderMetadata'
+          description: Accepted Orders
+        rejected:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            $ref: '#/components/schemas/EMSOrderMetadata'
+          description: Rejected Orders
+      description: EMS Orders Response
     EMSReplaceOrder:
       required:
       - order
@@ -673,28 +640,30 @@ components:
         order:
           $ref: '#/components/schemas/EMSOrder'
       description: EMS Replace Order
-    EMSCancelOrdersRoot:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/EMSCancelOrders'
-    EMSOrders:
+    EMSCancelOrder:
       required:
-      - orders
+      - originalClientOrderId
       type: object
       properties:
-        investorId:
+        originalClientOrderId:
+          type: string
+          description: Unique identifier of the original order, generated in Create.
+        inboundDestination:
           type:
           - string
           - 'null'
-          description: Investor Id
-          example: DEMO-12345
-        orders:
-          type: array
-          items:
-            $ref: '#/components/schemas/EMSOrder'
-          description: List of orders
-      description: EMS Orders
+          description: To facilitate integration with translators that transform orders into a format compatible with the internal order routing and execution infrastructure.
+      description: EMS Cancel Order
+    EMSReplaceOrdersRoot:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/EMSReplaceOrders'
+    EMSOrdersRoot:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/EMSOrders'
     EMSOrderMetadata:
       type: object
       properties:
@@ -752,24 +721,6 @@ components:
           - 'null'
           description: Warning
       description: EMS Order Metadata
-    EMSOrdersResponse:
-      type: object
-      properties:
-        accepted:
-          type:
-          - object
-          - 'null'
-          additionalProperties:
-            $ref: '#/components/schemas/EMSOrderMetadata'
-          description: Accepted Orders
-        rejected:
-          type:
-          - object
-          - 'null'
-          additionalProperties:
-            $ref: '#/components/schemas/EMSOrderMetadata'
-          description: Rejected Orders
-      description: EMS Orders Response
     ErrorSource:
       type: object
       properties:
@@ -784,34 +735,83 @@ components:
           - 'null'
           description: Indicates which path or URI query parameter caused the error
       description: Error Source
-    TimeInForce:
+    EMSReplaceOrders:
       type: object
       properties:
-        tif:
-          enum:
-          - day
-          - goodTillCancel
-          - atTheOpening
-          - immediateOrCancel
-          - fillOrKill
-          - goodTillCrossing
-          - goodTillDate
-          - atc
-          type: string
-          description: 'Time in force: if goodTillDate, then Expire Time or Expire Date is a required field'
-        expireDate:
+        investorId:
           type:
           - string
           - 'null'
-          description: Expire date in YYYYMMDD format expressed in UTC
-          example: '20230823'
-        expireTime:
+          description: Investor Id
+          example: DEMO-12345
+        orders:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/EMSReplaceOrder'
+          description: List of orders to replace
+      description: EMS Replace Orders
+    EMSCancelOrders:
+      type: object
+      properties:
+        investorId:
           type:
           - string
           - 'null'
-          description: Expire time in YYYYMMDD-HH:MM:SS format expressed in UTC
-          example: 20230823-12:20:25
-      description: Time in Force
+          description: Investor Id
+          example: DEMO-12345
+        orders:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/EMSCancelOrder'
+          description: List of orders to cancel
+      description: EMS Cancel Orders
+    EMSOrders:
+      required:
+      - orders
+      type: object
+      properties:
+        investorId:
+          type:
+          - string
+          - 'null'
+          description: Investor Id
+          example: DEMO-12345
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/EMSOrder'
+          description: List of orders
+      description: EMS Orders
+    Error:
+      type: object
+      properties:
+        id:
+          type:
+          - string
+          - 'null'
+          description: Identifier for the error
+        code:
+          type:
+          - string
+          - 'null'
+          description: Code
+        title:
+          type:
+          - string
+          - 'null'
+          description: Title
+        detail:
+          type:
+          - string
+          - 'null'
+          description: Explanation specific to the occurrence of the error
+        source:
+          $ref: '#/components/schemas/ErrorSource'
+      description: Error
   securitySchemes:
     FactSetApiKey:
       type: http

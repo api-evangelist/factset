@@ -497,16 +497,44 @@ paths:
           $ref: '#/components/responses/500'
 components:
   schemas:
-    identifierResolutionHistoricalResponse:
-      title: Historical Identifier Resolution Response
-      description: Response object for Historical Identifier Resolution endpoint.
-      type: object
-      properties:
-        data:
-          description: Array of symbol translation objects.
-          type: array
-          items:
-            $ref: '#/components/schemas/identifierResolutionHistorical'
+    getOutputSymbolTypes:
+      title: Output Symbol Types
+      type: array
+      items:
+        type: string
+        enum:
+        - BIC
+        - CIK
+        - CRD
+        - EIN
+        - FITCH
+        - LEI
+        - MD
+        - SPR
+        - WKN
+        - UKCH
+        - RSSD
+        - SEDOL
+        - CUSIP
+        - fsymEntityId
+        - fsymSecurityId
+        - fsymRegionalId
+        - fsymListingId
+        - ISIN
+        - tickerExchange
+        - tickerRegion
+        - JCN
+        - bloombergListingTicker
+        - bloombergRegionalTicker
+        - bloombergFigiListing
+        - bloombergFigiRegional
+        - bloombergFigiSecurity
+      minItems: 1
+      maxItems: 20
+      description: Requested identifiers to be returned. Multiple identifier types can be requested with each request.
+      example:
+      - CUSIP
+      - SEDOL
     identifierResolutionHistoricalRequestBody:
       title: Historical Identifier Resolution Request
       description: Request object for Historical Identifier Resolution endpoint.
@@ -524,6 +552,143 @@ components:
       - ids
       - inputSymbolType
       - outputSymbolTypes
+    identifierResolution:
+      title: Identifier Resolution
+      description: Identifier Resolution data object.
+      type: object
+      properties:
+        requestId:
+          type: string
+          description: Identifier inputted in the request.
+          example: GOOGL-US
+        inputSymbolType:
+          type: string
+          description: The type of identifier inputted in the request
+          example: tickerRegion
+        name:
+          type:
+          - string
+          - 'null'
+          description: Name of the requested identifier
+          example: Alphabet Inc. Class A
+        frefListingExchange:
+          type:
+          - string
+          - 'null'
+          description: The 3 digit fref exchange code for the primary exchange of the security
+          example: USA
+        currency:
+          type:
+          - string
+          - 'null'
+          description: The 3 digit ISO code for the currency
+          example: USD
+      additionalProperties:
+        title: Requested output symbol type
+        description: "The Key in the Key-Value pair is the name of the requested outputSymbolType. The Value in the Key-Value is the requestId translated to the outputSymbolType. \n"
+        example: '"cusip": "02079K305"'
+        type:
+        - string
+        - 'null'
+    getAsOfDate:
+      title: As of Date
+      type: string
+      format: date
+      description: 'As of date for historical symbol request in YYYY-MM-DD format.
+
+        If no `asOfDate` is requested, the response will include the full history of the identifier.
+
+        '
+      example: '2010-01-01'
+    identifierResolutionHistoricalResponse:
+      title: Historical Identifier Resolution Response
+      description: Response object for Historical Identifier Resolution endpoint.
+      type: object
+      properties:
+        data:
+          description: Array of symbol translation objects.
+          type: array
+          items:
+            $ref: '#/components/schemas/identifierResolutionHistorical'
+    getInputSymbolType:
+      title: Input Symbol Type
+      type: string
+      description: The type of symbol submitted for resolution to other identifiers. Only one type of symbol is accepted with each request.
+      enum:
+      - BIC
+      - CIK
+      - CRD
+      - DUNS
+      - EIN
+      - FITCH
+      - LEI
+      - MD
+      - SPR
+      - VALOREN
+      - WKN
+      - UKCH
+      - RSSD
+      - SEDOL
+      - CUSIP
+      - fsymEntityId
+      - fsymSecurityId
+      - fsymRegionalId
+      - fsymListingId
+      - ISIN
+      - tickerExchange
+      - tickerRegion
+      - bloombergFigi
+      - bloombergTicker
+      - GVKEY
+      - GVKEY & IID
+      - JCN
+      - LoanX
+      - MarkitRed
+      default: tickerRegion
+    errorResponseHistorical:
+      type: object
+      title: Error Response Historical Identifier Resolution
+      description: Error Default Response
+      properties:
+        errors:
+          type: array
+          description: An array containing errors
+          items:
+            $ref: '#/components/schemas/errorObject'
+    getHistoricalInputSymbolType:
+      title: Input Symbol Type
+      type: string
+      description: The type of symbol submitted for resolution to other identifiers. Only one type of symbol is accepted with each request.
+      enum:
+      - BIC
+      - CIK
+      - CRD
+      - DUNS
+      - EIN
+      - FITCH
+      - LEI
+      - MD
+      - SPR
+      - VALOREN
+      - WKN
+      - UKCH
+      - RSSD
+      - SEDOL
+      - CUSIP
+      - fsymEntityId
+      - fsymSecurityId
+      - fsymRegionalId
+      - fsymListingId
+      - ISIN
+      - tickerExchange
+      - tickerRegion
+      - bloombergFigi
+      - bloombergTicker
+      - GVKEY
+      - GVKEY & IID
+      - JCN
+      - LoanX
+      - MarkitRed
     errorObject:
       type: object
       properties:
@@ -547,25 +712,6 @@ components:
           description: The plain text error message
           type: string
           example: Validation Error
-    getAsOfDate:
-      title: As of Date
-      type: string
-      format: date
-      description: 'As of date for historical symbol request in YYYY-MM-DD format.
-
-        If no `asOfDate` is requested, the response will include the full history of the identifier.
-
-        '
-      example: '2010-01-01'
-    identifierResolutionHistoricalRequest:
-      title: Historical Identifier Resolution Request
-      description: Request object for Historical Identifier Resolution endpoint.
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/identifierResolutionHistoricalRequestBody'
-      required:
-      - data
     identifierResolutionHistorical:
       title: Historical Identifier Resolution
       description: Historical Identifier Resolution data object.
@@ -623,88 +769,31 @@ components:
           format: date
           description: End Date in YYYY-MM-DD format.
           example: '2010-01-01'
-    identifierResolution:
-      title: Identifier Resolution
-      description: Identifier Resolution data object.
-      type: object
-      properties:
-        requestId:
-          type: string
-          description: Identifier inputted in the request.
-          example: GOOGL-US
-        inputSymbolType:
-          type: string
-          description: The type of identifier inputted in the request
-          example: tickerRegion
-        name:
-          type:
-          - string
-          - 'null'
-          description: Name of the requested identifier
-          example: Alphabet Inc. Class A
-        frefListingExchange:
-          type:
-          - string
-          - 'null'
-          description: The 3 digit fref exchange code for the primary exchange of the security
-          example: USA
-        currency:
-          type:
-          - string
-          - 'null'
-          description: The 3 digit ISO code for the currency
-          example: USD
-      additionalProperties:
-        title: Requested output symbol type
-        description: "The Key in the Key-Value pair is the name of the requested outputSymbolType. The Value in the Key-Value is the requestId translated to the outputSymbolType. \n"
-        example: '"cusip": "02079K305"'
-        type:
-        - string
-        - 'null'
-    getHistoricalInputSymbolType:
-      title: Input Symbol Type
-      type: string
-      description: The type of symbol submitted for resolution to other identifiers. Only one type of symbol is accepted with each request.
-      enum:
-      - BIC
-      - CIK
-      - CRD
-      - DUNS
-      - EIN
-      - FITCH
-      - LEI
-      - MD
-      - SPR
-      - VALOREN
-      - WKN
-      - UKCH
-      - RSSD
-      - SEDOL
+    getHistoricalOutputSymbolTypes:
+      title: Output Symbol Types
+      type: array
+      items:
+        type: string
+        enum:
+        - SEDOL
+        - CUSIP
+        - ISIN
+        - tickerRegion
+      minItems: 1
+      maxItems: 20
+      description: Requested identifiers to be returned. Multiple identifier types can be requested with each request.
+      example:
       - CUSIP
-      - fsymEntityId
-      - fsymSecurityId
-      - fsymRegionalId
-      - fsymListingId
-      - ISIN
-      - tickerExchange
-      - tickerRegion
-      - bloombergFigi
-      - bloombergTicker
-      - GVKEY
-      - GVKEY & IID
-      - JCN
-      - LoanX
-      - MarkitRed
-    errorResponseHistorical:
+      - SEDOL
+    identifierResolutionHistoricalRequest:
+      title: Historical Identifier Resolution Request
+      description: Request object for Historical Identifier Resolution endpoint.
       type: object
-      title: Error Response Historical Identifier Resolution
-      description: Error Default Response
       properties:
-        errors:
-          type: array
-          description: An array containing errors
-          items:
-            $ref: '#/components/schemas/errorObject'
+        data:
+          $ref: '#/components/schemas/identifierResolutionHistoricalRequestBody'
+      required:
+      - data
     identifierResolutionRequest:
       title: Identifier Resolution Request
       description: Request object for Identifier Resolution endpoint.
@@ -720,51 +809,6 @@ components:
       - ids
       - inputSymbolType
       - outputSymbolTypes
-    identifierResolutionResponse:
-      title: Identifier Resolution Response
-      description: Response object for Identifier Resolution endpoint.
-      type: object
-      properties:
-        data:
-          description: Array of symbol translation objects.
-          type: array
-          items:
-            $ref: '#/components/schemas/identifierResolution'
-    getInputSymbolType:
-      title: Input Symbol Type
-      type: string
-      description: The type of symbol submitted for resolution to other identifiers. Only one type of symbol is accepted with each request.
-      enum:
-      - BIC
-      - CIK
-      - CRD
-      - DUNS
-      - EIN
-      - FITCH
-      - LEI
-      - MD
-      - SPR
-      - VALOREN
-      - WKN
-      - UKCH
-      - RSSD
-      - SEDOL
-      - CUSIP
-      - fsymEntityId
-      - fsymSecurityId
-      - fsymRegionalId
-      - fsymListingId
-      - ISIN
-      - tickerExchange
-      - tickerRegion
-      - bloombergFigi
-      - bloombergTicker
-      - GVKEY
-      - GVKEY & IID
-      - JCN
-      - LoanX
-      - MarkitRed
-      default: tickerRegion
     getIdsResolution:
       title: Identifier List for Resolution
       type: array
@@ -775,44 +819,6 @@ components:
       description: Requested market securities or entities. All requested identifiers must be of the same type. Accepted identifiers include all FactSet Permanent Identifiers types, CUSIP, SEDOL, ISIN, and Tickers. This request value is sent back in the response as, `requestId'.
       example:
       - GOOGL-US
-    getOutputSymbolTypes:
-      title: Output Symbol Types
-      type: array
-      items:
-        type: string
-        enum:
-        - BIC
-        - CIK
-        - CRD
-        - EIN
-        - FITCH
-        - LEI
-        - MD
-        - SPR
-        - WKN
-        - UKCH
-        - RSSD
-        - SEDOL
-        - CUSIP
-        - fsymEntityId
-        - fsymSecurityId
-        - fsymRegionalId
-        - fsymListingId
-        - ISIN
-        - tickerExchange
-        - tickerRegion
-        - JCN
-        - bloombergListingTicker
-        - bloombergRegionalTicker
-        - bloombergFigiListing
-        - bloombergFigiRegional
-        - bloombergFigiSecurity
-      minItems: 1
-      maxItems: 20
-      description: Requested identifiers to be returned. Multiple identifier types can be requested with each request.
-      example:
-      - CUSIP
-      - SEDOL
     errorResponse:
       type: object
       title: Error Response Identifier Resolution
@@ -852,33 +858,27 @@ components:
               type: array
               items:
                 type: string
-    getHistoricalOutputSymbolTypes:
-      title: Output Symbol Types
-      type: array
-      items:
-        type: string
-        enum:
-        - SEDOL
-        - CUSIP
-        - ISIN
-        - tickerRegion
-      minItems: 1
-      maxItems: 20
-      description: Requested identifiers to be returned. Multiple identifier types can be requested with each request.
-      example:
-      - CUSIP
-      - SEDOL
+    identifierResolutionResponse:
+      title: Identifier Resolution Response
+      description: Response object for Identifier Resolution endpoint.
+      type: object
+      properties:
+        data:
+          description: Array of symbol translation objects.
+          type: array
+          items:
+            $ref: '#/components/schemas/identifierResolution'
   examples:
-    forbiddenIdentifierHistorical:
-      summary: Forbidden Identifier
-      description: The USERNAME-SERIAL attempted to request an identifier it is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+    notWritableHistorical:
+      summary: Internal Server Error
+      description: This error may be returned when the server encounters an error writing the JSON response.
       value:
         errors:
         - id: adb01824-252f-4420-b0c6
-          code: Forbidden
+          code: Internal Server Error
           links:
             about: /symbology/v3/{endpoint}
-          title: USERNAME-SERIAL does not have permission to use {identifier}
+          title: Error writing JSON output
     singleHistoricalIdentifierResolutionPost:
       summary: Translating a single security or entity identifier into other identifiers from a Post Body.
       description: Translating a security or entity identifier into other identifiers from a Post Body.
@@ -890,16 +890,19 @@ components:
           outputSymbolTypes:
           - CUSIP
           - SEDOL
-    unauthenticatedHistorical:
-      summary: User Authentication Failed
-      description: This occurs when a user is not properly authenticated or recognized by the service. Please double check the USERNAME-SERIAL and API-Key used to request and ensure you are within the IP range specified for the Key. Report Issue under 401 error for help with troubleshooting.
+    multipleHistoricalIdentifierResolutionPost:
+      summary: Translating a multiple security or entity identifiers into other identifiers from a Post Body.
+      description: Translating a security or entity identifier into other identifiers from a Post Body.
       value:
-        errors:
-        - id: adb01824-252f-4420-b0c6
-          code: User Authentication Failed
-          links:
-            about: /symbology/v3/{endpoint}
-          title: User Authentication Failed.
+        data:
+          ids:
+          - GOOGL-US
+          - AAPL-US
+          - MSFT-US
+          inputSymbolType: tickerRegion
+          outputSymbolTypes:
+          - CUSIP
+          - SEDOL
     badRequestInvalidParameters:
       summary: Bad Request - Invalid Parameters
       description: This error message occurs when a request parameter is used in which is not recognized by the service. Please revise your request to include only the parameters listed in the specification. Typical causes are spelling mistakes and use of improper casing.
@@ -909,23 +912,108 @@ components:
         path: /symbology/v3/{endpoint}
         message: 'Invalid Parameter (s): fakeParameterName1 fakeParameterName2. Please modify your request to use parameters outlined in the specification for this endpoint.'
         subErrors: null
-    generalException:
+    badRequestReadTimeout:
+      summary: Bad Request - Read Timeout
+      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
+      value:
+        status: Bad Request
+        timestamp: '2019-11-04 16:18:38.949'
+        path: /symbology/v3/{endpoint}
+        message: The request took too long. Try again with a smaller request.
+        subErrors: null
+    multipleIdentifierResolution:
+      summary: Translating multiple security or entity identifiers into other identifiers.
+      description: Translating multiple security or entity identifiers into other identifiers.
+      value:
+        data:
+        - requestId: GOOGL-US
+          inputSymbolType: tickerRegion
+          cusip: 02079K305
+          sedol: BYVY8G0
+          name: Alphabet Inc. Class A
+          frefListingExchange: USA
+        - requestId: AAPL-US
+          inputSymbolType: tickerRegion
+          cusip: 037833100
+          sedol: '2046251'
+          name: Apple, Inc.
+          frefListingExchange: NAS
+        - requestId: MSFT-US
+          inputSymbolType: tickerRegion
+          cusip: '594918104'
+          sedol: '2588173'
+          name: Microsoft Corporation
+          frefListingExchange: NAS
+    forbiddenIdentifierHistorical:
+      summary: Forbidden Identifier
+      description: The USERNAME-SERIAL attempted to request an identifier it is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Forbidden
+          links:
+            about: /symbology/v3/{endpoint}
+          title: USERNAME-SERIAL does not have permission to use {identifier}
+    singleHistoricalIdentifierResolution:
+      summary: Translating a single security or entity identifier into other identifiers.
+      description: Translating a single security or entity identifier into other identifiers.
+      value:
+        data:
+        - requestId: GOOGL-US
+          inputSymbolType: tickerRegion
+          name: Alphabet Inc. Class A
+          frefListingExchange: USA
+          currency: USD
+          outputType: CUSIP
+          value: '234987038'
+          startDate: '2010-01-01'
+          endDate: '2010-01-01'
+        - requestId: GOOGL-US
+          inputSymbolType: tickerRegion
+          name: Alphabet Inc. Class A
+          frefListingExchange: USA
+          currency: USD
+          outputType: SEDOL
+          value: '452343'
+          startDate: '2010-01-01'
+          endDate: '2010-01-01'
+    forbidden:
+      summary: Forbidden
+      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      value:
+        status: Forbidden
+        timestamp: '2020-06-12 16:08:51.731'
+        path: /symbology/v3/{endpoint}
+        message: USERNAME-SERIAL does not have permission to use /symbology/v3/{endpoint}
+        subErrors: null
+    generalExceptionHistorical:
       summary: Internal Server Error - General Exception
       description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
       value:
-        status: Internal Server Error
-        timestamp: '2019-11-01 10:36:01.944'
-        path: /symbology/v3/{endpoint}
-        message: Unexpected error
-        subErrors: null
-    unauthenticated:
-      summary: User Authentication Failed
-      description: This occurs when a user is not properly authenticated or recognized by the service. Please double check the USERNAME-SERIAL and API-Key used to request and ensure you are within the IP range specified for the Key. Report Issue under 401 error for help with troubleshooting.
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Internal Server Error
+          links:
+            about: /symbology/v3/{endpoint}
+          title: Unexpected error
+    singleIdentifierResolutionPost:
+      summary: Translating a single security or entity identifier into other identifiers from a Post Body.
+      description: Translating a security or entity identifier into other identifiers from a Post Body.
       value:
-        status: User Authentication Failed
-        timestamp: '2019-10-31 16:08:07.945'
+        ids:
+        - GOOGL-US
+        inputSymbolType: tickerRegion
+        outputSymbolTypes:
+        - CUSIP
+        - SEDOL
+    forbiddenIdentifier:
+      summary: Forbidden Identifier
+      description: The USERNAME-SERIAL attempted to request an identifier it is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
+      value:
+        status: Forbidden
+        timestamp: '2020-06-12 16:08:51.731'
         path: /symbology/v3/{endpoint}
-        message: User Authentication Failed.
+        message: USERNAME-SERIAL does not have permission to use {identifier}
         subErrors: null
     multipleHistoricalIdentifierResolution:
       summary: Translating multiple security or entity identifiers into other identifiers.
@@ -986,25 +1074,15 @@ components:
           value: '2046251'
           startDate: '2010-01-01'
           endDate: '2010-01-01'
-    badRequestReadTimeout:
-      summary: Bad Request - Read Timeout
-      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
-      value:
-        status: Bad Request
-        timestamp: '2019-11-04 16:18:38.949'
-        path: /symbology/v3/{endpoint}
-        message: The request took too long. Try again with a smaller request.
-        subErrors: null
-    notWritableHistorical:
-      summary: Internal Server Error
+    notWritable:
+      summary: Internal Server Error - Not Writable
       description: This error may be returned when the server encounters an error writing the JSON response.
       value:
-        errors:
-        - id: adb01824-252f-4420-b0c6
-          code: Internal Server Error
-          links:
-            about: /symbology/v3/{endpoint}
-          title: Error writing JSON output
+        status: Internal Server Error
+        timestamp: '2019-11-05 09:48:29.18'
+        path: /symbology/v3/{endpoint}
+        message: Error writing JSON output
+        subErrors: null
     badRequestMalformedJSONHistorical:
       summary: Bad Request - Malformed JSON Request
       description: This error may be returned when the request body is specified as JSON, but is not in proper JSON format.
@@ -1015,15 +1093,6 @@ components:
           links:
             about: /symbology/v3/{endpoint}
           title: Malformed JSON Request
-    forbiddenIdentifier:
-      summary: Forbidden Identifier
-      description: The USERNAME-SERIAL attempted to request an identifier it is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
-      value:
-        status: Forbidden
-        timestamp: '2020-06-12 16:08:51.731'
-        path: /symbology/v3/{endpoint}
-        message: USERNAME-SERIAL does not have permission to use {identifier}
-        subErrors: null
     forbiddenHistorical:
       summary: Forbidden
       description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
@@ -1046,6 +1115,16 @@ components:
         outputSymbolTypes:
         - CUSIP
         - SEDOL
+    badRequestReadTimeoutHistorical:
+      summary: Bad Request - Read Timeout
+      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Bad Request
+          links:
+            about: /symbology/v3/{endpoint}
+          title: The request took too long. Try again with a smaller request.
     badRequestInvalidParametersHistorical:
       summary: Bad Request - Invalid Parameters
       description: This error message occurs when a request parameter is used in which is not recognized by the service. Please revise your request to include only the parameters listed in the specification. Typical causes are spelling mistakes and use of improper casing.
@@ -1056,80 +1135,6 @@ components:
           links:
             about: /symbology/v3/{endpoint}
           title: 'Invalid Parameter (s): fakeParameterName1 fakeParameterName2. Please modify your request to use parameters outlined in the specification for this endpoint.'
-    singleHistoricalIdentifierResolution:
-      summary: Translating a single security or entity identifier into other identifiers.
-      description: Translating a single security or entity identifier into other identifiers.
-      value:
-        data:
-        - requestId: GOOGL-US
-          inputSymbolType: tickerRegion
-          name: Alphabet Inc. Class A
-          frefListingExchange: USA
-          currency: USD
-          outputType: CUSIP
-          value: '234987038'
-          startDate: '2010-01-01'
-          endDate: '2010-01-01'
-        - requestId: GOOGL-US
-          inputSymbolType: tickerRegion
-          name: Alphabet Inc. Class A
-          frefListingExchange: USA
-          currency: USD
-          outputType: SEDOL
-          value: '452343'
-          startDate: '2010-01-01'
-          endDate: '2010-01-01'
-    multipleIdentifierResolution:
-      summary: Translating multiple security or entity identifiers into other identifiers.
-      description: Translating multiple security or entity identifiers into other identifiers.
-      value:
-        data:
-        - requestId: GOOGL-US
-          inputSymbolType: tickerRegion
-          cusip: 02079K305
-          sedol: BYVY8G0
-          name: Alphabet Inc. Class A
-          frefListingExchange: USA
-        - requestId: AAPL-US
-          inputSymbolType: tickerRegion
-          cusip: 037833100
-          sedol: '2046251'
-          name: Apple, Inc.
-          frefListingExchange: NAS
-        - requestId: MSFT-US
-          inputSymbolType: tickerRegion
-          cusip: '594918104'
-          sedol: '2588173'
-          name: Microsoft Corporation
-          frefListingExchange: NAS
-    unsupportedMediaType:
-      summary: Unsupported Media Type
-      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
-      value:
-        status: Unsupported Media Type
-        timestamp: '2019-11-05 09:42:27.237'
-        path: /symbology/v3/{endpoint}
-        message: text/html media type is not supported. Supported media types are application/json
-        subErrors: null
-    unsupportedMediaTypeHistorical:
-      summary: Unsupported Media Type
-      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
-      value:
-        errors:
-        - id: adb01824-252f-4420-b0c6
-          code: Unsupported Media Type
-          links:
-            about: /symbology/v3/{endpoint}
-          title: text/html media type is not supported. Supported media types are application/json.
-    badRequestRequiredParameter:
-      summary: Bad Request - Required Parameter Missing
-      description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisks symbol in the specification file.
-      value:
-        status: Bad Request
-        timestamp: '2020-07-24 17:17:24.963'
-        path: /symbology/v3/{endpoint}
-        message: The parameter 'ids' is required and may not be empty.
-        subErrors: null
     badRequestMalformedJSON:
       summary: Bad Request - Malformed JSON Request
       description: This error may be returned when the request body is specified as JSON, but is not in proper JSON format.
@@ -1150,67 +1155,34 @@ components:
           sedol: BYVY8G0
           name: Alphabet Inc. Class A
           frefListingExchange: USA
-    multipleHistoricalIdentifierResolutionPost:
-      summary: Translating a multiple security or entity identifiers into other identifiers from a Post Body.
-      description: Translating a security or entity identifier into other identifiers from a Post Body.
-      value:
-        data:
-          ids:
-          - GOOGL-US
-          - AAPL-US
-          - MSFT-US
-          inputSymbolType: tickerRegion
-          outputSymbolTypes:
-          - CUSIP
-          - SEDOL
-    forbidden:
-      summary: Forbidden
-      description: The USERNAME-SERIAL attempted to request the endpoint is not authorized to access. The request was a legal request, but the server is refusing to respond. Please reach out to FactSet Account Team for assistance with authorization.
-      value:
-        status: Forbidden
-        timestamp: '2020-06-12 16:08:51.731'
-        path: /symbology/v3/{endpoint}
-        message: USERNAME-SERIAL does not have permission to use /symbology/v3/{endpoint}
-        subErrors: null
-    badRequestReadTimeoutHistorical:
-      summary: Bad Request - Read Timeout
-      description: This error may be returned if it takes more than 29 seconds to hear back from the data fetch service.
+    unauthenticatedHistorical:
+      summary: User Authentication Failed
+      description: This occurs when a user is not properly authenticated or recognized by the service. Please double check the USERNAME-SERIAL and API-Key used to request and ensure you are within the IP range specified for the Key. Report Issue under 401 error for help with troubleshooting.
       value:
         errors:
         - id: adb01824-252f-4420-b0c6
-          code: Bad Request
+          code: User Authentication Failed
           links:
             about: /symbology/v3/{endpoint}
-          title: The request took too long. Try again with a smaller request.
-    generalExceptionHistorical:
-      summary: Internal Server Error - General Exception
-      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
+          title: User Authentication Failed.
+    badRequestRequiredParameter:
+      summary: Bad Request - Required Parameter Missing
+      description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisks symbol in the specification file.
       value:
-        errors:
-        - id: adb01824-252f-4420-b0c6
-          code: Internal Server Error
-          links:
-            about: /symbology/v3/{endpoint}
-          title: Unexpected error
-    notWritable:
-      summary: Internal Server Error - Not Writable
-      description: This error may be returned when the server encounters an error writing the JSON response.
-      value:
-        status: Internal Server Error
-        timestamp: '2019-11-05 09:48:29.18'
+        status: Bad Request
+        timestamp: '2020-07-24 17:17:24.963'
         path: /symbology/v3/{endpoint}
-        message: Error writing JSON output
+        message: The parameter 'ids' is required and may not be empty.
         subErrors: null
-    singleIdentifierResolutionPost:
-      summary: Translating a single security or entity identifier into other identifiers from a Post Body.
-      description: Translating a security or entity identifier into other identifiers from a Post Body.
+    unauthenticated:
+      summary: User Authentication Failed
+      description: This occurs when a user is not properly authenticated or recognized by the service. Please double check the USERNAME-SERIAL and API-Key used to request and ensure you are within the IP range specified for the Key. Report Issue under 401 error for help with troubleshooting.
       value:
-        ids:
-        - GOOGL-US
-        inputSymbolType: tickerRegion
-        outputSymbolTypes:
-        - CUSIP
-        - SEDOL
+        status: User Authentication Failed
+        timestamp: '2019-10-31 16:08:07.945'
+        path: /symbology/v3/{endpoint}
+        message: User Authentication Failed.
+        subErrors: null
     badRequestRequiredParameterHistorical:
       summary: Bad Request - Required Parameter Missing
       description: This error message occurs when the request does not include the required parameters. Required parameters are indicated with a red asterisks symbol in the specification file.
@@ -1221,6 +1193,34 @@ components:
           links:
             about: /symbology/v3/{endpoint}
           title: The parameter 'ids' is required and may not be empty.
+    unsupportedMediaType:
+      summary: Unsupported Media Type
+      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
+      value:
+        status: Unsupported Media Type
+        timestamp: '2019-11-05 09:42:27.237'
+        path: /symbology/v3/{endpoint}
+        message: text/html media type is not supported. Supported media types are application/json
+        subErrors: null
+    generalException:
+      summary: Internal Server Error - General Exception
+      description: This is the most general error that can be returned to by the service. Please `Report Issue` to FactSet.
+      value:
+        status: Internal Server Error
+        timestamp: '2019-11-01 10:36:01.944'
+        path: /symbology/v3/{endpoint}
+        message: Unexpected error
+        subErrors: null
+    unsupportedMediaTypeHistorical:
+      summary: Unsupported Media Type
+      description: This bad request occurs when the media type passed in the request is not supported. Currently the APIs only support 'application/json'.
+      value:
+        errors:
+        - id: adb01824-252f-4420-b0c6
+          code: Unsupported Media Type
+          links:
+            about: /symbology/v3/{endpoint}
+          title: text/html media type is not supported. Supported media types are application/json.
   responses:
     '401':
       description: Unauthenticated USERNAME-SERIAL. Ensure you are logged in and have successfully generated an API KEY for the IP range you are connecting from. For more help, select the **Report Issue** in the top right corner of this Developer Portal specification card and choose Connectivity 401 or 403 Responses.
@@ -1240,6 +1240,17 @@ components:
           examples:
             Bad Request - Date Format:
               $ref: '#/components/examples/unsupportedMediaTypeHistorical'
+    '500':
+      description: Internal Server Error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponseHistorical'
+          examples:
+            Internal Server Error - Not Writable:
+              $ref: '#/components/examples/notWritableHistorical'
+            Internal Server Error - General Exception:
+              $ref: '#/components/examples/generalExceptionHistorical'
     415Legacy:
       description: Unsupported Media Type. This error may be returned when the caller sends a resource in a format that is not accepted by the server. This can be fixed by ensuring that Content-Type header is set to the correct value. In this instance, "application/json" would be the appropriate value.
       content:
@@ -1269,72 +1280,7 @@ components:
           examples:
             Bad Request - Date Format:
               $ref: '#/components/examples/unauthenticated'
-    '500':
-      description: Internal Server Error.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/errorResponseHistorical'
-          examples:
-            Internal Server Error - Not Writable:
-              $ref: '#/components/examples/notWritableHistorical'
-            Internal Server Error - General Exception:
-              $ref: '#/components/examples/generalExceptionHistorical'
   parameters:
-    getIdsResolution:
-      name: ids
-      in: query
-      schema:
-        type: array
-        items:
-          type: string
-        minItems: 1
-        maxItems: 3000
-      required: true
-      explode: false
-      description: "Requested security or entity identifiers. All requested identifiers must be of the same type. This request value is sent back in the response as, `requestId'. <p>***ids limit** =  100 per request*</p>\n  *<p>NOTE:  GET Method URL request lines are also limited to a total\n  length of 8192 bytes (8KB). In cases where the service allows for thousands\n  of ids, which may lead to exceeding this request line limit of 8KB, its\n  advised for any requests with large request lines to be requested through\n  the respective \"POST\" method.</p>*\n"
-      examples:
-        singleMarketId:
-          summary: One Security or Entity Identifier
-          value:
-          - GOOGL-US
-        multipleMarketIds:
-          summary: Multiple Security or Entity Identifiers
-          value:
-          - GOOGL-US
-          - AAPL-US
-          - MSFT-US
-    getAsOfDate:
-      name: asOfDate
-      in: query
-      schema:
-        type: string
-        format: date
-      required: false
-      description: 'As of date for historical symbol request in YYYY-MM-DD format.
-
-        If no `asOfDate` is requested, the response will include the full history of the identifier.
-
-        '
-      example: '2010-01-01'
-    getHistoricalOutputSymbolTypes:
-      name: outputSymbolTypes
-      in: query
-      schema:
-        type: array
-        items:
-          type: string
-          enum:
-          - SEDOL
-          - CUSIP
-          - ISIN
-          - tickerRegion
-      required: true
-      explode: false
-      description: The type of symbols being outputted. Multiple types of symbols can be outputted with each request. The user must be authorized for the requested identifier type.
-      example:
-      - CUSIP
-      - SEDOL
     getOutputSymbolTypes:
       name: outputSymbolTypes
       in: query
@@ -1375,46 +1321,37 @@ components:
       example:
       - CUSIP
       - SEDOL
-    getHistoricalInputSymbolType:
-      name: inputSymbolType
+    getAsOfDate:
+      name: asOfDate
       in: query
       schema:
         type: string
-        enum:
-        - BIC
-        - CIK
-        - CRD
-        - DUNS
-        - EIN
-        - FITCH
-        - LEI
-        - MD
-        - SPR
-        - VALOREN
-        - WKN
-        - UKCH
-        - RSSD
-        - SEDOL
-        - CUSIP
-        - fsymEntityId
-        - fsymSecurityId
-        - fsymRegionalId
-        - fsymListingId
-        - ISIN
-        - tickerExchange
-        - tickerRegion
-        - bloombergFigi
-        - bloombergTicker
-        - GVKEY
-        - GVKEY & IID
-        - JCN
-        - LoanX
-        - MarkitRed
-      required: true
-      example: tickerRegion
-      description: 'The type of symbol being inputted. Only one type of symbol is accepted with each request.
+        format: date
+      required: false
+      description: 'As of date for historical symbol request in YYYY-MM-DD format.
+
+        If no `asOfDate` is requested, the response will include the full history of the identifier.
 
         '
+      example: '2010-01-01'
+    getHistoricalOutputSymbolTypes:
+      name: outputSymbolTypes
+      in: query
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+          - SEDOL
+          - CUSIP
+          - ISIN
+          - tickerRegion
+      required: true
+      explode: false
+      description: The type of symbols being outputted. Multiple types of symbols can be outputted with each request. The user must be authorized for the requested identifier type.
+      example:
+      - CUSIP
+      - SEDOL
     getInputSymbolType:
       name: inputSymbolType
       in: query
@@ -1455,6 +1392,69 @@ components:
       description: 'The type of symbol being inputted. Only one type of symbol is accepted with each request.
 
         '
+    getHistoricalInputSymbolType:
+      name: inputSymbolType
+      in: query
+      schema:
+        type: string
+        enum:
+        - BIC
+        - CIK
+        - CRD
+        - DUNS
+        - EIN
+        - FITCH
+        - LEI
+        - MD
+        - SPR
+        - VALOREN
+        - WKN
+        - UKCH
+        - RSSD
+        - SEDOL
+        - CUSIP
+        - fsymEntityId
+        - fsymSecurityId
+        - fsymRegionalId
+        - fsymListingId
+        - ISIN
+        - tickerExchange
+        - tickerRegion
+        - bloombergFigi
+        - bloombergTicker
+        - GVKEY
+        - GVKEY & IID
+        - JCN
+        - LoanX
+        - MarkitRed
+      required: true
+      example: tickerRegion
+      description: 'The type of symbol being inputted. Only one type of symbol is accepted with each request.
+
+        '
+    getIdsResolution:
+      name: ids
+      in: query
+      schema:
+        type: array
+        items:
+          type: string
+        minItems: 1
+        maxItems: 3000
+      required: true
+      explode: false
+      description: "Requested security or entity identifiers. All requested identifiers must be of the same type. This request value is sent back in the response as, `requestId'. <p>***ids limit** =  100 per request*</p>\n  *<p>NOTE:  GET Method URL request lines are also limited to a total\n  length of 8192 bytes (8KB). In cases where the service allows for thousands\n  of ids, which may lead to exceeding this request line limit of 8KB, its\n  advised for any requests with large request lines to be requested through\n  the respective \"POST\" method.</p>*\n"
+      examples:
+        singleMarketId:
+          summary: One Security or Entity Identifier
+          value:
+          - GOOGL-US
+        multipleMarketIds:
+          summary: Multiple Security or Entity Identifiers
+          value:
+          - GOOGL-US
+          - AAPL-US
+          - MSFT-US
   securitySchemes:
     BasicAuth:
       type: http

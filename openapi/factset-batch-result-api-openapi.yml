@@ -58,44 +58,17 @@ paths:
           $ref: '#/components/responses/404'
       deprecated: false
 components:
+  responses:
+    '404':
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+          examples:
+            Batch Request Not Found:
+              $ref: '#/components/examples/notFound'
   examples:
-    resultOfSingleIdwithSingleMetricItemSegment:
-      summary: Result of Single Company single metric item [SALES] details.
-      description: 'Results of the AAPL-US sales data for the period 2012-01-01 to 2014-01-01 on an annual basis with the preliminary data Values.
-
-        '
-      value:
-        data:
-        - requestId: AAPL-US
-          fsymId: MH33D6-R
-          metric: SALES
-          date: 2012-09-28 00:00:00+00:00
-          label: iPhone
-          value: 141319
-        - requestId: AAPL-US
-          fsymId: MH33D6-R
-          metric: SALES
-          date: 2012-09-28 00:00:00+00:00
-          label: iPad
-          value: 19222
-    BatchStatusExecutingResponse:
-      description: Batch Status Executing Response
-      value:
-        data:
-          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-          status: executing
-          startTime: '2021-06-29T18:34:52.168Z'
-          endTime: null
-          error: null
-    BatchStatusQueuedResponse:
-      description: Batch Status Queued Response
-      value:
-        data:
-          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
-          status: queued
-          startTime: '2021-06-29T18:34:52.168Z'
-          endTime: null
-          error: null
     notFound:
       summary: Not Found
       description: The requested item was not found.
@@ -138,23 +111,96 @@ components:
           updateType: Final
           currency: USD
           value: 31.6769162623484
+    resultOfSingleIdwithSingleMetricItemSegment:
+      summary: Result of Single Company single metric item [SALES] details.
+      description: 'Results of the AAPL-US sales data for the period 2012-01-01 to 2014-01-01 on an annual basis with the preliminary data Values.
+
+        '
+      value:
+        data:
+        - requestId: AAPL-US
+          fsymId: MH33D6-R
+          metric: SALES
+          date: 2012-09-28 00:00:00+00:00
+          label: iPhone
+          value: 141319
+        - requestId: AAPL-US
+          fsymId: MH33D6-R
+          metric: SALES
+          date: 2012-09-28 00:00:00+00:00
+          label: iPad
+          value: 19222
+    BatchStatusExecutingResponse:
+      description: Batch Status Executing Response
+      value:
+        data:
+          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+          status: executing
+          startTime: '2021-06-29T18:34:52.168Z'
+          endTime: null
+          error: null
+    BatchStatusQueuedResponse:
+      description: Batch Status Queued Response
+      value:
+        data:
+          id: 2df43e85-ea0f-45c6-bf4a-2baf4d1eaa3c
+          status: queued
+          startTime: '2021-06-29T18:34:52.168Z'
+          endTime: null
+          error: null
   schemas:
-    errorResponse:
+    BatchStatus:
+      title: Batch Status
       type: object
-      title: Error Response
-      description: Error Default Response
       properties:
-        errors:
-          type: array
-          description: An array containing errors
-          items:
-            $ref: '#/components/schemas/errorObject'
-    BatchStatusResponse:
-      title: Batch Status Response
+        id:
+          type: string
+          format: uuid
+          description: the id of batch request.
+        startTime:
+          type: string
+          format: date-time
+          description: Time when the batch request is started. This is in Eastern Time Zone. The date-time format is expressed as [YYYY-MM-DD]T[HH:MM:SSS], following ISO 8601.
+        endTime:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time when the batch request is ended. This is in Eastern Time Zone. The date-time format is expressed as [YYYY-MM-DD]T[HH:MM:SSS], following ISO 8601.
+        status:
+          type: string
+          enum:
+          - queued
+          - executing
+          - created
+          - failed
+        error:
+          $ref: '#/components/schemas/batchErrorObject'
+    batchResult:
+      title: Batch Data
+      oneOf:
+      - $ref: '#/components/schemas/fundamental'
+      - $ref: '#/components/schemas/segment'
+    fundamentalValue:
+      description: 'Value of the data metric requested. Note that the type of value is ''object'', and depending on the data metric requested, the value could be an object representation of a string or double. '
+      oneOf:
+      - type:
+        - string
+        - 'null'
+      - type:
+        - number
+        - 'null'
+        format: double
+    batchResultResponse:
+      title: Batch Data Response
       type: object
+      required:
+      - data
       properties:
         data:
-          $ref: '#/components/schemas/BatchStatus'
+          type: array
+          items:
+            $ref: '#/components/schemas/batchResult'
     segmentValue:
       description: 'Value of the data metric requested. Note that the type of value is ''object'', and depending on the data metric requested, the value could be an object representation of a string or double. '
       oneOf:
@@ -165,6 +211,29 @@ components:
         - number
         - 'null'
         format: double
+    BatchStatusResponse:
+      title: Batch Status Response
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/BatchStatus'
+    batchErrorObject:
+      type:
+      - object
+      - 'null'
+      properties:
+        id:
+          description: A UUID for this particular occurrence of the problem.
+          type: string
+          example: adb01824-252f-4420-b0c6-35a1e3507ef5
+        code:
+          description: status
+          type: string
+          example: GenericError
+        title:
+          description: The plain text error message
+          type: string
+          example: Validation Error
     errorObject:
       type: object
       properties:
@@ -286,33 +355,16 @@ components:
           example: USD
         value:
           $ref: '#/components/schemas/fundamentalValue'
-    BatchStatus:
-      title: Batch Status
+    errorResponse:
       type: object
+      title: Error Response
+      description: Error Default Response
       properties:
-        id:
-          type: string
-          format: uuid
-          description: the id of batch request.
-        startTime:
-          type: string
-          format: date-time
-          description: Time when the batch request is started. This is in Eastern Time Zone. The date-time format is expressed as [YYYY-MM-DD]T[HH:MM:SSS], following ISO 8601.
-        endTime:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          description: Time when the batch request is ended. This is in Eastern Time Zone. The date-time format is expressed as [YYYY-MM-DD]T[HH:MM:SSS], following ISO 8601.
-        status:
-          type: string
-          enum:
-          - queued
-          - executing
-          - created
-          - failed
-        error:
-          $ref: '#/components/schemas/batchErrorObject'
+        errors:
+          type: array
+          description: An array containing errors
+          items:
+            $ref: '#/components/schemas/errorObject'
     segment:
       title: Segment Object
       type: object
@@ -350,48 +402,6 @@ components:
           example: '2022-09-30'
         value:
           $ref: '#/components/schemas/segmentValue'
-    batchResult:
-      title: Batch Data
-      oneOf:
-      - $ref: '#/components/schemas/fundamental'
-      - $ref: '#/components/schemas/segment'
-    batchErrorObject:
-      type:
-      - object
-      - 'null'
-      properties:
-        id:
-          description: A UUID for this particular occurrence of the problem.
-          type: string
-          example: adb01824-252f-4420-b0c6-35a1e3507ef5
-        code:
-          description: status
-          type: string
-          example: GenericError
-        title:
-          description: The plain text error message
-          type: string
-          example: Validation Error
-    fundamentalValue:
-      description: 'Value of the data metric requested. Note that the type of value is ''object'', and depending on the data metric requested, the value could be an object representation of a string or double. '
-      oneOf:
-      - type:
-        - string
-        - 'null'
-      - type:
-        - number
-        - 'null'
-        format: double
-    batchResultResponse:
-      title: Batch Data Response
-      type: object
-      required:
-      - data
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/batchResult'
   parameters:
     batchId:
       name: id
@@ -402,16 +412,6 @@ components:
         format: uuid
       required: true
       allowEmptyValue: false
-  responses:
-    '404':
-      description: Resource not found.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/errorResponse'
-          examples:
-            Batch Request Not Found:
-              $ref: '#/components/examples/notFound'
   securitySchemes:
     FactSetOAuth2:
       type: oauth2

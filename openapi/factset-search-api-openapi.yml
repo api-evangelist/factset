@@ -103,23 +103,50 @@ paths:
       - $ref: '#/components/parameters/accession'
 components:
   parameters:
-    timezone:
+    formType:
       schema:
         type: string
-        default: America/New_York
       in: query
-      name: timezone
-      description: Time zone to return story dates and times. Time zones are in POSIX format and automatically adjusted for daylight savings.
-    sort:
+      description: Restricts the search to include any form types of EDGAR.
+      name: formType
+      required: false
+    primaryId:
       schema:
         type: string
         enum:
-        - asc
-        - desc
-        default: desc
+        - Y
+        - N
+        default: N
       in: query
-      name: sort
-      description: "Sorting the results in chronological (oldest to newest) or reverse chronological (newest to oldest) order. \n\n *  desc - sorting results in reverse chronological (descending) order. This is the default value if\n    the sort parameter isn’t used in the query\n    \n *   asc - sorting results in chronological (ascending) order. If a start date is not specified, the\n   API has a 10-year searching limitation. "
+      name: primaryId
+      description: 'Type of identifier search
+
+        * Y - Returns headlines of stories that have the search ID(s) as the Primary ID.
+
+        * N - Returns headlines of stories that mention/refer to the ID(s).'
+    endDate:
+      schema:
+        type: string
+        default: '0'
+      in: query
+      name: endDate
+      example: '20231223'
+      description: End Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
+    categories:
+      schema:
+        type: array
+        items:
+          type: string
+      in: query
+      name: categories
+      example:
+      - CN:US
+      - LN:EN
+      description: 'Code for categories to include.  This is a comma-separated list. Use the ```/helper``` endpoint to get the list of available categories.
+
+
+        Default = All categories.'
+      explode: false
     ids:
       schema:
         type: array
@@ -146,13 +173,31 @@ components:
       description: A unique identifier given to each EDGAR filings document. e.g. accession=0001013237-21-000069&sources=EDG
       name: accession
       required: false
-    formType:
+    timezone:
       schema:
         type: string
+        default: America/New_York
       in: query
-      description: Restricts the search to include any form types of EDGAR.
-      name: formType
-      required: false
+      name: timezone
+      description: Time zone to return story dates and times. Time zones are in POSIX format and automatically adjusted for daylight savings.
+    startDate:
+      schema:
+        type: string
+        default: '0'
+      in: query
+      name: startDate
+      example: '20231222'
+      description: Start Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
+    sort:
+      schema:
+        type: string
+        enum:
+        - asc
+        - desc
+        default: desc
+      in: query
+      name: sort
+      description: "Sorting the results in chronological (oldest to newest) or reverse chronological (newest to oldest) order. \n\n *  desc - sorting results in reverse chronological (descending) order. This is the default value if\n    the sort parameter isn’t used in the query\n    \n *   asc - sorting results in chronological (ascending) order. If a start date is not specified, the\n   API has a 10-year searching limitation. "
     paginationLimit:
       schema:
         type: integer
@@ -162,20 +207,6 @@ components:
       name: paginationLimit
       example: 20
       description: Number of results to return per page.
-    primaryId:
-      schema:
-        type: string
-        enum:
-        - Y
-        - N
-        default: N
-      in: query
-      name: primaryId
-      description: 'Type of identifier search
-
-        * Y - Returns headlines of stories that have the search ID(s) as the Primary ID.
-
-        * N - Returns headlines of stories that mention/refer to the ID(s).'
     searchText:
       schema:
         type: string
@@ -183,37 +214,6 @@ components:
       name: searchText
       example: Updates
       description: Restricts the search to include only document stories which include the text searched.
-    categories:
-      schema:
-        type: array
-        items:
-          type: string
-      in: query
-      name: categories
-      example:
-      - CN:US
-      - LN:EN
-      description: 'Code for categories to include.  This is a comma-separated list. Use the ```/helper``` endpoint to get the list of available categories.
-
-
-        Default = All categories.'
-      explode: false
-    endDate:
-      schema:
-        type: string
-        default: '0'
-      in: query
-      name: endDate
-      example: '20231223'
-      description: End Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
-    startDate:
-      schema:
-        type: string
-        default: '0'
-      in: query
-      name: startDate
-      example: '20231222'
-      description: Start Date. Format is YYYYMMDD or relative +/- days (0,-1,etc).
     paginationOffset:
       schema:
         type: integer
@@ -241,20 +241,36 @@ components:
           - FFR
       description: Code for document source to include.  This is a comma-separated list. Use the ```/helper``` endpoint to get the list of available sources.
       explode: false
+  examples:
+    ErrorDetails:
+      summary: Sample Error Response
+      value:
+        errors:
+        - code: Bad Request
+          title: parameterError:['_paginationLimit'] is not a valid parameter(s).
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    AuthorizationErrorDetails:
+      summary: Sample Error Response
+      value:
+        errors:
+        - code: Forbidden
+          title: USERNAME-SERIAL does not have permission.
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    ServerErrorDetails:
+      summary: Sample Error Response
+      value:
+        errors:
+        - code: Internal Server Error
+          title: An unexpected error happened.
+          id: 7af3d86ca5954503b9244f2620fcf5eb
+    AuthErrorDetails:
+      summary: Sample Error Response
+      value:
+        errors:
+        - code: Not Authenticated
+          title: Unauthenticated USERNAME-SERIAL.
+          id: fd5a51ff-02cf-48ec-b9b1-913d64863b0
   schemas:
-    ErrorExample:
-      type: object
-      description: Error Example Object
-      properties:
-        code:
-          description: Specifies the error code.
-          type: string
-        title:
-          description: ' Specifies the error message.'
-          type: string
-        id:
-          description: Specifies the id.
-          type: string
     ErrorResponse:
       type: object
       description: Error Response Object
@@ -300,6 +316,19 @@ components:
         documentId:
           type: string
           description: Unique identifier for a document.
+    ErrorExample:
+      type: object
+      description: Error Example Object
+      properties:
+        code:
+          description: Specifies the error code.
+          type: string
+        title:
+          description: ' Specifies the error message.'
+          type: string
+        id:
+          description: Specifies the id.
+          type: string
     InvestmentResearch:
       description: Filings Response Object
       type: object
@@ -320,35 +349,6 @@ components:
                 isEstimatedTotal:
                   type: boolean
                   description: This field acts as a flag for the exact count of results and is defaulted to false as the API should always return the exact count of results.
-  examples:
-    AuthErrorDetails:
-      summary: Sample Error Response
-      value:
-        errors:
-        - code: Not Authenticated
-          title: Unauthenticated USERNAME-SERIAL.
-          id: fd5a51ff-02cf-48ec-b9b1-913d64863b0
-    ServerErrorDetails:
-      summary: Sample Error Response
-      value:
-        errors:
-        - code: Internal Server Error
-          title: An unexpected error happened.
-          id: 7af3d86ca5954503b9244f2620fcf5eb
-    AuthorizationErrorDetails:
-      summary: Sample Error Response
-      value:
-        errors:
-        - code: Forbidden
-          title: USERNAME-SERIAL does not have permission.
-          id: 7af3d86ca5954503b9244f2620fcf5eb
-    ErrorDetails:
-      summary: Sample Error Response
-      value:
-        errors:
-        - code: Bad Request
-          title: parameterError:['_paginationLimit'] is not a valid parameter(s).
-          id: 7af3d86ca5954503b9244f2620fcf5eb
   securitySchemes:
     FactSetOAuth2:
       type: oauth2

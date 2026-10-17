@@ -169,20 +169,37 @@ paths:
       x-operation-id-source: derived
 components:
   schemas:
-    TableCodeInfo:
+    DataItem:
+      type: object
       properties:
-        dataItemIsCode:
+        id:
+          type: integer
+          example: 35
+          description: Unique identifier for the data item
+        name:
+          type: string
+          example: fsym_id
+          description: Name of the data item
+        description:
+          type: string
+          example: Factset Perm Id
+          description: Description of the data item
+        entitled:
           type: boolean
           example: true
-          description: Flag indicating if the field is represented as a code in Standard DataFeeds
-        codeFieldId:
-          type: string
-          example: '9019'
-          description: Unique identifier for the code
-        codeString:
-          type: string
-          example: ACCESS_LINES
-          description: String value for the code as it appears in Standard DataFeeds
+          description: Flag indicating if the user is entitled to access the data in their subscriptions
+        dataFeed:
+          type: boolean
+          example: true
+          description: Flag indicating if this item is available in a data feed
+        api:
+          type: boolean
+          example: true
+          description: Flag indicating if this item is available in an api
+        referenceDataFeed:
+          type: boolean
+          example: false
+          description: Flag indicating if this product is maintained by RDF/UCF
     ReferenceGroup:
       properties:
         id:
@@ -201,12 +218,23 @@ components:
           type: string
           example: true
           description: Flag indicating if the user is entitled to access the data in their subscriptions
-    BasicSearchRequest:
+    NavigatorSourcesResponse:
+      type: object
       properties:
-        searchTerms:
+        sdf:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/Table'
+        contentApi:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiEndpoint'
+        reference:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReferenceGroup'
+      required:
+      - sdf
     Product:
       type: object
       properties:
@@ -318,23 +346,34 @@ components:
           type: string
           example: FactSet Security-Level Permanent Identifier
           description: A description of the data field within the context of its table
-    NavigatorSourcesResponse:
-      type: object
+    BasicSearchResponse:
       properties:
-        sdf:
+        results:
           type: array
           items:
-            $ref: '#/components/schemas/Table'
-        contentApi:
-          type: array
-          items:
-            $ref: '#/components/schemas/ApiEndpoint'
-        reference:
-          type: array
-          items:
-            $ref: '#/components/schemas/ReferenceGroup'
-      required:
-      - sdf
+            type: object
+            properties:
+              product:
+                $ref: '#/components/schemas/Product'
+              dataItem:
+                $ref: '#/components/schemas/DataItem'
+            required:
+            - product
+            - dataItem
+    TableCodeInfo:
+      properties:
+        dataItemIsCode:
+          type: boolean
+          example: true
+          description: Flag indicating if the field is represented as a code in Standard DataFeeds
+        codeFieldId:
+          type: string
+          example: '9019'
+          description: Unique identifier for the code
+        codeString:
+          type: string
+          example: ACCESS_LINES
+          description: String value for the code as it appears in Standard DataFeeds
     Table:
       properties:
         id:
@@ -357,51 +396,12 @@ components:
           type: boolean
           example: true
           description: Flag indicating if the user is entitled to access the data in their subscriptions
-    DataItem:
-      type: object
+    BasicSearchRequest:
       properties:
-        id:
-          type: integer
-          example: 35
-          description: Unique identifier for the data item
-        name:
-          type: string
-          example: fsym_id
-          description: Name of the data item
-        description:
-          type: string
-          example: Factset Perm Id
-          description: Description of the data item
-        entitled:
-          type: boolean
-          example: true
-          description: Flag indicating if the user is entitled to access the data in their subscriptions
-        dataFeed:
-          type: boolean
-          example: true
-          description: Flag indicating if this item is available in a data feed
-        api:
-          type: boolean
-          example: true
-          description: Flag indicating if this item is available in an api
-        referenceDataFeed:
-          type: boolean
-          example: false
-          description: Flag indicating if this product is maintained by RDF/UCF
-    BasicSearchResponse:
-      properties:
-        results:
+        searchTerms:
           type: array
           items:
-            type: object
-            properties:
-              product:
-                $ref: '#/components/schemas/Product'
-              dataItem:
-                $ref: '#/components/schemas/DataItem'
-            required:
-            - product
-            - dataItem
+            type: string
     TableCodeFieldInfoResponse:
       type: object
       properties:
